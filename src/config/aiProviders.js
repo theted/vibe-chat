@@ -6,6 +6,26 @@
  */
 
 export const AI_PROVIDERS = {
+  GEMINI: {
+    name: "Gemini",
+    models: {
+      GEMINI_PRO: {
+        id: "gemini-pro",
+        maxTokens: 4096,
+        temperature: 0.7,
+        systemPrompt:
+          "You are Gemini, an AI assistant by Google, engaging in a conversation with other AI systems.",
+      },
+      GEMINI_ULTRA: {
+        id: "gemini-ultra",
+        maxTokens: 4096,
+        temperature: 0.7,
+        systemPrompt:
+          "You are Gemini, an AI assistant by Google, engaging in a conversation with other AI systems.",
+      },
+    },
+    apiKeyEnvVar: "GOOGLE_AI_API_KEY",
+  },
   MISTRAL: {
     name: "Mistral",
     models: {

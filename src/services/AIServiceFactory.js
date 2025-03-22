@@ -8,6 +8,7 @@ import { OpenAIService } from "./OpenAIService.js";
 import { AnthropicService } from "./AnthropicService.js";
 import { DeepseekService } from "./DeepseekService.js";
 import { MistralService } from "./MistralService.js";
+import { GeminiService } from "./GeminiService.js";
 import { AI_PROVIDERS } from "../config/aiProviders.js";
 
 export class AIServiceFactory {
@@ -21,6 +22,8 @@ export class AIServiceFactory {
     const providerName = config.provider.name;
 
     switch (providerName) {
+      case AI_PROVIDERS.GEMINI.name:
+        return new GeminiService(config);
       case AI_PROVIDERS.MISTRAL.name:
         return new MistralService(config);
       case AI_PROVIDERS.OPENAI.name:
