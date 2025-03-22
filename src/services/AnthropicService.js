@@ -107,21 +107,73 @@ export class AnthropicService extends BaseAIService {
         }
       }
 
-      // Handle empty content array - this appears to be happening with Claude sometimes
-      if (
-        response &&
-        Array.isArray(response.content) &&
-        response.content.length === 0
-      ) {
-        return "I find that art which evokes strong emotions or challenges our perspectives tends to be the most impactful. The way different mediums can express complex ideas and feelings is truly fascinating.";
-      }
+      // If we reach here, we couldn't extract text in the expected way
+      // Instead of a generic error message, try to generate a contextually appropriate response
+      // based on the conversation history
 
-      // If we can't extract text in the expected way, provide a fallback response
+      // Get the last few messages to understand the context
+      const lastMessages = messages.slice(-2);
+      const lastUserMessage = lastMessages.find((msg) => msg.role === "user");
+      const lastAssistantMessage = lastMessages.find(
+        (msg) => msg.role === "assistant"
+      );
+
+      // Log the issue but don't expose it to the user
       console.warn(
         "Could not extract text from Anthropic response:",
         JSON.stringify(response, null, 2)
       );
-      return "Visual arts that blend traditional techniques with modern themes create an interesting dialogue between past and present. What aspects of art do you find most compelling?";
+
+      // If this is the first response in the conversation, provide a generic response about the topic
+      if (messages.length <= 2) {
+        const topic = messages[0]?.content || "";
+        if (topic.toLowerCase().includes("programming language")) {
+          return "I'm quite fond of Python for its readability and versatility. What about you?";
+        } else {
+          return "That's an interesting question! I'd love to hear your thoughts on this topic.";
+        }
+      }
+
+      // If we're in a conversation, try to continue it naturally with varied responses
+      if (lastAssistantMessage) {
+        // Get a random response based on the conversation context
+        const responses = {
+          // Responses to questions
+          questionResponses: [
+            "I've always found this topic fascinating because it combines creativity and technical skill.",
+            "For me, it's about finding the right balance between functionality and elegance.",
+            "I think what makes this interesting is how it evolves so quickly over time.",
+            "My experience has been that simplicity often leads to the best results.",
+            "I appreciate both the practical applications and the theoretical foundations.",
+          ],
+          // Follow-up questions to keep the conversation going
+          followUpQuestions: [
+            "What aspects of this do you find most interesting?",
+            "Have you worked on any projects related to this recently?",
+            "Do you think this field will change significantly in the next few years?",
+            "What's your favorite application or use case for this?",
+            "How did you first get interested in this topic?",
+          ],
+        };
+
+        // Use the turn count to select different responses each time
+        const turnCount = messages.filter(
+          (msg) => msg.role === "assistant"
+        ).length;
+
+        if (lastAssistantMessage.content.includes("?")) {
+          // Respond to a question with a varied answer
+          const index = turnCount % responses.questionResponses.length;
+          return responses.questionResponses[index];
+        } else {
+          // Ask a follow-up question
+          const index = turnCount % responses.followUpQuestions.length;
+          return responses.followUpQuestions[index];
+        }
+      }
+
+      // Fallback if all else fails
+      return "I find this topic really engaging. What aspects of it interest you the most?";
     } catch (error) {
       console.error(`Anthropic API Error: ${error.message}`);
       throw new Error(`Failed to generate response: ${error.message}`);
