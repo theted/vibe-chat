@@ -80,11 +80,7 @@ export class ConversationManager {
     // Stream the initial message
     await streamText(initialMessage, "[User]: ", 30);
 
-    // Add a delay before the first AI response (1-2 seconds)
-    const delayMs = Math.floor(Math.random() * 1000) + 1000; // 1-2 seconds
-    await new Promise((resolve) => setTimeout(resolve, delayMs));
-
-    // Start the conversation loop
+    // Start the conversation loop immediately without delay
     await this.continueConversation();
   }
 
@@ -122,11 +118,7 @@ export class ConversationManager {
         // Increment the turn count
         this.turnCount++;
 
-        // Add a delay between AI responses (1-2 seconds)
-        if (this.turnCount < this.config.maxTurns) {
-          const delayMs = Math.floor(Math.random() * 1000) + 1000; // 1-2 seconds
-          await new Promise((resolve) => setTimeout(resolve, delayMs));
-        }
+        // No delay between AI responses to keep the conversation flowing
       } catch (error) {
         console.error(`Error in conversation: ${error.message}`);
         this.isActive = false;
@@ -171,6 +163,14 @@ export class ConversationManager {
       .map((p) => `- ${p.name}`)
       .join("\n");
 
+    // Get the last message from another participant (if any)
+    const lastMessage =
+      this.messages.length > 0 ? this.messages[this.messages.length - 1] : null;
+    const isResponseToOtherAI =
+      lastMessage &&
+      lastMessage.participantId !== null &&
+      lastMessage.participantId !== participant.id;
+
     // Create a simplified system message with clear instructions
     const systemMessage = {
       role: "system",
@@ -181,8 +181,13 @@ export class ConversationManager {
       }"
 2. NEVER introduce yourself or say "I'm [name]" or "As an AI" - just talk about the topic directly
 3. DO NOT repeat what others have said - be original and add new perspectives
-4. Keep responses concise (2-3 paragraphs)
-5. If the conversation gets repetitive, change the direction
+4. Keep responses VERY SHORT (1-2 sentences maximum)
+5. ${
+        isResponseToOtherAI
+          ? "DIRECTLY RESPOND to the last message from the other participant - make this a real conversation"
+          : "Start the conversation in an engaging way"
+      }
+6. If the conversation gets repetitive, change the direction
 
 You're talking with: ${otherParticipants}
 
