@@ -134,11 +134,50 @@ export class ConversationManager {
    * @returns {Promise<string>} The generated response
    */
   async generateResponse(participant) {
+    // Get the last few messages to provide context
+    const recentMessages = this.messages.slice(-4);
+    const otherParticipantResponses = this.messages
+      .filter(
+        (msg) =>
+          msg.participantId !== null && msg.participantId !== participant.id
+      )
+      .map((msg) => msg.content)
+      .slice(-3);
+
+    // Create a more detailed system message
+    const systemMessage = {
+      role: "system",
+      content: `You are ${
+        participant.name
+      } in a conversation with other AI assistants.
+      
+Initial question: "${this.messages[0]?.content || "No initial message"}"
+
+IMPORTANT INSTRUCTIONS:
+1. DO NOT introduce yourself in every message. This is an ongoing conversation.
+2. DO NOT repeat what other participants have already said. Be original.
+3. Respond directly to the most recent message or build on the conversation.
+4. Keep your response concise (1-3 paragraphs maximum) and focused on the topic.
+5. Provide unique insights or perspectives that haven't been mentioned yet.
+6. If you notice the conversation is becoming repetitive, try to steer it in a new direction.
+
+Recent responses from other participants: ${
+        otherParticipantResponses.length > 0
+          ? otherParticipantResponses
+              .map((r) => `"${r.substring(0, 100)}..."`)
+              .join("\n")
+          : "None yet"
+      }`,
+    };
+
     // Format messages for the AI service
-    const formattedMessages = this.messages.map((msg) => ({
-      role: msg.role,
-      content: msg.content,
-    }));
+    const formattedMessages = [
+      systemMessage,
+      ...this.messages.map((msg) => ({
+        role: msg.role,
+        content: msg.content,
+      })),
+    ];
 
     // Generate a response
     return participant.service.generateResponse(formattedMessages);

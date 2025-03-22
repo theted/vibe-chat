@@ -50,18 +50,11 @@ export class OpenAIService extends BaseAIService {
     }
 
     try {
+      // Format messages for OpenAI API
       const formattedMessages = messages.map((msg) => ({
         role: msg.role,
         content: msg.content,
       }));
-
-      // Add system message if not present
-      if (!formattedMessages.some((msg) => msg.role === "system")) {
-        formattedMessages.unshift({
-          role: "system",
-          content: this.config.model.systemPrompt,
-        });
-      }
 
       const response = await this.client.chat.completions.create({
         model: this.config.model.id,

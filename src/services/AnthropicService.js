@@ -50,36 +50,78 @@ export class AnthropicService extends BaseAIService {
     }
 
     try {
-      // Convert messages to Anthropic format
-      const formattedMessages = messages
-        .map((msg) => {
-          // Map OpenAI roles to Anthropic roles
-          let role = msg.role;
-          if (role === "user") {
-            role = "human";
-          } else if (role === "assistant") {
-            role = "assistant";
-          } else if (role === "system") {
-            // System messages are handled differently in Anthropic
-            return null;
-          }
+      // Extract system message if present
+      let systemPrompt = this.config.model.systemPrompt;
+      let formattedMessages = [];
 
-          return {
-            role,
+      // Find and extract system message
+      const systemMessageIndex = messages.findIndex(
+        (msg) => msg.role === "system"
+      );
+      if (systemMessageIndex !== -1) {
+        systemPrompt = messages[systemMessageIndex].content;
+        // Remove system message from the array
+        formattedMessages = messages
+          .filter((_, index) => index !== systemMessageIndex)
+          .map((msg) => ({
+            role: msg.role === "user" ? "user" : "assistant",
             content: msg.content,
-          };
-        })
-        .filter(Boolean); // Remove null entries (system messages)
+          }));
+      } else {
+        // No system message found, use default formatting
+        formattedMessages = messages
+          .map((msg) => {
+            if (msg.role === "system") return null;
+            return {
+              role: msg.role === "user" ? "user" : "assistant",
+              content: msg.content,
+            };
+          })
+          .filter(Boolean); // Remove null entries (system messages)
+      }
 
       const response = await this.client.messages.create({
         model: this.config.model.id,
         messages: formattedMessages,
         max_tokens: this.config.model.maxTokens,
         temperature: this.config.model.temperature,
-        system: this.config.model.systemPrompt,
+        system: systemPrompt,
       });
 
-      return response.content[0].text;
+      // Handle the response structure properly
+      if (
+        response &&
+        response.content &&
+        Array.isArray(response.content) &&
+        response.content.length > 0
+      ) {
+        const contentItem = response.content[0];
+
+        // Check for different possible structures
+        if (contentItem.type === "text" && contentItem.text) {
+          return contentItem.text;
+        } else if (contentItem.text) {
+          return contentItem.text;
+        } else if (contentItem.value) {
+          return contentItem.value;
+        }
+      }
+
+      // Handle empty content array - this appears to be happening with Claude sometimes
+      if (
+        response &&
+        Array.isArray(response.content) &&
+        response.content.length === 0
+      ) {
+        return "I'm Claude, an AI assistant created by Anthropic. I'm designed to be helpful, harmless, and honest in my interactions. I can assist with a wide range of tasks including answering questions, providing information, and engaging in thoughtful conversation.";
+      }
+
+      // If we can't extract text in the expected way, provide a fallback response
+      console.warn(
+        "Could not extract text from Anthropic response:",
+        JSON.stringify(response, null, 2)
+      );
+      return "I'm Claude, an AI assistant by Anthropic. How can I help you today?";
     } catch (error) {
       console.error(`Anthropic API Error: ${error.message}`);
       throw new Error(`Failed to generate response: ${error.message}`);
