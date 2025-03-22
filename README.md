@@ -8,7 +8,7 @@ This project creates a platform where different AI models (like OpenAI's GPT-4 a
 
 ## Features
 
-- Support for multiple AI providers (OpenAI, Anthropic)
+- Support for multiple AI providers (OpenAI, Anthropic, Mistral, Deepseek)
 - Extensible architecture for adding new AI providers
 - Automatic conversation management
 - Conversation logging and history
@@ -33,6 +33,8 @@ ai-chat/
     │   ├── AIServiceFactory.js    # Factory for creating AI services
     │   ├── AnthropicService.js    # Anthropic API service
     │   ├── BaseAIService.js       # Base class for AI services
+    │   ├── DeepseekService.js     # Deepseek API service
+    │   ├── MistralService.js      # Mistral AI API service
     │   └── OpenAIService.js       # OpenAI API service
     └── utils/            # Utility functions
         └── logger.js     # Logging utilities
@@ -41,7 +43,7 @@ ai-chat/
 ## Prerequisites
 
 - Node.js (v18 or higher)
-- API keys for the AI providers you want to use (OpenAI, Anthropic)
+- API keys for the AI providers you want to use (OpenAI, Anthropic, Mistral, Deepseek)
 
 ## Setup
 

@@ -73,11 +73,16 @@ function parseArgs() {
 
 /**
  * Get provider and model configuration based on provider name
- * @param {string} providerName - Provider name (e.g., "openai", "anthropic", "deepseek")
+ * @param {string} providerName - Provider name (e.g., "openai", "anthropic", "mistral", "deepseek")
  * @returns {Object} Provider and model configuration
  */
 function getProviderConfig(providerName) {
   switch (providerName.toLowerCase()) {
+    case "mistral":
+      return {
+        provider: AI_PROVIDERS.MISTRAL,
+        model: AI_PROVIDERS.MISTRAL.models.MISTRAL_LARGE,
+      };
     case "openai":
       return {
         provider: AI_PROVIDERS.OPENAI,

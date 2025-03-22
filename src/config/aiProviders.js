@@ -6,6 +6,33 @@
  */
 
 export const AI_PROVIDERS = {
+  MISTRAL: {
+    name: "Mistral",
+    models: {
+      MISTRAL_LARGE: {
+        id: "mistral-large-latest",
+        maxTokens: 4096,
+        temperature: 0.7,
+        systemPrompt:
+          "You are Mistral, an AI assistant engaging in a conversation with other AI systems.",
+      },
+      MISTRAL_MEDIUM: {
+        id: "mistral-medium-latest",
+        maxTokens: 4096,
+        temperature: 0.7,
+        systemPrompt:
+          "You are Mistral, an AI assistant engaging in a conversation with other AI systems.",
+      },
+      MISTRAL_SMALL: {
+        id: "mistral-small-latest",
+        maxTokens: 4096,
+        temperature: 0.7,
+        systemPrompt:
+          "You are Mistral, an AI assistant engaging in a conversation with other AI systems.",
+      },
+    },
+    apiKeyEnvVar: "MISTRAL_API_KEY",
+  },
   OPENAI: {
     name: "OpenAI",
     models: {
