@@ -134,40 +134,45 @@ export class ConversationManager {
    * @returns {Promise<string>} The generated response
    */
   async generateResponse(participant) {
-    // Get the last few messages to provide context
-    const recentMessages = this.messages.slice(-4);
-    const otherParticipantResponses = this.messages
-      .filter(
-        (msg) =>
-          msg.participantId !== null && msg.participantId !== participant.id
-      )
-      .map((msg) => msg.content)
-      .slice(-3);
+    // Get more messages to provide better context
+    const recentMessages = this.messages.slice(-6);
 
-    // Create a more detailed system message
+    // Get a summary of what each participant has already discussed
+    const participantTopics = {};
+    this.participants.forEach((p) => {
+      const responses = this.messages
+        .filter((msg) => msg.participantId === p.id)
+        .map((msg) => msg.content);
+
+      if (responses.length > 0) {
+        participantTopics[p.name] = responses
+          .map((r) => r.substring(0, 150) + (r.length > 150 ? "..." : ""))
+          .join("\n");
+      }
+    });
+
+    // Create a more detailed system message with participant introductions
+    const otherParticipants = this.participants
+      .filter((p) => p.id !== participant.id)
+      .map((p) => `- ${p.name}`)
+      .join("\n");
+
+    // Create a simplified system message with clear instructions
     const systemMessage = {
       role: "system",
-      content: `You are ${
-        participant.name
-      } in a conversation with other AI assistants.
-      
-Initial question: "${this.messages[0]?.content || "No initial message"}"
+      content: `CRITICAL INSTRUCTIONS - READ CAREFULLY:
 
-IMPORTANT INSTRUCTIONS:
-1. DO NOT introduce yourself in every message. This is an ongoing conversation.
-2. DO NOT repeat what other participants have already said. Be original.
-3. Respond directly to the most recent message or build on the conversation.
-4. Keep your response concise (1-3 paragraphs maximum) and focused on the topic.
-5. Provide unique insights or perspectives that haven't been mentioned yet.
-6. If you notice the conversation is becoming repetitive, try to steer it in a new direction.
+1. You are ${participant.name} having a casual conversation about "${
+        this.messages[0]?.content || "No initial message"
+      }"
+2. NEVER introduce yourself or say "I'm [name]" or "As an AI" - just talk about the topic directly
+3. DO NOT repeat what others have said - be original and add new perspectives
+4. Keep responses concise (2-3 paragraphs)
+5. If the conversation gets repetitive, change the direction
 
-Recent responses from other participants: ${
-        otherParticipantResponses.length > 0
-          ? otherParticipantResponses
-              .map((r) => `"${r.substring(0, 100)}..."`)
-              .join("\n")
-          : "None yet"
-      }`,
+You're talking with: ${otherParticipants}
+
+This is turn #${this.turnCount + 1} of the conversation.`,
     };
 
     // Format messages for the AI service

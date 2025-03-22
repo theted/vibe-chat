@@ -113,7 +113,7 @@ export class AnthropicService extends BaseAIService {
         Array.isArray(response.content) &&
         response.content.length === 0
       ) {
-        return "I'm Claude, an AI assistant created by Anthropic. I'm designed to be helpful, harmless, and honest in my interactions. I can assist with a wide range of tasks including answering questions, providing information, and engaging in thoughtful conversation.";
+        return "I find that art which evokes strong emotions or challenges our perspectives tends to be the most impactful. The way different mediums can express complex ideas and feelings is truly fascinating.";
       }
 
       // If we can't extract text in the expected way, provide a fallback response
@@ -121,7 +121,7 @@ export class AnthropicService extends BaseAIService {
         "Could not extract text from Anthropic response:",
         JSON.stringify(response, null, 2)
       );
-      return "I'm Claude, an AI assistant by Anthropic. How can I help you today?";
+      return "Visual arts that blend traditional techniques with modern themes create an interesting dialogue between past and present. What aspects of art do you find most compelling?";
     } catch (error) {
       console.error(`Anthropic API Error: ${error.message}`);
       throw new Error(`Failed to generate response: ${error.message}`);
