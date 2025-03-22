@@ -65,7 +65,21 @@ export class DeepseekService extends BaseAIService {
         temperature: this.config.model.temperature,
       });
 
-      return response.choices[0].message.content;
+      // Get the response content
+      let content = response.choices[0].message.content;
+
+      // Limit response length to a maximum of 500 characters
+      // This prevents extremely long responses that can overwhelm the conversation
+      const MAX_RESPONSE_LENGTH = 500;
+      if (content.length > MAX_RESPONSE_LENGTH) {
+        // Truncate the content and add an ellipsis
+        content = content.substring(0, MAX_RESPONSE_LENGTH) + "...";
+        console.log(
+          `Deepseek response truncated from ${response.choices[0].message.content.length} to ${MAX_RESPONSE_LENGTH} characters`
+        );
+      }
+
+      return content;
     } catch (error) {
       console.error(`Deepseek API Error: ${error.message}`);
       throw new Error(`Failed to generate response: ${error.message}`);

@@ -9,6 +9,7 @@ import {
   getRandomAIConfig,
   DEFAULT_CONVERSATION_CONFIG,
 } from "../config/aiProviders.js";
+import { streamText } from "../utils/streamText.js";
 
 export class ConversationManager {
   constructor(config = {}) {
@@ -71,12 +72,17 @@ export class ConversationManager {
       participantId: null, // External user
     });
 
-    console.log(
-      `Starting conversation with initial message: "${initialMessage}"`
-    );
+    console.log("Starting conversation...");
     console.log(
       `Participants: ${this.participants.map((p) => p.name).join(", ")}`
     );
+
+    // Stream the initial message
+    await streamText(initialMessage, "[User]: ", 30);
+
+    // Add a delay before the first AI response (1-2 seconds)
+    const delayMs = Math.floor(Math.random() * 1000) + 1000; // 1-2 seconds
+    await new Promise((resolve) => setTimeout(resolve, delayMs));
 
     // Start the conversation loop
     await this.continueConversation();
@@ -110,9 +116,17 @@ export class ConversationManager {
           participantId: participant.id,
         });
 
-        console.log(`[${participant.name}]: ${response}`);
+        // Stream the response with a delay between words
+        await streamText(response, `[${participant.name}]: `, 30);
 
+        // Increment the turn count
         this.turnCount++;
+
+        // Add a delay between AI responses (1-2 seconds)
+        if (this.turnCount < this.config.maxTurns) {
+          const delayMs = Math.floor(Math.random() * 1000) + 1000; // 1-2 seconds
+          await new Promise((resolve) => setTimeout(resolve, delayMs));
+        }
       } catch (error) {
         console.error(`Error in conversation: ${error.message}`);
         this.isActive = false;
