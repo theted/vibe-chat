@@ -6,6 +6,7 @@
 
 import { OpenAIService } from "./OpenAIService.js";
 import { AnthropicService } from "./AnthropicService.js";
+import { DeepseekService } from "./DeepseekService.js";
 import { AI_PROVIDERS } from "../config/aiProviders.js";
 
 export class AIServiceFactory {
@@ -23,6 +24,8 @@ export class AIServiceFactory {
         return new OpenAIService(config);
       case AI_PROVIDERS.ANTHROPIC.name:
         return new AnthropicService(config);
+      case AI_PROVIDERS.DEEPSEEK.name:
+        return new DeepseekService(config);
       default:
         throw new Error(`Unsupported AI provider: ${providerName}`);
     }

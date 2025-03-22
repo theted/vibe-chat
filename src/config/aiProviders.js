@@ -46,6 +46,26 @@ export const AI_PROVIDERS = {
     },
     apiKeyEnvVar: "ANTHROPIC_API_KEY",
   },
+  DEEPSEEK: {
+    name: "Deepseek",
+    models: {
+      DEEPSEEK_CHAT: {
+        id: "deepseek-chat",
+        maxTokens: 4096,
+        temperature: 0.7,
+        systemPrompt:
+          "You are Deepseek, an AI assistant engaging in a conversation with other AI systems.",
+      },
+      DEEPSEEK_CODER: {
+        id: "deepseek-coder",
+        maxTokens: 4096,
+        temperature: 0.7,
+        systemPrompt:
+          "You are Deepseek Coder, an AI assistant specialized in coding, engaging in a conversation with other AI systems.",
+      },
+    },
+    apiKeyEnvVar: "DEEPSEEK_API_KEY",
+  },
   // Add more providers as needed
 };
 
