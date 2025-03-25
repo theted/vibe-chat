@@ -54,27 +54,6 @@ export class GeminiService extends BaseAIService {
     }
 
     try {
-      // Format messages for Gemini API
-      // Gemini uses a different format than OpenAI/Anthropic
-      const formattedMessages = [];
-
-      for (let i = 0; i < messages.length; i++) {
-        const msg = messages[i];
-
-        // Skip the system message as Gemini handles it differently
-        if (msg.role === "system") {
-          continue;
-        }
-
-        // Map the roles to Gemini format
-        const role = msg.role === "assistant" ? "model" : "user";
-
-        formattedMessages.push({
-          role: role,
-          parts: [{ text: msg.content }],
-        });
-      }
-
       // Create a chat session
       const chat = this.model.startChat({
         generationConfig: {
@@ -83,14 +62,57 @@ export class GeminiService extends BaseAIService {
         },
       });
 
-      // Send the messages to the chat session
-      const result = await chat.sendMessageStream(formattedMessages);
+      // Process the conversation history
+      // We need to send messages one by one to build the conversation
+      let lastUserMessage = null;
+
+      // Find messages in pairs (user followed by assistant)
+      for (let i = 0; i < messages.length; i++) {
+        const msg = messages[i];
+
+        // Skip system messages as they're handled separately
+        if (msg.role === "system") {
+          continue;
+        }
+
+        if (msg.role === "user") {
+          // Store user message to send later
+          lastUserMessage = msg.content;
+        } else if (msg.role === "assistant" && lastUserMessage) {
+          // If we have a user message followed by an assistant message,
+          // send them to build the conversation history
+          await chat.sendMessage(lastUserMessage);
+          await chat.sendMessage(msg.content);
+          lastUserMessage = null;
+        }
+      }
+
+      // Send the final user message and get the response
+      let result;
+      if (lastUserMessage) {
+        result = await chat.sendMessageStream(lastUserMessage);
+      } else {
+        // If there's no final user message, use the last message in the array
+        const lastMessage = messages[messages.length - 1];
+        if (lastMessage.role !== "system") {
+          result = await chat.sendMessageStream(lastMessage.content);
+        } else {
+          throw new Error("No valid message to send to Gemini");
+        }
+      }
 
       // Collect the response
       let responseText = "";
       for await (const chunk of result.stream) {
         const chunkText = chunk.text();
         responseText += chunkText;
+      }
+
+      // Limit response length to approximately 2-3 sentences
+      const sentences = responseText.split(/[.!?]+\s+/);
+      if (sentences.length > 3) {
+        // Take first 3 sentences and add appropriate punctuation
+        responseText = sentences.slice(0, 3).join(". ") + ".";
       }
 
       return responseText;

@@ -10,18 +10,18 @@ export const AI_PROVIDERS = {
     name: "Gemini",
     models: {
       GEMINI_PRO: {
-        id: "gemini-pro",
-        maxTokens: 4096,
+        id: "gemini-1.5-pro",
+        maxTokens: 300, // Reduced to limit response length
         temperature: 0.7,
         systemPrompt:
-          "You are Gemini, an AI assistant by Google, engaging in a conversation with other AI systems.",
+          "You are Gemini, an AI assistant by Google, engaging in a conversation with other AI systems. Keep your responses concise (2-3 sentences).",
       },
-      GEMINI_ULTRA: {
-        id: "gemini-ultra",
-        maxTokens: 4096,
+      GEMINI_FLASH: {
+        id: "gemini-1.5-flash",
+        maxTokens: 300, // Reduced to limit response length
         temperature: 0.7,
         systemPrompt:
-          "You are Gemini, an AI assistant by Google, engaging in a conversation with other AI systems.",
+          "You are Gemini, an AI assistant by Google, engaging in a conversation with other AI systems. Keep your responses concise (2-3 sentences).",
       },
     },
     apiKeyEnvVar: "GOOGLE_AI_API_KEY",
@@ -81,14 +81,14 @@ export const AI_PROVIDERS = {
         maxTokens: 4096,
         temperature: 0.7,
         systemPrompt:
-          "You are Claude, an AI assistant by Anthropic, engaging in a conversation with other AI systems.",
+          "You are Claude, an AI assistant by Anthropic, engaging in a conversation with other AI systems. Provide thoughtful responses that are 3-5 sentences long.",
       },
       CLAUDE3_SONNET: {
         id: "claude-3-sonnet-20240229",
         maxTokens: 4096,
         temperature: 0.7,
         systemPrompt:
-          "You are Claude, an AI assistant by Anthropic, engaging in a conversation with other AI systems.",
+          "You are Claude, an AI assistant by Anthropic, engaging in a conversation with other AI systems. Provide thoughtful responses that are 3-5 sentences long.",
       },
     },
     apiKeyEnvVar: "ANTHROPIC_API_KEY",

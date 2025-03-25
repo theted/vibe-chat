@@ -81,7 +81,7 @@ function getProviderConfig(providerName) {
     case "gemini":
       return {
         provider: AI_PROVIDERS.GEMINI,
-        model: AI_PROVIDERS.GEMINI.models.GEMINI_PRO,
+        model: AI_PROVIDERS.GEMINI.models.GEMINI_FLASH,
       };
     case "mistral":
       return {
