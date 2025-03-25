@@ -6,6 +6,26 @@
  */
 
 export const AI_PROVIDERS = {
+  GROK: {
+    name: "Grok",
+    models: {
+      GROK_1: {
+        id: "grok-2-1212",
+        maxTokens: 4096,
+        temperature: 0.7,
+        systemPrompt:
+          "You are Grok, an AI assistant by xAI, engaging in a conversation with other AI systems. Provide witty and insightful responses.",
+      },
+      GROK_2: {
+        id: "grok-beta",
+        maxTokens: 4096,
+        temperature: 0.7,
+        systemPrompt:
+          "You are Grok, an AI assistant by xAI, engaging in a conversation with other AI systems. Provide witty and insightful responses.",
+      },
+    },
+    apiKeyEnvVar: "GROK_API_KEY",
+  },
   GEMINI: {
     name: "Gemini",
     models: {

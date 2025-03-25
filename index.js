@@ -103,6 +103,11 @@ function getProviderConfig(providerName) {
         provider: AI_PROVIDERS.DEEPSEEK,
         model: AI_PROVIDERS.DEEPSEEK.models.DEEPSEEK_CHAT,
       };
+    case "grok":
+      return {
+        provider: AI_PROVIDERS.GROK,
+        model: AI_PROVIDERS.GROK.models.GROK_1,
+      };
     default:
       throw new Error(`Unsupported provider: ${providerName}`);
   }
