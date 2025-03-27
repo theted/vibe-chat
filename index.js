@@ -13,9 +13,44 @@ import {
   formatConversation,
 } from "./src/utils/logger.js";
 import { AI_PROVIDERS } from "./src/config/aiProviders.js";
+import { streamText } from "./src/utils/streamText.js";
 
 // Load environment variables
 dotenv.config();
+
+/**
+ * Display usage instructions and supported models
+ */
+function displayUsage() {
+  console.log("AI Chat - Usage Instructions");
+  console.log("\nCommand formats:");
+  console.log("  npm start [provider1[:MODEL1]] [provider2[:MODEL2]] [topic]");
+  console.log(
+    "  npm start [provider1[:MODEL1]] [provider2[:MODEL2]] ... [providerN[:MODELN]] [prompt]"
+  );
+  console.log("\nExamples:");
+  console.log('  npm start openai anthropic "Discuss the future of AI"');
+  console.log(
+    '  npm start mistral:MISTRAL_SMALL grok:GROK_2 "What is love? Be sarcastic!"'
+  );
+  console.log(
+    '  npm start mistral:MISTRAL_SMALL grok:GROK_2 openai:GPT4 "What is love if sarcastic as possible"'
+  );
+
+  console.log("\nSupported providers and models:");
+
+  Object.entries(AI_PROVIDERS).forEach(([providerKey, provider]) => {
+    console.log(`\n${provider.name} (${providerKey.toLowerCase()}):`);
+    Object.entries(provider.models).forEach(([modelKey, model]) => {
+      console.log(`  - ${modelKey} (${model.id})`);
+    });
+  });
+
+  console.log("\nEnvironment variables required in .env file:");
+  Object.values(AI_PROVIDERS).forEach((provider) => {
+    console.log(`  - ${provider.apiKeyEnvVar} (for ${provider.name})`);
+  });
+}
 
 /**
  * Parse command line arguments
@@ -24,31 +59,63 @@ dotenv.config();
 function parseArgs() {
   const args = process.argv.slice(2);
   const result = {
-    participant1: "openai",
-    participant2: "anthropic",
+    participants: [],
     topic:
       "Discuss the future of artificial intelligence and its potential impact on society.",
     maxTurns: 10,
+    singlePromptMode: false,
   };
+
+  // If no arguments provided, display usage and return null
+  if (args.length === 0) {
+    displayUsage();
+    return null;
+  }
 
   // Check if we're running through npm start
   // In that case, arguments will be positional
   if (args.length > 0 && !args[0].startsWith("--")) {
-    // If we have at least 3 arguments, assume they are participant1, participant2, and topic
-    if (args.length >= 3) {
-      result.participant1 = args[0].toLowerCase();
-      result.participant2 = args[1].toLowerCase();
+    // Find the index of the first argument that doesn't look like a participant
+    let topicIndex = args.findIndex(
+      (arg) => !arg.includes(":") && !arg.match(/^[a-zA-Z0-9]+$/)
+    );
+
+    // If no topic found, assume all args are participants
+    if (topicIndex === -1) {
+      topicIndex = args.length;
+      // Default topic if none provided
+      result.topic = "Discuss this topic in an interesting way.";
+    } else {
       // Combine the rest of the arguments as the topic
-      result.topic = args.slice(2).join(" ");
+      result.topic = args.slice(topicIndex).join(" ");
     }
-    // If we have 2 arguments, assume they are participant1 and participant2
-    else if (args.length === 2) {
-      result.participant1 = args[0].toLowerCase();
-      result.participant2 = args[1].toLowerCase();
+
+    // Parse participants
+    for (let i = 0; i < topicIndex; i++) {
+      const participant = {};
+      parseParticipant(args[i], participant);
+      result.participants.push(participant);
     }
-    // If we have 1 argument, assume it's the topic
-    else if (args.length === 1) {
-      result.topic = args[0];
+
+    // If we have more than 2 participants, assume single prompt mode
+    if (result.participants.length > 2) {
+      result.singlePromptMode = true;
+    }
+    // If we have exactly 2 participants, use conversation mode
+    else if (result.participants.length === 2) {
+      result.singlePromptMode = false;
+    }
+    // If we have 1 participant, use single prompt mode
+    else if (result.participants.length === 1) {
+      result.singlePromptMode = true;
+    }
+    // If we have 0 participants, use defaults
+    else {
+      result.participants = [
+        { provider: "openai", model: null },
+        { provider: "anthropic", model: null },
+      ];
+      result.singlePromptMode = false;
     }
   }
   // Otherwise, parse named arguments
@@ -56,15 +123,25 @@ function parseArgs() {
     for (let i = 0; i < args.length; i++) {
       const arg = args[i];
 
-      if (arg === "--participant1" && i + 1 < args.length) {
-        result.participant1 = args[++i].toLowerCase();
-      } else if (arg === "--participant2" && i + 1 < args.length) {
-        result.participant2 = args[++i].toLowerCase();
+      if (arg === "--participant" && i + 1 < args.length) {
+        const participant = {};
+        parseParticipant(args[++i], participant);
+        result.participants.push(participant);
       } else if (arg === "--topic" && i + 1 < args.length) {
         result.topic = args[++i];
       } else if (arg === "--maxTurns" && i + 1 < args.length) {
         result.maxTurns = parseInt(args[++i], 10) || 10;
+      } else if (arg === "--singlePromptMode") {
+        result.singlePromptMode = true;
       }
+    }
+
+    // If no participants specified, use defaults
+    if (result.participants.length === 0) {
+      result.participants = [
+        { provider: "openai", model: null },
+        { provider: "anthropic", model: null },
+      ];
     }
   }
 
@@ -72,45 +149,77 @@ function parseArgs() {
 }
 
 /**
- * Get provider and model configuration based on provider name
- * @param {string} providerName - Provider name (e.g., "openai", "anthropic", "mistral", "gemini", "deepseek")
+ * Parse participant string which may include model specification
+ * @param {string} participantStr - Participant string (e.g., "mistral:MISTRAL_SMALL")
+ * @param {Object} participant - Participant object to update
+ */
+function parseParticipant(participantStr, participant) {
+  const parts = participantStr.split(":");
+  participant.provider = parts[0].toLowerCase();
+  participant.model = parts.length > 1 ? parts[1].toUpperCase() : null;
+}
+
+/**
+ * Get provider and model configuration based on provider name and optional model name
+ * @param {Object} participantConfig - Participant configuration with provider and model
  * @returns {Object} Provider and model configuration
  */
-function getProviderConfig(providerName) {
+function getProviderConfig(participantConfig) {
+  const providerName = participantConfig.provider;
+  const modelName = participantConfig.model;
+
+  let provider;
+
   switch (providerName.toLowerCase()) {
     case "gemini":
-      return {
-        provider: AI_PROVIDERS.GEMINI,
-        model: AI_PROVIDERS.GEMINI.models.GEMINI_FLASH,
-      };
+      provider = AI_PROVIDERS.GEMINI;
+      break;
     case "mistral":
-      return {
-        provider: AI_PROVIDERS.MISTRAL,
-        model: AI_PROVIDERS.MISTRAL.models.MISTRAL_LARGE,
-      };
+      provider = AI_PROVIDERS.MISTRAL;
+      break;
     case "openai":
-      return {
-        provider: AI_PROVIDERS.OPENAI,
-        model: AI_PROVIDERS.OPENAI.models.GPT4,
-      };
+      provider = AI_PROVIDERS.OPENAI;
+      break;
     case "anthropic":
-      return {
-        provider: AI_PROVIDERS.ANTHROPIC,
-        model: AI_PROVIDERS.ANTHROPIC.models.CLAUDE3,
-      };
+      provider = AI_PROVIDERS.ANTHROPIC;
+      break;
     case "deepseek":
-      return {
-        provider: AI_PROVIDERS.DEEPSEEK,
-        model: AI_PROVIDERS.DEEPSEEK.models.DEEPSEEK_CHAT,
-      };
+      provider = AI_PROVIDERS.DEEPSEEK;
+      break;
     case "grok":
-      return {
-        provider: AI_PROVIDERS.GROK,
-        model: AI_PROVIDERS.GROK.models.GROK_1,
-      };
+      provider = AI_PROVIDERS.GROK;
+      break;
     default:
       throw new Error(`Unsupported provider: ${providerName}`);
   }
+
+  // If a specific model was requested, use it
+  if (modelName) {
+    if (!provider.models[modelName]) {
+      throw new Error(
+        `Model ${modelName} not found for provider ${provider.name}`
+      );
+    }
+    return {
+      provider,
+      model: provider.models[modelName],
+    };
+  }
+
+  // Otherwise use the default model for the provider
+  const defaultModels = {
+    [AI_PROVIDERS.GEMINI.name]: AI_PROVIDERS.GEMINI.models.GEMINI_FLASH,
+    [AI_PROVIDERS.MISTRAL.name]: AI_PROVIDERS.MISTRAL.models.MISTRAL_LARGE,
+    [AI_PROVIDERS.OPENAI.name]: AI_PROVIDERS.OPENAI.models.GPT4,
+    [AI_PROVIDERS.ANTHROPIC.name]: AI_PROVIDERS.ANTHROPIC.models.CLAUDE3,
+    [AI_PROVIDERS.DEEPSEEK.name]: AI_PROVIDERS.DEEPSEEK.models.DEEPSEEK_CHAT,
+    [AI_PROVIDERS.GROK.name]: AI_PROVIDERS.GROK.models.GROK_1,
+  };
+
+  return {
+    provider,
+    model: defaultModels[provider.name],
+  };
 }
 
 /**
@@ -120,7 +229,11 @@ function getProviderConfig(providerName) {
 async function startAIConversation(options) {
   console.log("Starting AI conversation...");
   console.log(`Topic: "${options.topic}"`);
-  console.log(`Participants: ${options.participant1}, ${options.participant2}`);
+
+  const participantStrings = options.participants.map(
+    (p) => `${p.provider}${p.model ? `:${p.model}` : ""}`
+  );
+  console.log(`Participants: ${participantStrings.join(", ")}`);
   console.log(`Max turns: ${options.maxTurns}`);
 
   // Create a conversation manager
@@ -130,15 +243,16 @@ async function startAIConversation(options) {
 
   // Add participants
   try {
-    // Add first participant
-    const participant1Config = getProviderConfig(options.participant1);
-    conversationManager.addParticipant(participant1Config);
-    console.log(`Added participant 1: ${participant1Config.provider.name}`);
-
-    // Add second participant
-    const participant2Config = getProviderConfig(options.participant2);
-    conversationManager.addParticipant(participant2Config);
-    console.log(`Added participant 2: ${participant2Config.provider.name}`);
+    // Add all participants
+    for (let i = 0; i < options.participants.length; i++) {
+      const participantConfig = getProviderConfig(options.participants[i]);
+      conversationManager.addParticipant(participantConfig);
+      console.log(
+        `Added participant ${i + 1}: ${participantConfig.provider.name} (${
+          participantConfig.model.id
+        })`
+      );
+    }
 
     // Start the conversation
     await conversationManager.startConversation(options.topic);
@@ -162,11 +276,97 @@ async function startAIConversation(options) {
 }
 
 /**
+ * Get responses from multiple AI services for a single prompt
+ * @param {Object} options - Options including participants and prompt
+ */
+async function getSinglePromptResponses(options) {
+  console.log("Getting responses from multiple AI services...");
+  console.log(`Prompt: "${options.topic}"`);
+
+  const participantStrings = options.participants.map(
+    (p) => `${p.provider}${p.model ? `:${p.model}` : ""}`
+  );
+  console.log(`Models: ${participantStrings.join(", ")}`);
+
+  try {
+    const responses = [];
+
+    // Create a simple message array with just the user's prompt
+    const messages = [
+      {
+        role: "user",
+        content: options.topic,
+      },
+    ];
+
+    // Get responses from each AI service
+    for (const participant of options.participants) {
+      const config = getProviderConfig(participant);
+      const service = AIServiceFactory.createService(config);
+
+      console.log(
+        `\nGetting response from ${config.provider.name} (${config.model.id})...`
+      );
+
+      try {
+        // Stream the prompt
+        await streamText(options.topic, "[Prompt]: ", 30);
+
+        // Generate response
+        const response = await service.generateResponse(messages);
+
+        // Stream the response
+        await streamText(
+          response,
+          `[${config.provider.name} (${config.model.id})]: `,
+          30
+        );
+
+        // Add to responses
+        responses.push({
+          from: `${config.provider.name} (${config.model.id})`,
+          content: response,
+          timestamp: new Date().toISOString(),
+        });
+      } catch (error) {
+        console.error(`Error with ${config.provider.name}: ${error.message}`);
+        responses.push({
+          from: `${config.provider.name} (${config.model.id})`,
+          content: `Error: ${error.message}`,
+          timestamp: new Date().toISOString(),
+        });
+      }
+    }
+
+    // Display summary
+    console.log("\nResponses Summary:");
+    console.log(formatConversation(responses));
+
+    // Save responses to file
+    saveConversationToFile(responses, options.topic);
+  } catch (error) {
+    console.error(`Error: ${error.message}`);
+    if (error.message.includes("API key")) {
+      console.log(
+        "\nMake sure you've set up your .env file with the required API keys."
+      );
+      console.log("See .env.example for the required variables.");
+    }
+  }
+}
+
+/**
  * Main function
  */
 async function main() {
   const options = parseArgs();
-  await startAIConversation(options);
+  if (options) {
+    if (options.singlePromptMode) {
+      await getSinglePromptResponses(options);
+    } else {
+      await startAIConversation(options);
+    }
+  }
 }
 
 // Run the main function
