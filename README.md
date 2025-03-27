@@ -1,4 +1,4 @@
-# AI Chat
+# Vibe Chat
 
 A Node.js project that allows different AI systems to communicate with each other without external control.
 
@@ -17,7 +17,7 @@ This project creates a platform where different AI models (like OpenAI's GPT-4 a
 ## Project Structure
 
 ```
-ai-chat/
+vibe-chat/
 ├── .env.example          # Example environment variables
 ├── .gitignore            # Git ignore file
 ├── index.js              # Main entry point
@@ -52,8 +52,8 @@ ai-chat/
 1. Clone the repository:
 
    ```
-   git clone https://github.com/yourusername/ai-chat.git
-   cd ai-chat
+   git clone https://github.com/theted/vibe-chat.git
+   cd vibe-chat
    ```
 
 2. Install dependencies:
