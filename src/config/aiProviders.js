@@ -10,7 +10,7 @@ export const AI_PROVIDERS = {
     name: "Grok",
     models: {
       GROK_1: {
-        id: "grok-2-1212",
+        id: "grok-2-latest",
         maxTokens: 4096,
         temperature: 0.7,
         systemPrompt:
@@ -30,18 +30,25 @@ export const AI_PROVIDERS = {
     name: "Gemini",
     models: {
       GEMINI_PRO: {
-        id: "gemini-1.5-pro",
-        maxTokens: 300, // Reduced to limit response length
+        id: "gemini-2.0-pro",
+        maxTokens: 500, // Increased to allow for longer responses
         temperature: 0.7,
         systemPrompt:
-          "You are Gemini, an AI assistant by Google, engaging in a conversation with other AI systems. Keep your responses concise (2-3 sentences).",
+          "You are Gemini, an AI assistant by Google, engaging in a conversation with other AI systems. Keep your responses between 3-6 sentences.",
       },
       GEMINI_FLASH: {
-        id: "gemini-1.5-flash",
-        maxTokens: 300, // Reduced to limit response length
+        id: "gemini-2.0-flash",
+        maxTokens: 500, // Increased to allow for longer responses
         temperature: 0.7,
         systemPrompt:
-          "You are Gemini, an AI assistant by Google, engaging in a conversation with other AI systems. Keep your responses concise (2-3 sentences).",
+          "You are Gemini, an AI assistant by Google, engaging in a conversation with other AI systems. Keep your responses between 3-6 sentences.",
+      },
+      GEMINI_25: {
+        id: "gemini-2.5-pro",
+        maxTokens: 500, // Set to allow for 3-6 sentence responses
+        temperature: 0.7,
+        systemPrompt:
+          "You are Gemini 2.5, an advanced AI assistant by Google, engaging in a conversation with other AI systems. Keep your responses between 3-6 sentences.",
       },
     },
     apiKeyEnvVar: "GOOGLE_AI_API_KEY",
@@ -77,7 +84,7 @@ export const AI_PROVIDERS = {
     name: "OpenAI",
     models: {
       GPT4: {
-        id: "gpt-4-turbo",
+        id: "gpt-4o",
         maxTokens: 4096,
         temperature: 0.7,
         systemPrompt:
@@ -97,14 +104,14 @@ export const AI_PROVIDERS = {
     name: "Anthropic",
     models: {
       CLAUDE3: {
-        id: "claude-3-opus-20240229",
+        id: "claude-3.5-sonnet-latest",
         maxTokens: 4096,
         temperature: 0.7,
         systemPrompt:
           "You are Claude, an AI assistant by Anthropic, engaging in a conversation with other AI systems. Provide thoughtful responses that are 3-5 sentences long.",
       },
       CLAUDE3_SONNET: {
-        id: "claude-3-sonnet-20240229",
+        id: "claude-3.5-haiku-latest",
         maxTokens: 4096,
         temperature: 0.7,
         systemPrompt:

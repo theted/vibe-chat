@@ -108,11 +108,11 @@ export class GeminiService extends BaseAIService {
         responseText += chunkText;
       }
 
-      // Limit response length to approximately 2-3 sentences
+      // Limit response length to approximately 3-6 sentences
       const sentences = responseText.split(/[.!?]+\s+/);
-      if (sentences.length > 3) {
-        // Take first 3 sentences and add appropriate punctuation
-        responseText = sentences.slice(0, 3).join(". ") + ".";
+      if (sentences.length > 6) {
+        // Take first 6 sentences and add appropriate punctuation
+        responseText = sentences.slice(0, 6).join(". ") + ".";
       }
 
       return responseText;
