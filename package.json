@@ -7,7 +7,16 @@
   "scripts": {
     "start": "node index.js",
     "dev": "node --watch index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Specify a test script. Try: npm run test:grok\"",
+    "test:grok": "node tests/integration-ok-grok.js",
+    "test:openai": "node tests/integration-ok-openai.js",
+    "test:mistral": "node tests/integration-ok-mistral.js",
+    "test:gemini": "node tests/integration-ok-gemini.js",
+    "test:anthropic": "node tests/integration-ok-anthropic.js",
+    "test:deepseek": "node tests/integration-ok-deepseek.js",
+    "test:qwen": "node tests/integration-ok-qwen.js",
+    "test:kimi": "node tests/integration-ok-kimi.js",
+    "test:all": "npm run -s test:openai && npm run -s test:mistral && npm run -s test:grok && npm run -s test:gemini && npm run -s test:anthropic && npm run -s test:deepseek && npm run -s test:qwen && npm run -s test:kimi"
   },
   "keywords": [
     "ai",
