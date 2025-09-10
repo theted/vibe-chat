@@ -1,14 +1,14 @@
 # Vibe Chat
 
-A Node.js project that allows different AI systems to communicate with each other without external control.
+A Node.js project that lets different AI systems talk to each other, and also query single models directly.
 
 ## Overview
 
-This project creates a platform where different AI models (like OpenAI's GPT-4 and Anthropic's Claude) can engage in conversations with each other. The system manages the conversation flow, handles API interactions, and logs the conversation history.
+This project creates a platform where different AI models (OpenAI, Anthropic, Mistral, Gemini, Deepseek, Grok, Qwen, Kimi) can engage in conversations with each other or respond to a single prompt. The system manages the conversation flow, handles API interactions, and logs the conversation history.
 
 ## Features
 
-- Support for multiple AI providers (OpenAI, Anthropic, Mistral, Gemini, Deepseek, Grok)
+- Support for multiple AI providers (OpenAI, Anthropic, Mistral, Gemini, Deepseek, Grok, Qwen, Kimi)
 - Extensible architecture for adding new AI providers
 - Automatic conversation management
 - Conversation logging and history
@@ -26,7 +26,7 @@ vibe-chat/
 ├── conversations/        # Saved conversation logs
 └── src/
     ├── config/           # Configuration files
-    │   └── aiProviders.js # AI provider configurations
+    │   └── aiProviders.js # AI provider + model configurations
     ├── conversation/     # Conversation management
     │   └── ConversationManager.js # Manages AI conversations
     ├── services/         # AI service implementations
@@ -37,15 +37,21 @@ vibe-chat/
     │   ├── GeminiService.js       # Google Gemini API service
     │   ├── GrokService.js         # Grok AI API service
     │   ├── MistralService.js      # Mistral AI API service
-    │   └── OpenAIService.js       # OpenAI API service
+    │   ├── OpenAIService.js       # OpenAI API service
+    │   ├── QwenService.js         # Qwen (DashScope/OpenAI-compatible) service
+    │   └── KimiService.js         # Kimi (Moonshot/OpenAI-compatible) service
     └── utils/            # Utility functions
-        └── logger.js     # Logging utilities
+        ├── logger.js     # Logging utilities
+        └── streamText.js # Console streaming helper
+└── tests/                # Integration tests (OK-check per provider)
+    ├── integration-ok-*.js
+    └── ...
 ```
 
 ## Prerequisites
 
 - Node.js (v18 or higher)
-- API keys for the AI providers you want to use (OpenAI, Anthropic, Mistral, Gemini, Deepseek, Grok)
+- API keys for the AI providers you want to use
 
 ## Setup
 
@@ -70,29 +76,99 @@ vibe-chat/
 
 ## Usage
 
-### Basic Usage
+There are two modes: multi-model conversation and single-prompt responses.
 
-Run the application with a default conversation starter:
+### Syntax
+- Command formats:
+  - `npm start [provider[:MODEL]] [provider[:MODEL]] [topic] [maxTurns]`
+  - `npm start [provider[:MODEL]] ... [providerN[:MODEL]] [prompt] [maxTurns]`
 
-```
-npm start
-```
+- Provider aliases:
+  - `gemeni` (typo) and `google` resolve to `gemini`
+  - `moonshot` resolves to `kimi`
 
-### Custom Conversation Starter
+### Examples
+- Two-model conversation (default models):
+  - `npm start openai anthropic "Discuss the future of AI"`
+- Custom models + multi-party conversation:
+  - `npm start mistral:MISTRAL_SMALL grok:GROK_2 openai:GPT4 "Be sarcastic about love"`
+- Gemini + Grok single-prompt responses:
+  - `npm start gemeni grok "What is your favorite book?"`
+- Set max turns:
+  - `npm start grok gemini "Nature of consciousness?" 8`
 
-Provide your own initial message:
+## Supported Providers and Models
 
-```
-npm start "What are the ethical implications of AI development?"
-```
+Current defaults and IDs (see `src/config/aiProviders.js`):
 
-### Specify Maximum Turns
+- OpenAI
+  - `GPT4` → `gpt-4o`
+  - `GPT35` → `gpt-3.5-turbo`
+- Anthropic
+  - `CLAUDE3` → `claude-3.5-sonnet-latest`
+  - `CLAUDE3_SONNET` → `claude-3.5-haiku-latest`
+- Mistral
+  - `MISTRAL_LARGE` → `mistral-large-latest`
+  - `MISTRAL_MEDIUM` → `mistral-medium-latest`
+  - `MISTRAL_SMALL` → `mistral-small-latest`
+- Gemini
+  - `GEMINI_PRO` → `gemini-2.0-pro`
+  - `GEMINI_FLASH` → `gemini-2.0-flash`
+  - `GEMINI_25` (default) → `gemini-2.5-pro`
+- Deepseek
+  - `DEEPSEEK_CHAT` → `deepseek-chat`
+  - `DEEPSEEK_CODER` → `deepseek-coder`
+- Grok
+  - `GROK_1` (default) → `grok-2-latest`
+  - `GROK_2` → `grok-beta`
+- Qwen
+  - `QWEN3_TURBO` (default) → `qwen3-turbo`
+- Kimi (Moonshot)
+  - `KIMI_8K` (default) → `moonshot-v1-8k`
+  - `KIMI_32K` → `moonshot-v1-32k`
+  - `KIMI_128K` → `moonshot-v1-128k`
 
-Control the length of the conversation:
+Note: Providers may change available model IDs over time. Update `aiProviders.js` accordingly.
 
-```
-npm start "Discuss climate change solutions" 15
-```
+## Environment Variables
+
+Define these in `.env` (see `.env.example`):
+
+- Required (by provider you use):
+  - `OPENAI_API_KEY`
+  - `ANTHROPIC_API_KEY`
+  - `GOOGLE_AI_API_KEY` (Gemini)
+  - `MISTRAL_API_KEY`
+  - `DEEPSEEK_API_KEY`
+  - `GROK_API_KEY`
+  - `QWEN_API_KEY`
+  - `KIMI_API_KEY`
+
+- Optional (OpenAI-compatible base URLs):
+  - `QWEN_BASE_URL` (e.g. `https://dashscope.aliyuncs.com/compatible-mode/v1`)
+  - `KIMI_BASE_URL` (default `https://api.moonshot.cn/v1`)
+
+- Conversation config:
+  - `LOG_LEVEL` (default `info`)
+  - `MAX_CONVERSATION_TURNS` (default `10`)
+  - `CONVERSATION_TIMEOUT_MS` (default `300000`)
+
+## Tests
+
+Integration tests verify each provider returns exactly `OK` to a strict instruction. They skip automatically if the API key for that provider is not set.
+
+- Run all: `npm run test:all`
+- Run per provider:
+  - `npm run test:openai`
+  - `npm run test:anthropic`
+  - `npm run test:mistral`
+  - `npm run test:gemini`
+  - `npm run test:deepseek`
+  - `npm run test:grok`
+  - `npm run test:qwen`
+  - `npm run test:kimi`
+
+Note: Running tests calls external APIs and requires working network access and valid keys.
 
 ## Extending the Project
 
