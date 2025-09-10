@@ -7,6 +7,7 @@
 import { BaseAIService } from "./BaseAIService.js";
 import dotenv from "dotenv";
 import fetch from "node-fetch";
+import { mapToOpenAIChat } from "../utils/aiFormatting.js";
 
 dotenv.config();
 
@@ -51,10 +52,7 @@ export class GrokService extends BaseAIService {
 
     try {
       // Format messages for Grok API
-      const formattedMessages = messages.map((message) => ({
-        role: message.role,
-        content: message.content,
-      }));
+      const formattedMessages = mapToOpenAIChat(messages);
 
       // Add system message if not present
       if (!formattedMessages.some((msg) => msg.role === "system")) {

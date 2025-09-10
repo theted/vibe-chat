@@ -5,6 +5,7 @@
  */
 
 import { BaseAIService } from "./BaseAIService.js";
+import { mapToOpenAIChat } from "../utils/aiFormatting.js";
 import OpenAI from "openai";
 import dotenv from "dotenv";
 
@@ -51,10 +52,7 @@ export class OpenAIService extends BaseAIService {
 
     try {
       // Format messages for OpenAI API
-      const formattedMessages = messages.map((msg) => ({
-        role: msg.role,
-        content: msg.content,
-      }));
+      const formattedMessages = mapToOpenAIChat(messages);
 
       const response = await this.client.chat.completions.create({
         model: this.config.model.id,

@@ -11,6 +11,58 @@ import {
 } from "../config/aiProviders.js";
 import { streamText } from "../utils/streamText.js";
 
+// Helper builders extracted for readability
+const summarizeParticipantTopics = (messages, participants) => {
+  const topics = {};
+  participants.forEach((p) => {
+    const responses = messages
+      .filter((msg) => msg.participantId === p.id)
+      .map((msg) => msg.content);
+    if (responses.length > 0) {
+      topics[p.name] = responses
+        .map((r) => r.substring(0, 150) + (r.length > 150 ? "..." : ""))
+        .join("\n");
+    }
+  });
+  return topics;
+};
+
+const buildSystemMessage = (cm, participant) => {
+  const { messages, config, turnCount, participants } = cm;
+  const otherParticipants = participants
+    .filter((p) => p.id !== participant.id)
+    .map((p) => `- ${p.name}`)
+    .join("\n");
+  const lastMessage = messages.length > 0 ? messages[messages.length - 1] : null;
+  const isResponseToOtherAI =
+    lastMessage && lastMessage.participantId !== null && lastMessage.participantId !== participant.id;
+  const isLastTurn = turnCount >= config.maxTurns - 2;
+
+  return {
+    role: "system",
+    content: `CRITICAL INSTRUCTIONS - READ CAREFULLY:
+
+1. You are ${participant.name} having a casual conversation about "${
+      messages[0]?.content || "No initial message"
+    }"
+2. NEVER introduce yourself or say "I'm [name]" or "As an AI" - just talk about the topic directly
+3. DO NOT repeat what others have said - be original and add new perspectives
+4. Keep responses VERY SHORT (1-2 sentences maximum)
+5. ${
+      isLastTurn
+        ? "IMPORTANT: This is the FINAL message of the conversation. IGNORE THE TOPIC AND JUST SAY GOODBYE to the other participant in a friendly way. Do not continue the discussion."
+        : isResponseToOtherAI
+        ? "DIRECTLY RESPOND to the last message from the other participant - make this a real conversation"
+        : "Start the conversation in an engaging way"
+    }
+6. If the conversation gets repetitive, change the direction
+
+You're talking with: ${otherParticipants}
+
+This is turn #${turnCount + 1} of ${config.maxTurns}${isLastTurn ? " (FINAL TURN)" : ""}`,
+  };
+};
+
 export class ConversationManager {
   constructor(config = {}) {
     this.config = { ...DEFAULT_CONVERSATION_CONFIG, ...config };
@@ -140,77 +192,14 @@ export class ConversationManager {
    * @returns {Promise<string>} The generated response
    */
   async generateResponse(participant) {
-    // Get more messages to provide better context
-    const recentMessages = this.messages.slice(-6);
+    // Optionally summarize prior topics (reserved for future prompts)
+    summarizeParticipantTopics(this.messages, this.participants);
 
-    // Get a summary of what each participant has already discussed
-    const participantTopics = {};
-    this.participants.forEach((p) => {
-      const responses = this.messages
-        .filter((msg) => msg.participantId === p.id)
-        .map((msg) => msg.content);
-
-      if (responses.length > 0) {
-        participantTopics[p.name] = responses
-          .map((r) => r.substring(0, 150) + (r.length > 150 ? "..." : ""))
-          .join("\n");
-      }
-    });
-
-    // Create a more detailed system message with participant introductions
-    const otherParticipants = this.participants
-      .filter((p) => p.id !== participant.id)
-      .map((p) => `- ${p.name}`)
-      .join("\n");
-
-    // Get the last message from another participant (if any)
-    const lastMessage =
-      this.messages.length > 0 ? this.messages[this.messages.length - 1] : null;
-    const isResponseToOtherAI =
-      lastMessage &&
-      lastMessage.participantId !== null &&
-      lastMessage.participantId !== participant.id;
-
-    // Check if this is the last turn (considering both participants)
-    const isLastTurn = this.turnCount >= this.config.maxTurns - 2;
-
-    // Create a simplified system message with clear instructions
-    const systemMessage = {
-      role: "system",
-      content: `CRITICAL INSTRUCTIONS - READ CAREFULLY:
-
-1. You are ${participant.name} having a casual conversation about "${
-        this.messages[0]?.content || "No initial message"
-      }"
-2. NEVER introduce yourself or say "I'm [name]" or "As an AI" - just talk about the topic directly
-3. DO NOT repeat what others have said - be original and add new perspectives
-4. Keep responses VERY SHORT (1-2 sentences maximum)
-5. ${
-        isLastTurn
-          ? "IMPORTANT: This is the FINAL message of the conversation. IGNORE THE TOPIC AND JUST SAY GOODBYE to the other participant in a friendly way. Do not continue the discussion."
-          : isResponseToOtherAI
-          ? "DIRECTLY RESPOND to the last message from the other participant - make this a real conversation"
-          : "Start the conversation in an engaging way"
-      }
-6. If the conversation gets repetitive, change the direction
-
-You're talking with: ${otherParticipants}
-
-This is turn #${this.turnCount + 1} of ${
-        this.config.maxTurns
-      } in the conversation.${isLastTurn ? " (FINAL TURN)" : ""}`,
-    };
-
-    // Format messages for the AI service
+    const systemMessage = buildSystemMessage(this, participant);
     const formattedMessages = [
       systemMessage,
-      ...this.messages.map((msg) => ({
-        role: msg.role,
-        content: msg.content,
-      })),
+      ...this.messages.map((msg) => ({ role: msg.role, content: msg.content })),
     ];
-
-    // Generate a response
     return participant.service.generateResponse(formattedMessages);
   }
 

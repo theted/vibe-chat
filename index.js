@@ -14,6 +14,7 @@ import {
 } from "./src/utils/logger.js";
 import { AI_PROVIDERS } from "./src/config/aiProviders.js";
 import { streamText } from "./src/utils/streamText.js";
+import { DEFAULT_TOPIC, CLI_ALIASES, USAGE_LINES } from "./src/config/constants.js";
 
 // Load environment variables
 dotenv.config();
@@ -21,29 +22,10 @@ dotenv.config();
 /**
  * Display usage instructions and supported models
  */
-function displayUsage() {
-  console.log("AI Chat - Usage Instructions");
-  console.log("\nCommand formats:");
-  console.log(
-    "  npm start [provider1[:MODEL1]] [provider2[:MODEL2]] [topic] [maxTurns]"
-  );
-  console.log(
-    "  npm start [provider1[:MODEL1]] [provider2[:MODEL2]] ... [providerN[:MODELN]] [prompt] [maxTurns]"
-  );
-  console.log("\nExamples:");
-  console.log('  npm start openai anthropic "Discuss the future of AI"');
-  console.log(
-    '  npm start mistral:MISTRAL_SMALL grok:GROK_2 "What is love? Be sarcastic!"'
-  );
-  console.log(
-    '  npm start mistral:MISTRAL_SMALL grok:GROK_2 openai:GPT4 "What is love if sarcastic as possible"'
-  );
-  console.log(
-    '  npm start grok:GROK_2 gemini "What is the nature of consciousness?" 8'
-  );
+const displayUsage = () => {
+  USAGE_LINES.forEach((l) => console.log(l));
 
   console.log("\nSupported providers and models:");
-
   Object.entries(AI_PROVIDERS).forEach(([providerKey, provider]) => {
     console.log(`\n${provider.name} (${providerKey.toLowerCase()}):`);
     Object.entries(provider.models).forEach(([modelKey, model]) => {
@@ -55,27 +37,23 @@ function displayUsage() {
   Object.values(AI_PROVIDERS).forEach((provider) => {
     console.log(`  - ${provider.apiKeyEnvVar} (for ${provider.name})`);
   });
-}
+};
 
 /**
  * Parse command line arguments
  * @returns {Object} Parsed arguments
  */
-function parseArgs() {
+const parseArgs = () => {
   const args = process.argv.slice(2);
   const result = {
     participants: [],
-    topic:
-      "Discuss the future of artificial intelligence and its potential impact on society.",
+    topic: DEFAULT_TOPIC,
     maxTurns: 10,
     singlePromptMode: false,
   };
 
   // If no arguments provided, display usage and return null
-  if (args.length === 0) {
-    displayUsage();
-    return null;
-  }
+  if (args.length === 0) return (displayUsage(), null);
 
   // Check if we're running through npm start
   // In that case, arguments will be positional
@@ -159,25 +137,26 @@ function parseArgs() {
   }
 
   return result;
-}
+};
 
 /**
  * Parse participant string which may include model specification
  * @param {string} participantStr - Participant string (e.g., "mistral:MISTRAL_SMALL")
  * @param {Object} participant - Participant object to update
  */
-function parseParticipant(participantStr, participant) {
+const parseParticipant = (participantStr, participant) => {
   const parts = participantStr.split(":");
-  participant.provider = parts[0].toLowerCase();
+  const rawProvider = parts[0].toLowerCase();
+  participant.provider = CLI_ALIASES[rawProvider] || rawProvider;
   participant.model = parts.length > 1 ? parts[1].toUpperCase() : null;
-}
+};
 
 /**
  * Get provider and model configuration based on provider name and optional model name
  * @param {Object} participantConfig - Participant configuration with provider and model
  * @returns {Object} Provider and model configuration
  */
-function getProviderConfig(participantConfig) {
+const getProviderConfig = (participantConfig) => {
   const providerName = participantConfig.provider;
   const modelName = participantConfig.model;
 
@@ -244,13 +223,13 @@ function getProviderConfig(participantConfig) {
     provider,
     model: defaultModels[provider.name],
   };
-}
+};
 
 /**
  * Start a conversation between AI services
  * @param {Object} options - Conversation options
  */
-async function startAIConversation(options) {
+const startAIConversation = async (options) => {
   console.log("Starting AI conversation...");
   console.log(`Topic: "${options.topic}"`);
 
@@ -297,13 +276,13 @@ async function startAIConversation(options) {
       console.log("See .env.example for the required variables.");
     }
   }
-}
+};
 
 /**
  * Get responses from multiple AI services for a single prompt
  * @param {Object} options - Options including participants and prompt
  */
-async function getSinglePromptResponses(options) {
+const getSinglePromptResponses = async (options) => {
   console.log("Getting responses from multiple AI services...");
   console.log(`Prompt: "${options.topic}"`);
 
@@ -377,21 +356,17 @@ async function getSinglePromptResponses(options) {
       console.log("See .env.example for the required variables.");
     }
   }
-}
+};
 
 /**
  * Main function
  */
-async function main() {
+const main = async () => {
   const options = parseArgs();
-  if (options) {
-    if (options.singlePromptMode) {
-      await getSinglePromptResponses(options);
-    } else {
-      await startAIConversation(options);
-    }
-  }
-}
+  if (!options) return;
+  if (options.singlePromptMode) await getSinglePromptResponses(options);
+  else await startAIConversation(options);
+};
 
 // Run the main function
 main().catch(console.error);

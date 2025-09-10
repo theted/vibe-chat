@@ -11,7 +11,7 @@ import readline from "readline";
  * @param {number} wordDelayMs - Delay between words in milliseconds
  * @returns {Promise<void>} Promise that resolves when streaming is complete
  */
-export async function streamText(text, prefix = "", wordDelayMs = 30) {
+export const streamText = async (text, prefix = "", wordDelayMs = 30) => {
   // Create a readline interface to control the console output
   const rl = readline.createInterface({
     input: process.stdin,
@@ -26,15 +26,8 @@ export async function streamText(text, prefix = "", wordDelayMs = 30) {
   const words = text.split(/\s+/);
 
   for (let i = 0; i < words.length; i++) {
-    // Print the word
     process.stdout.write(words[i]);
-
-    // Add a space after the word (except for the last word)
-    if (i < words.length - 1) {
-      process.stdout.write(" ");
-    }
-
-    // Wait for the specified delay
+    if (i < words.length - 1) process.stdout.write(" ");
     await new Promise((resolve) => setTimeout(resolve, wordDelayMs));
   }
 
@@ -43,4 +36,4 @@ export async function streamText(text, prefix = "", wordDelayMs = 30) {
 
   // Close the readline interface
   rl.close();
-}
+};

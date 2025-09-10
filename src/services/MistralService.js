@@ -6,6 +6,7 @@
 
 import { BaseAIService } from "./BaseAIService.js";
 import pkg from "@mistralai/mistralai";
+import { mapToOpenAIChat } from "../utils/aiFormatting.js";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -52,18 +53,8 @@ export class MistralService extends BaseAIService {
     try {
       // Format messages for Mistral API
       // Mistral expects the last message to be from a user or tool, not an assistant
-      const formattedMessages = [];
-
-      // Add all messages except the last one
-      for (let i = 0; i < messages.length - 1; i++) {
-        formattedMessages.push({
-          role: messages[i].role,
-          content: messages[i].content,
-        });
-      }
-
-      // Get the last message
-      const lastMessage = messages[messages.length - 1];
+      const formattedMessages = mapToOpenAIChat(messages);
+      const lastMessage = formattedMessages[formattedMessages.length - 1];
 
       // If the last message is from an assistant, convert it to a user message
       // This is a workaround for Mistral's requirement that the last message be from a user or tool
@@ -73,10 +64,7 @@ export class MistralService extends BaseAIService {
           content: `Please respond to this message: "${lastMessage.content}"`,
         });
       } else {
-        formattedMessages.push({
-          role: lastMessage.role,
-          content: lastMessage.content,
-        });
+        formattedMessages.push(lastMessage);
       }
 
       const response = await this.client.chat.complete({

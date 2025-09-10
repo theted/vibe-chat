@@ -11,11 +11,9 @@ import path from "path";
  * Ensure the conversations directory exists
  * @param {string} dirPath - The directory path
  */
-function ensureDirectoryExists(dirPath) {
-  if (!fs.existsSync(dirPath)) {
-    fs.mkdirSync(dirPath, { recursive: true });
-  }
-}
+export const ensureDirectoryExists = (dirPath) => {
+  if (!fs.existsSync(dirPath)) fs.mkdirSync(dirPath, { recursive: true });
+};
 
 /**
  * Save a conversation to a file
@@ -23,7 +21,7 @@ function ensureDirectoryExists(dirPath) {
  * @param {string} topic - The conversation topic or initial message
  * @returns {string} The path to the saved file
  */
-export function saveConversationToFile(conversationHistory, topic) {
+export const saveConversationToFile = (conversationHistory, topic) => {
   const conversationsDir = path.join(process.cwd(), "conversations");
   ensureDirectoryExists(conversationsDir);
 
@@ -48,38 +46,37 @@ export function saveConversationToFile(conversationHistory, topic) {
   console.log(`Conversation saved to ${filePath}`);
 
   return filePath;
-}
+};
 
 /**
  * Format a conversation for display
  * @param {Array} conversationHistory - The conversation history
  * @returns {string} The formatted conversation
  */
-export function formatConversation(conversationHistory) {
-  return conversationHistory
+export const formatConversation = (conversationHistory) =>
+  conversationHistory
     .map((msg) => `[${msg.from}]: ${msg.content}`)
     .join("\n\n");
-}
 
 /**
  * Load a conversation from a file
  * @param {string} filePath - The path to the conversation file
  * @returns {Object} The conversation data
  */
-export function loadConversationFromFile(filePath) {
+export const loadConversationFromFile = (filePath) => {
   if (!fs.existsSync(filePath)) {
     throw new Error(`Conversation file not found: ${filePath}`);
   }
 
   const fileContent = fs.readFileSync(filePath, "utf-8");
   return JSON.parse(fileContent);
-}
+};
 
 /**
  * List all saved conversations
  * @returns {Array} An array of conversation file information
  */
-export function listConversations() {
+export const listConversations = () => {
   const conversationsDir = path.join(process.cwd(), "conversations");
 
   if (!fs.existsSync(conversationsDir)) {
@@ -109,4 +106,4 @@ export function listConversations() {
       };
     }
   });
-}
+};

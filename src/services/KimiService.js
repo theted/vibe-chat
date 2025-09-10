@@ -6,6 +6,7 @@
 
 import { BaseAIService } from "./BaseAIService.js";
 import OpenAI from "openai";
+import { inlineSystemIntoFirstUser, mapToOpenAIChat } from "../utils/aiFormatting.js";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -41,10 +42,7 @@ export class KimiService extends BaseAIService {
     }
 
     try {
-      const formattedMessages = messages.map((msg) => ({
-        role: msg.role,
-        content: msg.content,
-      }));
+      const formattedMessages = mapToOpenAIChat(messages);
 
       const doRequest = async (msgs) =>
         this.client.chat.completions.create({
@@ -59,27 +57,9 @@ export class KimiService extends BaseAIService {
       try {
         response = await doRequest(formattedMessages);
       } catch (primaryErr) {
-        // Fallback: some OpenAI-compatible providers don't accept system role
-        // Move any system content into the first user message
-        const systemParts = formattedMessages
-          .filter((m) => m.role === "system")
-          .map((m) => m.content)
-          .join("\n");
-        const nonSystem = formattedMessages.filter((m) => m.role !== "system");
-
-        if (systemParts) {
-          const firstUserIdx = nonSystem.findIndex((m) => m.role === "user");
-          if (firstUserIdx >= 0) {
-            nonSystem[firstUserIdx] = {
-              role: "user",
-              content: `${systemParts}\n\n${nonSystem[firstUserIdx].content}`,
-            };
-          } else {
-            nonSystem.unshift({ role: "user", content: systemParts });
-          }
-        }
-
-        response = await doRequest(nonSystem);
+        // Fallback: inline system into first user message
+        const inlined = inlineSystemIntoFirstUser(formattedMessages);
+        response = await doRequest(inlined);
       }
 
       const content = response?.choices?.[0]?.message?.content;

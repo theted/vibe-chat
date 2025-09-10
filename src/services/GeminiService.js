@@ -5,6 +5,7 @@
  */
 
 import { BaseAIService } from "./BaseAIService.js";
+import { toGeminiHistory } from "../utils/aiFormatting.js";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import dotenv from "dotenv";
 
@@ -72,10 +73,7 @@ export class GeminiService extends BaseAIService {
       const historyMessages = nonSystem.slice(0, actualLastUserIndex);
       const lastUserMessage = nonSystem[actualLastUserIndex].content;
 
-      const history = historyMessages.map((m) => ({
-        role: m.role === "assistant" ? "model" : "user",
-        parts: [{ text: m.content }],
-      }));
+      const history = toGeminiHistory(historyMessages);
 
       // Create a chat with proper history
       const chat = this.model.startChat({
