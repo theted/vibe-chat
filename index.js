@@ -207,6 +207,10 @@ function getProviderConfig(participantConfig) {
     case "qwen":
       provider = AI_PROVIDERS.QWEN;
       break;
+    case "kimi":
+    case "moonshot":
+      provider = AI_PROVIDERS.KIMI;
+      break;
     default:
       throw new Error(`Unsupported provider: ${providerName}`);
   }
@@ -233,6 +237,7 @@ function getProviderConfig(participantConfig) {
     [AI_PROVIDERS.DEEPSEEK.name]: AI_PROVIDERS.DEEPSEEK.models.DEEPSEEK_CHAT,
     [AI_PROVIDERS.GROK.name]: AI_PROVIDERS.GROK.models.GROK_1,
     [AI_PROVIDERS.QWEN.name]: AI_PROVIDERS.QWEN.models.QWEN3_TURBO,
+    [AI_PROVIDERS.KIMI.name]: AI_PROVIDERS.KIMI.models.KIMI_8K,
   };
 
   return {
