@@ -46,12 +46,41 @@ export class KimiService extends BaseAIService {
         content: msg.content,
       }));
 
-      const response = await this.client.chat.completions.create({
-        model: this.config.model.id,
-        messages: formattedMessages,
-        max_tokens: this.config.model.maxTokens,
-        temperature: this.config.model.temperature,
-      });
+      const doRequest = async (msgs) =>
+        this.client.chat.completions.create({
+          model: this.config.model.id,
+          messages: msgs,
+          max_tokens: this.config.model.maxTokens,
+          temperature: this.config.model.temperature,
+        });
+
+      // First attempt: send as-is (with system role)
+      let response;
+      try {
+        response = await doRequest(formattedMessages);
+      } catch (primaryErr) {
+        // Fallback: some OpenAI-compatible providers don't accept system role
+        // Move any system content into the first user message
+        const systemParts = formattedMessages
+          .filter((m) => m.role === "system")
+          .map((m) => m.content)
+          .join("\n");
+        const nonSystem = formattedMessages.filter((m) => m.role !== "system");
+
+        if (systemParts) {
+          const firstUserIdx = nonSystem.findIndex((m) => m.role === "user");
+          if (firstUserIdx >= 0) {
+            nonSystem[firstUserIdx] = {
+              role: "user",
+              content: `${systemParts}\n\n${nonSystem[firstUserIdx].content}`,
+            };
+          } else {
+            nonSystem.unshift({ role: "user", content: systemParts });
+          }
+        }
+
+        response = await doRequest(nonSystem);
+      }
 
       const content = response?.choices?.[0]?.message?.content;
       if (!content) {
@@ -70,4 +99,3 @@ export class KimiService extends BaseAIService {
     }
   }
 }
-

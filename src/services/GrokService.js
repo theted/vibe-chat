@@ -68,6 +68,8 @@ export class GrokService extends BaseAIService {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          // Grok API expects a Bearer token. Keep x-api-key for backward compat.
+          Authorization: `Bearer ${this.apiKey}`,
           "x-api-key": this.apiKey,
         },
         body: JSON.stringify({

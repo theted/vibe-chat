@@ -27,6 +27,7 @@ async function listGrokModels() {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
         "x-api-key": apiKey,
       },
     });
