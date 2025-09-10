@@ -171,6 +171,9 @@ export class ConversationManager {
       lastMessage.participantId !== null &&
       lastMessage.participantId !== participant.id;
 
+    // Check if this is the last turn (considering both participants)
+    const isLastTurn = this.turnCount >= this.config.maxTurns - 2;
+
     // Create a simplified system message with clear instructions
     const systemMessage = {
       role: "system",
@@ -183,7 +186,9 @@ export class ConversationManager {
 3. DO NOT repeat what others have said - be original and add new perspectives
 4. Keep responses VERY SHORT (1-2 sentences maximum)
 5. ${
-        isResponseToOtherAI
+        isLastTurn
+          ? "IMPORTANT: This is the FINAL message of the conversation. IGNORE THE TOPIC AND JUST SAY GOODBYE to the other participant in a friendly way. Do not continue the discussion."
+          : isResponseToOtherAI
           ? "DIRECTLY RESPOND to the last message from the other participant - make this a real conversation"
           : "Start the conversation in an engaging way"
       }
@@ -191,7 +196,9 @@ export class ConversationManager {
 
 You're talking with: ${otherParticipants}
 
-This is turn #${this.turnCount + 1} of the conversation.`,
+This is turn #${this.turnCount + 1} of ${
+        this.config.maxTurns
+      } in the conversation.${isLastTurn ? " (FINAL TURN)" : ""}`,
     };
 
     // Format messages for the AI service

@@ -24,9 +24,11 @@ dotenv.config();
 function displayUsage() {
   console.log("AI Chat - Usage Instructions");
   console.log("\nCommand formats:");
-  console.log("  npm start [provider1[:MODEL1]] [provider2[:MODEL2]] [topic]");
   console.log(
-    "  npm start [provider1[:MODEL1]] [provider2[:MODEL2]] ... [providerN[:MODELN]] [prompt]"
+    "  npm start [provider1[:MODEL1]] [provider2[:MODEL2]] [topic] [maxTurns]"
+  );
+  console.log(
+    "  npm start [provider1[:MODEL1]] [provider2[:MODEL2]] ... [providerN[:MODELN]] [prompt] [maxTurns]"
   );
   console.log("\nExamples:");
   console.log('  npm start openai anthropic "Discuss the future of AI"');
@@ -35,6 +37,9 @@ function displayUsage() {
   );
   console.log(
     '  npm start mistral:MISTRAL_SMALL grok:GROK_2 openai:GPT4 "What is love if sarcastic as possible"'
+  );
+  console.log(
+    '  npm start grok:GROK_2 gemini "What is the nature of consciousness?" 8'
   );
 
   console.log("\nSupported providers and models:");
@@ -86,8 +91,16 @@ function parseArgs() {
       // Default topic if none provided
       result.topic = "Discuss this topic in an interesting way.";
     } else {
-      // Combine the rest of the arguments as the topic
-      result.topic = args.slice(topicIndex).join(" ");
+      // Check if the last argument is a number (maxTurns)
+      const lastArg = args[args.length - 1];
+      if (/^\d+$/.test(lastArg)) {
+        result.maxTurns = parseInt(lastArg, 10);
+        // Combine the rest of the arguments as the topic (excluding the last one)
+        result.topic = args.slice(topicIndex, args.length - 1).join(" ");
+      } else {
+        // Combine the rest of the arguments as the topic
+        result.topic = args.slice(topicIndex).join(" ");
+      }
     }
 
     // Parse participants
@@ -172,6 +185,8 @@ function getProviderConfig(participantConfig) {
 
   switch (providerName.toLowerCase()) {
     case "gemini":
+    case "gemeni": // common misspelling
+    case "google":
       provider = AI_PROVIDERS.GEMINI;
       break;
     case "mistral":
@@ -188,6 +203,9 @@ function getProviderConfig(participantConfig) {
       break;
     case "grok":
       provider = AI_PROVIDERS.GROK;
+      break;
+    case "qwen":
+      provider = AI_PROVIDERS.QWEN;
       break;
     default:
       throw new Error(`Unsupported provider: ${providerName}`);
@@ -208,12 +226,13 @@ function getProviderConfig(participantConfig) {
 
   // Otherwise use the default model for the provider
   const defaultModels = {
-    [AI_PROVIDERS.GEMINI.name]: AI_PROVIDERS.GEMINI.models.GEMINI_FLASH,
+    [AI_PROVIDERS.GEMINI.name]: AI_PROVIDERS.GEMINI.models.GEMINI_25,
     [AI_PROVIDERS.MISTRAL.name]: AI_PROVIDERS.MISTRAL.models.MISTRAL_LARGE,
     [AI_PROVIDERS.OPENAI.name]: AI_PROVIDERS.OPENAI.models.GPT4,
     [AI_PROVIDERS.ANTHROPIC.name]: AI_PROVIDERS.ANTHROPIC.models.CLAUDE3,
     [AI_PROVIDERS.DEEPSEEK.name]: AI_PROVIDERS.DEEPSEEK.models.DEEPSEEK_CHAT,
     [AI_PROVIDERS.GROK.name]: AI_PROVIDERS.GROK.models.GROK_1,
+    [AI_PROVIDERS.QWEN.name]: AI_PROVIDERS.QWEN.models.QWEN3_TURBO,
   };
 
   return {

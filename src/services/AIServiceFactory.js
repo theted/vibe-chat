@@ -10,6 +10,7 @@ import { DeepseekService } from "./DeepseekService.js";
 import { MistralService } from "./MistralService.js";
 import { GeminiService } from "./GeminiService.js";
 import { GrokService } from "./GrokService.js";
+import { QwenService } from "./QwenService.js";
 import { AI_PROVIDERS } from "../config/aiProviders.js";
 
 export class AIServiceFactory {
@@ -35,6 +36,8 @@ export class AIServiceFactory {
         return new DeepseekService(config);
       case AI_PROVIDERS.GROK.name:
         return new GrokService(config);
+      case AI_PROVIDERS.QWEN.name:
+        return new QwenService(config);
       default:
         throw new Error(`Unsupported AI provider: ${providerName}`);
     }

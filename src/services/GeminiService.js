@@ -32,6 +32,8 @@ export class GeminiService extends BaseAIService {
     );
     this.model = this.client.getGenerativeModel({
       model: this.config.model.id,
+      // Use system instructions to set the model behavior consistently
+      systemInstruction: this.config.model.systemPrompt,
     });
   }
 
@@ -54,52 +56,38 @@ export class GeminiService extends BaseAIService {
     }
 
     try {
-      // Create a chat session
+      // Convert the conversation into Gemini history (skip system messages)
+      const nonSystem = messages.filter((m) => m.role !== "system");
+
+      // Find the last user message to send as the live input
+      const lastUserIndex = [...nonSystem]
+        .reverse()
+        .findIndex((m) => m.role === "user");
+
+      if (lastUserIndex === -1) {
+        throw new Error("No user message found to send to Gemini");
+      }
+
+      const actualLastUserIndex = nonSystem.length - 1 - lastUserIndex;
+      const historyMessages = nonSystem.slice(0, actualLastUserIndex);
+      const lastUserMessage = nonSystem[actualLastUserIndex].content;
+
+      const history = historyMessages.map((m) => ({
+        role: m.role === "assistant" ? "model" : "user",
+        parts: [{ text: m.content }],
+      }));
+
+      // Create a chat with proper history
       const chat = this.model.startChat({
         generationConfig: {
           maxOutputTokens: this.config.model.maxTokens,
           temperature: this.config.model.temperature,
         },
+        history,
       });
 
-      // Process the conversation history
-      // We need to send messages one by one to build the conversation
-      let lastUserMessage = null;
-
-      // Find messages in pairs (user followed by assistant)
-      for (let i = 0; i < messages.length; i++) {
-        const msg = messages[i];
-
-        // Skip system messages as they're handled separately
-        if (msg.role === "system") {
-          continue;
-        }
-
-        if (msg.role === "user") {
-          // Store user message to send later
-          lastUserMessage = msg.content;
-        } else if (msg.role === "assistant" && lastUserMessage) {
-          // If we have a user message followed by an assistant message,
-          // send them to build the conversation history
-          await chat.sendMessage(lastUserMessage);
-          await chat.sendMessage(msg.content);
-          lastUserMessage = null;
-        }
-      }
-
-      // Send the final user message and get the response
-      let result;
-      if (lastUserMessage) {
-        result = await chat.sendMessageStream(lastUserMessage);
-      } else {
-        // If there's no final user message, use the last message in the array
-        const lastMessage = messages[messages.length - 1];
-        if (lastMessage.role !== "system") {
-          result = await chat.sendMessageStream(lastMessage.content);
-        } else {
-          throw new Error("No valid message to send to Gemini");
-        }
-      }
+      // Send the final user message and stream the response
+      const result = await chat.sendMessageStream(lastUserMessage);
 
       // Collect the response
       let responseText = "";
@@ -111,7 +99,6 @@ export class GeminiService extends BaseAIService {
       // Limit response length to approximately 3-6 sentences
       const sentences = responseText.split(/[.!?]+\s+/);
       if (sentences.length > 6) {
-        // Take first 6 sentences and add appropriate punctuation
         responseText = sentences.slice(0, 6).join(". ") + ".";
       }
 

@@ -5,21 +5,26 @@
  * Add new providers or modify existing ones as needed.
  */
 
+// Shared model configuration constants
+export const DEFAULT_TEMPERATURE = 0.7;
+export const DEFAULT_MAX_TOKENS = 4096;
+export const SHORT_RESPONSE_MAX_TOKENS = 500; // Used by Gemini to keep replies concise
+
 export const AI_PROVIDERS = {
   GROK: {
     name: "Grok",
     models: {
       GROK_1: {
         id: "grok-2-latest",
-        maxTokens: 4096,
-        temperature: 0.7,
+        maxTokens: DEFAULT_MAX_TOKENS,
+        temperature: DEFAULT_TEMPERATURE,
         systemPrompt:
           "You are Grok, an AI assistant by xAI, engaging in a conversation with other AI systems. Provide witty and insightful responses.",
       },
       GROK_2: {
         id: "grok-beta",
-        maxTokens: 4096,
-        temperature: 0.7,
+        maxTokens: DEFAULT_MAX_TOKENS,
+        temperature: DEFAULT_TEMPERATURE,
         systemPrompt:
           "You are Grok, an AI assistant by xAI, engaging in a conversation with other AI systems. Provide witty and insightful responses.",
       },
@@ -31,22 +36,22 @@ export const AI_PROVIDERS = {
     models: {
       GEMINI_PRO: {
         id: "gemini-2.0-pro",
-        maxTokens: 500, // Increased to allow for longer responses
-        temperature: 0.7,
+        maxTokens: SHORT_RESPONSE_MAX_TOKENS, // keep concise
+        temperature: DEFAULT_TEMPERATURE,
         systemPrompt:
           "You are Gemini, an AI assistant by Google, engaging in a conversation with other AI systems. Keep your responses between 3-6 sentences.",
       },
       GEMINI_FLASH: {
         id: "gemini-2.0-flash",
-        maxTokens: 500, // Increased to allow for longer responses
-        temperature: 0.7,
+        maxTokens: SHORT_RESPONSE_MAX_TOKENS, // keep concise
+        temperature: DEFAULT_TEMPERATURE,
         systemPrompt:
           "You are Gemini, an AI assistant by Google, engaging in a conversation with other AI systems. Keep your responses between 3-6 sentences.",
       },
       GEMINI_25: {
         id: "gemini-2.5-pro",
-        maxTokens: 500, // Set to allow for 3-6 sentence responses
-        temperature: 0.7,
+        maxTokens: SHORT_RESPONSE_MAX_TOKENS, // keep concise
+        temperature: DEFAULT_TEMPERATURE,
         systemPrompt:
           "You are Gemini 2.5, an advanced AI assistant by Google, engaging in a conversation with other AI systems. Keep your responses between 3-6 sentences.",
       },
@@ -58,22 +63,22 @@ export const AI_PROVIDERS = {
     models: {
       MISTRAL_LARGE: {
         id: "mistral-large-latest",
-        maxTokens: 4096,
-        temperature: 0.7,
+        maxTokens: DEFAULT_MAX_TOKENS,
+        temperature: DEFAULT_TEMPERATURE,
         systemPrompt:
           "You are Mistral, an AI assistant engaging in a conversation with other AI systems.",
       },
       MISTRAL_MEDIUM: {
         id: "mistral-medium-latest",
-        maxTokens: 4096,
-        temperature: 0.7,
+        maxTokens: DEFAULT_MAX_TOKENS,
+        temperature: DEFAULT_TEMPERATURE,
         systemPrompt:
           "You are Mistral, an AI assistant engaging in a conversation with other AI systems.",
       },
       MISTRAL_SMALL: {
         id: "mistral-small-latest",
-        maxTokens: 4096,
-        temperature: 0.7,
+        maxTokens: DEFAULT_MAX_TOKENS,
+        temperature: DEFAULT_TEMPERATURE,
         systemPrompt:
           "You are Mistral, an AI assistant engaging in a conversation with other AI systems.",
       },
@@ -85,15 +90,15 @@ export const AI_PROVIDERS = {
     models: {
       GPT4: {
         id: "gpt-4o",
-        maxTokens: 4096,
-        temperature: 0.7,
+        maxTokens: DEFAULT_MAX_TOKENS,
+        temperature: DEFAULT_TEMPERATURE,
         systemPrompt:
           "You are a helpful AI assistant engaging in a conversation with other AI systems.",
       },
       GPT35: {
         id: "gpt-3.5-turbo",
-        maxTokens: 4096,
-        temperature: 0.7,
+        maxTokens: DEFAULT_MAX_TOKENS,
+        temperature: DEFAULT_TEMPERATURE,
         systemPrompt:
           "You are a helpful AI assistant engaging in a conversation with other AI systems.",
       },
@@ -105,15 +110,15 @@ export const AI_PROVIDERS = {
     models: {
       CLAUDE3: {
         id: "claude-3.5-sonnet-latest",
-        maxTokens: 4096,
-        temperature: 0.7,
+        maxTokens: DEFAULT_MAX_TOKENS,
+        temperature: DEFAULT_TEMPERATURE,
         systemPrompt:
           "You are Claude, an AI assistant by Anthropic, engaging in a conversation with other AI systems. Provide thoughtful responses that are 3-5 sentences long.",
       },
       CLAUDE3_SONNET: {
         id: "claude-3.5-haiku-latest",
-        maxTokens: 4096,
-        temperature: 0.7,
+        maxTokens: DEFAULT_MAX_TOKENS,
+        temperature: DEFAULT_TEMPERATURE,
         systemPrompt:
           "You are Claude, an AI assistant by Anthropic, engaging in a conversation with other AI systems. Provide thoughtful responses that are 3-5 sentences long.",
       },
@@ -125,20 +130,33 @@ export const AI_PROVIDERS = {
     models: {
       DEEPSEEK_CHAT: {
         id: "deepseek-chat",
-        maxTokens: 4096,
-        temperature: 0.7,
+        maxTokens: DEFAULT_MAX_TOKENS,
+        temperature: DEFAULT_TEMPERATURE,
         systemPrompt:
           "You are Deepseek, an AI assistant engaging in a conversation with other AI systems.",
       },
       DEEPSEEK_CODER: {
         id: "deepseek-coder",
-        maxTokens: 4096,
-        temperature: 0.7,
+        maxTokens: DEFAULT_MAX_TOKENS,
+        temperature: DEFAULT_TEMPERATURE,
         systemPrompt:
           "You are Deepseek Coder, an AI assistant specialized in coding, engaging in a conversation with other AI systems.",
       },
     },
     apiKeyEnvVar: "DEEPSEEK_API_KEY",
+  },
+  QWEN: {
+    name: "Qwen",
+    models: {
+      QWEN3_TURBO: {
+        id: "qwen3-turbo",
+        maxTokens: DEFAULT_MAX_TOKENS,
+        temperature: DEFAULT_TEMPERATURE,
+        systemPrompt:
+          "You are Qwen, an AI assistant. Be concise, helpful, and practical.",
+      },
+    },
+    apiKeyEnvVar: "QWEN_API_KEY",
   },
   // Add more providers as needed
 };
