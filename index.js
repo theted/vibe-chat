@@ -163,6 +163,9 @@ const getProviderConfig = (participantConfig) => {
   let provider;
 
   switch (providerName.toLowerCase()) {
+    case "cohere":
+      provider = AI_PROVIDERS.COHERE;
+      break;
     case "z":
     case "zai":
     case "z.ai":
@@ -214,6 +217,7 @@ const getProviderConfig = (participantConfig) => {
 
   // Otherwise use the default model for the provider
   const defaultModels = {
+    [AI_PROVIDERS.COHERE.name]: AI_PROVIDERS.COHERE.models.COMMAND_R_PLUS,
     [AI_PROVIDERS.ZAI.name]: AI_PROVIDERS.ZAI.models.ZAI_DEFAULT,
     [AI_PROVIDERS.GEMINI.name]: AI_PROVIDERS.GEMINI.models.GEMINI_25,
     [AI_PROVIDERS.MISTRAL.name]: AI_PROVIDERS.MISTRAL.models.MISTRAL_LARGE,

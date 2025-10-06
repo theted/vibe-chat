@@ -11,6 +11,27 @@ export const DEFAULT_MAX_TOKENS = 4096;
 export const SHORT_RESPONSE_MAX_TOKENS = 500; // Used by Gemini to keep replies concise
 
 export const AI_PROVIDERS = {
+  COHERE: {
+    name: "Cohere",
+    models: {
+      COMMAND_R: {
+        // command-r was removed; default to a current model unless overridden
+        id: process.env.COHERE_MODEL_ID || "command-r-plus",
+        maxTokens: DEFAULT_MAX_TOKENS,
+        temperature: DEFAULT_TEMPERATURE,
+        systemPrompt:
+          "You are Cohere Command-R. Be clear, concise, and practical.",
+      },
+      COMMAND_R_PLUS: {
+        id: "command-r-plus",
+        maxTokens: DEFAULT_MAX_TOKENS,
+        temperature: DEFAULT_TEMPERATURE,
+        systemPrompt:
+          "You are Cohere Command-R+. Provide thoughtful and precise answers.",
+      },
+    },
+    apiKeyEnvVar: "COHERE_API_KEY",
+  },
   ZAI: {
     name: "Z.ai",
     models: {

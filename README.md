@@ -4,11 +4,11 @@ A Node.js project that lets different AI systems talk to each other, and also qu
 
 ## Overview
 
-This project creates a platform where different AI models (OpenAI, Anthropic, Mistral, Gemini, Deepseek, Grok, Qwen, Kimi, Z.ai) can engage in conversations with each other or respond to a single prompt. The system manages the conversation flow, handles API interactions, and logs the conversation history.
+This project creates a platform where different AI models (OpenAI, Anthropic, Mistral, Gemini, Deepseek, Grok, Cohere, Qwen, Kimi, Z.ai) can engage in conversations with each other or respond to a single prompt. The system manages the conversation flow, handles API interactions, and logs the conversation history.
 
 ## Features
 
-- Support for multiple AI providers (OpenAI, Anthropic, Mistral, Gemini, Deepseek, Grok, Qwen, Kimi, Z.ai)
+- Support for multiple AI providers (OpenAI, Anthropic, Mistral, Gemini, Deepseek, Grok, Cohere, Qwen, Kimi, Z.ai)
 - Extensible architecture for adding new AI providers
 - Automatic conversation management
 - Conversation logging and history
@@ -36,6 +36,7 @@ vibe-chat/
     │   ├── DeepseekService.js     # Deepseek API service
     │   ├── GeminiService.js       # Google Gemini API service
     │   ├── GrokService.js         # Grok AI API service
+    │   ├── CohereService.js       # Cohere REST chat service
     │   ├── MistralService.js      # Mistral AI API service
     │   ├── OpenAIService.js       # OpenAI API service
     │   ├── QwenService.js         # Qwen (DashScope/OpenAI-compatible) service
@@ -121,8 +122,18 @@ Current defaults and IDs (see `src/config/aiProviders.js`):
   - `DEEPSEEK_CHAT` → `deepseek-chat`
   - `DEEPSEEK_CODER` → `deepseek-coder`
 - Grok
-  - `GROK_1` (default) → `grok-2-latest`
-  - `GROK_2` → `grok-beta`
+  - `GROK_1` (default) → `grok-3`
+  - `GROK_2` → `grok-3-mini`
+  - `GROK_2_1212` → `grok-2-1212`
+  - `GROK_2_VISION_1212` → `grok-2-vision-1212`
+  - `GROK_4_0709` → `grok-4-0709`
+  - `GROK_4_FAST_NON_REASONING` → `grok-4-fast-non-reasoning`
+  - `GROK_4_FAST_REASONING` → `grok-4-fast-reasoning`
+  - `GROK_CODE_FAST_1` → `grok-code-fast-1`
+  - `GROK_2_IMAGE_1212` → `grok-2-image-1212`
+- Cohere
+  - `COMMAND_R_PLUS` (default) → `command-r-plus`
+  - `COMMAND_R` → defaults to `command-r-plus` (set `COHERE_MODEL_ID` to override)
 - Z.ai
   - `ZAI_DEFAULT` (default) → `z-1` (override with `Z_MODEL_ID`)
 - Qwen
@@ -145,6 +156,7 @@ Define these in `.env` (see `.env.example`):
   - `MISTRAL_API_KEY`
   - `DEEPSEEK_API_KEY`
   - `GROK_API_KEY`
+  - `COHERE_API_KEY`
   - `QWEN_API_KEY`
   - `KIMI_API_KEY`
   - `Z_API_KEY`
@@ -153,6 +165,8 @@ Define these in `.env` (see `.env.example`):
   - `QWEN_BASE_URL` (e.g. `https://dashscope.aliyuncs.com/compatible-mode/v1`)
   - `KIMI_BASE_URL` (default `https://api.moonshot.cn/v1`)
   - `Z_BASE_URL` or `ZAI_BASE_URL` (default `https://api.z.ai/v1`)
+  - `COHERE_BASE_URL` (default `https://api.cohere.ai/v1`)
+  - `COHERE_MODEL_ID` (override default Cohere model ID)
 
 - Conversation config:
   - `LOG_LEVEL` (default `info`)
