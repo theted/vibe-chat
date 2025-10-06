@@ -11,6 +11,20 @@ export const DEFAULT_MAX_TOKENS = 4096;
 export const SHORT_RESPONSE_MAX_TOKENS = 500; // Used by Gemini to keep replies concise
 
 export const AI_PROVIDERS = {
+  ZAI: {
+    name: "Z.ai",
+    models: {
+      ZAI_DEFAULT: {
+        // Allow overriding model ID via env; fallback to a sensible placeholder
+        id: process.env.Z_MODEL_ID || "z-1",
+        maxTokens: DEFAULT_MAX_TOKENS,
+        temperature: DEFAULT_TEMPERATURE,
+        systemPrompt:
+          "You are Z.ai, an AI assistant engaging in a conversation with other AI systems. Be precise, friendly, and concise.",
+      },
+    },
+    apiKeyEnvVar: "Z_API_KEY",
+  },
   GROK: {
     name: "Grok",
     models: {

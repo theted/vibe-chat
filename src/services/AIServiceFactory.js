@@ -12,6 +12,7 @@ import { GeminiService } from "./GeminiService.js";
 import { GrokService } from "./GrokService.js";
 import { QwenService } from "./QwenService.js";
 import { KimiService } from "./KimiService.js";
+import { ZaiService } from "./ZaiService.js";
 import { AI_PROVIDERS } from "../config/aiProviders.js";
 
 export class AIServiceFactory {
@@ -41,6 +42,8 @@ export class AIServiceFactory {
         return new QwenService(config);
       case AI_PROVIDERS.KIMI.name:
         return new KimiService(config);
+      case AI_PROVIDERS.ZAI.name:
+        return new ZaiService(config);
       default:
         throw new Error(`Unsupported AI provider: ${providerName}`);
     }

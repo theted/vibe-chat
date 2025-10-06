@@ -7,6 +7,8 @@ export const CLI_ALIASES = {
   gemeni: "gemini",
   google: "gemini",
   moonshot: "kimi",
+  "z.ai": "zai",
+  z: "zai",
 };
 
 export const USAGE_LINES = [
@@ -22,4 +24,3 @@ export const USAGE_LINES = [
   '  npm start mistral:MISTRAL_SMALL grok:GROK_2 openai:GPT4 "What is love if sarcastic as possible"',
   '  npm start grok:GROK_2 gemini "What is the nature of consciousness?" 8',
 ];
-

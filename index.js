@@ -163,6 +163,11 @@ const getProviderConfig = (participantConfig) => {
   let provider;
 
   switch (providerName.toLowerCase()) {
+    case "z":
+    case "zai":
+    case "z.ai":
+      provider = AI_PROVIDERS.ZAI;
+      break;
     case "gemini":
     case "gemeni": // common misspelling
     case "google":
@@ -209,6 +214,7 @@ const getProviderConfig = (participantConfig) => {
 
   // Otherwise use the default model for the provider
   const defaultModels = {
+    [AI_PROVIDERS.ZAI.name]: AI_PROVIDERS.ZAI.models.ZAI_DEFAULT,
     [AI_PROVIDERS.GEMINI.name]: AI_PROVIDERS.GEMINI.models.GEMINI_25,
     [AI_PROVIDERS.MISTRAL.name]: AI_PROVIDERS.MISTRAL.models.MISTRAL_LARGE,
     [AI_PROVIDERS.OPENAI.name]: AI_PROVIDERS.OPENAI.models.GPT4,

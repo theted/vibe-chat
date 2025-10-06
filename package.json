@@ -16,7 +16,8 @@
     "test:deepseek": "node tests/integration-ok-deepseek.js",
     "test:qwen": "node tests/integration-ok-qwen.js",
     "test:kimi": "node tests/integration-ok-kimi.js",
-    "test:all": "npm run -s test:openai && npm run -s test:mistral && npm run -s test:grok && npm run -s test:gemini && npm run -s test:anthropic && npm run -s test:deepseek && npm run -s test:qwen && npm run -s test:kimi"
+    "test:zai": "node tests/integration-ok-zai.js",
+    "test:all": "npm run -s test:openai && npm run -s test:mistral && npm run -s test:grok && npm run -s test:gemini && npm run -s test:anthropic && npm run -s test:deepseek && npm run -s test:qwen && npm run -s test:kimi && npm run -s test:zai"
   },
   "keywords": [
     "ai",

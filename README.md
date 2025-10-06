@@ -4,11 +4,11 @@ A Node.js project that lets different AI systems talk to each other, and also qu
 
 ## Overview
 
-This project creates a platform where different AI models (OpenAI, Anthropic, Mistral, Gemini, Deepseek, Grok, Qwen, Kimi) can engage in conversations with each other or respond to a single prompt. The system manages the conversation flow, handles API interactions, and logs the conversation history.
+This project creates a platform where different AI models (OpenAI, Anthropic, Mistral, Gemini, Deepseek, Grok, Qwen, Kimi, Z.ai) can engage in conversations with each other or respond to a single prompt. The system manages the conversation flow, handles API interactions, and logs the conversation history.
 
 ## Features
 
-- Support for multiple AI providers (OpenAI, Anthropic, Mistral, Gemini, Deepseek, Grok, Qwen, Kimi)
+- Support for multiple AI providers (OpenAI, Anthropic, Mistral, Gemini, Deepseek, Grok, Qwen, Kimi, Z.ai)
 - Extensible architecture for adding new AI providers
 - Automatic conversation management
 - Conversation logging and history
@@ -39,7 +39,8 @@ vibe-chat/
     │   ├── MistralService.js      # Mistral AI API service
     │   ├── OpenAIService.js       # OpenAI API service
     │   ├── QwenService.js         # Qwen (DashScope/OpenAI-compatible) service
-    │   └── KimiService.js         # Kimi (Moonshot/OpenAI-compatible) service
+    │   ├── KimiService.js         # Kimi (Moonshot/OpenAI-compatible) service
+    │   └── ZaiService.js          # Z.ai (OpenAI-compatible) service
     └── utils/            # Utility functions
         ├── logger.js     # Logging utilities
         └── streamText.js # Console streaming helper
@@ -86,6 +87,7 @@ There are two modes: multi-model conversation and single-prompt responses.
 - Provider aliases:
   - `gemeni` (typo) and `google` resolve to `gemini`
   - `moonshot` resolves to `kimi`
+  - `z` and `z.ai` resolve to `zai`
 
 ### Examples
 - Two-model conversation (default models):
@@ -121,6 +123,8 @@ Current defaults and IDs (see `src/config/aiProviders.js`):
 - Grok
   - `GROK_1` (default) → `grok-2-latest`
   - `GROK_2` → `grok-beta`
+- Z.ai
+  - `ZAI_DEFAULT` (default) → `z-1` (override with `Z_MODEL_ID`)
 - Qwen
   - `QWEN3_TURBO` (default) → `qwen3-turbo`
 - Kimi (Moonshot)
@@ -143,10 +147,12 @@ Define these in `.env` (see `.env.example`):
   - `GROK_API_KEY`
   - `QWEN_API_KEY`
   - `KIMI_API_KEY`
+  - `Z_API_KEY`
 
 - Optional (OpenAI-compatible base URLs):
   - `QWEN_BASE_URL` (e.g. `https://dashscope.aliyuncs.com/compatible-mode/v1`)
   - `KIMI_BASE_URL` (default `https://api.moonshot.cn/v1`)
+  - `Z_BASE_URL` or `ZAI_BASE_URL` (default `https://api.z.ai/v1`)
 
 - Conversation config:
   - `LOG_LEVEL` (default `info`)
