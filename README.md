@@ -94,7 +94,7 @@ There are two modes: multi-model conversation and single-prompt responses.
 - Two-model conversation (default models):
   - `npm start openai anthropic "Discuss the future of AI"`
 - Custom models + multi-party conversation:
-  - `npm start mistral:MISTRAL_SMALL grok:GROK_2 openai:GPT4 "Be sarcastic about love"`
+  - `npm start mistral:MISTRAL_SMALL grok:GROK_3_MINI openai:GPT4O "Be sarcastic about love"`
 - Gemini + Grok single-prompt responses:
   - `npm start gemeni grok "What is your favorite book?"`
 - Set max turns:
@@ -105,15 +105,28 @@ There are two modes: multi-model conversation and single-prompt responses.
 Current defaults and IDs (see `src/config/aiProviders.js`):
 
 - OpenAI
-  - `GPT4` → `gpt-4o`
-  - `GPT35` → `gpt-3.5-turbo`
+  - `GPT4O` → `gpt-4o`
+  - `GPT4_1` → `gpt-4.1` (specialized for coding)
+  - `GPT4_5` → `gpt-4.5` (largest chat model)
+  - `GPT5` → `gpt-5` (most advanced with multimodal)
+  - `O3` → `o3-2025-04-16` (intelligent reasoning model)
+  - `O3_MINI` → `o3-mini` (cost-efficient reasoning)
+  - `O3_PRO` → `o3-pro` (most capable reasoning)
+  - `O4_MINI` → `o4-mini` (fast reasoning for math/coding)
+  - `GPT35_TURBO` → `gpt-3.5-turbo`
 - Anthropic
-  - `CLAUDE3` → `claude-3.5-sonnet-latest`
-  - `CLAUDE3_SONNET` → `claude-3.5-haiku-latest`
+  - `CLAUDE3_7_SONNET` → `claude-3-7-sonnet-20250219` (hybrid reasoning)
+  - `CLAUDE3_5_HAIKU_20241022` → `claude-3-5-haiku-20241022`
+  - `CLAUDE_SONNET_4` → `claude-sonnet-4-20250514`
+  - `CLAUDE_SONNET_4_5` (default) → `claude-sonnet-4-5` (best coding model)
+  - `CLAUDE_OPUS_4` → `claude-opus-4-20250514`
+  - `CLAUDE_OPUS_4_1` → `claude-opus-4-1` (industry leader for coding/agents)
 - Mistral
   - `MISTRAL_LARGE` → `mistral-large-latest`
   - `MISTRAL_MEDIUM` → `mistral-medium-latest`
   - `MISTRAL_SMALL` → `mistral-small-latest`
+  - `MINISTRAL_8B_LATEST` → `ministral-8b-latest`
+  - `OPEN_MISTRAL_NEMO` → `open-mistral-nemo`
 - Gemini
   - `GEMINI_PRO` → `gemini-2.0-pro`
   - `GEMINI_FLASH` → `gemini-2.0-flash`
@@ -121,23 +134,33 @@ Current defaults and IDs (see `src/config/aiProviders.js`):
 - Deepseek
   - `DEEPSEEK_CHAT` → `deepseek-chat`
   - `DEEPSEEK_CODER` → `deepseek-coder`
+  - `DEEPSEEK_REASONER` → `deepseek-reasoner`
 - Grok
-  - `GROK_1` (default) → `grok-3`
-  - `GROK_2` → `grok-3-mini`
+  - `GROK_3` (default) → `grok-3`
+  - `GROK_3_MINI` → `grok-3-mini`
   - `GROK_2_1212` → `grok-2-1212`
   - `GROK_2_VISION_1212` → `grok-2-vision-1212`
   - `GROK_4_0709` → `grok-4-0709`
-  - `GROK_4_FAST_NON_REASONING` → `grok-4-fast-non-reasoning`
-  - `GROK_4_FAST_REASONING` → `grok-4-fast-reasoning`
-  - `GROK_CODE_FAST_1` → `grok-code-fast-1`
+  - `GROK_4_FAST_NON_REASONING` → `grok-4-fast-non-reasoning` (2M context)
+  - `GROK_4_FAST_REASONING` → `grok-4-fast-reasoning` (2M context)
+  - `GROK_4_HEAVY` → `grok-4-heavy` (enhanced capabilities)
+  - `GROK_CODE_FAST_1` → `grok-code-fast-1` (agentic coding)
   - `GROK_2_IMAGE_1212` → `grok-2-image-1212`
 - Cohere
-  - `COMMAND_R_PLUS` (default) → `command-r-plus`
-  - `COMMAND_R` → defaults to `command-r-plus` (set `COHERE_MODEL_ID` to override)
+  - `COMMAND_A_03_2025` (default) → `command-a-03-2025`
+  - `COMMAND_A_REASONING_08_2025` → `command-a-reasoning-08-2025`
+  - `COMMAND_A_VISION_07_2025` → `command-a-vision-07-2025`
+  - `COMMAND_R_08_2024` → `command-r-08-2024`
+  - `COMMAND_R7B_12_2024` → `command-r7b-12-2024`
 - Z.ai
   - `ZAI_DEFAULT` (default) → `z-1` (override with `Z_MODEL_ID`)
 - Qwen
-  - `QWEN3_TURBO` (default) → `qwen3-turbo`
+  - `QWEN3_MAX` (default) → `qwen3-max` (flagship for complex tasks)
+  - `QWEN3_PLUS` → `qwen-plus` (balanced performance)
+  - `QWEN3_FLASH` → `qwen-flash` (fastest, most cost-effective)
+  - `QWEN3_CODER_PLUS` → `qwen3-coder-plus` (enhanced code generation)
+  - `QWEN3_VL_PLUS` → `qwen3-vl-plus` (vision-language model)
+  - `QWEN_MAX_2025` → `qwen-max-2025-01-25` (large-scale MoE)
 - Kimi (Moonshot)
   - `KIMI_8K` (default) → `moonshot-v1-8k`
   - `KIMI_32K` → `moonshot-v1-32k`

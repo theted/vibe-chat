@@ -59,9 +59,26 @@ const parseArgs = () => {
   // In that case, arguments will be positional
   if (args.length > 0 && !args[0].startsWith("--")) {
     // Find the index of the first argument that doesn't look like a participant
-    let topicIndex = args.findIndex(
-      (arg) => !arg.includes(":") && !arg.match(/^[a-zA-Z0-9]+$/)
-    );
+    // Check if argument is a known model or provider name
+    let topicIndex = args.findIndex((arg, index) => {
+      // If it contains a colon, it's definitely a participant (provider:model)
+      if (arg.includes(":")) return false;
+      
+      // Check if it's a known model name across all providers
+      const upperArg = arg.toUpperCase();
+      for (const providerConfig of Object.values(AI_PROVIDERS)) {
+        if (providerConfig.models[upperArg]) return false;
+      }
+      
+      // Check if it's a known provider name
+      const lowerArg = arg.toLowerCase();
+      const providerNames = Object.keys(AI_PROVIDERS).map(k => k.toLowerCase());
+      const aliasNames = Object.keys(CLI_ALIASES);
+      if (providerNames.includes(lowerArg) || aliasNames.includes(lowerArg)) return false;
+      
+      // If it's not a known model or provider, it's likely the start of the topic
+      return true;
+    });
 
     // If no topic found, assume all args are participants
     if (topicIndex === -1) {
@@ -141,14 +158,33 @@ const parseArgs = () => {
 
 /**
  * Parse participant string which may include model specification
- * @param {string} participantStr - Participant string (e.g., "mistral:MISTRAL_SMALL")
+ * @param {string} participantStr - Participant string (e.g., "mistral:MISTRAL_SMALL" or just "CLAUDE_SONNET_4_5")
  * @param {Object} participant - Participant object to update
  */
 const parseParticipant = (participantStr, participant) => {
   const parts = participantStr.split(":");
   const rawProvider = parts[0].toLowerCase();
-  participant.provider = CLI_ALIASES[rawProvider] || rawProvider;
-  participant.model = parts.length > 1 ? parts[1].toUpperCase() : null;
+  
+  // If no colon, check if this might be a model name instead of provider name
+  if (parts.length === 1) {
+    const modelName = participantStr.toUpperCase();
+    
+    // Search for this model across all providers
+    for (const [providerKey, providerConfig] of Object.entries(AI_PROVIDERS)) {
+      if (providerConfig.models[modelName]) {
+        participant.provider = providerKey.toLowerCase();
+        participant.model = modelName;
+        return;
+      }
+    }
+    
+    // If not found as a model, treat as provider name
+    participant.provider = CLI_ALIASES[rawProvider] || rawProvider;
+    participant.model = null;
+  } else {
+    participant.provider = CLI_ALIASES[rawProvider] || rawProvider;
+    participant.model = parts[1].toUpperCase();
+  }
 };
 
 /**
@@ -217,12 +253,12 @@ const getProviderConfig = (participantConfig) => {
 
   // Otherwise use the default model for the provider
   const defaultModels = {
-    [AI_PROVIDERS.COHERE.name]: AI_PROVIDERS.COHERE.models.COMMAND_R_PLUS,
+    [AI_PROVIDERS.COHERE.name]: AI_PROVIDERS.COHERE.models.COMMAND_A_03_2025,
     [AI_PROVIDERS.ZAI.name]: AI_PROVIDERS.ZAI.models.ZAI_DEFAULT,
     [AI_PROVIDERS.GEMINI.name]: AI_PROVIDERS.GEMINI.models.GEMINI_25,
     [AI_PROVIDERS.MISTRAL.name]: AI_PROVIDERS.MISTRAL.models.MISTRAL_LARGE,
     [AI_PROVIDERS.OPENAI.name]: AI_PROVIDERS.OPENAI.models.GPT4,
-    [AI_PROVIDERS.ANTHROPIC.name]: AI_PROVIDERS.ANTHROPIC.models.CLAUDE3,
+    [AI_PROVIDERS.ANTHROPIC.name]: AI_PROVIDERS.ANTHROPIC.models.CLAUDE3_7_SONNET,
     [AI_PROVIDERS.DEEPSEEK.name]: AI_PROVIDERS.DEEPSEEK.models.DEEPSEEK_CHAT,
     [AI_PROVIDERS.GROK.name]: AI_PROVIDERS.GROK.models.GROK_1,
     [AI_PROVIDERS.QWEN.name]: AI_PROVIDERS.QWEN.models.QWEN3_TURBO,
