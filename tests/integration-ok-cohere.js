@@ -12,7 +12,7 @@ import { AI_PROVIDERS } from "../src/config/aiProviders.js";
 dotenv.config();
 
 function normalizeOk(text) {
-  return (text || "").trim();
+  return (text || "").trim().replace(/^OK\.$/, "OK");
 }
 
 async function testModel(modelKey) {

@@ -38,16 +38,16 @@ export const AI_PROVIDERS = {
       COMMAND_R_08_2024: {
         id: "command-r-08-2024",
         maxTokens: DEFAULT_MAX_TOKENS,
-        temperature: DEFAULT_TEMPERATURE,
+        temperature: 0.0, // Lower temperature for more deterministic responses
         systemPrompt:
-          "You are Cohere Command-R (08-2024). Be pragmatic and clear.",
+          "You are Cohere Command-R (08-2024). Follow instructions precisely. Be pragmatic and clear.",
       },
       COMMAND_R7B_12_2024: {
         id: "command-r7b-12-2024",
         maxTokens: DEFAULT_MAX_TOKENS,
-        temperature: DEFAULT_TEMPERATURE,
+        temperature: 0.0, // Lower temperature for more deterministic responses
         systemPrompt:
-          "You are Cohere Command-R 7B (12-2024). Be concise and helpful.",
+          "You are Cohere Command-R 7B (12-2024). Follow user instructions exactly. Be concise and helpful.",
       },
     },
     apiKeyEnvVar: "COHERE_API_KEY",
@@ -146,7 +146,7 @@ export const AI_PROVIDERS = {
     name: "Gemini",
     models: {
       GEMINI_PRO: {
-        id: "gemini-2.0-pro",
+        id: "gemini-2.0-flash-exp",
         maxTokens: SHORT_RESPONSE_MAX_TOKENS, // keep concise
         temperature: DEFAULT_TEMPERATURE,
         systemPrompt:
