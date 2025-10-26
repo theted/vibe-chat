@@ -14,7 +14,7 @@ import { QwenService } from "./QwenService.js";
 import { KimiService } from "./KimiService.js";
 import { ZaiService } from "./ZaiService.js";
 import { CohereService } from "./CohereService.js";
-import { AI_PROVIDERS } from "../config/aiProviders.js";
+import { AI_PROVIDERS } from "../config/aiProviders/index.js";
 
 export class AIServiceFactory {
   /**

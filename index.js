@@ -12,7 +12,7 @@ import {
   saveConversationToFile,
   formatConversation,
 } from "./src/utils/logger.js";
-import { AI_PROVIDERS } from "./src/config/aiProviders.js";
+import { AI_PROVIDERS, DEFAULT_MODELS } from "./src/config/aiProviders/index.js";
 import { streamText } from "./src/utils/streamText.js";
 import { DEFAULT_TOPIC, CLI_ALIASES, USAGE_LINES } from "./src/config/constants.js";
 
@@ -252,22 +252,9 @@ const getProviderConfig = (participantConfig) => {
   }
 
   // Otherwise use the default model for the provider
-  const defaultModels = {
-    [AI_PROVIDERS.COHERE.name]: AI_PROVIDERS.COHERE.models.COMMAND_A_03_2025,
-    [AI_PROVIDERS.ZAI.name]: AI_PROVIDERS.ZAI.models.ZAI_DEFAULT,
-    [AI_PROVIDERS.GEMINI.name]: AI_PROVIDERS.GEMINI.models.GEMINI_25,
-    [AI_PROVIDERS.MISTRAL.name]: AI_PROVIDERS.MISTRAL.models.MISTRAL_LARGE,
-    [AI_PROVIDERS.OPENAI.name]: AI_PROVIDERS.OPENAI.models.GPT4,
-    [AI_PROVIDERS.ANTHROPIC.name]: AI_PROVIDERS.ANTHROPIC.models.CLAUDE3_7_SONNET,
-    [AI_PROVIDERS.DEEPSEEK.name]: AI_PROVIDERS.DEEPSEEK.models.DEEPSEEK_CHAT,
-    [AI_PROVIDERS.GROK.name]: AI_PROVIDERS.GROK.models.GROK_1,
-    [AI_PROVIDERS.QWEN.name]: AI_PROVIDERS.QWEN.models.QWEN3_TURBO,
-    [AI_PROVIDERS.KIMI.name]: AI_PROVIDERS.KIMI.models.KIMI_8K,
-  };
-
   return {
     provider,
-    model: defaultModels[provider.name],
+    model: DEFAULT_MODELS[provider.name],
   };
 };
 

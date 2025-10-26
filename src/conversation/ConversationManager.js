@@ -8,7 +8,7 @@ import { AIServiceFactory } from "../services/AIServiceFactory.js";
 import {
   getRandomAIConfig,
   DEFAULT_CONVERSATION_CONFIG,
-} from "../config/aiProviders.js";
+} from "../config/aiProviders/index.js";
 import { streamText } from "../utils/streamText.js";
 
 // Helper builders extracted for readability
