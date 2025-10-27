@@ -54,11 +54,17 @@ export class OpenAIService extends BaseAIService {
       // Format messages for OpenAI API
       const formattedMessages = mapToOpenAIChat(messages);
 
+      const temperature = this.config.model.temperature;
       const response = await this.client.chat.completions.create({
         model: this.config.model.id,
         messages: formattedMessages,
-        max_tokens: this.config.model.maxTokens,
-        temperature: this.config.model.temperature,
+        ...(typeof temperature === "number" ? { temperature } : {}),
+        ...(this.config.model.maxTokens
+          ? {
+              [this.config.model.maxTokensParam || "max_tokens"]:
+                this.config.model.maxTokens,
+            }
+          : {}),
       });
 
       return response.choices[0].message.content;
