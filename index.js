@@ -312,7 +312,7 @@ const startAIConversation = async (options) => {
 };
 
 /**
- * Get responses from multiple AI services for a single prompt
+ * Get responses from multiple AI services in a multi-turn group chat
  * @param {Object} options - Options including participants and prompt
  */
 const getSinglePromptResponses = async (options) => {
@@ -326,44 +326,79 @@ const getSinglePromptResponses = async (options) => {
 
   try {
     const responses = [];
+    const conversation = [];
+    
+    // Add initial prompt to conversation
+    conversation.push({
+      role: "user",
+      content: options.topic,
+    });
 
-    // Create a simple message array with just the user's prompt
-    const messages = [
-      {
-        role: "user",
-        content: options.topic,
-      },
-    ];
+    // Stream the initial prompt
+    await streamText(options.topic, "[Prompt]: ", 30);
 
-    // Get responses from each AI service
-    for (const participant of options.participants) {
-      const config = getProviderConfig(participant);
+    // Create participant configs once
+    const participantConfigs = options.participants.map(p => ({
+      ...getProviderConfig(p),
+      participantData: p
+    }));
+
+    let lastParticipantIndex = -1;
+    
+    // Multi-turn conversation loop
+    for (let turn = 0; turn < options.maxTurns; turn++) {
+      // Select next participant (avoid consecutive responses from same model)
+      let nextParticipantIndex;
+      if (participantConfigs.length === 1) {
+        nextParticipantIndex = 0;
+      } else {
+        do {
+          nextParticipantIndex = Math.floor(Math.random() * participantConfigs.length);
+        } while (nextParticipantIndex === lastParticipantIndex && participantConfigs.length > 1);
+      }
+      
+      const config = participantConfigs[nextParticipantIndex];
       const service = AIServiceFactory.createService(config);
-
-      console.log(
-        `\nGetting response from ${config.provider.name} (${config.model.id})...`
-      );
+      const participantName = `${config.provider.name} (${config.model.id})`;
 
       try {
-        // Stream the prompt
-        await streamText(options.topic, "[Prompt]: ", 30);
+        // Create system message for shorter responses in group chat
+        const systemMessage = {
+          role: "system",
+          content: `You are participating in a group chat about "${options.topic}". Keep your response concise (1-2 sentences max). Be conversational and add your perspective. Don't repeat what others have said.`
+        };
+
+        // Build messages with system prompt and conversation history
+        const messages = [systemMessage, ...conversation];
 
         // Generate response
         const response = await service.generateResponse(messages);
 
+        // Truncate if too long (safety net)
+        const truncatedResponse = response.length > 1000 ? response.substring(0, 1000) + "..." : response;
+
         // Stream the response
         await streamText(
-          response,
-          `[${config.provider.name} (${config.model.id})]: `,
+          truncatedResponse,
+          `[${participantName}]: `,
           30
         );
 
-        // Add to responses
+        // Add response to conversation history
+        conversation.push({
+          role: "assistant",
+          content: truncatedResponse,
+        });
+
+        // Add to responses array for final summary
         responses.push({
-          from: `${config.provider.name} (${config.model.id})`,
-          content: response,
+          from: participantName,
+          content: truncatedResponse,
           timestamp: new Date().toISOString(),
         });
+
+        lastParticipantIndex = nextParticipantIndex;
+        
       } catch (error) {
         console.error(`Error with ${config.provider.name}: ${error.message}`);
         responses.push({
@@ -375,7 +410,7 @@ const getSinglePromptResponses = async (options) => {
     }
 
     // Display summary
-    console.log("\nResponses Summary:");
+    console.log("\nGroup Chat Summary:");
     console.log(formatConversation(responses));
 
     // Save responses to file
