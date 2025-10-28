@@ -14,9 +14,9 @@ export const resolveEmoji = (value) => {
     return directMatch;
   }
 
-  const aliasKey = Object.keys(AI_EMOJI_LOOKUP).find((key) =>
-    normalized.includes(key)
-  );
+  const aliasKey = Object.keys(AI_EMOJI_LOOKUP)
+    .sort((a, b) => b.length - a.length)  // Prioritize longer keys
+    .find((key) => normalized.includes(key));
   return aliasKey ? AI_EMOJI_LOOKUP[aliasKey] : "🤖";
 };
 
