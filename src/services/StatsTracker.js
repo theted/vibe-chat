@@ -17,14 +17,15 @@ const LATEST_MESSAGES_KEY = "ai-chat:stats:messages:latest";
 const MAX_LATEST_MESSAGES = 100;
 const MAX_CONTENT_LENGTH = 1000;
 
-class StatsTracker {
-  constructor() {
+export class StatsTracker {
+  constructor(options = {}) {
     this.enabled =
       !!process.env.REDIS_URL ||
       !!process.env.REDIS_HOST ||
       !!process.env.REDIS_PORT;
     this.clientPromise = null;
     this.initialized = false;
+    this.clientFactory = options.clientFactory || null;
   }
 
   async getClient() {
@@ -37,6 +38,16 @@ class StatsTracker {
 
   async createClient() {
     try {
+      if (this.clientFactory) {
+        const client = await this.clientFactory();
+        if (!client) {
+          this.enabled = false;
+          return null;
+        }
+        this.initialized = true;
+        return client;
+      }
+
       const { createClient } = await import("redis");
 
       const url = process.env.REDIS_URL;
