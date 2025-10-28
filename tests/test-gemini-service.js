@@ -5,8 +5,7 @@
  * including the sentence limiting functionality.
  */
 
-import { GeminiService } from "../src/services/GeminiService.js";
-import { AI_PROVIDERS } from "../src/config/aiProviders.js";
+import { GeminiService, AI_PROVIDERS } from "@ai-chat/core";
 import dotenv from "dotenv";
 
 dotenv.config();

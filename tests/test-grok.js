@@ -7,8 +7,7 @@
  * node test-grok.js
  */
 
-import { AIServiceFactory } from "./src/services/AIServiceFactory.js";
-import { AI_PROVIDERS } from "./src/config/aiProviders.js";
+import { AIServiceFactory, AI_PROVIDERS } from "@ai-chat/core";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -16,12 +15,14 @@ dotenv.config();
 async function testGrok() {
   try {
     // Create a Grok service instance
-    const grokService = AIServiceFactory.createServiceByName("GROK", "GROK_1");
+    const availableModels = Object.keys(AI_PROVIDERS.GROK.models);
+    const modelKey = availableModels[0] || "GROK_3";
+    const grokService = AIServiceFactory.createServiceByName("GROK", modelKey);
 
     // Initialize the service
     await grokService.initialize();
 
-    console.log(`Using model: ${grokService.getModel()}`);
+    console.log(`Using model: ${modelKey} (${grokService.getModel()})`);
 
     // Test with a simple conversation
     const messages = [

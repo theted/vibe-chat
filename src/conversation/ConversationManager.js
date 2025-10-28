@@ -4,12 +4,13 @@
  * This class manages conversations between different AI services.
  */
 
-import { AIServiceFactory } from "../services/AIServiceFactory.js";
 import {
+  AIServiceFactory,
   getRandomAIConfig,
   DEFAULT_CONVERSATION_CONFIG,
-} from "../config/aiProviders/index.js";
-import { streamText } from "../utils/streamText.js";
+  streamText,
+} from "@ai-chat/core";
+import { statsTracker } from "../services/StatsTracker.js";
 
 // Helper builders extracted for readability
 const summarizeParticipantTopics = (messages, participants) => {
@@ -37,6 +38,11 @@ const buildSystemMessage = (cm, participant) => {
   const isResponseToOtherAI =
     lastMessage && lastMessage.participantId !== null && lastMessage.participantId !== participant.id;
   const isLastTurn = turnCount >= config.maxTurns - 2;
+  const recentMentions = messages
+    .slice(-5)
+    .filter((msg) => msg.participantId !== null)
+    .map((msg) => cm.participants[msg.participantId]?.name || "")
+    .filter(Boolean);
 
   return {
     role: "system",
@@ -45,17 +51,23 @@ const buildSystemMessage = (cm, participant) => {
 1. You are ${participant.name} having a casual conversation about "${
       messages[0]?.content || "No initial message"
     }"
-2. NEVER introduce yourself or say "I'm [name]" or "As an AI" - just talk about the topic directly
+2. NEVER introduce yourself or say "I'm [name]" or "As an AI" - it's already clear who you are. Talk directly about the topic.
 3. DO NOT repeat what others have said - be original and add new perspectives
-4. Keep responses VERY SHORT (1-2 sentences maximum)
+4. Keep responses VERY SHORT (1-2 sentences maximum). Aim to mention or respond directly to another participant ${
+      otherParticipants ? `(for example @${otherParticipants[0]?.split(" ")[0] || "participant"})` : ""
+    } when it makes sense, especially if referencing their ideas.
 5. ${
       isLastTurn
         ? "IMPORTANT: This is the FINAL message of the conversation. IGNORE THE TOPIC AND JUST SAY GOODBYE to the other participant in a friendly way. Do not continue the discussion."
         : isResponseToOtherAI
-        ? "DIRECTLY RESPOND to the last message from the other participant - make this a real conversation"
-        : "Start the conversation in an engaging way"
+        ? "DIRECTLY RESPOND to the last message from the other participant - make this a real conversation and consider @mentioning them."
+        : `Start the conversation in an engaging way and consider @mentioning one of the participants (${otherParticipants || "no others"}) to kick things off.`
     }
-6. If the conversation gets repetitive, change the direction
+6. If the conversation gets repetitive, change the direction. Feel free to pivot or reference others by name to keep energy high.${
+      recentMentions.length
+        ? ` Recently active voices: ${recentMentions.join(", ")}.`
+        : ""
+    }
 
 You're talking with: ${otherParticipants}
 
@@ -208,10 +220,31 @@ export class ConversationManager {
    * @param {Object} message - The message to add
    */
   addMessage(message) {
-    this.messages.push({
+    const enrichedMessage = {
       ...message,
       timestamp: new Date().toISOString(),
-    });
+    };
+    this.messages.push(enrichedMessage);
+
+    const participant =
+      enrichedMessage.participantId !== null &&
+      enrichedMessage.participantId !== undefined
+        ? this.participants[enrichedMessage.participantId]
+        : null;
+
+    const providerName =
+      participant?.config?.provider?.name ||
+      (enrichedMessage.participantId === null ? "User" : null);
+    const modelId = participant?.config?.model?.id || null;
+
+    statsTracker
+      .recordMessage({
+        role: enrichedMessage.role,
+        content: enrichedMessage.content,
+        provider: providerName,
+        model: modelId,
+      })
+      .catch(() => {});
   }
 
   /**

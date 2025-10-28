@@ -4,8 +4,7 @@
  */
 
 import dotenv from "dotenv";
-import { AIServiceFactory } from "../src/services/AIServiceFactory.js";
-import { AI_PROVIDERS } from "../src/config/aiProviders.js";
+import { AIServiceFactory, AI_PROVIDERS } from "@ai-chat/core";
 
 dotenv.config();
 
@@ -71,4 +70,3 @@ main().catch((e) => {
   console.error(e);
   process.exit(1);
 });
-

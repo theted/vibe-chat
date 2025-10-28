@@ -5,15 +5,22 @@
  * a conversation between different AI services.
  */
 
+import fs from "fs";
+import path from "path";
 import dotenv from "dotenv";
 import { ConversationManager } from "./src/conversation/ConversationManager.js";
-import { AIServiceFactory } from "./src/services/AIServiceFactory.js";
 import {
+  AIServiceFactory,
   saveConversationToFile,
   formatConversation,
-} from "./src/utils/logger.js";
-import { AI_PROVIDERS, DEFAULT_MODELS } from "./src/config/aiProviders/index.js";
-import { streamText } from "./src/utils/streamText.js";
+  loadConversationFromFile,
+  AI_PROVIDERS,
+  DEFAULT_MODELS,
+  streamText,
+} from "@ai-chat/core";
+import {
+  statsTracker,
+} from "./src/services/StatsTracker.js";
 import { DEFAULT_TOPIC, CLI_ALIASES, USAGE_LINES } from "./src/config/constants.js";
 
 // Load environment variables
@@ -50,10 +57,45 @@ const parseArgs = () => {
     topic: DEFAULT_TOPIC,
     maxTurns: 10,
     singlePromptMode: false,
+    command: "start",
   };
 
   // If no arguments provided, display usage and return null
   if (args.length === 0) return (displayUsage(), null);
+
+  // Handle "continue" command
+  if (args[0].toLowerCase() === "continue") {
+    if (args.length < 2) {
+      console.error(
+        'Usage: npm start continue <conversation-file> [provider[:MODEL] ...] [additionalTurns]'
+      );
+      return null;
+    }
+
+    result.command = "continue";
+    result.conversationFile = args[1];
+    result.participants = [];
+
+    let endIndex = args.length;
+
+    const lastArg = args[args.length - 1];
+    if (lastArg && /^\d+$/.test(lastArg)) {
+      result.additionalTurns = parseInt(lastArg, 10);
+      endIndex -= 1;
+    }
+
+    for (let i = 2; i < endIndex; i++) {
+      const participant = {};
+      parseParticipant(args[i], participant);
+      result.participants.push(participant);
+    }
+
+    if (!result.additionalTurns) {
+      result.additionalTurns = 10;
+    }
+
+    return result;
+  }
 
   // Check if we're running through npm start
   // In that case, arguments will be positional
@@ -187,6 +229,59 @@ const parseParticipant = (participantStr, participant) => {
   }
 };
 
+const findProviderKey = (providerConfig) => {
+  const entry = Object.entries(AI_PROVIDERS).find(
+    ([, provider]) => provider === providerConfig
+  );
+  return entry ? entry[0] : null;
+};
+
+const findModelKey = (providerConfig, modelConfig) => {
+  const entry = Object.entries(providerConfig.models).find(
+    ([, model]) => model === modelConfig
+  );
+  return entry ? entry[0] : null;
+};
+
+const buildParticipantMetadata = (participantConfig) => {
+  const providerKey = findProviderKey(participantConfig.provider);
+  const modelKey = findModelKey(
+    participantConfig.provider,
+    participantConfig.model
+  );
+
+  return {
+    providerKey,
+    providerAlias: providerKey ? providerKey.toLowerCase() : null,
+    providerName: participantConfig.provider.name,
+    modelKey,
+    modelId: participantConfig.model.id,
+  };
+};
+
+const participantsFromMetadata = (metadataParticipants = []) =>
+  metadataParticipants
+    .filter((meta) => meta.providerKey && meta.modelKey)
+    .map((meta) => ({
+      provider: (meta.providerAlias || meta.providerKey || "").toLowerCase(),
+      model: meta.modelKey,
+    }));
+
+const resolveConversationPath = (filePath) => {
+  if (!filePath) return null;
+  const normalized = path.isAbsolute(filePath)
+    ? filePath
+    : path.join(process.cwd(), filePath);
+
+  if (fs.existsSync(normalized)) {
+    return normalized;
+  }
+
+  const conversationsDir = path.join(process.cwd(), "conversations");
+  const fallback = path.join(conversationsDir, filePath);
+  return fs.existsSync(fallback) ? fallback : normalized;
+};
+
 /**
  * Get provider and model configuration based on provider name and optional model name
  * @param {Object} participantConfig - Participant configuration with provider and model
@@ -279,10 +374,13 @@ const startAIConversation = async (options) => {
 
   // Add participants
   try {
+    const participantMeta = [];
+
     // Add all participants
     for (let i = 0; i < options.participants.length; i++) {
       const participantConfig = getProviderConfig(options.participants[i]);
       conversationManager.addParticipant(participantConfig);
+      participantMeta.push(buildParticipantMetadata(participantConfig));
       console.log(
         `Added participant ${i + 1}: ${participantConfig.provider.name} (${
           participantConfig.model.id
@@ -299,7 +397,11 @@ const startAIConversation = async (options) => {
     console.log(formatConversation(history));
 
     // Save the conversation to a file
-    saveConversationToFile(history, options.topic);
+    saveConversationToFile(history, options.topic, {
+      mode: "conversation",
+      participants: participantMeta,
+      maxTurns: options.maxTurns,
+    });
   } catch (error) {
     console.error(`Error: ${error.message}`);
     if (error.message.includes("API key")) {
@@ -325,23 +427,42 @@ const getSinglePromptResponses = async (options) => {
   console.log(`Models: ${participantStrings.join(", ")}`);
 
   try {
-    const responses = [];
-    const conversation = [];
-    
-    // Add initial prompt to conversation
-    conversation.push({
-      role: "user",
-      content: options.topic,
-    });
+    const responses = (options.existingResponses || []).map((entry) => ({
+      ...entry,
+    }));
+    const hasInitialConversation = !!options.initialConversation;
+    const conversation = hasInitialConversation
+      ? [...options.initialConversation]
+      : [
+          {
+            role: "user",
+            content: options.topic,
+          },
+        ];
 
-    // Stream the initial prompt
-    await streamText(options.topic, "[Prompt]: ", 30);
+    if (hasInitialConversation) {
+      console.log(
+        `[Prompt]: ${options.topic} (continuing conversation with ${responses.length} prior responses)`
+      );
+    } else {
+      await streamText(options.topic, "[Prompt]: ", 30);
+      await statsTracker.recordMessage({
+        role: "user",
+        content: options.topic,
+        provider: "User",
+        model: null,
+      });
+    }
 
     // Create participant configs once
-    const participantConfigs = options.participants.map(p => ({
+    const participantConfigs = options.participants.map((p) => ({
       ...getProviderConfig(p),
-      participantData: p
+      participantData: p,
     }));
+    const participantMeta = participantConfigs.map(({ provider, model }) =>
+      buildParticipantMetadata({ provider, model })
+    );
+    const metadataBase = options.metadata || {};
 
     let lastParticipantIndex = -1;
     
@@ -362,10 +483,22 @@ const getSinglePromptResponses = async (options) => {
       const participantName = `${config.provider.name} (${config.model.id})`;
 
       try {
-        // Create system message for shorter responses in group chat
+        // Create system message that evolves as the chat progresses
+        const assistantTurns = conversation.filter(
+          (m) => m.role === "assistant"
+        ).length;
+        const earlyPhase = assistantTurns < participantConfigs.length;
         const systemMessage = {
           role: "system",
-          content: `You are participating in a group chat about "${options.topic}". Keep your response concise (1-2 sentences max). Be conversational and add your perspective. Don't repeat what others have said.`
+          content: [
+            `You are participating in a group chat about "${options.topic}".`,
+            "Keep your response concise (1-3 sentences).",
+            "Be conversational, reference recent remarks, and avoid repeating earlier wording.",
+            earlyPhase
+              ? "Because the chat is just beginning, greet the group once with personality and add a distinct insight."
+              : "The chat is underway—do not re-introduce yourself. Build on the latest ideas, challenge them, or redirect to an interesting tangent, even if it moves beyond the original topic.",
+            "If energy dips, spark momentum with a curious question or a surprising perspective.",
+          ].join(" "),
         };
 
         // Build messages with system prompt and conversation history
@@ -389,6 +522,14 @@ const getSinglePromptResponses = async (options) => {
           role: "assistant",
           content: truncatedResponse,
         });
+        statsTracker
+          .recordMessage({
+            role: "assistant",
+            content: truncatedResponse,
+            provider: config.provider.name,
+            model: config.model.id,
+          })
+          .catch(() => {});
 
         // Add to responses array for final summary
         responses.push({
@@ -414,7 +555,13 @@ const getSinglePromptResponses = async (options) => {
     console.log(formatConversation(responses));
 
     // Save responses to file
-    saveConversationToFile(responses, options.topic);
+    saveConversationToFile(responses, options.topic, {
+      ...metadataBase,
+      mode: "singlePrompt",
+      participants: participantMeta,
+      maxTurns: options.maxTurns,
+      turnsRecorded: responses.length,
+    });
   } catch (error) {
     console.error(`Error: ${error.message}`);
     if (error.message.includes("API key")) {
@@ -426,12 +573,179 @@ const getSinglePromptResponses = async (options) => {
   }
 };
 
+const continueConversationFromFile = async (options) => {
+  try {
+    const resolvedPath = resolveConversationPath(options.conversationFile);
+    console.log(`Loading conversation from ${resolvedPath}`);
+
+    const conversationData = loadConversationFromFile(resolvedPath);
+    const metadata = conversationData.metadata || {};
+    const additionalTurns = options.additionalTurns || 10;
+
+    let participantInputs = options.participants;
+    if (!participantInputs || participantInputs.length === 0) {
+      participantInputs = participantsFromMetadata(metadata.participants);
+    }
+
+    if (!participantInputs || participantInputs.length === 0) {
+      throw new Error(
+        "Unable to determine participants. Specify overrides after the file path."
+      );
+    }
+
+    let mode = metadata.mode;
+    if (!mode) {
+      mode = participantInputs.length > 2 ? "singlePrompt" : "conversation";
+    }
+
+    const topic = conversationData.topic || "Continued conversation";
+    console.log(
+      `Continuing in ${mode} mode with ${participantInputs.length} participant(s).`
+    );
+
+    if (mode === "conversation") {
+      const conversationManager = new ConversationManager();
+      const participantMeta = [];
+
+      participantInputs.forEach((participantInput, index) => {
+        const participantConfig = getProviderConfig(participantInput);
+        conversationManager.addParticipant(participantConfig);
+        participantMeta.push(buildParticipantMetadata(participantConfig));
+        console.log(
+          `Loaded participant ${index + 1}: ${participantConfig.provider.name} (${participantConfig.model.id})`
+        );
+      });
+
+      // Rebuild conversation state
+      const savedMessages = conversationData.messages || [];
+      if (!savedMessages.length) {
+        throw new Error("Conversation file contains no messages to continue.");
+      }
+
+      conversationManager.messages = [];
+      let assistantTurns = 0;
+
+      savedMessages.forEach((msg) => {
+        const isUser =
+          msg.from === "User" ||
+          (msg.role && msg.role.toLowerCase() === "user") ||
+          msg.participantId === null;
+        let participantId = null;
+        if (!isUser) {
+          const matchedIndex = conversationManager.participants.findIndex(
+            (p) => p.name === msg.from
+          );
+          if (matchedIndex !== -1) {
+            participantId = matchedIndex;
+          } else {
+            console.warn(
+              `Warning: could not match participant for "${msg.from}". Treating as user message.`
+            );
+          }
+        }
+
+        conversationManager.messages.push({
+          role: isUser ? "user" : "assistant",
+          content: msg.content,
+          participantId,
+          timestamp: msg.timestamp || new Date().toISOString(),
+        });
+
+        if (participantId !== null) assistantTurns += 1;
+      });
+
+      const existingUserMessages = conversationManager.messages.filter(
+        (msg) => msg.participantId === null
+      );
+      if (existingUserMessages.length === 0) {
+        conversationManager.messages.unshift({
+          role: "user",
+          content: topic,
+          participantId: null,
+          timestamp: new Date().toISOString(),
+        });
+      }
+
+      conversationManager.turnCount = assistantTurns;
+      conversationManager.config.maxTurns = assistantTurns + additionalTurns;
+      conversationManager.startTime = Date.now();
+      conversationManager.isActive = true;
+
+      console.log(
+        `Loaded ${assistantTurns} previous turns. Continuing for ${additionalTurns} more.`
+      );
+
+      await conversationManager.continueConversation();
+
+      const history = conversationManager.getConversationHistory();
+      console.log("\nUpdated Conversation Summary:");
+      console.log(formatConversation(history));
+
+      const metadataForSave = {
+        ...metadata,
+        mode: "conversation",
+        participants: participantMeta,
+        continuedFrom: resolvedPath,
+        continuedAt: new Date().toISOString(),
+        additionalTurns,
+        totalTurns: history.filter((msg) => msg.from !== "User").length,
+      };
+
+      saveConversationToFile(history, topic, metadataForSave);
+      return;
+    }
+
+    // Single prompt mode continuation
+    const initialConversation = [
+      {
+        role: "user",
+        content: topic,
+      },
+    ];
+    const existingResponses = [];
+    (conversationData.messages || []).forEach((msg) => {
+      if (msg.from === "User") {
+        // Already captured as initial prompt
+        return;
+      }
+
+      existingResponses.push({ ...msg });
+      initialConversation.push({
+        role: "assistant",
+        content: msg.content,
+      });
+    });
+
+    const metadataForSave = {
+      ...metadata,
+      continuedFrom: resolvedPath,
+      continuedAt: new Date().toISOString(),
+      additionalTurns,
+    };
+
+    await getSinglePromptResponses({
+      participants: participantInputs,
+      topic,
+      maxTurns: additionalTurns,
+      initialConversation,
+      existingResponses,
+      metadata: metadataForSave,
+    });
+  } catch (error) {
+    console.error(`Error continuing conversation: ${error.message}`);
+  }
+};
+
 /**
  * Main function
  */
 const main = async () => {
   const options = parseArgs();
   if (!options) return;
+  if (options.command === "continue") {
+    await continueConversationFromFile(options);
+    return;
+  }
   if (options.singlePromptMode) await getSinglePromptResponses(options);
   else await startAIConversation(options);
 };

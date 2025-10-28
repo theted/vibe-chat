@@ -81,7 +81,9 @@ vibe-chat/
 There are two modes: multi-model conversation and single-prompt responses.
 
 ### Syntax
+
 - Command formats:
+
   - `npm start [provider[:MODEL]] [provider[:MODEL]] [topic] [maxTurns]`
   - `npm start [provider[:MODEL]] ... [providerN[:MODEL]] [prompt] [maxTurns]`
 
@@ -91,6 +93,7 @@ There are two modes: multi-model conversation and single-prompt responses.
   - `z` and `z.ai` resolve to `zai`
 
 ### Examples
+
 - Two-model conversation (default models):
   - `npm start openai anthropic "Discuss the future of AI"`
 - Custom models + multi-party conversation:
@@ -150,9 +153,9 @@ Current defaults and IDs (see `src/config/aiProviders.js`):
   - `COMMAND_A_VISION_07_2025` → `command-a-vision-07-2025`
   - `COMMAND_R_08_2024` → `command-r-08-2024`
   - `COMMAND_R7B_12_2024` → `command-r7b-12-2024`
-- Z.ai ([API keys](https://console.z.ai/api-keys))
+- Z.ai ([API keys](https://z.ai/manage-apikey/apikey-list))
   - `ZAI_DEFAULT` (default) → `z-1` (override with `Z_MODEL_ID`)
-- Qwen ([API keys](https://dashscope.aliyun.com/apiKeys))
+- Qwen ([API keys](https://qwen.ai/apiplatform))
   - `QWEN3_MAX` (default) → `qwen3-max` (flagship for complex tasks)
   - `QWEN3_PLUS` → `qwen-plus` (balanced performance)
   - `QWEN3_FLASH` → `qwen-flash` (fastest, most cost-effective)
@@ -171,6 +174,7 @@ Note: Providers may change available model IDs over time. Update `aiProviders.js
 Define these in `.env` (see `.env.example`):
 
 - Required (by provider you use):
+
   - `OPENAI_API_KEY`
   - `ANTHROPIC_API_KEY`
   - `GOOGLE_AI_API_KEY` (Gemini)
@@ -183,6 +187,7 @@ Define these in `.env` (see `.env.example`):
   - `Z_API_KEY`
 
 - Optional (OpenAI-compatible base URLs):
+
   - `QWEN_BASE_URL` (e.g. `https://dashscope.aliyuncs.com/compatible-mode/v1`)
   - `KIMI_BASE_URL` (default `https://api.moonshot.cn/v1`)
   - `Z_BASE_URL` or `ZAI_BASE_URL` (default `https://api.z.ai/v1`)
