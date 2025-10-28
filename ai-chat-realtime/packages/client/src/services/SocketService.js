@@ -144,6 +144,20 @@ class SocketService {
     this.emit('admin-sleep-ais');
   }
 
+  triggerAI(aiNames, message, context = []) {
+    this.emit('trigger-ai', { aiNames, message, context });
+  }
+
+  startTyping() {
+    console.log('📝 Sending user-typing-start event');
+    this.emit('user-typing-start');
+  }
+
+  stopTyping() {
+    console.log('✋ Sending user-typing-stop event');
+    this.emit('user-typing-stop');
+  }
+
   // Connection management
   disconnect() {
     if (this.socket) {

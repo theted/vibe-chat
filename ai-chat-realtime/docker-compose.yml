@@ -2,6 +2,16 @@
 version: '3.8'
 
 services:
+  redis:
+    image: redis:7.4-alpine
+    container_name: ai-chat-redis
+    command: redis-server --save 60 1 --appendonly yes --loglevel warning
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+    networks:
+      - ai-chat-network
+
   ai-chat-server:
     build:
       context: .
@@ -19,12 +29,15 @@ services:
       - MISTRAL_API_KEY=${MISTRAL_API_KEY}
       - COHERE_API_KEY=${COHERE_API_KEY}
       - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
+      - REDIS_URL=redis://redis:6379
     volumes:
       - ./packages/server/src:/app/server/src:ro
       - ./packages/ai-chat-core/src:/app/ai-chat-core/src:ro
     restart: unless-stopped
     networks:
       - ai-chat-network
+    depends_on:
+      - redis
 
   ai-chat-client:
     build:
@@ -44,3 +57,6 @@ services:
 networks:
   ai-chat-network:
     driver: bridge
+
+volumes:
+  redis-data:

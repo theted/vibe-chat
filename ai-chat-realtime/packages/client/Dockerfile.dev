@@ -9,6 +9,8 @@ RUN npm install
 
 # Copy static files (will be overridden by volumes for live files)
 COPY packages/client/vite.config.js ./
+COPY packages/client/tailwind.config.mjs ./
+COPY packages/client/postcss.config.js ./
 COPY packages/client/index.html ./
 COPY packages/client/src ./src
 

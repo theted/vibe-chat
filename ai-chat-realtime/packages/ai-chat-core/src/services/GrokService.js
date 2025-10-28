@@ -79,13 +79,26 @@ export class GrokService extends BaseAIService {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorText = await response.text();
+        let errorPayload;
+        try {
+          errorPayload = JSON.parse(errorText);
+        } catch {
+          errorPayload = errorText;
+        }
         throw new Error(
-          `Grok API Error: ${response.status} - ${JSON.stringify(errorData)}`
+          `Grok API Error: ${response.status} - ${JSON.stringify(errorPayload)}`
         );
       }
 
-      const data = await response.json();
+      let data;
+      try {
+        data = await response.json();
+      } catch (parseError) {
+        throw new Error(
+          `Grok API response could not be parsed as JSON: ${parseError.message}`
+        );
+      }
 
       if (!data.choices || !data.choices.length) {
         throw new Error(

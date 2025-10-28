@@ -69,6 +69,18 @@ export const useSocket = (serverUrl) => {
     socketService.adminSleepAIs();
   }, []);
 
+  const triggerAI = useCallback((aiNames, message, context) => {
+    socketService.triggerAI(aiNames, message, context);
+  }, []);
+
+  const startTyping = useCallback(() => {
+    socketService.startTyping();
+  }, []);
+
+  const stopTyping = useCallback(() => {
+    socketService.stopTyping();
+  }, []);
+
   return {
     on,
     emit,
@@ -79,6 +91,9 @@ export const useSocket = (serverUrl) => {
     getAIStatus,
     adminWakeAIs,
     adminSleepAIs,
+    triggerAI,
+    startTyping,
+    stopTyping,
     isConnected: socketService.isConnected(),
     socketId: socketService.getSocketId()
   };

@@ -11,6 +11,8 @@ RUN npm install react-markdown@^9.1.0 && npm install
 COPY packages/client/src ./src
 COPY packages/client/index.html ./
 COPY packages/client/vite.config.js ./
+COPY packages/client/tailwind.config.mjs ./
+COPY packages/client/postcss.config.js ./
 
 # Set build-time environment variables
 ARG VITE_SERVER_URL=http://localhost:3001

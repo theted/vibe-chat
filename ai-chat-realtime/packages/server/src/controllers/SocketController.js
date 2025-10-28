@@ -6,9 +6,10 @@ import { RoomManager } from '../managers/RoomManager.js';
 import { AIMessageTracker } from '../managers/AIMessageTracker.js';
 
 export class SocketController {
-  constructor(io, chatOrchestrator) {
+  constructor(io, chatOrchestrator, metricsService) {
     this.io = io;
     this.chatOrchestrator = chatOrchestrator;
+    this.metricsService = metricsService;
     this.roomManager = new RoomManager();
     this.aiTracker = new AIMessageTracker();
     this.connectedUsers = new Map(); // socketId -> user data
@@ -22,6 +23,11 @@ export class SocketController {
   setupChatOrchestratorEvents() {
     this.chatOrchestrator.on('message-broadcast', ({ message, roomId }) => {
       this.io.to(roomId).emit('new-message', message);
+      
+      // Track metrics based on message type
+      if (message.senderType === 'ai') {
+        this.metricsService.recordAIMessage(roomId, message.aiId || message.sender, message);
+      }
     });
 
     this.chatOrchestrator.on('ais-sleeping', ({ reason }) => {
@@ -30,6 +36,16 @@ export class SocketController {
 
     this.chatOrchestrator.on('ais-awakened', () => {
       this.io.emit('ai-status-changed', { status: 'active' });
+    });
+
+    this.chatOrchestrator.on('ai-generating-start', (payload) => {
+      if (!payload?.roomId) return;
+      this.io.to(payload.roomId).emit('ai-generating-start', payload);
+    });
+
+    this.chatOrchestrator.on('ai-generating-stop', (payload) => {
+      if (!payload?.roomId) return;
+      this.io.to(payload.roomId).emit('ai-generating-stop', payload);
     });
 
     this.chatOrchestrator.on('topic-changed', ({ newTopic, changedBy, roomId }) => {
@@ -79,6 +95,15 @@ export class SocketController {
       this.handleTopicChange(socket, data);
     });
 
+    // Typing indicators
+    socket.on('user-typing-start', () => {
+      this.handleUserTyping(socket, true);
+    });
+
+    socket.on('user-typing-stop', () => {
+      this.handleUserTyping(socket, false);
+    });
+
     // Get room info
     socket.on('get-room-info', (data) => {
       this.handleGetRoomInfo(socket, data);
@@ -101,6 +126,25 @@ export class SocketController {
     // Handle disconnect
     socket.on('disconnect', () => {
       this.handleDisconnect(socket);
+    });
+
+    // Dashboard connection
+    socket.on('join-dashboard', () => {
+      socket.join('dashboard');
+      // Send current metrics immediately
+      const metrics = this.metricsService.getDetailedMetrics();
+      socket.emit('metrics-update', metrics);
+    });
+
+    socket.on('get-metrics', () => {
+      const metrics = this.metricsService.getDetailedMetrics();
+      socket.emit('metrics-update', metrics);
+    });
+
+    socket.on('get-metrics-history', (data) => {
+      const duration = data?.duration;
+      const history = this.metricsService.getMetricsHistory(duration);
+      socket.emit('metrics-history', history);
     });
 
     // Handle errors
@@ -152,6 +196,10 @@ export class SocketController {
 
       // Initialize AI tracker for room
       this.aiTracker.initializeRoom(roomId);
+
+      // Update metrics
+      this.metricsService.updateActiveUsers(this.connectedUsers.size);
+      this.metricsService.updateActiveRooms(this.roomManager.getStats().totalRooms);
 
       // Notify user
       socket.emit('room-joined', {
@@ -209,15 +257,44 @@ export class SocketController {
 
       // Track user message
       this.aiTracker.onUserMessage(user.roomId, user.username);
+      this.metricsService.recordUserMessage(user.roomId, user.username, message);
 
       // Add message to chat orchestrator
       this.chatOrchestrator.addMessage(message);
+      this.io.to(user.roomId).emit('user-typing-stop', {
+        username: user.username,
+        roomId: user.roomId
+      });
 
       console.log(`Message from ${user.username} in ${user.roomId}: ${content.substring(0, 50)}...`);
 
     } catch (error) {
       console.error('Error handling user message:', error);
       socket.emit('error', { message: 'Failed to send message' });
+    }
+  }
+
+  /**
+   * Handle user typing state updates
+   * @param {Object} socket - Socket.IO socket
+   * @param {boolean} isTyping - Whether the user is typing
+   */
+  handleUserTyping(socket, isTyping) {
+    try {
+      const user = this.connectedUsers.get(socket.id);
+      if (!user) {
+        return;
+      }
+
+      const payload = {
+        username: user.username,
+        roomId: user.roomId
+      };
+
+      const eventName = isTyping ? 'user-typing-start' : 'user-typing-stop';
+      this.io.to(user.roomId).emit(eventName, payload);
+    } catch (error) {
+      console.error('Error handling user typing state:', error);
     }
   }
 
@@ -379,6 +456,10 @@ export class SocketController {
           username: user.username,
           timestamp: Date.now()
         });
+        this.io.to(user.roomId).emit('user-typing-stop', {
+          username: user.username,
+          roomId: user.roomId
+        });
 
         console.log(`${user.username} disconnected from room ${user.roomId}`);
       }
@@ -386,6 +467,10 @@ export class SocketController {
       // Cleanup
       this.roomManager.cleanup(socket.id);
       this.connectedUsers.delete(socket.id);
+
+      // Update metrics
+      this.metricsService.updateActiveUsers(this.connectedUsers.size);
+      this.metricsService.updateActiveRooms(this.roomManager.getStats().totalRooms);
 
     } catch (error) {
       console.error('Error handling disconnect:', error);

@@ -10,8 +10,58 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { ChatOrchestrator } from '@ai-chat/core';
 import { SocketController } from './controllers/SocketController.js';
+import { MetricsService } from './services/MetricsService.js';
+import { createRedisClient } from './services/RedisClient.js';
 
 dotenv.config();
+
+const AI_DISPLAY_INFO = {
+  OPENAI_GPT4O: {
+    displayName: 'GPT-4o',
+    alias: 'gpt-4o',
+    emoji: '🧠',
+  },
+  OPENAI_GPT35_TURBO: {
+    displayName: 'GPT-3.5 Turbo',
+    alias: 'gpt-3-5',
+    emoji: '💡',
+  },
+  ANTHROPIC_CLAUDE3_7_SONNET: {
+    displayName: 'Claude 3.7 Sonnet',
+    alias: 'claude',
+    emoji: '🤖',
+  },
+  ANTHROPIC_CLAUDE_SONNET_4: {
+    displayName: 'Claude Sonnet 4',
+    alias: 'claude',
+    emoji: '🤖',
+  },
+  GROK_GROK_3: {
+    displayName: 'Grok 3',
+    alias: 'grok',
+    emoji: '🦾',
+  },
+  GEMINI_GEMINI_PRO: {
+    displayName: 'Gemini Pro',
+    alias: 'gemini',
+    emoji: '💎',
+  },
+  MISTRAL_MISTRAL_LARGE: {
+    displayName: 'Mistral Large',
+    alias: 'mistral',
+    emoji: '🌟',
+  },
+  COHERE_COMMAND_A_03_2025: {
+    displayName: 'Command A 2025',
+    alias: 'cohere',
+    emoji: '🔮',
+  },
+  DEEPSEEK_DEEPSEEK_CHAT: {
+    displayName: 'DeepSeek Chat',
+    alias: 'deepseek',
+    emoji: '🔍',
+  },
+};
 
 const app = express();
 const server = createServer(app);
@@ -42,16 +92,35 @@ app.get('/health', (req, res) => {
 // API endpoints
 app.get('/api/stats', (req, res) => {
   try {
-    const stats = socketController.getStats();
+    const stats = global.socketController.getStats();
     res.json(stats);
   } catch (error) {
     res.status(500).json({ error: 'Failed to get stats' });
   }
 });
 
+app.get('/api/metrics', (req, res) => {
+  try {
+    const metrics = global.metricsService.getDetailedMetrics();
+    res.json(metrics);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get metrics' });
+  }
+});
+
+app.get('/api/metrics/history', (req, res) => {
+  try {
+    const duration = req.query.duration ? parseInt(req.query.duration) : undefined;
+    const history = global.metricsService.getMetricsHistory(duration);
+    res.json(history);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get metrics history' });
+  }
+});
+
 app.get('/api/rooms', (req, res) => {
   try {
-    const rooms = socketController.roomManager.getRoomList();
+    const rooms = global.socketController.roomManager.getRoomList();
     res.json(rooms);
   } catch (error) {
     res.status(500).json({ error: 'Failed to get rooms' });
@@ -66,55 +135,53 @@ async function initializeAISystem() {
   const orchestrator = new ChatOrchestrator({
     maxMessages: 100,
     maxAIMessages: 10,
-    minDelayBetweenAI: 10000, // 10 seconds
-    maxDelayBetweenAI: 40000  // 40 seconds
+    minUserResponseDelay: 2000,
+    maxUserResponseDelay: 14000,
+    minBackgroundDelay: 15000,
+    maxBackgroundDelay: 45000,
+    minDelayBetweenAI: 1200,
+    maxDelayBetweenAI: 3500,
   });
 
   // Define AI configurations - only initialize AIs with valid API keys
   const aiConfigs = [];
+  const addConfig = (providerKey, modelKey) => {
+    const config = { providerKey, modelKey };
+    const key = `${providerKey}_${modelKey}`;
+    if (AI_DISPLAY_INFO[key]) {
+      Object.assign(config, AI_DISPLAY_INFO[key]);
+    }
+    aiConfigs.push(config);
+  };
   
   if (process.env.OPENAI_API_KEY) {
-    aiConfigs.push(
-      { providerKey: 'OPENAI', modelKey: 'GPT4O' },
-      { providerKey: 'OPENAI', modelKey: 'GPT35_TURBO' }
-    );
+    addConfig('OPENAI', 'GPT4O');
+    addConfig('OPENAI', 'GPT35_TURBO');
   }
 
   if (process.env.ANTHROPIC_API_KEY) {
-    aiConfigs.push(
-      { providerKey: 'ANTHROPIC', modelKey: 'CLAUDE3_7_SONNET' },
-      { providerKey: 'ANTHROPIC', modelKey: 'CLAUDE_SONNET_4' }
-    );
+    addConfig('ANTHROPIC', 'CLAUDE3_7_SONNET');
+    addConfig('ANTHROPIC', 'CLAUDE_SONNET_4');
   }
 
   if (process.env.GROK_API_KEY) {
-    aiConfigs.push(
-      { providerKey: 'GROK', modelKey: 'GROK_3' }
-    );
+    addConfig('GROK', 'GROK_3');
   }
 
   if (process.env.GOOGLE_AI_API_KEY) {
-    aiConfigs.push(
-      { providerKey: 'GEMINI', modelKey: 'GEMINI_PRO' }
-    );
+    addConfig('GEMINI', 'GEMINI_PRO');
   }
 
   if (process.env.MISTRAL_API_KEY) {
-    aiConfigs.push(
-      { providerKey: 'MISTRAL', modelKey: 'MISTRAL_LARGE' }
-    );
+    addConfig('MISTRAL', 'MISTRAL_LARGE');
   }
 
   if (process.env.COHERE_API_KEY) {
-    aiConfigs.push(
-      { providerKey: 'COHERE', modelKey: 'COMMAND_A_03_2025' }
-    );
+    addConfig('COHERE', 'COMMAND_A_03_2025');
   }
 
   if (process.env.DEEPSEEK_API_KEY) {
-    aiConfigs.push(
-      { providerKey: 'DEEPSEEK', modelKey: 'DEEPSEEK_CHAT' }
-    );
+    addConfig('DEEPSEEK', 'DEEPSEEK_CHAT');
   }
 
   if (aiConfigs.length === 0) {
@@ -138,12 +205,21 @@ async function initializeAISystem() {
 
 // Initialize and start server
 async function startServer() {
+  let redisClient = null;
+  let metricsService = null;
+  let chatOrchestrator = null;
   try {
     // Initialize AI system
-    const chatOrchestrator = await initializeAISystem();
+    chatOrchestrator = await initializeAISystem();
+    redisClient = await createRedisClient();
+    
+    // Create metrics service
+    metricsService = new MetricsService(io, { redisClient });
+    await metricsService.initialize();
+    global.metricsService = metricsService;
     
     // Create socket controller
-    global.socketController = new SocketController(io, chatOrchestrator);
+    global.socketController = new SocketController(io, chatOrchestrator, global.metricsService);
     
     // Handle Socket.IO connections
     io.on('connection', (socket) => {
@@ -166,26 +242,58 @@ async function startServer() {
     });
 
     // Graceful shutdown
-    process.on('SIGTERM', () => {
-      console.log('🛑 Received SIGTERM, shutting down gracefully...');
-      server.close(() => {
-        console.log('✅ Server closed');
+    const cleanup = async () => {
+      if (chatOrchestrator) {
         chatOrchestrator.cleanup();
-        process.exit(0);
-      });
-    });
+      }
+      if (metricsService) {
+        await metricsService.flushPersistence();
+      }
+      if (redisClient) {
+        try {
+          await redisClient.quit();
+          console.log('✅ Redis connection closed');
+        } catch (error) {
+          console.error('⚠️  Failed to close Redis connection:', error);
+        }
+      }
+    };
 
-    process.on('SIGINT', () => {
-      console.log('🛑 Received SIGINT, shutting down gracefully...');
+    let isShuttingDown = false;
+    const handleShutdown = (signal) => {
+      if (isShuttingDown) {
+        return;
+      }
+      isShuttingDown = true;
+      console.log(`🛑 Received ${signal}, shutting down gracefully...`);
       server.close(() => {
         console.log('✅ Server closed');
-        chatOrchestrator.cleanup();
-        process.exit(0);
+        cleanup().finally(() => process.exit(0));
       });
-    });
+    };
+
+    process.on('SIGTERM', () => handleShutdown('SIGTERM'));
+    process.on('SIGINT', () => handleShutdown('SIGINT'));
 
   } catch (error) {
     console.error('❌ Failed to start server:', error);
+    if (metricsService) {
+      try {
+        await metricsService.flushPersistence();
+      } catch (flushError) {
+        console.error('⚠️  Additionally failed to flush metrics to Redis:', flushError);
+      }
+    }
+    if (chatOrchestrator) {
+      chatOrchestrator.cleanup();
+    }
+    if (redisClient) {
+      try {
+        await redisClient.quit();
+      } catch (redisError) {
+        console.error('⚠️  Additionally failed to close Redis connection:', redisError);
+      }
+    }
     process.exit(1);
   }
 }
