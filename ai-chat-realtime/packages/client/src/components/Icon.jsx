@@ -3,7 +3,7 @@
  * Renders SVG icons using the modern design system.
  */
 
-import React, { useMemo } from 'react';
+import React from 'react';
 
 const ICON_PATHS = {
   chat: {
@@ -277,17 +277,15 @@ const ICON_PATHS = {
 const DEFAULT_VARIANT = 'modern';
 
 const Icon = ({ name = 'sparkle', className = '', strokeWidth, styleVariant, paths, ...rest }) => {
-  const resolved = useMemo(() => {
-    const icon = ICON_PATHS[name] || ICON_PATHS.sparkle;
-    if (!icon) {
-      return null;
-    }
-    if (paths) {
-      return { paths, strokeWidth: strokeWidth || 1.5 };
-    }
-    const variant = styleVariant || DEFAULT_VARIANT;
-    return icon[variant] || icon.modern || icon.classic || null;
-  }, [name, styleVariant, paths, strokeWidth]);
+  const iconDefinition = ICON_PATHS[name] || ICON_PATHS.sparkle;
+
+  if (!iconDefinition) {
+    return null;
+  }
+
+  const resolved = paths
+    ? { paths, strokeWidth: strokeWidth || 1.5 }
+    : iconDefinition[styleVariant || DEFAULT_VARIANT] || iconDefinition.modern || iconDefinition.classic || null;
 
   if (!resolved) {
     return null;
