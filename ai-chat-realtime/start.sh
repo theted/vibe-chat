@@ -56,8 +56,8 @@ case $choice in
         echo "   - Client: Nginx serving built files"
         echo "   - URLs: http://localhost:3000 (client), http://localhost:3001 (server)"
         echo ""
-        docker compose down --volumes
-        docker compose up --build
+        docker compose -f docker-compose.prod.yml down --volumes
+        docker compose -f docker-compose.prod.yml up --build
         ;;
     3)
         echo "🧪 Starting debug mode..."

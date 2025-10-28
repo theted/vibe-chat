@@ -68,7 +68,7 @@ Choose option 1 for development with live reloading!
 docker-compose -f docker-compose.dev.yml up --build
 
 # Production build  
-docker-compose up --build
+docker-compose -f docker-compose.prod.yml up --build
 
 # Debug mode (for troubleshooting)
 docker-compose -f docker-compose.debug.yml up --build

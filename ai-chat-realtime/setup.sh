@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 echo "🚀 Setting up AI Chat Realtime..."
 
@@ -8,15 +9,41 @@ if ! command -v node &> /dev/null; then
     exit 1
 fi
 
-echo "✅ Node.js version: $(node -v)"
+NODE_VERSION_RAW=$(node -v)
+NODE_VERSION="${NODE_VERSION_RAW#v}"
+IFS='.' read -r NODE_MAJOR NODE_MINOR NODE_PATCH <<< "${NODE_VERSION}"
 
-# Check if Docker is installed (optional)
+if [ "${NODE_MAJOR:-0}" -lt 18 ]; then
+    echo "❌ Node.js 18 or higher is required. Detected version: ${NODE_VERSION_RAW}"
+    exit 1
+fi
+
+echo "✅ Node.js version detected: ${NODE_VERSION_RAW}"
+
+# Check if Docker Compose is available
+DOCKER_AVAILABLE=false
+DOCKER_COMPOSE_COMMAND=()
+
 if command -v docker &> /dev/null; then
     echo "✅ Docker version: $(docker -v)"
-    DOCKER_AVAILABLE=true
+    if docker compose version > /dev/null 2>&1; then
+        DOCKER_COMPOSE_COMMAND=(docker compose)
+        DOCKER_AVAILABLE=true
+        COMPOSE_VERSION=$(docker compose version | head -n 1)
+        echo "✅ Docker Compose plugin detected: ${COMPOSE_VERSION}"
+    fi
 else
     echo "⚠️  Docker not found. Manual setup will be required."
-    DOCKER_AVAILABLE=false
+fi
+
+if [ "${DOCKER_AVAILABLE}" = false ] && command -v docker-compose &> /dev/null; then
+    DOCKER_COMPOSE_COMMAND=(docker-compose)
+    DOCKER_AVAILABLE=true
+    echo "✅ docker-compose version: $(docker-compose --version)"
+fi
+
+if [ "${DOCKER_AVAILABLE}" = false ]; then
+    echo "⚠️  Docker Compose command not found. Manual setup will be required."
 fi
 
 # Copy environment file
@@ -36,13 +63,13 @@ echo "1) Docker Compose (recommended)"
 echo "2) Manual setup"
 echo "3) Just install dependencies"
 
-read -p "Enter choice (1-3): " choice
+read -rp "Enter choice (1-3): " choice
 
 case $choice in
     1)
-        if [ "$DOCKER_AVAILABLE" = true ]; then
+        if [ "${DOCKER_AVAILABLE}" = true ]; then
             echo "🐳 Starting with Docker Compose..."
-            docker-compose up --build
+            "${DOCKER_COMPOSE_COMMAND[@]}" up --build
         else
             echo "❌ Docker not available. Please choose option 2."
             exit 1
@@ -53,21 +80,21 @@ case $choice in
         
         # Install core dependencies
         echo "Installing ai-chat-core dependencies..."
-        cd packages/ai-chat-core
+        cd packages/ai-chat-core || exit 1
         npm install
-        cd ../..
+        cd ../.. || exit 1
         
         # Install server dependencies
         echo "Installing server dependencies..."
-        cd packages/server
+        cd packages/server || exit 1
         npm install
-        cd ../..
+        cd ../.. || exit 1
         
         # Install client dependencies
         echo "Installing client dependencies..."
-        cd packages/client
+        cd packages/client || exit 1
         npm install
-        cd ../..
+        cd ../.. || exit 1
         
         echo "✅ Dependencies installed!"
         echo ""
@@ -79,9 +106,15 @@ case $choice in
     3)
         echo "📦 Installing dependencies only..."
         
-        cd packages/ai-chat-core && npm install && cd ../..
-        cd packages/server && npm install && cd ../..
-        cd packages/client && npm install && cd ../..
+        cd packages/ai-chat-core || exit 1
+        npm install
+        cd ../.. || exit 1
+        cd packages/server || exit 1
+        npm install
+        cd ../.. || exit 1
+        cd packages/client || exit 1
+        npm install
+        cd ../.. || exit 1
         
         echo "✅ All dependencies installed!"
         ;;

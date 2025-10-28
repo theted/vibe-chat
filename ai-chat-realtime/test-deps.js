@@ -75,6 +75,4 @@ async function testDependencies() {
   }
 }
 
-// Change to the core package directory for testing
-process.chdir('./packages/ai-chat-core');
 testDependencies().catch(console.error);

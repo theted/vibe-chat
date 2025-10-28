@@ -54,6 +54,18 @@
         {
           "name": "DEEPSEEK_API_KEY",
           "valueFrom": "arn:aws:secretsmanager:YOUR_REGION:YOUR_ACCOUNT_ID:secret:ai-chat/deepseek-api-key"
+        },
+        {
+          "name": "QWEN_API_KEY",
+          "valueFrom": "arn:aws:secretsmanager:YOUR_REGION:YOUR_ACCOUNT_ID:secret:ai-chat/qwen-api-key"
+        },
+        {
+          "name": "KIMI_API_KEY",
+          "valueFrom": "arn:aws:secretsmanager:YOUR_REGION:YOUR_ACCOUNT_ID:secret:ai-chat/kimi-api-key"
+        },
+        {
+          "name": "Z_API_KEY",
+          "valueFrom": "arn:aws:secretsmanager:YOUR_REGION:YOUR_ACCOUNT_ID:secret:ai-chat/z-api-key"
         }
       ],
       "logConfiguration": {
