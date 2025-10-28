@@ -1,0 +1,47 @@
+export const SERVER_URL =
+  import.meta.env.VITE_SERVER_URL || "http://localhost:3001";
+
+export const AI_EMOJI_LOOKUP = {
+  claude: "🤖",
+  anthropic: "🤖",
+  gpt: "🧠",
+  gpt4: "🧠",
+  gpt35: "🧠",
+  openai: "🧠",
+  grok: "🦾",
+  xai: "🦾",
+  gemini: "💎",
+  google: "💎",
+  bard: "💎",
+  cohere: "🔮",
+  command: "🔮",
+  commandr: "🔮",
+  mistral: "🌟",
+  kimi: "🎯",
+  moonshot: "🎯",
+  zai: "⚡",
+  z: "⚡",
+  "z.ai": "⚡",
+};
+
+export const AI_MENTION_MAPPINGS = {
+  claude: "claude",
+  anthropic: "claude",
+  gpt: "gpt-4",
+  gpt4: "gpt-4",
+  "gpt-4": "gpt-4",
+  openai: "gpt-4",
+  chatgpt: "gpt-4",
+  grok: "grok",
+  xai: "grok",
+  gemini: "gemini",
+  google: "gemini",
+  bard: "gemini",
+  command: "cohere",
+  commandr: "cohere",
+  cohere: "cohere",
+  mistral: "mistral",
+  "z.ai": "z.ai",
+  z: "z.ai",
+  zai: "z.ai",
+};
