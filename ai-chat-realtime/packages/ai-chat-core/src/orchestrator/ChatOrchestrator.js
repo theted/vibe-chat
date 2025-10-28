@@ -1,0 +1,660 @@
+/**
+ * Chat Orchestrator - Manages multi-AI conversations
+ */
+
+import { EventEmitter } from 'events';
+import { AIServiceFactory } from '../services/AIServiceFactory.js';
+import { ContextManager } from './ContextManager.js';
+import { MessageBroker } from './MessageBroker.js';
+
+const normalizeAlias = (value) =>
+  value ? value.toString().toLowerCase().replace(/[^a-z0-9]/g, '') : '';
+
+export class ChatOrchestrator extends EventEmitter {
+  constructor(options = {}) {
+    super();
+    this.contextManager = new ContextManager(options.maxMessages || 100);
+    this.messageBroker = new MessageBroker();
+    this.aiServices = new Map();
+    this.activeAIs = [];
+    this.messageTracker = {
+      aiMessageCount: 0,
+      maxAIMessages: options.maxAIMessages || 10,
+      isAsleep: false
+    };
+    this.lastAIMessageTime = 0;
+    // Fast responses to user messages (1-10 seconds)
+    this.minUserResponseDelay = options.minUserResponseDelay || 1000; // 1 second
+    this.maxUserResponseDelay = options.maxUserResponseDelay || 10000; // 10 seconds
+    // Background AI conversation timing (10-30 seconds)
+    this.minBackgroundDelay = options.minBackgroundDelay || 10000; // 10 seconds
+    this.maxBackgroundDelay = options.maxBackgroundDelay || 30000; // 30 seconds
+    this.minDelayBetweenAI = options.minDelayBetweenAI || 1200;
+    this.maxDelayBetweenAI = options.maxDelayBetweenAI || 3200;
+    
+    this.backgroundConversationTimer = null;
+    this.topicChangeChance = options.topicChangeChance || 0.1; // 10% chance
+
+    this.setupMessageBroker();
+    this.startBackgroundConversation();
+  }
+
+  /**
+   * Setup message broker event handlers
+   */
+  setupMessageBroker() {
+    this.messageBroker.on('message-ready', (message) => {
+      this.handleMessage(message);
+    });
+
+    this.messageBroker.on('broadcast', ({ message, roomId }) => {
+      this.emit('message-broadcast', { message, roomId });
+    });
+
+    this.messageBroker.on('message-error', ({ message, error }) => {
+      this.emit('error', { message, error });
+    });
+  }
+
+  /**
+   * Initialize AI services for the chat
+   * @param {Array} aiConfigs - Array of AI configuration objects
+   */
+  async initializeAIs(aiConfigs) {
+    for (const config of aiConfigs) {
+      try {
+        const service = AIServiceFactory.createServiceByName(config.providerKey, config.modelKey);
+        await service.initialize();
+        
+        const aiId = `${config.providerKey}_${config.modelKey}`;
+        const displayName =
+          config.displayName || `${service.getName()} ${service.getModel()}`;
+        const alias = config.alias || displayName;
+        const emoji = config.emoji || '🤖';
+
+        this.aiServices.set(aiId, {
+          service,
+          config,
+          id: aiId,
+          name: service.getName(),
+          displayName,
+          alias,
+          normalizedAlias: normalizeAlias(alias),
+          emoji,
+          isActive: true,
+          lastMessageTime: 0
+        });
+        
+        this.activeAIs.push(aiId);
+      } catch (error) {
+        console.error(`Failed to initialize AI ${config.providerKey}_${config.modelKey}:`, error);
+      }
+    }
+
+    console.log(`Initialized ${this.aiServices.size} AI services`);
+  }
+
+  /**
+   * Process incoming message
+   * @param {Object} message - Incoming message
+   */
+  async handleMessage(message) {
+    // Add to context
+    this.contextManager.addMessage(message);
+
+    if (message.senderType === 'user') {
+      await this.handleUserMessage(message);
+    } else {
+      await this.handleAIMessage(message);
+    }
+
+    // Broadcast the message
+    this.messageBroker.broadcastMessage(message, message.roomId);
+  }
+
+  /**
+   * Handle user message
+   * @param {Object} message - User message
+   */
+  async handleUserMessage(message) {
+    // Reset AI message tracker - users wake up AIs
+    this.wakeUpAIs();
+    
+    // Schedule AI responses with random delays
+    this.scheduleAIResponses(message.roomId);
+  }
+
+  /**
+   * Handle AI message
+   * @param {Object} message - AI message
+   */
+  async handleAIMessage(message) {
+    this.messageTracker.aiMessageCount++;
+    this.lastAIMessageTime = Date.now();
+
+    if (this.messageTracker.aiMessageCount >= this.messageTracker.maxAIMessages) {
+      this.putAIsToSleep();
+    }
+  }
+
+  /**
+   * Schedule AI responses
+   * @param {string} roomId - Room ID
+   * @param {boolean} isUserResponse - Whether this is a response to user message
+   */
+  scheduleAIResponses(roomId, isUserResponse = true) {
+    if (this.messageTracker.isAsleep || this.activeAIs.length === 0) {
+      return;
+    }
+
+    const activeCount = this.activeAIs.length;
+    const maxResponders = isUserResponse
+      ? Math.max(2, Math.ceil(activeCount * 0.45))
+      : Math.max(1, Math.ceil(activeCount * 0.25));
+    const minResponders = isUserResponse ? 1 : 0;
+    const respondingAIs = this.selectRespondingAIs(minResponders, maxResponders);
+    
+    respondingAIs.forEach((aiId, index) => {
+      const delay = this.calculateResponseDelay(index, isUserResponse);
+      
+      setTimeout(() => {
+        this.generateAIResponse(aiId, roomId, isUserResponse);
+      }, delay);
+    });
+  }
+
+  /**
+   * Select which AIs should respond
+   * @param {number} minResponders - Minimum number of responders
+   * @param {number} maxResponders - Maximum number of responders
+   * @returns {Array} Array of AI IDs that should respond
+   */
+  selectRespondingAIs(minResponders = 1, maxResponders = 3) {
+    const availableAIs = this.activeAIs.filter(aiId => {
+      const ai = this.aiServices.get(aiId);
+      return ai && ai.isActive;
+    });
+
+    // Randomly select between min and max AIs
+    const numResponders = Math.min(
+      Math.floor(Math.random() * (maxResponders - minResponders + 1)) + minResponders, 
+      availableAIs.length
+    );
+    const shuffled = [...availableAIs].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, numResponders);
+  }
+
+  /**
+   * Calculate response delay for AI
+   * @param {number} index - AI response index
+   * @param {boolean} isUserResponse - Whether this is a response to user message
+   * @returns {number} Delay in milliseconds
+   */
+  calculateResponseDelay(index, isUserResponse = true) {
+    let baseDelay;
+    
+    if (isUserResponse) {
+      // Fast responses to user messages (1-10 seconds)
+      baseDelay = this.minUserResponseDelay + 
+        Math.random() * (this.maxUserResponseDelay - this.minUserResponseDelay);
+    } else {
+      // Background conversation timing (10-30 seconds)
+      baseDelay = this.minBackgroundDelay + 
+        Math.random() * (this.maxBackgroundDelay - this.minBackgroundDelay);
+    }
+    
+    const randomness = Math.random();
+    const staggerDelay =
+      index * (this.minDelayBetweenAI || 1000) +
+      randomness * (this.maxDelayBetweenAI || 3000);
+
+    const catchUpDelay = Math.pow(randomness, 2) * 1500;
+
+    return Math.floor(baseDelay + staggerDelay + catchUpDelay);
+  }
+
+  /**
+   * Generate AI response
+   * @param {string} aiId - AI service ID
+   * @param {string} roomId - Room ID
+   * @param {boolean} isUserResponse - Whether this is a response to user message
+   */
+  async generateAIResponse(aiId, roomId, isUserResponse = true) {
+    if (this.messageTracker.isAsleep) {
+      return;
+    }
+
+    const aiService = this.aiServices.get(aiId);
+    if (!aiService || !aiService.isActive) {
+      return;
+    }
+
+    const aiMeta = {
+      aiId,
+      displayName: aiService.displayName || aiService.name,
+      alias: aiService.alias,
+      normalizedAlias: aiService.normalizedAlias,
+      emoji: aiService.emoji,
+      providerKey: aiService.config?.providerKey,
+      modelKey: aiService.config?.modelKey,
+      roomId,
+      isUserResponse,
+    };
+
+    this.emit('ai-generating-start', aiMeta);
+    aiService.isGenerating = true;
+
+    try {
+      console.log(`🤖 ${aiService.name} is generating ${isUserResponse ? 'user response' : 'background message'}...`);
+      
+      let context = this.contextManager.getContextForAI(25); // Get more context for better AI interactions
+      let responseType = 'response';
+      let systemPrompt = this.createEnhancedSystemPrompt(aiService, context, isUserResponse);
+      
+      // Determine AI interaction strategy based on context
+      const interactionStrategy = this.determineInteractionStrategy(aiService, context, isUserResponse);
+      responseType = interactionStrategy.type;
+      
+      // Apply interaction strategy to context
+      context = this.applyInteractionStrategy(context, interactionStrategy, aiService);
+      
+      // Add the enhanced system prompt
+      const messagesWithSystem = [
+        {
+          role: 'system',
+          content: systemPrompt,
+          senderType: 'system',
+          isInternal: true
+        },
+        ...context
+      ];
+
+      const response = await aiService.service.generateResponse(messagesWithSystem);
+      let processedResponse = this.truncateResponse(response);
+      aiService.lastMessageTime = Date.now();
+      
+      // Add @mentions if strategy calls for it
+      if (interactionStrategy.shouldMention && interactionStrategy.targetAI) {
+        processedResponse = this.addMentionToResponse(processedResponse, interactionStrategy.targetAI);
+      }
+      
+      console.log(`✨ ${aiService.name} ${responseType}: ${processedResponse.substring(0, 100)}${processedResponse.length > 100 ? '...' : ''}`);
+
+      const aiMessage = {
+        sender: aiService.name,
+        content: processedResponse,
+        senderType: 'ai',
+        roomId,
+        aiId,
+        responseType,
+        interactionStrategy: interactionStrategy.type,
+        priority: isUserResponse ? 500 : 0
+      };
+
+      // Queue the AI response
+      this.messageBroker.enqueueMessage(aiMessage);
+      
+    } catch (error) {
+      console.error(`❌ AI ${aiId} failed to generate response:`, error.message);
+      this.emit('ai-error', { aiId, error });
+    } finally {
+      aiService.isGenerating = false;
+      this.emit('ai-generating-stop', aiMeta);
+    }
+  }
+
+  /**
+   * Truncate AI response to keep it concise (2-3 sentences max)
+   * @param {string} response - Original AI response
+   * @returns {string} Truncated response
+   */
+  truncateResponse(response) {
+    if (!response || typeof response !== 'string') {
+      return response;
+    }
+
+    // Split into sentences (looking for periods, exclamation marks, question marks)
+    const sentences = response.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 0);
+    
+    // Keep max 2-3 sentences
+    const maxSentences = 3;
+    if (sentences.length <= maxSentences) {
+      return response.trim();
+    }
+
+    // Take first 2-3 sentences and ensure they end properly
+    let truncated = sentences.slice(0, maxSentences).join(' ').trim();
+    
+    // Ensure it ends with proper punctuation
+    if (!truncated.match(/[.!?]$/)) {
+      truncated += '.';
+    }
+    
+    return truncated;
+  }
+
+  /**
+   * Wake up AIs (reset message counter)
+   */
+  wakeUpAIs() {
+    this.messageTracker.aiMessageCount = 0;
+    this.messageTracker.isAsleep = false;
+    this.emit('ais-awakened');
+    
+    // Restart background conversation if it was stopped
+    if (!this.backgroundConversationTimer) {
+      this.startBackgroundConversation();
+    }
+  }
+
+  /**
+   * Put AIs to sleep
+   */
+  putAIsToSleep() {
+    this.messageTracker.isAsleep = true;
+    this.emit('ais-sleeping', { reason: 'message-limit-reached' });
+  }
+
+  /**
+   * Add message to chat
+   * @param {Object} message - Message to add
+   */
+  addMessage(message) {
+    this.messageBroker.enqueueMessage(message);
+  }
+
+  /**
+   * Change topic
+   * @param {string} newTopic - New topic
+   * @param {string} changedBy - Who changed the topic
+   * @param {string} roomId - Room ID
+   */
+  changeTopic(newTopic, changedBy, roomId) {
+    const topicMessage = {
+      sender: 'System',
+      content: `Topic changed to: "${newTopic}" by ${changedBy}`,
+      senderType: 'system',
+      roomId,
+      priority: 1000 // High priority for system messages
+    };
+
+    this.addMessage(topicMessage);
+    this.emit('topic-changed', { newTopic, changedBy, roomId });
+  }
+
+  /**
+   * Get orchestrator status
+   * @returns {Object} Status information
+   */
+  getStatus() {
+    return {
+      aiServices: this.aiServices.size,
+      activeAIs: this.activeAIs.length,
+      messageTracker: { ...this.messageTracker },
+      contextSize: this.contextManager.size(),
+      queueStatus: this.messageBroker.getQueueStatus()
+    };
+  }
+
+  /**
+   * Start background conversation between AIs
+   */
+  startBackgroundConversation() {
+    const scheduleNextMessage = () => {
+      if (this.messageTracker.isAsleep || this.activeAIs.length === 0) {
+        // Retry in 30 seconds if AIs are asleep
+        this.backgroundConversationTimer = setTimeout(scheduleNextMessage, 30000);
+        return;
+      }
+
+      const delay = this.minBackgroundDelay + 
+        Math.random() * (this.maxBackgroundDelay - this.minBackgroundDelay);
+
+      this.backgroundConversationTimer = setTimeout(() => {
+        // Only generate background messages if there has been recent activity
+        const timeSinceLastMessage = Date.now() - this.lastAIMessageTime;
+        if (timeSinceLastMessage > 120000) { // 2 minutes of silence
+          scheduleNextMessage();
+          return;
+        }
+
+        // Generate background AI message
+        this.scheduleAIResponses('default', false); // false = background message
+        scheduleNextMessage();
+      }, delay);
+    };
+
+    scheduleNextMessage();
+  }
+
+  /**
+   * Enhance context for topic change
+   * @param {Array} context - Original context
+   * @returns {Array} Enhanced context
+   */
+  enhanceContextForTopicChange(context) {
+    const enhancedContext = [...context];
+    enhancedContext.push({
+      sender: 'System',
+      content: 'Feel free to introduce a new interesting topic or shift the conversation in a different direction.',
+      senderType: 'system',
+      role: 'system',
+      isInternal: true
+    });
+    return enhancedContext;
+  }
+
+  /**
+   * Create enhanced system prompt for AI interactions
+   * @param {Object} aiService - AI service object
+   * @param {Array} context - Message context
+   * @param {boolean} isUserResponse - Whether responding to user
+   * @returns {string} Enhanced system prompt
+   */
+  createEnhancedSystemPrompt(aiService, context, isUserResponse) {
+    const recentMessages = context.slice(-5); // Focus on last 5 messages
+    const aiNames = Array.from(this.aiServices.values()).map(ai => ai.name.toLowerCase());
+    
+    let prompt = `You are ${aiService.name}, an AI participating in a dynamic group chat. `;
+    
+    if (isUserResponse) {
+      prompt += `A user just posted. Respond naturally and conversationally. `;
+    } else {
+      prompt += `Continue the ongoing conversation between AIs. `;
+    }
+    
+    prompt += `
+
+Key guidelines:
+• Keep responses 1-3 sentences and conversational
+• Reference recent messages and build on ideas
+• Use @mentions when directly addressing another AI (e.g., "@Claude, I disagree with your point about...")
+• Feel free to challenge, expand on, or redirect the conversation
+• Show personality and distinct perspectives
+• The latest messages are most important for context
+• Don't repeat what others just said - add new value
+• Ask questions to spark further discussion
+
+Other AIs in this chat: ${aiNames.filter(name => name.toLowerCase() !== aiService.name.toLowerCase()).join(', ')}
+
+Respond naturally and keep the conversation flowing!`;
+    
+    return prompt;
+  }
+
+  /**
+   * Determine interaction strategy for AI response
+   * @param {Object} aiService - AI service object
+   * @param {Array} context - Message context
+   * @param {boolean} isUserResponse - Whether responding to user
+   * @returns {Object} Interaction strategy
+   */
+  determineInteractionStrategy(aiService, context, isUserResponse) {
+    const recentMessages = context.slice(-8); // Look at last 8 messages
+    const aiMessages = recentMessages.filter(msg => msg.senderType === 'ai');
+    const lastMessage = recentMessages[recentMessages.length - 1];
+    
+    const strategies = {
+      AGREE_AND_EXPAND: { type: 'agree-expand', weight: 0.3 },
+      CHALLENGE_AND_DEBATE: { type: 'challenge', weight: 0.25 },
+      REDIRECT_TOPIC: { type: 'redirect', weight: 0.15 },
+      ASK_QUESTION: { type: 'question', weight: 0.2 },
+      DIRECT_RESPONSE: { type: 'direct', weight: 0.1 }
+    };
+    
+    // Adjust weights based on context
+    if (lastMessage?.senderType === 'ai' && !isUserResponse) {
+      strategies.CHALLENGE_AND_DEBATE.weight += 0.2;
+      strategies.AGREE_AND_EXPAND.weight += 0.15;
+    }
+    
+    if (aiMessages.length >= 3) {
+      strategies.REDIRECT_TOPIC.weight += 0.1;
+      strategies.ASK_QUESTION.weight += 0.1;
+    }
+    
+    // Select strategy based on weighted random
+    const randomValue = Math.random();
+    let cumulativeWeight = 0;
+    let selectedStrategy = strategies.DIRECT_RESPONSE;
+    
+    for (const strategy of Object.values(strategies)) {
+      cumulativeWeight += strategy.weight;
+      if (randomValue <= cumulativeWeight) {
+        selectedStrategy = strategy;
+        break;
+      }
+    }
+    
+    // Determine if should mention another AI
+    const shouldMention = Math.random() < 0.35; // slightly rarer than before
+    let targetAI = null;
+    
+    if (shouldMention && aiMessages.length > 0) {
+      const recentAIs = aiMessages
+        .slice(-5)
+        .map(msg => msg.sender)
+        .filter(sender => sender && sender !== aiService.displayName && sender !== aiService.name);
+
+      if (recentAIs.length > 0) {
+        targetAI = recentAIs[Math.floor(Math.random() * recentAIs.length)];
+      }
+    }
+    
+    return {
+      ...selectedStrategy,
+      shouldMention,
+      targetAI
+    };
+  }
+
+  /**
+   * Apply interaction strategy to context
+   * @param {Array} context - Original context
+   * @param {Object} strategy - Interaction strategy
+   * @param {Object} aiService - AI service
+   * @returns {Array} Enhanced context
+   */
+  applyInteractionStrategy(context, strategy, aiService) {
+    const enhancedContext = [...context];
+    const lastMessage = context[context.length - 1];
+    
+    let instructionPrompt = '';
+    
+    switch (strategy.type) {
+      case 'agree-expand':
+        if (lastMessage?.senderType === 'ai') {
+          instructionPrompt = `Build on ${lastMessage.sender}'s point and add your own insights. Show agreement but expand with new information or examples.`;
+        }
+        break;
+        
+      case 'challenge':
+        if (lastMessage?.senderType === 'ai') {
+          instructionPrompt = `Respectfully challenge ${lastMessage.sender}'s perspective. Offer a counterpoint or alternative viewpoint while keeping it constructive.`;
+        }
+        break;
+        
+      case 'redirect':
+        instructionPrompt = 'Gracefully steer the conversation toward a related but new angle or topic that might be more interesting.';
+        break;
+        
+      case 'question':
+        instructionPrompt = 'Ask a thought-provoking question that will get the other AIs thinking and responding.';
+        break;
+        
+      case 'direct':
+        instructionPrompt = 'Respond directly to the most recent message with your perspective.';
+        break;
+    }
+    
+    if (instructionPrompt) {
+      enhancedContext.push({
+        sender: 'System',
+        content: instructionPrompt,
+        senderType: 'system',
+        role: 'system',
+        isInternal: true
+      });
+    }
+    
+    return enhancedContext;
+  }
+
+  /**
+   * Add @mention to response if needed
+   * @param {string} response - Original response
+   * @param {string} targetAI - AI to mention
+   * @returns {string} Response with mention
+   */
+  addMentionToResponse(response, targetAI) {
+    if (!targetAI || response.includes('@')) {
+      return response; // Already has mentions or no target
+    }
+    
+    // Try to naturally incorporate the mention
+    const mentionFormats = [
+      `@${targetAI}, ${response}`,
+      `${response} What do you think, @${targetAI}?`,
+      `${response} I'd love to hear @${targetAI}'s perspective on this.`,
+      `Building on what we discussed, @${targetAI}, ${response}`
+    ];
+    
+    // Use different format based on response type
+    const formatIndex = Math.floor(Math.random() * mentionFormats.length);
+    return mentionFormats[formatIndex];
+  }
+
+  /**
+   * Enhance context for commenting on previous message
+   * @param {Array} context - Original context
+   * @param {Object} lastMessage - Last message to comment on
+   * @returns {Array} Enhanced context
+   */
+  enhanceContextForComment(context, lastMessage) {
+    const enhancedContext = [...context];
+    enhancedContext.push({
+      sender: 'System',
+      content: `Consider commenting on or building upon ${lastMessage.sender}'s message: "${lastMessage.content}"`,
+      senderType: 'system',
+      role: 'system',
+      isInternal: true
+    });
+    return enhancedContext;
+  }
+
+  /**
+   * Cleanup resources
+   */
+  cleanup() {
+    if (this.backgroundConversationTimer) {
+      clearTimeout(this.backgroundConversationTimer);
+      this.backgroundConversationTimer = null;
+    }
+    this.messageBroker.removeAllListeners();
+    this.removeAllListeners();
+    this.aiServices.clear();
+    this.activeAIs = [];
+    this.contextManager.clear();
+    this.messageBroker.clearQueue();
+  }
+}

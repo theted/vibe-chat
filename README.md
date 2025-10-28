@@ -81,7 +81,9 @@ vibe-chat/
 There are two modes: multi-model conversation and single-prompt responses.
 
 ### Syntax
+
 - Command formats:
+
   - `npm start [provider[:MODEL]] [provider[:MODEL]] [topic] [maxTurns]`
   - `npm start [provider[:MODEL]] ... [providerN[:MODEL]] [prompt] [maxTurns]`
 
@@ -91,6 +93,7 @@ There are two modes: multi-model conversation and single-prompt responses.
   - `z` and `z.ai` resolve to `zai`
 
 ### Examples
+
 - Two-model conversation (default models):
   - `npm start openai anthropic "Discuss the future of AI"`
 - Custom models + multi-party conversation:
@@ -104,7 +107,7 @@ There are two modes: multi-model conversation and single-prompt responses.
 
 Current defaults and IDs (see `src/config/aiProviders.js`):
 
-- OpenAI
+- OpenAI ([API keys](https://platform.openai.com/api-keys))
   - `GPT4O` → `gpt-4o`
   - `GPT4_1` → `gpt-4.1` (specialized for coding)
   - `GPT5` → `gpt-5` (most advanced with multimodal)
@@ -112,28 +115,28 @@ Current defaults and IDs (see `src/config/aiProviders.js`):
   - `O3_MINI` → `o3-mini` (cost-efficient reasoning)
   - `O4_MINI` → `o4-mini` (fast reasoning for math/coding)
   - `GPT35_TURBO` → `gpt-3.5-turbo`
-- Anthropic
+- Anthropic ([API keys](https://console.anthropic.com/settings/keys))
   - `CLAUDE3_7_SONNET` → `claude-3-7-sonnet-20250219` (hybrid reasoning)
   - `CLAUDE3_5_HAIKU_20241022` → `claude-3-5-haiku-20241022`
   - `CLAUDE_SONNET_4` → `claude-sonnet-4-20250514`
   - `CLAUDE_SONNET_4_5` (default) → `claude-sonnet-4-5` (best coding model)
   - `CLAUDE_OPUS_4` → `claude-opus-4-20250514`
   - `CLAUDE_OPUS_4_1` → `claude-opus-4-1` (industry leader for coding/agents)
-- Mistral
+- Mistral ([API keys](https://console.mistral.ai/api-keys))
   - `MISTRAL_LARGE` → `mistral-large-latest`
   - `MISTRAL_MEDIUM` → `mistral-medium-latest`
   - `MISTRAL_SMALL` → `mistral-small-latest`
   - `MINISTRAL_8B_LATEST` → `ministral-8b-latest`
   - `OPEN_MISTRAL_NEMO` → `open-mistral-nemo`
-- Gemini
+- Gemini ([API keys](https://aistudio.google.com/app/apikey))
   - `GEMINI_PRO` → `gemini-2.0-pro`
   - `GEMINI_FLASH` → `gemini-2.0-flash`
   - `GEMINI_25` (default) → `gemini-2.5-pro`
-- Deepseek
+- Deepseek ([API keys](https://platform.deepseek.com/api_keys))
   - `DEEPSEEK_CHAT` → `deepseek-chat`
   - `DEEPSEEK_CODER` → `deepseek-coder`
   - `DEEPSEEK_REASONER` → `deepseek-reasoner`
-- Grok
+- Grok ([API keys](https://console.x.ai/keys))
   - `GROK_3` (default) → `grok-3`
   - `GROK_3_MINI` → `grok-3-mini`
   - `GROK_2_1212` → `grok-2-1212`
@@ -144,22 +147,22 @@ Current defaults and IDs (see `src/config/aiProviders.js`):
   - `GROK_4_HEAVY` → `grok-4-heavy` (enhanced capabilities)
   - `GROK_CODE_FAST_1` → `grok-code-fast-1` (agentic coding)
   - `GROK_2_IMAGE_1212` → `grok-2-image-1212`
-- Cohere
+- Cohere ([API keys](https://dashboard.cohere.com/api-keys))
   - `COMMAND_A_03_2025` (default) → `command-a-03-2025`
   - `COMMAND_A_REASONING_08_2025` → `command-a-reasoning-08-2025`
   - `COMMAND_A_VISION_07_2025` → `command-a-vision-07-2025`
   - `COMMAND_R_08_2024` → `command-r-08-2024`
   - `COMMAND_R7B_12_2024` → `command-r7b-12-2024`
-- Z.ai
+- Z.ai ([API keys](https://z.ai/manage-apikey/apikey-list))
   - `ZAI_DEFAULT` (default) → `z-1` (override with `Z_MODEL_ID`)
-- Qwen
+- Qwen ([API keys](https://qwen.ai/apiplatform))
   - `QWEN3_MAX` (default) → `qwen3-max` (flagship for complex tasks)
   - `QWEN3_PLUS` → `qwen-plus` (balanced performance)
   - `QWEN3_FLASH` → `qwen-flash` (fastest, most cost-effective)
   - `QWEN3_CODER_PLUS` → `qwen3-coder-plus` (enhanced code generation)
   - `QWEN3_VL_PLUS` → `qwen3-vl-plus` (vision-language model)
   - `QWEN_MAX_2025` → `qwen-max-2025-01-25` (large-scale MoE)
-- Kimi (Moonshot)
+- Kimi (Moonshot) ([API keys](https://platform.moonshot.cn/console/api-keys))
   - `KIMI_8K` (default) → `moonshot-v1-8k`
   - `KIMI_32K` → `moonshot-v1-32k`
   - `KIMI_128K` → `moonshot-v1-128k`
@@ -171,6 +174,7 @@ Note: Providers may change available model IDs over time. Update `aiProviders.js
 Define these in `.env` (see `.env.example`):
 
 - Required (by provider you use):
+
   - `OPENAI_API_KEY`
   - `ANTHROPIC_API_KEY`
   - `GOOGLE_AI_API_KEY` (Gemini)
@@ -183,6 +187,7 @@ Define these in `.env` (see `.env.example`):
   - `Z_API_KEY`
 
 - Optional (OpenAI-compatible base URLs):
+
   - `QWEN_BASE_URL` (e.g. `https://dashscope.aliyuncs.com/compatible-mode/v1`)
   - `KIMI_BASE_URL` (default `https://api.moonshot.cn/v1`)
   - `Z_BASE_URL` or `ZAI_BASE_URL` (default `https://api.z.ai/v1`)

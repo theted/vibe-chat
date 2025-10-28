@@ -1,0 +1,213 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    @apply bg-slate-50 text-slate-900 transition-colors duration-300;
+  }
+
+  .dark body {
+    @apply bg-slate-950 text-slate-100;
+  }
+
+  /* Hide scrollbars while keeping scroll functionality */
+  .no-scrollbar {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none;    /* Firefox */
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
+}
+
+@layer components {
+  /* Markdown styling for AI messages */
+  .markdown-content {
+    @apply leading-relaxed;
+  }
+  
+  .markdown-content p {
+    @apply mb-2;
+  }
+  
+  .markdown-content p:last-child {
+    @apply mb-0;
+  }
+  
+  .markdown-content strong {
+    @apply font-semibold text-slate-800;
+  }
+  
+  .markdown-content em {
+    @apply italic text-slate-600;
+  }
+  
+  .inline-code {
+    @apply bg-slate-100 text-rose-600 px-1.5 py-0.5 rounded-md font-mono text-sm;
+  }
+  
+  .code-block {
+    @apply bg-slate-800 text-slate-100 p-3 rounded-lg overflow-x-auto my-2 font-mono text-sm leading-relaxed;
+  }
+  
+  .code-block code {
+    @apply bg-transparent text-inherit p-0 rounded-none;
+  }
+  
+  .markdown-list {
+    @apply my-2 pl-6;
+  }
+  
+  .markdown-list li {
+    @apply my-1;
+  }
+  
+  .markdown-link {
+    @apply text-primary-600 underline hover:text-primary-700 hover:no-underline transition-colors;
+  }
+  
+  .markdown-content blockquote {
+    @apply border-l-4 border-primary-400 ml-0 my-2 py-2 pl-4 bg-slate-50 italic text-slate-600;
+  }
+  
+  .markdown-content h4 {
+    @apply text-lg font-semibold text-slate-800 mt-3 mb-2;
+  }
+  
+  .markdown-content h4:first-child {
+    @apply mt-0;
+  }
+
+  .dark .markdown-content {
+    @apply text-slate-200;
+  }
+
+  .dark .markdown-content strong {
+    @apply text-slate-100;
+  }
+
+  .dark .markdown-content em {
+    @apply text-slate-300;
+  }
+
+  .dark .inline-code {
+    @apply bg-slate-800 text-rose-200 border border-slate-700/80;
+  }
+
+  .dark .code-block {
+    @apply bg-slate-950 text-slate-200 border border-slate-800;
+  }
+
+  .dark .markdown-link {
+    @apply text-primary-300 hover:text-primary-200;
+  }
+
+  .dark .markdown-content blockquote {
+    @apply border-primary-500/60 bg-slate-900/60 text-slate-300;
+  }
+
+  .dark .markdown-list li {
+    @apply text-slate-200;
+  }
+
+  .header-title {
+    font-family: 'Inter', 'Space Grotesk', 'Helvetica Neue', sans-serif;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    @apply font-extralight text-slate-200 drop-shadow-sm transition-colors duration-300;
+  }
+
+  .header-title--hero {
+    @apply text-4xl md:text-5xl;
+  }
+
+  .header-title--compact {
+    letter-spacing: 0.12em;
+    @apply text-2xl md:text-3xl text-slate-100;
+  }
+}
+
+@layer utilities {
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-in-out;
+  }
+  
+  .animate-scale-in {
+    animation: scaleIn 0.2s ease-out;
+  }
+  
+  .animate-slide-up {
+    animation: slideUp 0.3s ease-out;
+  }
+  
+  /* Smooth Framer Motion animations now handle message entrance */
+  
+  .animate-bounce-delay-0 {
+    animation: bounce 1.4s ease-in-out infinite;
+  }
+  
+  .animate-bounce-delay-1 {
+    animation: bounce 1.4s ease-in-out infinite 0.2s;
+  }
+  
+  .animate-bounce-delay-2 {
+    animation: bounce 1.4s ease-in-out infinite 0.4s;
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  
+  @keyframes scaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  @keyframes bounce {
+    0%, 20%, 53%, 80%, 100% {
+      transform: translateY(0);
+    }
+    40%, 43% {
+      transform: translateY(-8px);
+    }
+    70% {
+      transform: translateY(-4px);
+    }
+    90% {
+      transform: translateY(-2px);
+    }
+  }
+  
+  /* Removed old whoosh keyframes - now using Framer Motion for smoother animations */
+}

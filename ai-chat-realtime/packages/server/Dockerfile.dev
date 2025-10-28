@@ -1,0 +1,25 @@
+# Development Server Dockerfile with Live Reloading
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Copy and install core package first
+COPY packages/ai-chat-core ./ai-chat-core
+WORKDIR /app/ai-chat-core
+RUN npm install
+
+# Switch to server directory and copy package files
+WORKDIR /app/server
+COPY packages/server/package*.json ./
+
+# Install server dependencies including nodemon
+RUN npm install
+
+# Copy server source (will be overridden by volume in dev)
+COPY packages/server/src ./src
+
+# Expose port
+EXPOSE 3001
+
+# Use nodemon for live reloading in development
+CMD ["npx", "nodemon", "--watch", "/app/server/src", "--watch", "/app/ai-chat-core/src", "src/app.js"]
