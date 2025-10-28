@@ -1,0 +1,23 @@
+# Simplified Client Dockerfile for debugging
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Copy package files
+COPY packages/client/package*.json ./
+RUN npm install
+
+# Copy all client files
+COPY packages/client/ ./
+
+# Build the app
+RUN npm run build
+
+# Install serve to serve the built files
+RUN npm install -g serve
+
+# Expose port
+EXPOSE 3000
+
+# Serve the built files
+CMD ["serve", "-s", "dist", "-l", "3000"]

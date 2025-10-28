@@ -1,0 +1,19 @@
+# Development Client Dockerfile with Live Reloading
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Copy package files
+COPY packages/client/package*.json ./
+RUN npm install
+
+# Copy static files (will be overridden by volumes for live files)
+COPY packages/client/vite.config.js ./
+COPY packages/client/index.html ./
+COPY packages/client/src ./src
+
+# Expose port
+EXPOSE 3000
+
+# Start Vite dev server with host binding for Docker
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "3000"]

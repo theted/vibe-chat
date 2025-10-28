@@ -1,0 +1,56 @@
+# Production Docker Compose
+version: '3.8'
+
+services:
+  ai-chat-server:
+    build:
+      context: .
+      dockerfile: packages/server/Dockerfile
+    container_name: ai-chat-server-prod
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - CLIENT_URL=${CLIENT_URL:-http://localhost:3000}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - GROK_API_KEY=${GROK_API_KEY}
+      - GOOGLE_AI_API_KEY=${GOOGLE_AI_API_KEY}
+      - MISTRAL_API_KEY=${MISTRAL_API_KEY}
+      - COHERE_API_KEY=${COHERE_API_KEY}
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
+      - QWEN_API_KEY=${QWEN_API_KEY}
+      - KIMI_API_KEY=${KIMI_API_KEY}
+      - Z_API_KEY=${Z_API_KEY}
+    restart: always
+    networks:
+      - ai-chat-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  ai-chat-client:
+    build:
+      context: .
+      dockerfile: packages/client/Dockerfile
+      args:
+        - VITE_SERVER_URL=${SERVER_URL:-http://localhost:3001}
+    container_name: ai-chat-client-prod
+    ports:
+      - "80:80"
+    depends_on:
+      - ai-chat-server
+    restart: always
+    networks:
+      - ai-chat-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  ai-chat-network:
+    driver: bridge

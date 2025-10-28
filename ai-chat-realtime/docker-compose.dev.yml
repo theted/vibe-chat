@@ -1,0 +1,52 @@
+# Development Docker Compose with Live Reloading
+version: "3.8"
+
+services:
+  ai-chat-server:
+    build:
+      context: .
+      dockerfile: packages/server/Dockerfile.dev
+    container_name: ai-chat-server-dev
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=development
+      - CLIENT_URL=http://localhost:3000
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - GROK_API_KEY=${GROK_API_KEY}
+      - GOOGLE_AI_API_KEY=${GOOGLE_AI_API_KEY}
+      - MISTRAL_API_KEY=${MISTRAL_API_KEY}
+      - COHERE_API_KEY=${COHERE_API_KEY}
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
+    volumes:
+      - ./packages/server/src:/app/server/src
+      - ./packages/ai-chat-core/src:/app/ai-chat-core/src
+      - ./packages/server/package.json:/app/server/package.json
+    restart: unless-stopped
+    networks:
+      - ai-chat-network
+
+  ai-chat-client:
+    build:
+      context: .
+      dockerfile: packages/client/Dockerfile.dev
+    container_name: ai-chat-client-dev
+    ports:
+      - "3000:3000"
+    environment:
+      - VITE_SERVER_URL=http://localhost:3001
+    volumes:
+      - ./packages/client/src:/app/src
+      - ./packages/client/package.json:/app/package.json
+      - ./packages/client/vite.config.js:/app/vite.config.js
+      - ./packages/client/index.html:/app/index.html
+    depends_on:
+      - ai-chat-server
+    restart: unless-stopped
+    networks:
+      - ai-chat-network
+
+networks:
+  ai-chat-network:
+    driver: bridge
