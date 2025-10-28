@@ -12,9 +12,67 @@ import {
 } from "@ai-chat/core";
 import { statsTracker } from "../services/StatsTracker.js";
 
-// Helper builders extracted for readability
-const summarizeParticipantTopics = (messages, participants) => {
-  const topics = {};
+export interface ParticipantModelConfig {
+  id: string;
+  name: string;
+}
+
+export interface ParticipantProviderConfig {
+  name: string;
+  apiKeyEnvVar?: string;
+  models: Record<string, ParticipantModelConfig>;
+}
+
+export interface AIService {
+  initialize?: () => Promise<void>;
+  generateResponse: (
+    messages: Array<{ role: string; content: string }>
+  ) => Promise<string>;
+  getName: () => string;
+  getModel: () => string;
+}
+
+export interface ParticipantConfig {
+  provider: ParticipantProviderConfig;
+  model: ParticipantModelConfig;
+}
+
+export interface ConversationMessage {
+  role: "user" | "assistant" | "system" | string;
+  content: string;
+  participantId: number | null;
+  timestamp?: string;
+}
+
+export interface ConversationHistoryEntry {
+  from: string;
+  content: string;
+  timestamp: string;
+}
+
+export interface ConversationManagerOptions {
+  maxTurns?: number;
+  timeoutMs?: number;
+  logLevel?: string;
+}
+
+interface ParticipantRecord {
+  id: number;
+  service: AIService;
+  name: string;
+  config: ParticipantConfig;
+}
+
+interface SystemMessage {
+  role: "system";
+  content: string;
+}
+
+const summarizeParticipantTopics = (
+  messages: ConversationMessage[],
+  participants: ParticipantRecord[],
+): Record<string, string> => {
+  const topics: Record<string, string> = {};
   participants.forEach((p) => {
     const responses = messages
       .filter((msg) => msg.participantId === p.id)
@@ -28,7 +86,10 @@ const summarizeParticipantTopics = (messages, participants) => {
   return topics;
 };
 
-const buildSystemMessage = (cm, participant) => {
+const buildSystemMessage = (
+  cm: ConversationManager,
+  participant: ParticipantRecord,
+): SystemMessage => {
   const { messages, config, turnCount, participants } = cm;
   const otherParticipants = participants
     .filter((p) => p.id !== participant.id)
@@ -36,13 +97,20 @@ const buildSystemMessage = (cm, participant) => {
     .join("\n");
   const lastMessage = messages.length > 0 ? messages[messages.length - 1] : null;
   const isResponseToOtherAI =
-    lastMessage && lastMessage.participantId !== null && lastMessage.participantId !== participant.id;
+    lastMessage !== null &&
+    lastMessage.participantId !== null &&
+    lastMessage.participantId !== participant.id;
   const isLastTurn = turnCount >= config.maxTurns - 2;
   const recentMentions = messages
     .slice(-5)
     .filter((msg) => msg.participantId !== null)
-    .map((msg) => cm.participants[msg.participantId]?.name || "")
+    .map((msg) => cm.participants[msg.participantId ?? -1]?.name || "")
     .filter(Boolean);
+
+  const kickoffParticipant = otherParticipants
+    .split("\n")
+    .map((entry) => entry.replace(/^-\s*/, ""))
+    .filter(Boolean)[0];
 
   return {
     role: "system",
@@ -54,7 +122,7 @@ const buildSystemMessage = (cm, participant) => {
 2. NEVER introduce yourself or say "I'm [name]" or "As an AI" - it's already clear who you are. Talk directly about the topic.
 3. DO NOT repeat what others have said - be original and add new perspectives
 4. Keep responses VERY SHORT (1-2 sentences maximum). Aim to mention or respond directly to another participant ${
-      otherParticipants ? `(for example @${otherParticipants[0]?.split(" ")[0] || "participant"})` : ""
+      kickoffParticipant ? `(for example @${kickoffParticipant.split(" ")[0]})` : ""
     } when it makes sense, especially if referencing their ideas.
 5. ${
       isLastTurn
@@ -75,9 +143,47 @@ This is turn #${turnCount + 1} of ${config.maxTurns}${isLastTurn ? " (FINAL TURN
   };
 };
 
+const normalizeConfig = (
+  config: ConversationManagerOptions,
+): Required<ConversationManagerOptions> => {
+  const defaultConfig = DEFAULT_CONVERSATION_CONFIG as ConversationManagerOptions;
+  const parseNumber = (value: unknown, fallback: number): number => {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : fallback;
+  };
+
+  const maxTurnsValue = parseNumber(
+    config.maxTurns ?? defaultConfig.maxTurns ?? 10,
+    10,
+  );
+  const timeoutValue = parseNumber(
+    config.timeoutMs ?? defaultConfig.timeoutMs ?? 300000,
+    300000,
+  );
+  const logLevelValue = config.logLevel ?? defaultConfig.logLevel ?? "info";
+
+  return {
+    maxTurns: maxTurnsValue,
+    timeoutMs: timeoutValue,
+    logLevel: logLevelValue,
+  };
+};
+
 export class ConversationManager {
-  constructor(config = {}) {
-    this.config = { ...DEFAULT_CONVERSATION_CONFIG, ...config };
+  config: Required<ConversationManagerOptions>;
+
+  participants: ParticipantRecord[];
+
+  messages: ConversationMessage[];
+
+  isActive: boolean;
+
+  turnCount: number;
+
+  startTime: number | null;
+
+  constructor(config: ConversationManagerOptions = {}) {
+    this.config = normalizeConfig(config);
     this.participants = [];
     this.messages = [];
     this.isActive = false;
@@ -90,9 +196,9 @@ export class ConversationManager {
    * @param {Object} aiConfig - AI provider and model configuration
    * @returns {number} The participant ID
    */
-  addParticipant(aiConfig) {
-    const service = AIServiceFactory.createService(aiConfig);
-    const participant = {
+  addParticipant(aiConfig: ParticipantConfig): number {
+    const service = AIServiceFactory.createService(aiConfig) as AIService;
+    const participant: ParticipantRecord = {
       id: this.participants.length,
       service,
       name: `${service.getName()} (${service.getModel()})`,
@@ -107,8 +213,8 @@ export class ConversationManager {
    * Add a random AI participant to the conversation
    * @returns {number} The participant ID
    */
-  addRandomParticipant() {
-    const aiConfig = getRandomAIConfig();
+  addRandomParticipant(): number {
+    const aiConfig = getRandomAIConfig() as ParticipantConfig;
     return this.addParticipant(aiConfig);
   }
 
@@ -117,7 +223,7 @@ export class ConversationManager {
    * @param {string} initialMessage - The initial message to start the conversation
    * @returns {Promise<void>}
    */
-  async startConversation(initialMessage) {
+  async startConversation(initialMessage: string): Promise<void> {
     if (this.participants.length < 2) {
       throw new Error(
         "At least two participants are required for a conversation"
@@ -152,7 +258,7 @@ export class ConversationManager {
    * Continue the conversation for the specified number of turns
    * @returns {Promise<void>}
    */
-  async continueConversation() {
+  async continueConversation(): Promise<void> {
     while (this.isActive && this.turnCount < this.config.maxTurns) {
       // Check if the conversation has timed out
       if (Date.now() - this.startTime > this.config.timeoutMs) {
@@ -203,7 +309,7 @@ export class ConversationManager {
    * @param {Object} participant - The participant to generate a response from
    * @returns {Promise<string>} The generated response
    */
-  async generateResponse(participant) {
+  async generateResponse(participant: ParticipantRecord): Promise<string> {
     // Optionally summarize prior topics (reserved for future prompts)
     summarizeParticipantTopics(this.messages, this.participants);
 
@@ -219,8 +325,8 @@ export class ConversationManager {
    * Add a message to the conversation
    * @param {Object} message - The message to add
    */
-  addMessage(message) {
-    const enrichedMessage = {
+  addMessage(message: ConversationMessage): void {
+    const enrichedMessage: ConversationMessage = {
       ...message,
       timestamp: new Date().toISOString(),
     };
@@ -244,14 +350,14 @@ export class ConversationManager {
         provider: providerName,
         model: modelId,
       })
-      .catch(() => {});
+      .catch(() => undefined);
   }
 
   /**
    * Get the conversation history
    * @returns {Array} The conversation history
    */
-  getConversationHistory() {
+  getConversationHistory(): ConversationHistoryEntry[] {
     return this.messages.map((msg) => {
       const participant =
         msg.participantId !== null
@@ -261,7 +367,7 @@ export class ConversationManager {
       return {
         from: participant.name,
         content: msg.content,
-        timestamp: msg.timestamp,
+        timestamp: msg.timestamp ?? new Date().toISOString(),
       };
     });
   }
@@ -269,7 +375,7 @@ export class ConversationManager {
   /**
    * Stop the conversation
    */
-  stopConversation() {
+  stopConversation(): void {
     this.isActive = false;
     console.log("Conversation stopped");
   }

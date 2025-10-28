@@ -13,6 +13,16 @@
 import fs from "fs";
 import path from "path";
 
+interface ConversationMessage {
+  from: string;
+  content: string;
+}
+
+interface ConversationFile {
+  topic?: string;
+  messages: ConversationMessage[];
+}
+
 // Typing and pacing configuration
 const TYPING_DELAY_MS = Number(process.env.PLAY_TYPING_DELAY_MS || 8); // per char
 const BETWEEN_MESSAGES_MS = Number(process.env.PLAY_BETWEEN_MESSAGES_MS || 500);
@@ -34,38 +44,38 @@ const ANSI = {
     "\x1b[93m", // bright yellow
     "\x1b[91m", // bright red
   ],
-};
+} as const;
 
-function hashString(str) {
+function hashString(str: string): number {
   let h = 0;
   for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) | 0;
   return Math.abs(h);
 }
 
-function colorForName(name) {
+function colorForName(name: string): string {
   const idx = hashString(name) % ANSI.colors.length;
   return ANSI.colors[idx];
 }
 
-function sleep(ms) {
+function sleep(ms: number): Promise<void> {
   return new Promise((res) => setTimeout(res, ms));
 }
 
-async function typeOut(text) {
+async function typeOut(text: string): Promise<void> {
   for (let i = 0; i < text.length; i++) {
     process.stdout.write(text[i]);
     await sleep(TYPING_DELAY_MS);
   }
 }
 
-function fmtHeader(name, color) {
+function fmtHeader(name: string, color: string): string {
   // Only the bracketed name is colored
   return `${color}[${name}]${ANSI.reset} `;
 }
 
-async function playConversation(filePath) {
+async function playConversation(filePath: string): Promise<void> {
   // Load file
-  const data = JSON.parse(fs.readFileSync(filePath, "utf8"));
+  const data = JSON.parse(fs.readFileSync(filePath, "utf8")) as ConversationFile;
   const { topic, messages } = data;
 
   // Print header
@@ -75,7 +85,7 @@ async function playConversation(filePath) {
   console.log("");
 
   // Build color map per speaker
-  const uniqueNames = [];
+  const uniqueNames: string[] = [];
   for (const m of messages) if (!uniqueNames.includes(m.from)) uniqueNames.push(m.from);
   const nameColors = new Map(uniqueNames.map((n) => [n, colorForName(n)]));
 
@@ -92,7 +102,7 @@ async function playConversation(filePath) {
   console.log("\nPlayback finished.\n");
 }
 
-async function main() {
+async function main(): Promise<void> {
   const fileArg = process.argv[2];
   if (!fileArg) {
     console.error("Usage: node play.js <path-to-conversation.json>");

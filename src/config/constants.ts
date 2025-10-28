@@ -9,9 +9,11 @@ export const CLI_ALIASES = {
   moonshot: "kimi",
   "z.ai": "zai",
   z: "zai",
-};
+} as const satisfies Record<string, string>;
 
-export const USAGE_LINES = [
+export type ProviderAlias = keyof typeof CLI_ALIASES;
+
+export const USAGE_LINES: readonly string[] = [
   "AI Chat - Usage Instructions",
   "",
   "Command formats:",

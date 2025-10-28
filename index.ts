@@ -18,10 +18,107 @@ import {
   DEFAULT_MODELS,
   streamText,
 } from "@ai-chat/core";
-import {
-  statsTracker,
-} from "./src/services/StatsTracker.js";
+import { statsTracker } from "./src/services/StatsTracker.js";
 import { DEFAULT_TOPIC, CLI_ALIASES, USAGE_LINES } from "./src/config/constants.js";
+
+type ProviderModel = { id: string; name: string };
+
+type ProviderConfig = {
+  name: string;
+  apiKeyEnvVar?: string;
+  models: Record<string, ProviderModel>;
+};
+
+type ProviderRegistry = Record<string, ProviderConfig>;
+
+type ProviderConfigEntry = {
+  provider: ProviderConfig;
+  model: ProviderModel;
+};
+
+type ConversationLogEntry = {
+  role: string;
+  content: string;
+};
+
+type ConversationSummary = Array<{
+  from: string;
+  content: string;
+  timestamp: string;
+}>;
+
+type ProviderParticipantsInput = Array<{
+  provider: string;
+  model: string | null;
+}>;
+
+interface ParsedParticipant {
+  provider: string;
+  model: string | null;
+}
+
+type CliCommand = "start" | "continue";
+
+interface CliOptions {
+  participants: ProviderParticipantsInput;
+  topic: string;
+  maxTurns: number;
+  singlePromptMode: boolean;
+  command: CliCommand;
+  conversationFile?: string;
+  additionalTurns?: number;
+  metadata?: ConversationMetadata;
+  existingResponses?: ConversationSummary;
+  initialConversation?: ConversationLogEntry[];
+}
+
+interface ContinueOptions extends CliOptions {
+  conversationFile: string;
+  additionalTurns: number;
+}
+
+interface ParticipantMetadata {
+  providerKey: string | null;
+  providerAlias: string | null;
+  providerName: string;
+  modelKey: string | null;
+  modelId: string;
+}
+
+type ConversationMetadata = Record<string, unknown> & {
+  mode?: string;
+  participants?: ParticipantMetadata[];
+  continuedFrom?: string;
+  continuedAt?: string;
+  additionalTurns?: number;
+  totalTurns?: number;
+};
+
+type ParsedConversation = {
+  topic: string;
+  messages: Array<{
+    from: string;
+    content: string;
+    timestamp?: string;
+    participantId?: number | null;
+  }>;
+  metadata?: ConversationMetadata;
+};
+
+const PROVIDERS = AI_PROVIDERS as ProviderRegistry;
+const DEFAULT_MODEL_MAP = DEFAULT_MODELS as Record<string, ProviderModel>;
+
+interface AIServiceInstance {
+  generateResponse(messages: ConversationLogEntry[]): Promise<string>;
+  getName(): string;
+  getModel(): string;
+}
+
+interface AIServiceFactoryType {
+  createService(config: ProviderConfigEntry): AIServiceInstance;
+}
+
+const ServiceFactory = AIServiceFactory as unknown as AIServiceFactoryType;
 
 // Load environment variables
 dotenv.config();
@@ -29,11 +126,11 @@ dotenv.config();
 /**
  * Display usage instructions and supported models
  */
-const displayUsage = () => {
-  USAGE_LINES.forEach((l) => console.log(l));
+const displayUsage = (): void => {
+  USAGE_LINES.forEach((line) => console.log(line));
 
   console.log("\nSupported providers and models:");
-  Object.entries(AI_PROVIDERS).forEach(([providerKey, provider]) => {
+  Object.entries(PROVIDERS).forEach(([providerKey, provider]) => {
     console.log(`\n${provider.name} (${providerKey.toLowerCase()}):`);
     Object.entries(provider.models).forEach(([modelKey, model]) => {
       console.log(`  - ${modelKey} (${model.id})`);
@@ -41,18 +138,40 @@ const displayUsage = () => {
   });
 
   console.log("\nEnvironment variables required in .env file:");
-  Object.values(AI_PROVIDERS).forEach((provider) => {
-    console.log(`  - ${provider.apiKeyEnvVar} (for ${provider.name})`);
+  Object.values(PROVIDERS).forEach((provider) => {
+    if (provider.apiKeyEnvVar) {
+      console.log(`  - ${provider.apiKeyEnvVar} (for ${provider.name})`);
+    }
   });
 };
 
-/**
- * Parse command line arguments
- * @returns {Object} Parsed arguments
- */
-const parseArgs = () => {
+const parseParticipant = (participantStr: string): ParsedParticipant => {
+  const parts = participantStr.split(":");
+  const rawProvider = parts[0].toLowerCase();
+
+  if (parts.length === 1) {
+    const modelName = participantStr.toUpperCase();
+    for (const [providerKey, providerConfig] of Object.entries(PROVIDERS)) {
+      if (providerConfig.models[modelName]) {
+        return { provider: providerKey.toLowerCase(), model: modelName };
+      }
+    }
+
+    return {
+      provider: CLI_ALIASES[rawProvider as keyof typeof CLI_ALIASES] || rawProvider,
+      model: null,
+    };
+  }
+
+  return {
+    provider: CLI_ALIASES[rawProvider as keyof typeof CLI_ALIASES] || rawProvider,
+    model: parts[1].toUpperCase(),
+  };
+};
+
+const parseArgs = (): CliOptions | ContinueOptions | null => {
   const args = process.argv.slice(2);
-  const result = {
+  const baseResult: CliOptions = {
     participants: [],
     topic: DEFAULT_TOPIC,
     maxTurns: 10,
@@ -60,10 +179,11 @@ const parseArgs = () => {
     command: "start",
   };
 
-  // If no arguments provided, display usage and return null
-  if (args.length === 0) return (displayUsage(), null);
+  if (args.length === 0) {
+    displayUsage();
+    return null;
+  }
 
-  // Handle "continue" command
   if (args[0].toLowerCase() === "continue") {
     if (args.length < 2) {
       console.error(
@@ -72,130 +192,113 @@ const parseArgs = () => {
       return null;
     }
 
-    result.command = "continue";
-    result.conversationFile = args[1];
-    result.participants = [];
-
+    const participants: ProviderParticipantsInput = [];
     let endIndex = args.length;
+    let additionalTurns = 10;
 
     const lastArg = args[args.length - 1];
     if (lastArg && /^\d+$/.test(lastArg)) {
-      result.additionalTurns = parseInt(lastArg, 10);
+      additionalTurns = parseInt(lastArg, 10);
       endIndex -= 1;
     }
 
-    for (let i = 2; i < endIndex; i++) {
-      const participant = {};
-      parseParticipant(args[i], participant);
-      result.participants.push(participant);
+    for (let i = 2; i < endIndex; i += 1) {
+      participants.push(parseParticipant(args[i]));
     }
 
-    if (!result.additionalTurns) {
-      result.additionalTurns = 10;
-    }
-
-    return result;
+    return {
+      ...baseResult,
+      command: "continue",
+      conversationFile: args[1],
+      additionalTurns,
+      participants,
+    } satisfies ContinueOptions;
   }
 
-  // Check if we're running through npm start
-  // In that case, arguments will be positional
   if (args.length > 0 && !args[0].startsWith("--")) {
-    // Find the index of the first argument that doesn't look like a participant
-    // Check if argument is a known model or provider name
-    let topicIndex = args.findIndex((arg, index) => {
-      // If it contains a colon, it's definitely a participant (provider:model)
+    const providerNames = Object.keys(PROVIDERS).map((key) => key.toLowerCase());
+    const aliasNames = Object.keys(CLI_ALIASES);
+    const topicIndex = args.findIndex((arg) => {
       if (arg.includes(":")) return false;
-      
-      // Check if it's a known model name across all providers
+
       const upperArg = arg.toUpperCase();
-      for (const providerConfig of Object.values(AI_PROVIDERS)) {
-        if (providerConfig.models[upperArg]) return false;
+      if (
+        Object.values(PROVIDERS).some((provider) => provider.models[upperArg])
+      ) {
+        return false;
       }
-      
-      // Check if it's a known provider name
+
       const lowerArg = arg.toLowerCase();
-      const providerNames = Object.keys(AI_PROVIDERS).map(k => k.toLowerCase());
-      const aliasNames = Object.keys(CLI_ALIASES);
-      if (providerNames.includes(lowerArg) || aliasNames.includes(lowerArg)) return false;
-      
-      // If it's not a known model or provider, it's likely the start of the topic
+      if (providerNames.includes(lowerArg) || aliasNames.includes(lowerArg)) {
+        return false;
+      }
+
       return true;
     });
 
-    // If no topic found, assume all args are participants
+    const positionalOptions: CliOptions = { ...baseResult, participants: [] };
+
+    const effectiveTopicIndex = topicIndex === -1 ? args.length : topicIndex;
+
     if (topicIndex === -1) {
-      topicIndex = args.length;
-      // Default topic if none provided
-      result.topic = "Discuss this topic in an interesting way.";
+      positionalOptions.topic = "Discuss this topic in an interesting way.";
     } else {
-      // Check if the last argument is a number (maxTurns)
       const lastArg = args[args.length - 1];
       if (/^\d+$/.test(lastArg)) {
-        result.maxTurns = parseInt(lastArg, 10);
-        // Combine the rest of the arguments as the topic (excluding the last one)
-        result.topic = args.slice(topicIndex, args.length - 1).join(" ");
+        positionalOptions.maxTurns = parseInt(lastArg, 10);
+        positionalOptions.topic = args
+          .slice(effectiveTopicIndex, args.length - 1)
+          .join(" ");
       } else {
-        // Combine the rest of the arguments as the topic
-        result.topic = args.slice(topicIndex).join(" ");
+        positionalOptions.topic = args.slice(effectiveTopicIndex).join(" ");
       }
     }
 
-    // Parse participants
-    for (let i = 0; i < topicIndex; i++) {
-      const participant = {};
-      parseParticipant(args[i], participant);
-      result.participants.push(participant);
+    for (let i = 0; i < effectiveTopicIndex; i += 1) {
+      positionalOptions.participants.push(parseParticipant(args[i]));
     }
 
-    // If we have more than 2 participants, assume single prompt mode
-    if (result.participants.length > 2) {
-      result.singlePromptMode = true;
-    }
-    // If we have exactly 2 participants, use conversation mode
-    else if (result.participants.length === 2) {
-      result.singlePromptMode = false;
-    }
-    // If we have 1 participant, use single prompt mode
-    else if (result.participants.length === 1) {
-      result.singlePromptMode = true;
-    }
-    // If we have 0 participants, use defaults
-    else {
-      result.participants = [
+    if (positionalOptions.participants.length > 2) {
+      positionalOptions.singlePromptMode = true;
+    } else if (positionalOptions.participants.length === 1) {
+      positionalOptions.singlePromptMode = true;
+    } else if (positionalOptions.participants.length === 0) {
+      positionalOptions.participants = [
         { provider: "openai", model: null },
         { provider: "anthropic", model: null },
       ];
-      result.singlePromptMode = false;
+      positionalOptions.singlePromptMode = false;
     }
+
+    return positionalOptions;
   }
-  // Otherwise, parse named arguments
-  else {
-    for (let i = 0; i < args.length; i++) {
-      const arg = args[i];
 
-      if (arg === "--participant" && i + 1 < args.length) {
-        const participant = {};
-        parseParticipant(args[++i], participant);
-        result.participants.push(participant);
-      } else if (arg === "--topic" && i + 1 < args.length) {
-        result.topic = args[++i];
-      } else if (arg === "--maxTurns" && i + 1 < args.length) {
-        result.maxTurns = parseInt(args[++i], 10) || 10;
-      } else if (arg === "--singlePromptMode") {
-        result.singlePromptMode = true;
-      }
-    }
-
-    // If no participants specified, use defaults
-    if (result.participants.length === 0) {
-      result.participants = [
-        { provider: "openai", model: null },
-        { provider: "anthropic", model: null },
-      ];
+  const namedOptions: CliOptions = { ...baseResult, participants: [] };
+  for (let i = 0; i < args.length; i += 1) {
+    const arg = args[i];
+    if (arg === "--participant" && i + 1 < args.length) {
+      namedOptions.participants.push(parseParticipant(args[i + 1]));
+      i += 1;
+    } else if (arg === "--topic" && i + 1 < args.length) {
+      namedOptions.topic = args[i + 1];
+      i += 1;
+    } else if (arg === "--maxTurns" && i + 1 < args.length) {
+      const value = Number(args[i + 1]);
+      namedOptions.maxTurns = Number.isFinite(value) ? value : namedOptions.maxTurns;
+      i += 1;
+    } else if (arg === "--singlePromptMode") {
+      namedOptions.singlePromptMode = true;
     }
   }
 
-  return result;
+  if (namedOptions.participants.length === 0) {
+    namedOptions.participants = [
+      { provider: "openai", model: null },
+      { provider: "anthropic", model: null },
+    ];
+  }
+
+  return namedOptions;
 };
 
 /**
@@ -229,21 +332,24 @@ const parseParticipant = (participantStr, participant) => {
   }
 };
 
-const findProviderKey = (providerConfig) => {
-  const entry = Object.entries(AI_PROVIDERS).find(
-    ([, provider]) => provider === providerConfig
+const findProviderKey = (providerConfig: ProviderConfig): string | null => {
+  const entry = Object.entries(PROVIDERS).find(
+    ([, provider]) => provider === providerConfig,
   );
   return entry ? entry[0] : null;
 };
 
-const findModelKey = (providerConfig, modelConfig) => {
+const findModelKey = (
+  providerConfig: ProviderConfig,
+  modelConfig: ProviderModel,
+): string | null => {
   const entry = Object.entries(providerConfig.models).find(
-    ([, model]) => model === modelConfig
+    ([, model]) => model.id === modelConfig.id,
   );
   return entry ? entry[0] : null;
 };
 
-const buildParticipantMetadata = (participantConfig) => {
+const buildParticipantMetadata = (participantConfig: ProviderConfigEntry): ParticipantMetadata => {
   const providerKey = findProviderKey(participantConfig.provider);
   const modelKey = findModelKey(
     participantConfig.provider,
@@ -259,15 +365,17 @@ const buildParticipantMetadata = (participantConfig) => {
   };
 };
 
-const participantsFromMetadata = (metadataParticipants = []) =>
+const participantsFromMetadata = (
+  metadataParticipants: ParticipantMetadata[] = [],
+): ProviderParticipantsInput =>
   metadataParticipants
-    .filter((meta) => meta.providerKey && meta.modelKey)
+    .filter((meta) => Boolean(meta.providerKey && meta.modelKey))
     .map((meta) => ({
       provider: (meta.providerAlias || meta.providerKey || "").toLowerCase(),
       model: meta.modelKey,
     }));
 
-const resolveConversationPath = (filePath) => {
+const resolveConversationPath = (filePath?: string | null): string | null => {
   if (!filePath) return null;
   const normalized = path.isAbsolute(filePath)
     ? filePath
@@ -287,7 +395,9 @@ const resolveConversationPath = (filePath) => {
  * @param {Object} participantConfig - Participant configuration with provider and model
  * @returns {Object} Provider and model configuration
  */
-const getProviderConfig = (participantConfig) => {
+const getProviderConfig = (
+  participantConfig: ParsedParticipant,
+): ProviderConfigEntry => {
   const providerName = participantConfig.provider;
   const modelName = participantConfig.model;
 
@@ -295,39 +405,39 @@ const getProviderConfig = (participantConfig) => {
 
   switch (providerName.toLowerCase()) {
     case "cohere":
-      provider = AI_PROVIDERS.COHERE;
+      provider = PROVIDERS.COHERE;
       break;
     case "z":
     case "zai":
     case "z.ai":
-      provider = AI_PROVIDERS.ZAI;
+      provider = PROVIDERS.ZAI;
       break;
     case "gemini":
     case "gemeni": // common misspelling
     case "google":
-      provider = AI_PROVIDERS.GEMINI;
+      provider = PROVIDERS.GEMINI;
       break;
     case "mistral":
-      provider = AI_PROVIDERS.MISTRAL;
+      provider = PROVIDERS.MISTRAL;
       break;
     case "openai":
-      provider = AI_PROVIDERS.OPENAI;
+      provider = PROVIDERS.OPENAI;
       break;
     case "anthropic":
-      provider = AI_PROVIDERS.ANTHROPIC;
+      provider = PROVIDERS.ANTHROPIC;
       break;
     case "deepseek":
-      provider = AI_PROVIDERS.DEEPSEEK;
+      provider = PROVIDERS.DEEPSEEK;
       break;
     case "grok":
-      provider = AI_PROVIDERS.GROK;
+      provider = PROVIDERS.GROK;
       break;
     case "qwen":
-      provider = AI_PROVIDERS.QWEN;
+      provider = PROVIDERS.QWEN;
       break;
     case "kimi":
     case "moonshot":
-      provider = AI_PROVIDERS.KIMI;
+      provider = PROVIDERS.KIMI;
       break;
     default:
       throw new Error(`Unsupported provider: ${providerName}`);
@@ -349,7 +459,7 @@ const getProviderConfig = (participantConfig) => {
   // Otherwise use the default model for the provider
   return {
     provider,
-    model: DEFAULT_MODELS[provider.name],
+    model: DEFAULT_MODEL_MAP[provider.name],
   };
 };
 
@@ -357,7 +467,7 @@ const getProviderConfig = (participantConfig) => {
  * Start a conversation between AI services
  * @param {Object} options - Conversation options
  */
-const startAIConversation = async (options) => {
+const startAIConversation = async (options: CliOptions): Promise<void> => {
   console.log("Starting AI conversation...");
   console.log(`Topic: "${options.topic}"`);
 
@@ -379,7 +489,9 @@ const startAIConversation = async (options) => {
     // Add all participants
     for (let i = 0; i < options.participants.length; i++) {
       const participantConfig = getProviderConfig(options.participants[i]);
-      conversationManager.addParticipant(participantConfig);
+      conversationManager.addParticipant(
+        participantConfig as unknown as ProviderConfigEntry,
+      );
       participantMeta.push(buildParticipantMetadata(participantConfig));
       console.log(
         `Added participant ${i + 1}: ${participantConfig.provider.name} (${
@@ -417,7 +529,7 @@ const startAIConversation = async (options) => {
  * Get responses from multiple AI services in a multi-turn group chat
  * @param {Object} options - Options including participants and prompt
  */
-const getSinglePromptResponses = async (options) => {
+const getSinglePromptResponses = async (options: CliOptions): Promise<void> => {
   console.log("Getting responses from multiple AI services...");
   console.log(`Prompt: "${options.topic}"`);
 
@@ -479,7 +591,7 @@ const getSinglePromptResponses = async (options) => {
       }
       
       const config = participantConfigs[nextParticipantIndex];
-      const service = AIServiceFactory.createService(config);
+      const service = ServiceFactory.createService(config);
       const participantName = `${config.provider.name} (${config.model.id})`;
 
       try {
@@ -573,18 +685,25 @@ const getSinglePromptResponses = async (options) => {
   }
 };
 
-const continueConversationFromFile = async (options) => {
+const continueConversationFromFile = async (
+  options: ContinueOptions,
+): Promise<void> => {
   try {
     const resolvedPath = resolveConversationPath(options.conversationFile);
+    if (!resolvedPath) {
+      throw new Error("Conversation file path could not be resolved");
+    }
     console.log(`Loading conversation from ${resolvedPath}`);
 
-    const conversationData = loadConversationFromFile(resolvedPath);
-    const metadata = conversationData.metadata || {};
+    const conversationData = loadConversationFromFile(resolvedPath) as ParsedConversation;
+    const metadata = (conversationData.metadata || {}) as ConversationMetadata;
     const additionalTurns = options.additionalTurns || 10;
 
     let participantInputs = options.participants;
     if (!participantInputs || participantInputs.length === 0) {
-      participantInputs = participantsFromMetadata(metadata.participants);
+      participantInputs = participantsFromMetadata(
+        metadata.participants as ParticipantMetadata[] | undefined,
+      );
     }
 
     if (!participantInputs || participantInputs.length === 0) {
@@ -605,11 +724,13 @@ const continueConversationFromFile = async (options) => {
 
     if (mode === "conversation") {
       const conversationManager = new ConversationManager();
-      const participantMeta = [];
+      const participantMeta: ParticipantMetadata[] = [];
 
       participantInputs.forEach((participantInput, index) => {
         const participantConfig = getProviderConfig(participantInput);
-        conversationManager.addParticipant(participantConfig);
+        conversationManager.addParticipant(
+          participantConfig as unknown as ProviderConfigEntry,
+        );
         participantMeta.push(buildParticipantMetadata(participantConfig));
         console.log(
           `Loaded participant ${index + 1}: ${participantConfig.provider.name} (${participantConfig.model.id})`
@@ -739,11 +860,11 @@ const continueConversationFromFile = async (options) => {
 /**
  * Main function
  */
-const main = async () => {
+const main = async (): Promise<void> => {
   const options = parseArgs();
   if (!options) return;
   if (options.command === "continue") {
-    await continueConversationFromFile(options);
+    await continueConversationFromFile(options as ContinueOptions);
     return;
   }
   if (options.singlePromptMode) await getSinglePromptResponses(options);
