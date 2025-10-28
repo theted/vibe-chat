@@ -6,32 +6,27 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import Icon from './Icon.jsx';
 
+export const DEFAULT_AI_PARTICIPANTS = [
+  { id: 'ANTHROPIC_CLAUDE3_7_SONNET', name: 'Claude 3.7 Sonnet', alias: 'claude', provider: 'Anthropic', status: 'active', emoji: '🤖' },
+  { id: 'ANTHROPIC_CLAUDE_SONNET_4', name: 'Claude Sonnet 4', alias: 'claude', provider: 'Anthropic', status: 'active', emoji: '🤖' },
+  { id: 'OPENAI_GPT4O', name: 'GPT-4o', alias: 'gpt-4o', provider: 'OpenAI', status: 'active', emoji: '🧠' },
+  { id: 'OPENAI_GPT35_TURBO', name: 'GPT-3.5 Turbo', alias: 'gpt-3-5', provider: 'OpenAI', status: 'active', emoji: '💡' },
+  { id: 'GROK_GROK_3', name: 'Grok 3', alias: 'grok', provider: 'xAI', status: 'active', emoji: '🦾' },
+  { id: 'GEMINI_GEMINI_PRO', name: 'Gemini Pro', alias: 'gemini', provider: 'Google', status: 'active', emoji: '💎' },
+  { id: 'COHERE_COMMAND_A_03_2025', name: 'Command A', alias: 'cohere', provider: 'Cohere', status: 'active', emoji: '🔮' },
+  { id: 'MISTRAL_MISTRAL_LARGE', name: 'Mistral Large', alias: 'mistral', provider: 'Mistral AI', status: 'active', emoji: '🌟' },
+  { id: 'DEEPSEEK_DEEPSEEK_CHAT', name: 'DeepSeek Chat', alias: 'deepseek', provider: 'DeepSeek', status: 'active', emoji: '🔍' },
+  { id: 'KIMI_KIMI_8K', name: 'Kimi', alias: 'kimi', provider: 'Moonshot AI', status: 'active', emoji: '🎯' },
+  { id: 'ZAI_ZAI_DEFAULT', name: 'Z.ai', alias: 'z.ai', provider: 'Z.ai', status: 'active', emoji: '⚡' }
+];
+
 const ParticipantsList = ({ participants = [], aiParticipants = [], typingUsers = [], typingAIs = [], isVisible = true }) => {
   if (!isVisible) return null;
 
   const normalize = (value) =>
     value ? value.toString().toLowerCase().replace(/[^a-z0-9]/g, '') : '';
 
-  // Default AI participants based on the available providers
-  const defaultAIParticipants = [
-    { id: 'ANTHROPIC_CLAUDE3_7_SONNET', name: 'Claude 3.7 Sonnet', alias: 'claude', provider: 'Anthropic', status: 'active', emoji: '🤖' },
-    { id: 'ANTHROPIC_CLAUDE_SONNET_4', name: 'Claude Sonnet 4', alias: 'claude', provider: 'Anthropic', status: 'active', emoji: '🤖' },
-    { id: 'OPENAI_GPT4O', name: 'GPT-4o', alias: 'gpt-4o', provider: 'OpenAI', status: 'active', emoji: '🧠' },
-    { id: 'OPENAI_GPT35_TURBO', name: 'GPT-3.5 Turbo', alias: 'gpt-3-5', provider: 'OpenAI', status: 'active', emoji: '💡' },
-    { id: 'GROK_GROK_3', name: 'Grok 3', alias: 'grok', provider: 'xAI', status: 'active', emoji: '🦾' },
-    { id: 'GEMINI_GEMINI_PRO', name: 'Gemini Pro', alias: 'gemini', provider: 'Google', status: 'active', emoji: '💎' },
-    { id: 'COHERE_COMMAND_A_03_2025', name: 'Command A', alias: 'cohere', provider: 'Cohere', status: 'active', emoji: '🔮' },
-    { id: 'MISTRAL_MISTRAL_LARGE', name: 'Mistral Large', alias: 'mistral', provider: 'Mistral AI', status: 'active', emoji: '🌟' },
-    { id: 'DEEPSEEK_DEEPSEEK_CHAT', name: 'DeepSeek Chat', alias: 'deepseek', provider: 'DeepSeek', status: 'active', emoji: '🔍' },
-    { id: 'KIMI_KIMI_8K', name: 'Kimi', alias: 'kimi', provider: 'Moonshot AI', status: 'active', emoji: '🎯' },
-    { id: 'ZAI_ZAI_DEFAULT', name: 'Z.ai', alias: 'z.ai', provider: 'Z.ai', status: 'active', emoji: '⚡' }
-  ].map(ai => ({
-    ...ai,
-    displayName: ai.displayName || ai.name,
-    normalizedAlias: normalize(ai.alias || ai.name)
-  }));
-
-  const baseAIList = aiParticipants.length > 0 ? aiParticipants : defaultAIParticipants;
+  const baseAIList = aiParticipants.length > 0 ? aiParticipants : DEFAULT_AI_PARTICIPANTS;
   const aiList = baseAIList.map((ai) => {
     const alias = ai.alias || ai.name || ai.displayName;
     return {

@@ -2,7 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import ChatMessage from "./ChatMessage.jsx";
 import MessageInput from "./MessageInput.jsx";
-import ParticipantsList from "./ParticipantsList.jsx";
+import ParticipantsList, { DEFAULT_AI_PARTICIPANTS } from "./ParticipantsList.jsx";
 import TypingIndicator from "./TypingIndicator.jsx";
 import Icon from "./Icon.jsx";
 
@@ -13,6 +13,7 @@ const ChatView = ({
   roomInfo,
   username,
   participants,
+  aiParticipants = [],
   messages,
   typingUsers,
   typingAIs,
@@ -28,6 +29,9 @@ const ChatView = ({
   messagesContainerRef,
 }) => {
   const isUserTyping = typingUsers.some((user) => user.isLocal);
+  const aiParticipantList =
+    aiParticipants.length > 0 ? aiParticipants : DEFAULT_AI_PARTICIPANTS;
+  const aiParticipantCount = aiParticipantList.length;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center p-6 dark:from-slate-950 dark:via-slate-900 dark:to-slate-900">
@@ -87,7 +91,8 @@ const ChatView = ({
                 </div>
                 <div className="text-primary-200 text-xs dark:text-slate-300">
                   {participants.length} user
-                  {participants.length !== 1 ? "s" : ""} + 7 AIs
+                  {participants.length !== 1 ? "s" : ""} + {aiParticipantCount} AI
+                  {aiParticipantCount !== 1 ? "s" : ""}
                 </div>
               </div>
             </div>
@@ -140,7 +145,7 @@ const ChatView = ({
 
         <ParticipantsList
           participants={participants}
-          aiParticipants={[]}
+          aiParticipants={aiParticipantList}
           typingUsers={typingUsers}
           typingAIs={typingAIs}
           isVisible={true}
