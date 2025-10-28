@@ -76,13 +76,29 @@ This is turn #${turnCount + 1} of ${config.maxTurns}${isLastTurn ? " (FINAL TURN
 };
 
 export class ConversationManager {
-  constructor(config = {}) {
-    this.config = { ...DEFAULT_CONVERSATION_CONFIG, ...config };
+  constructor(config = {}, dependencies = {}) {
+    const {
+      statsTracker: statsTrackerDependency = statsTracker,
+      core = {},
+    } = dependencies;
+
+    const {
+      AIServiceFactory: injectedFactory = AIServiceFactory,
+      getRandomAIConfig: injectedRandomConfig = getRandomAIConfig,
+      DEFAULT_CONVERSATION_CONFIG: injectedDefaultConfig = DEFAULT_CONVERSATION_CONFIG,
+      streamText: injectedStreamText = streamText,
+    } = core;
+
+    this.config = { ...injectedDefaultConfig, ...config };
     this.participants = [];
     this.messages = [];
     this.isActive = false;
     this.turnCount = 0;
     this.startTime = null;
+    this.statsTracker = statsTrackerDependency;
+    this.aiServiceFactory = injectedFactory;
+    this.getRandomAIConfig = injectedRandomConfig;
+    this.streamText = injectedStreamText;
   }
 
   /**
@@ -91,7 +107,7 @@ export class ConversationManager {
    * @returns {number} The participant ID
    */
   addParticipant(aiConfig) {
-    const service = AIServiceFactory.createService(aiConfig);
+    const service = this.aiServiceFactory.createService(aiConfig);
     const participant = {
       id: this.participants.length,
       service,
@@ -108,7 +124,7 @@ export class ConversationManager {
    * @returns {number} The participant ID
    */
   addRandomParticipant() {
-    const aiConfig = getRandomAIConfig();
+    const aiConfig = this.getRandomAIConfig();
     return this.addParticipant(aiConfig);
   }
 
@@ -142,7 +158,7 @@ export class ConversationManager {
     );
 
     // Stream the initial message
-    await streamText(initialMessage, "[User]: ", 30);
+    await this.streamText(initialMessage, "[User]: ", 30);
 
     // Start the conversation loop immediately without delay
     await this.continueConversation();
@@ -177,7 +193,7 @@ export class ConversationManager {
         });
 
         // Stream the response with a delay between words
-        await streamText(response, `[${participant.name}]: `, 30);
+        await this.streamText(response, `[${participant.name}]: `, 30);
 
         // Increment the turn count
         this.turnCount++;
@@ -237,7 +253,7 @@ export class ConversationManager {
       (enrichedMessage.participantId === null ? "User" : null);
     const modelId = participant?.config?.model?.id || null;
 
-    statsTracker
+    this.statsTracker
       .recordMessage({
         role: enrichedMessage.role,
         content: enrichedMessage.content,
