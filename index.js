@@ -8,7 +8,7 @@
 import fs from "fs";
 import path from "path";
 import dotenv from "dotenv";
-import { ConversationManager } from "./src/conversation/ConversationManager.js";
+import { ConversationManager } from "@/conversation/ConversationManager.js";
 import {
   AIServiceFactory,
   saveConversationToFile,
@@ -20,8 +20,8 @@ import {
 } from "@ai-chat/core";
 import {
   statsTracker,
-} from "./src/services/StatsTracker.js";
-import { DEFAULT_TOPIC, CLI_ALIASES, USAGE_LINES } from "./src/config/constants.js";
+} from "@/services/StatsTracker.js";
+import { DEFAULT_TOPIC, CLI_ALIASES, USAGE_LINES } from "@/config/constants.js";
 
 // Load environment variables
 dotenv.config();
