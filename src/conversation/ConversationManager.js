@@ -10,7 +10,7 @@ import {
   DEFAULT_CONVERSATION_CONFIG,
   streamText,
 } from "@ai-chat/core";
-import { statsTracker } from "../services/StatsTracker.js";
+import { statsTracker } from "@/services/StatsTracker.js";
 
 // Helper builders extracted for readability
 const summarizeParticipantTopics = (messages, participants) => {

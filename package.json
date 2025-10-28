@@ -5,8 +5,8 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "node index.js",
-    "dev": "node --watch index.js",
+    "start": "node --loader ./loader.mjs index.js",
+    "dev": "node --loader ./loader.mjs --watch index.js",
     "test": "echo \"Specify a test script. Try: npm run test:grok\"",
     "test:grok": "node tests/integration-ok-grok.js",
     "test:openai": "node tests/integration-ok-openai.js",
