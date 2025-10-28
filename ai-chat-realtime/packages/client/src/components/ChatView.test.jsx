@@ -4,6 +4,15 @@ import { BrowserRouter } from 'react-router-dom';
 import ChatView from './ChatView.jsx';
 import React from 'react';
 
+const mockDefaultAiParticipants = Array.from({ length: 11 }, (_, index) => ({
+  id: `ai-${index}`,
+  name: `AI ${index}`,
+  alias: `ai-${index}`,
+  provider: 'Test Provider',
+  status: 'active',
+  emoji: '🤖'
+}));
+
 vi.mock('./ChatMessage.jsx', () => ({
   default: ({ message }) => <div data-testid="chat-message">{message.text}</div>,
 }));
@@ -17,9 +26,12 @@ vi.mock('./MessageInput.jsx', () => ({
 }));
 
 vi.mock('./ParticipantsList.jsx', () => ({
-  default: ({ participants }) => (
-    <div data-testid="participants-list">{participants.length} participants</div>
+  default: ({ participants, aiParticipants = [] }) => (
+    <div data-testid="participants-list">
+      {participants.length} participants, {aiParticipants.length} AIs
+    </div>
   ),
+  DEFAULT_AI_PARTICIPANTS: mockDefaultAiParticipants,
 }));
 
 vi.mock('./TypingIndicator.jsx', () => ({
@@ -83,7 +95,7 @@ describe('ChatView Component', () => {
 
     it('should display participant count', () => {
       renderWithRouter(<ChatView {...defaultProps} />);
-      expect(screen.getByText(/2 users \+ 7 AIs/)).toBeInTheDocument();
+      expect(screen.getByText(/2 users \+ 11 AIs/)).toBeInTheDocument();
     });
   });
 
@@ -164,12 +176,12 @@ describe('ChatView Component', () => {
     it('should display correct singular form for 1 user', () => {
       const props = { ...defaultProps, participants: [{ id: '1', username: 'user1' }] };
       renderWithRouter(<ChatView {...props} />);
-      expect(screen.getByText(/1 user \+ 7 AIs/)).toBeInTheDocument();
+      expect(screen.getByText(/1 user \+ 11 AIs/)).toBeInTheDocument();
     });
 
     it('should display correct plural form for multiple users', () => {
       renderWithRouter(<ChatView {...defaultProps} />);
-      expect(screen.getByText(/2 users \+ 7 AIs/)).toBeInTheDocument();
+      expect(screen.getByText(/2 users \+ 11 AIs/)).toBeInTheDocument();
     });
   });
 
