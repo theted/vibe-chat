@@ -21,7 +21,15 @@ import {
 import {
   statsTracker,
 } from "./src/services/StatsTracker.js";
-import { DEFAULT_TOPIC, CLI_ALIASES, USAGE_LINES } from "./src/config/constants.js";
+import {
+  DEFAULT_TOPIC,
+  CLI_ALIASES,
+  USAGE_LINES,
+  DEFAULT_MAX_TURNS,
+  DEFAULT_ADDITIONAL_TURNS,
+  STREAM_WORD_DELAY_MS,
+  MAX_STREAMED_RESPONSE_LENGTH,
+} from "./src/config/constants.js";
 
 // Load environment variables
 dotenv.config();
@@ -55,7 +63,7 @@ const parseArgs = () => {
   const result = {
     participants: [],
     topic: DEFAULT_TOPIC,
-    maxTurns: 10,
+    maxTurns: DEFAULT_MAX_TURNS,
     singlePromptMode: false,
     command: "start",
   };
@@ -91,7 +99,7 @@ const parseArgs = () => {
     }
 
     if (!result.additionalTurns) {
-      result.additionalTurns = 10;
+      result.additionalTurns = DEFAULT_ADDITIONAL_TURNS;
     }
 
     return result;
@@ -180,7 +188,7 @@ const parseArgs = () => {
       } else if (arg === "--topic" && i + 1 < args.length) {
         result.topic = args[++i];
       } else if (arg === "--maxTurns" && i + 1 < args.length) {
-        result.maxTurns = parseInt(args[++i], 10) || 10;
+        result.maxTurns = parseInt(args[++i], 10) || DEFAULT_MAX_TURNS;
       } else if (arg === "--singlePromptMode") {
         result.singlePromptMode = true;
       }
@@ -445,7 +453,7 @@ const getSinglePromptResponses = async (options) => {
         `[Prompt]: ${options.topic} (continuing conversation with ${responses.length} prior responses)`
       );
     } else {
-      await streamText(options.topic, "[Prompt]: ", 30);
+      await streamText(options.topic, "[Prompt]: ", STREAM_WORD_DELAY_MS);
       await statsTracker.recordMessage({
         role: "user",
         content: options.topic,
@@ -508,13 +516,16 @@ const getSinglePromptResponses = async (options) => {
         const response = await service.generateResponse(messages);
 
         // Truncate if too long (safety net)
-        const truncatedResponse = response.length > 1000 ? response.substring(0, 1000) + "..." : response;
+        const truncatedResponse =
+          response.length > MAX_STREAMED_RESPONSE_LENGTH
+            ? response.substring(0, MAX_STREAMED_RESPONSE_LENGTH) + "..."
+            : response;
 
         // Stream the response
         await streamText(
           truncatedResponse,
           `[${participantName}]: `,
-          30
+          STREAM_WORD_DELAY_MS
         );
 
         // Add response to conversation history
@@ -580,7 +591,8 @@ const continueConversationFromFile = async (options) => {
 
     const conversationData = loadConversationFromFile(resolvedPath);
     const metadata = conversationData.metadata || {};
-    const additionalTurns = options.additionalTurns || 10;
+    const additionalTurns =
+      options.additionalTurns || DEFAULT_ADDITIONAL_TURNS;
 
     let participantInputs = options.participants;
     if (!participantInputs || participantInputs.length === 0) {

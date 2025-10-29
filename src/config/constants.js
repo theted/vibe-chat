@@ -24,3 +24,11 @@ export const USAGE_LINES = [
   '  npm start mistral:MISTRAL_SMALL grok:GROK_2 openai:GPT4 "What is love if sarcastic as possible"',
   '  npm start grok:GROK_2 gemini "What is the nature of consciousness?" 8',
 ];
+
+export const DEFAULT_MAX_TURNS = 10;
+
+export const DEFAULT_ADDITIONAL_TURNS = DEFAULT_MAX_TURNS;
+
+export const STREAM_WORD_DELAY_MS = 30;
+
+export const MAX_STREAMED_RESPONSE_LENGTH = 1000;
