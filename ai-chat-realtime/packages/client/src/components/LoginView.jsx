@@ -1,5 +1,4 @@
 import React from "react";
-import ParticipantsList from "./ParticipantsList.jsx";
 import Icon from "./Icon.jsx";
 
 const LoginView = ({
@@ -11,72 +10,90 @@ const LoginView = ({
   onJoin,
   error,
 }) => (
-  <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center p-4 dark:from-slate-950 dark:via-slate-900 dark:to-slate-900">
-    <div className="flex bg-white rounded-3xl shadow-2xl max-w-6xl w-full max-h-[900px] overflow-hidden animate-scale-in border border-white/20 dark:bg-slate-900/90 dark:border-slate-800">
-      <div className="flex-1 flex flex-col">
-        <div className="bg-gradient-to-r from-slate-600/90 to-slate-700/90 backdrop-blur-sm text-white p-6 rounded-tl-3xl border-b border-white/10 dark:from-slate-800/90 dark:to-slate-900/90 dark:border-slate-800/60">
-          <div className="flex justify-between items-stretch gap-6 flex-wrap">
-            <div className="flex flex-col justify-center">
-              <h1 className="header-title header-title--hero">AI Chat Realtime</h1>
-              <div className="text-slate-300/90 text-xs uppercase tracking-[0.32em] mt-3">
-                Enter your username to join the conversation
-              </div>
-            </div>
-            <div className="flex items-center gap-4 text-sm self-stretch flex-wrap justify-end">
-              <div className="flex items-center gap-2">
-                <div
-                  className={`w-2 h-2 rounded-full transition-colors ${
-                    connectionStatus.connected
-                      ? "bg-green-400"
-                      : "bg-red-400 animate-pulse"
-                  }`}
-                ></div>
-                <span>
-                  {connectionStatus.connected ? "Connected" : "Connecting..."}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={toggleTheme}
-                  className="inline-flex items-center gap-2 px-3 py-1 rounded-lg border border-white/20 bg-white/5 hover:bg-white/10 text-white/80 text-xs font-medium transition-colors dark:border-slate-700 dark:bg-slate-900/50 dark:hover:bg-slate-900/70 dark:text-slate-200"
-                  title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
-                >
-                  <Icon name={theme === "dark" ? "sun" : "moon"} className="w-4 h-4" />
-                  <span className="hidden sm:inline">
-                    {theme === "dark" ? "Light mode" : "Dark mode"}
-                  </span>
-                </button>
-              </div>
-            </div>
-          </div>
+  <div className="relative min-h-screen overflow-hidden bg-slate-950 text-slate-100">
+    <div className="absolute inset-0">
+      <div className="absolute -top-1/4 -left-1/4 h-[120%] w-[120%] bg-[radial-gradient(circle_at_top,_rgba(96,165,250,0.15),_transparent_60%)]" />
+      <div className="absolute bottom-0 right-0 h-[70%] w-[70%] bg-[radial-gradient(circle_at_bottom,_rgba(167,139,250,0.2),_transparent_65%)]" />
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 opacity-90" />
+    </div>
+
+    <div className="relative z-10 flex min-h-screen flex-col items-center justify-center px-6 py-16">
+      <div className="absolute top-8 right-8 flex items-center gap-4 text-sm text-slate-300/80">
+        <div className="flex items-center gap-2 rounded-full bg-white/5 px-4 py-2 backdrop-blur">
+          <span
+            className={`h-2.5 w-2.5 rounded-full transition-colors ${
+              connectionStatus.connected
+                ? "bg-emerald-400"
+                : "bg-rose-400 animate-pulse"
+            }`}
+          ></span>
+          <span className="tracking-[0.2em] uppercase text-xs font-light">
+            {connectionStatus.connected ? "Connected" : "Connecting..."}
+          </span>
+        </div>
+        <button
+          type="button"
+          onClick={toggleTheme}
+          className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-medium tracking-[0.2em] uppercase text-slate-100/80 transition-all hover:bg-white/10"
+          title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+        >
+          <Icon name={theme === "dark" ? "sun" : "moon"} className="h-4 w-4" />
+          <span className="hidden sm:inline">{theme === "dark" ? "Light" : "Dark"} Mode</span>
+        </button>
+      </div>
+
+      <div className="flex w-full max-w-5xl flex-col items-center gap-16 rounded-[3rem] border border-white/10 bg-white/5 p-10 text-center backdrop-blur-xl shadow-2xl shadow-black/40 animate-fade-in-slow lg:flex-row lg:items-end lg:text-left">
+        <div className="flex justify-center lg:justify-start">
+          <svg
+            viewBox="0 0 340 340"
+            className="h-64 w-64 text-slate-100/90 drop-shadow-[0_20px_60px_rgba(15,23,42,0.7)]"
+            role="img"
+            aria-label="Stylized AI circuit"
+          >
+            <defs>
+              <linearGradient id="chipGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="currentColor" stopOpacity="0.95" />
+                <stop offset="100%" stopColor="currentColor" stopOpacity="0.65" />
+              </linearGradient>
+            </defs>
+            <rect x="50" y="50" width="240" height="240" rx="48" fill="none" stroke="url(#chipGradient)" strokeWidth="8" />
+            <rect x="105" y="105" width="130" height="130" rx="26" fill="none" stroke="url(#chipGradient)" strokeWidth="6" />
+            <circle cx="170" cy="170" r="46" fill="url(#chipGradient)" opacity="0.95" />
+            <g stroke="url(#chipGradient)" strokeWidth="10" strokeLinecap="round">
+              <line x1="170" y1="20" x2="170" y2="60" />
+              <line x1="170" y1="280" x2="170" y2="320" />
+              <line x1="20" y1="170" x2="60" y2="170" />
+              <line x1="280" y1="170" x2="320" y2="170" />
+            </g>
+            <g stroke="url(#chipGradient)" strokeWidth="6" strokeLinecap="round">
+              <line x1="70" y1="110" x2="40" y2="80" />
+              <line x1="270" y1="110" x2="300" y2="80" />
+              <line x1="70" y1="230" x2="40" y2="260" />
+              <line x1="270" y1="230" x2="300" y2="260" />
+            </g>
+          </svg>
         </div>
 
-        <div className="flex-1 flex flex-col justify-center items-center p-8 space-y-8">
-          <div className="text-center space-y-4 animate-fade-in">
-            <div className="text-4xl mb-4">🤖✨</div>
-            <h2 className="text-3xl font-bold bg-gradient-to-r from-primary-600 to-indigo-600 bg-clip-text text-transparent">
-              Welcome to AI Chat Realtime!
-            </h2>
-            <div className="text-slate-600 space-y-2 max-w-lg dark:text-slate-300">
-              <p>
-                Join the conversation with AI personalities from different
-                providers.
-              </p>
-              <p>
-                Each AI has its own unique personality and communication
-                style.
-              </p>
-            </div>
+        <div className="flex flex-1 flex-col items-center gap-10 lg:items-start">
+          <div className="space-y-6">
+            <h1 className="text-4xl font-extralight tracking-[0.6em] text-white drop-shadow-sm sm:text-5xl lg:text-6xl">
+              AI CHAT REALTIME
+            </h1>
+            <p className="max-w-xl text-base font-light leading-relaxed text-slate-200/80 sm:text-lg">
+              Step into a luminous space where human curiosity meets machine insight. Set your name, sync in, and converse with the intelligence collective in real-time.
+            </p>
           </div>
 
           {error && (
-            <div className="bg-red-50/70 backdrop-blur-sm border border-red-200/50 text-red-800 px-6 py-4 rounded-2xl text-center animate-slide-up shadow-sm dark:bg-red-500/10 dark:border-red-400/40 dark:text-red-200">
+            <div className="w-full max-w-lg rounded-2xl border border-rose-400/30 bg-rose-500/10 px-6 py-4 text-sm text-rose-100 shadow-lg shadow-rose-900/30 animate-fade-in-slow">
               {error}
             </div>
           )}
 
-          <form onSubmit={onJoin} className="w-full max-w-sm space-y-4 animate-slide-up">
+          <form onSubmit={onJoin} className="flex w-full max-w-lg flex-col gap-4">
+            <label className="text-xs uppercase tracking-[0.4em] text-slate-200/70">
+              Username
+            </label>
             <input
               type="text"
               value={username}
@@ -85,27 +102,20 @@ const LoginView = ({
               maxLength={50}
               pattern="[a-zA-Z0-9_-]+"
               title="Username can only contain letters, numbers, dash, and underscore"
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 outline-none transition-all placeholder-slate-400 dark:bg-slate-900/80 dark:border-slate-700 dark:text-slate-100 dark:placeholder-slate-500"
+              className="w-full rounded-full border border-white/20 bg-white/5 px-6 py-3 text-base font-light text-slate-100 placeholder:text-slate-400/60 outline-none transition-all focus:border-primary-300 focus:ring-2 focus:ring-primary-400/40"
               required
             />
             <button
               type="submit"
               disabled={!connectionStatus.connected || !username.trim()}
-              className="w-full bg-gradient-to-r from-primary-600 to-primary-700 text-white py-3 px-6 rounded-xl font-semibold hover:from-primary-700 hover:to-primary-800 disabled:from-slate-300 disabled:to-slate-400 disabled:cursor-not-allowed transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl dark:disabled:from-slate-700 dark:disabled:to-slate-800"
+              className="group relative flex w-full items-center justify-center overflow-hidden rounded-full bg-gradient-to-r from-slate-100 to-slate-300 px-8 py-3 text-base font-semibold uppercase tracking-[0.4em] text-slate-900 transition-all duration-300 disabled:from-slate-500 disabled:to-slate-600 disabled:text-slate-300 disabled:shadow-none disabled:cursor-not-allowed"
             >
-              Join Chat
+              <span className="absolute inset-0 translate-y-full bg-gradient-to-r from-primary-500/80 via-indigo-500/80 to-sky-500/80 opacity-0 transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100" />
+              <span className="relative">Join Chat</span>
             </button>
           </form>
         </div>
       </div>
-
-      <ParticipantsList
-        participants={[]}
-        aiParticipants={[]}
-        typingUsers={[]}
-        typingAIs={[]}
-        isVisible={true}
-      />
     </div>
   </div>
 );
