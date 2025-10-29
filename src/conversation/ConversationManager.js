@@ -11,6 +11,7 @@ import {
   streamText,
 } from "@ai-chat/core";
 import { statsTracker } from "../services/StatsTracker.js";
+import { STREAM_WORD_DELAY_MS } from "../config/constants.js";
 
 // Helper builders extracted for readability
 const summarizeParticipantTopics = (messages, participants) => {
@@ -158,7 +159,7 @@ export class ConversationManager {
     );
 
     // Stream the initial message
-    await this.streamText(initialMessage, "[User]: ", 30);
+    await this.streamText(initialMessage, "[User]: ", STREAM_WORD_DELAY_MS);
 
     // Start the conversation loop immediately without delay
     await this.continueConversation();
@@ -193,7 +194,11 @@ export class ConversationManager {
         });
 
         // Stream the response with a delay between words
-        await this.streamText(response, `[${participant.name}]: `, 30);
+        await this.streamText(
+          response,
+          `[${participant.name}]: `,
+          STREAM_WORD_DELAY_MS
+        );
 
         // Increment the turn count
         this.turnCount++;
