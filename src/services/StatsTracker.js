@@ -8,14 +8,16 @@
 
 import dotenv from "dotenv";
 
-dotenv.config();
+import {
+  STATS_LATEST_MESSAGES_KEY,
+  STATS_MAX_CONTENT_LENGTH,
+  STATS_MAX_LATEST_MESSAGES,
+  STATS_TOTAL_AI_MESSAGES_KEY,
+  STATS_TOTAL_MESSAGES_KEY,
+  STATS_TOTAL_USER_MESSAGES_KEY,
+} from "../config/statsConstants.js";
 
-const TOTAL_MESSAGES_KEY = "ai-chat:stats:messages:total";
-const TOTAL_AI_MESSAGES_KEY = "ai-chat:stats:messages:ai";
-const TOTAL_USER_MESSAGES_KEY = "ai-chat:stats:messages:user";
-const LATEST_MESSAGES_KEY = "ai-chat:stats:messages:latest";
-const MAX_LATEST_MESSAGES = 100;
-const MAX_CONTENT_LENGTH = 1000;
+dotenv.config();
 
 export class StatsTracker {
   constructor(options = {}) {
@@ -85,7 +87,7 @@ export class StatsTracker {
 
       const trimmedContent =
         typeof content === "string"
-          ? content.slice(0, MAX_CONTENT_LENGTH)
+          ? content.slice(0, STATS_MAX_CONTENT_LENGTH)
           : "";
       const payload = JSON.stringify({
         timestamp: new Date().toISOString(),
@@ -96,16 +98,20 @@ export class StatsTracker {
       });
 
       const pipeline = client.multi();
-      pipeline.incr(TOTAL_MESSAGES_KEY);
+      pipeline.incr(STATS_TOTAL_MESSAGES_KEY);
 
       if (role === "assistant") {
-        pipeline.incr(TOTAL_AI_MESSAGES_KEY);
+        pipeline.incr(STATS_TOTAL_AI_MESSAGES_KEY);
       } else if (role === "user") {
-        pipeline.incr(TOTAL_USER_MESSAGES_KEY);
+        pipeline.incr(STATS_TOTAL_USER_MESSAGES_KEY);
       }
 
-      pipeline.lPush(LATEST_MESSAGES_KEY, payload);
-      pipeline.lTrim(LATEST_MESSAGES_KEY, 0, MAX_LATEST_MESSAGES - 1);
+      pipeline.lPush(STATS_LATEST_MESSAGES_KEY, payload);
+      pipeline.lTrim(
+        STATS_LATEST_MESSAGES_KEY,
+        0,
+        STATS_MAX_LATEST_MESSAGES - 1
+      );
 
       await pipeline.exec();
     } catch (error) {
