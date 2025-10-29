@@ -2,9 +2,10 @@
  * Dashboard Component - Real-time metrics display
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useSocket } from '../hooks/useSocket';
+import StatusCard from './StatusCard.jsx';
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL || "http://localhost:3001";
 
@@ -250,55 +251,34 @@ const Dashboard = () => {
           {/* Recent Activity */}
           <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
             <h3 className="text-xl font-semibold text-gray-900 mb-6">System Status</h3>
-            
+
             <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                    <span className="text-blue-600 text-lg">🌐</span>
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-900">WebSocket Server</p>
-                    <p className="text-sm text-gray-600">Real-time connection</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span className="text-sm font-medium text-green-600">Online</span>
-                </div>
-              </div>
+              <StatusCard
+                icon="🌐"
+                iconBackgroundClass="bg-blue-100"
+                iconTextClass="text-blue-600"
+                title="WebSocket Server"
+                subtitle="Real-time connection"
+                statusText="Online"
+              />
 
-              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-                    <span className="text-purple-600 text-lg">🤖</span>
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-900">AI Services</p>
-                    <p className="text-sm text-gray-600">Multiple providers active</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span className="text-sm font-medium text-green-600">Active</span>
-                </div>
-              </div>
+              <StatusCard
+                icon="🤖"
+                iconBackgroundClass="bg-purple-100"
+                iconTextClass="text-purple-600"
+                title="AI Services"
+                subtitle="Multiple providers active"
+                statusText="Active"
+              />
 
-              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
-                    <span className="text-orange-600 text-lg">📊</span>
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-900">Metrics Collection</p>
-                    <p className="text-sm text-gray-600">Real-time tracking</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span className="text-sm font-medium text-green-600">Collecting</span>
-                </div>
-              </div>
+              <StatusCard
+                icon="📊"
+                iconBackgroundClass="bg-orange-100"
+                iconTextClass="text-orange-600"
+                title="Metrics Collection"
+                subtitle="Real-time tracking"
+                statusText="Collecting"
+              />
             </div>
           </div>
         </div>
