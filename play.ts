@@ -13,14 +13,14 @@
 import fs from "fs";
 import path from "path";
 
-interface ConversationMessage {
+interface PlaybackMessage {
   from: string;
   content: string;
 }
 
-interface ConversationFile {
+interface PlaybackFile {
   topic?: string;
-  messages: ConversationMessage[];
+  messages: PlaybackMessage[];
 }
 
 // Typing and pacing configuration
