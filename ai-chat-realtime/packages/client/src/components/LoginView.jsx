@@ -1,5 +1,6 @@
 import React from "react";
 import Icon from "./Icon.jsx";
+import CircuitIcon from "./CircuitIcon.jsx";
 
 const LoginView = ({
   connectionStatus,
@@ -44,34 +45,7 @@ const LoginView = ({
 
       <div className="flex w-full max-w-5xl flex-col items-center gap-16 rounded-[3rem] border border-white/10 bg-white/5 p-10 text-center backdrop-blur-xl shadow-2xl shadow-black/40 animate-fade-in-slow lg:flex-row lg:items-end lg:text-left">
         <div className="flex justify-center lg:justify-start">
-          <svg
-            viewBox="0 0 340 340"
-            className="h-64 w-64 text-slate-100/90 drop-shadow-[0_20px_60px_rgba(15,23,42,0.7)]"
-            role="img"
-            aria-label="Stylized AI circuit"
-          >
-            <defs>
-              <linearGradient id="chipGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="currentColor" stopOpacity="0.95" />
-                <stop offset="100%" stopColor="currentColor" stopOpacity="0.65" />
-              </linearGradient>
-            </defs>
-            <rect x="50" y="50" width="240" height="240" rx="48" fill="none" stroke="url(#chipGradient)" strokeWidth="8" />
-            <rect x="105" y="105" width="130" height="130" rx="26" fill="none" stroke="url(#chipGradient)" strokeWidth="6" />
-            <circle cx="170" cy="170" r="46" fill="url(#chipGradient)" opacity="0.95" />
-            <g stroke="url(#chipGradient)" strokeWidth="10" strokeLinecap="round">
-              <line x1="170" y1="20" x2="170" y2="60" />
-              <line x1="170" y1="280" x2="170" y2="320" />
-              <line x1="20" y1="170" x2="60" y2="170" />
-              <line x1="280" y1="170" x2="320" y2="170" />
-            </g>
-            <g stroke="url(#chipGradient)" strokeWidth="6" strokeLinecap="round">
-              <line x1="70" y1="110" x2="40" y2="80" />
-              <line x1="270" y1="110" x2="300" y2="80" />
-              <line x1="70" y1="230" x2="40" y2="260" />
-              <line x1="270" y1="230" x2="300" y2="260" />
-            </g>
-          </svg>
+          <CircuitIcon className="h-64 w-64 text-slate-100/90 drop-shadow-[0_20px_60px_rgba(15,23,42,0.7)]" />
         </div>
 
         <div className="flex flex-1 flex-col items-center gap-10 lg:items-start">
