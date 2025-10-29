@@ -45,3 +45,6 @@ coverage
 
 # Conversation logs
 conversations/
+
+# CodeceptJS output directory
+tests/e2e/output/
