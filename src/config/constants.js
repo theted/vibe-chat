@@ -3,6 +3,15 @@
 export const DEFAULT_TOPIC =
   "Discuss the future of artificial intelligence and its potential impact on society.";
 
+export const FALLBACK_TOPIC = "Discuss this topic in an interesting way.";
+
+export const DEFAULT_MAX_TURNS = 10;
+
+export const DEFAULT_PARTICIPANTS = [
+  { provider: "openai", model: null },
+  { provider: "anthropic", model: null },
+];
+
 export const CLI_ALIASES = {
   gemeni: "gemini",
   google: "gemini",

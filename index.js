@@ -15,13 +15,22 @@ import {
   formatConversation,
   loadConversationFromFile,
   AI_PROVIDERS,
-  DEFAULT_MODELS,
   streamText,
 } from "@ai-chat/core";
 import {
   statsTracker,
 } from "./src/services/StatsTracker.js";
-import { DEFAULT_TOPIC, CLI_ALIASES, USAGE_LINES } from "./src/config/constants.js";
+import {
+  DEFAULT_TOPIC,
+  DEFAULT_PARTICIPANTS,
+  DEFAULT_MAX_TURNS,
+  FALLBACK_TOPIC,
+  USAGE_LINES,
+} from "./src/config/constants.js";
+import {
+  getProviderConfig,
+  normalizeProviderKey,
+} from "./src/config/providerUtils.js";
 
 // Load environment variables
 dotenv.config();
@@ -55,7 +64,7 @@ const parseArgs = () => {
   const result = {
     participants: [],
     topic: DEFAULT_TOPIC,
-    maxTurns: 10,
+    maxTurns: DEFAULT_MAX_TURNS,
     singlePromptMode: false,
     command: "start",
   };
@@ -91,7 +100,7 @@ const parseArgs = () => {
     }
 
     if (!result.additionalTurns) {
-      result.additionalTurns = 10;
+      result.additionalTurns = DEFAULT_MAX_TURNS;
     }
 
     return result;
@@ -114,9 +123,7 @@ const parseArgs = () => {
       
       // Check if it's a known provider name
       const lowerArg = arg.toLowerCase();
-      const providerNames = Object.keys(AI_PROVIDERS).map(k => k.toLowerCase());
-      const aliasNames = Object.keys(CLI_ALIASES);
-      if (providerNames.includes(lowerArg) || aliasNames.includes(lowerArg)) return false;
+      if (normalizeProviderKey(lowerArg)) return false;
       
       // If it's not a known model or provider, it's likely the start of the topic
       return true;
@@ -126,7 +133,7 @@ const parseArgs = () => {
     if (topicIndex === -1) {
       topicIndex = args.length;
       // Default topic if none provided
-      result.topic = "Discuss this topic in an interesting way.";
+      result.topic = FALLBACK_TOPIC;
     } else {
       // Check if the last argument is a number (maxTurns)
       const lastArg = args[args.length - 1];
@@ -161,10 +168,7 @@ const parseArgs = () => {
     }
     // If we have 0 participants, use defaults
     else {
-      result.participants = [
-        { provider: "openai", model: null },
-        { provider: "anthropic", model: null },
-      ];
+      result.participants = DEFAULT_PARTICIPANTS.map((p) => ({ ...p }));
       result.singlePromptMode = false;
     }
   }
@@ -180,7 +184,7 @@ const parseArgs = () => {
       } else if (arg === "--topic" && i + 1 < args.length) {
         result.topic = args[++i];
       } else if (arg === "--maxTurns" && i + 1 < args.length) {
-        result.maxTurns = parseInt(args[++i], 10) || 10;
+        result.maxTurns = parseInt(args[++i], 10) || DEFAULT_MAX_TURNS;
       } else if (arg === "--singlePromptMode") {
         result.singlePromptMode = true;
       }
@@ -188,10 +192,7 @@ const parseArgs = () => {
 
     // If no participants specified, use defaults
     if (result.participants.length === 0) {
-      result.participants = [
-        { provider: "openai", model: null },
-        { provider: "anthropic", model: null },
-      ];
+      result.participants = DEFAULT_PARTICIPANTS.map((p) => ({ ...p }));
     }
   }
 
@@ -206,7 +207,7 @@ const parseArgs = () => {
 const parseParticipant = (participantStr, participant) => {
   const parts = participantStr.split(":");
   const rawProvider = parts[0].toLowerCase();
-  
+
   // If no colon, check if this might be a model name instead of provider name
   if (parts.length === 1) {
     const modelName = participantStr.toUpperCase();
@@ -220,11 +221,16 @@ const parseParticipant = (participantStr, participant) => {
       }
     }
     
-    // If not found as a model, treat as provider name
-    participant.provider = CLI_ALIASES[rawProvider] || rawProvider;
+    const providerKey = normalizeProviderKey(rawProvider);
+    participant.provider = providerKey
+      ? providerKey.toLowerCase()
+      : rawProvider;
     participant.model = null;
   } else {
-    participant.provider = CLI_ALIASES[rawProvider] || rawProvider;
+    const providerKey = normalizeProviderKey(rawProvider);
+    participant.provider = providerKey
+      ? providerKey.toLowerCase()
+      : rawProvider;
     participant.model = parts[1].toUpperCase();
   }
 };
@@ -287,72 +293,6 @@ const resolveConversationPath = (filePath) => {
  * @param {Object} participantConfig - Participant configuration with provider and model
  * @returns {Object} Provider and model configuration
  */
-const getProviderConfig = (participantConfig) => {
-  const providerName = participantConfig.provider;
-  const modelName = participantConfig.model;
-
-  let provider;
-
-  switch (providerName.toLowerCase()) {
-    case "cohere":
-      provider = AI_PROVIDERS.COHERE;
-      break;
-    case "z":
-    case "zai":
-    case "z.ai":
-      provider = AI_PROVIDERS.ZAI;
-      break;
-    case "gemini":
-    case "gemeni": // common misspelling
-    case "google":
-      provider = AI_PROVIDERS.GEMINI;
-      break;
-    case "mistral":
-      provider = AI_PROVIDERS.MISTRAL;
-      break;
-    case "openai":
-      provider = AI_PROVIDERS.OPENAI;
-      break;
-    case "anthropic":
-      provider = AI_PROVIDERS.ANTHROPIC;
-      break;
-    case "deepseek":
-      provider = AI_PROVIDERS.DEEPSEEK;
-      break;
-    case "grok":
-      provider = AI_PROVIDERS.GROK;
-      break;
-    case "qwen":
-      provider = AI_PROVIDERS.QWEN;
-      break;
-    case "kimi":
-    case "moonshot":
-      provider = AI_PROVIDERS.KIMI;
-      break;
-    default:
-      throw new Error(`Unsupported provider: ${providerName}`);
-  }
-
-  // If a specific model was requested, use it
-  if (modelName) {
-    if (!provider.models[modelName]) {
-      throw new Error(
-        `Model ${modelName} not found for provider ${provider.name}`
-      );
-    }
-    return {
-      provider,
-      model: provider.models[modelName],
-    };
-  }
-
-  // Otherwise use the default model for the provider
-  return {
-    provider,
-    model: DEFAULT_MODELS[provider.name],
-  };
-};
-
 /**
  * Start a conversation between AI services
  * @param {Object} options - Conversation options
