@@ -3,6 +3,11 @@
  */
 
 import { io } from 'socket.io-client';
+import {
+  SERVER_URL,
+  DEFAULT_ROOM_ID,
+  SOCKET_CONNECTION_OPTIONS,
+} from '../constants/chat.js';
 
 class SocketService {
   constructor() {
@@ -11,18 +16,12 @@ class SocketService {
     this.eventCallbacks = new Map(); // Internal event system for React components
   }
 
-  connect(serverUrl = 'http://localhost:3001') {
+  connect(serverUrl = SERVER_URL) {
     if (this.socket) {
       return this.socket;
     }
 
-    this.socket = io(serverUrl, {
-      autoConnect: true,
-      reconnection: true,
-      reconnectionDelay: 1000,
-      reconnectionAttempts: 5,
-      timeout: 20000,
-    });
+    this.socket = io(serverUrl, SOCKET_CONNECTION_OPTIONS);
 
     this.setupDefaultListeners();
     return this.socket;
@@ -116,7 +115,7 @@ class SocketService {
   }
 
   // Chat specific methods
-  joinRoom(username, roomId = 'default') {
+  joinRoom(username, roomId = DEFAULT_ROOM_ID) {
     this.emit('join-room', { username, roomId });
   }
 

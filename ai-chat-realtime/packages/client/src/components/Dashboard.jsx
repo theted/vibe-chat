@@ -2,11 +2,14 @@
  * Dashboard Component - Real-time metrics display
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useSocket } from '../hooks/useSocket';
-
-const SERVER_URL = import.meta.env.VITE_SERVER_URL || "http://localhost:3001";
+import {
+  SERVER_URL,
+  DASHBOARD_HISTORY_DURATION_MS,
+  DASHBOARD_REFRESH_INTERVAL_MS,
+} from '../constants/chat.js';
 
 const Dashboard = () => {
   const [metrics, setMetrics] = useState({
@@ -34,7 +37,7 @@ const Dashboard = () => {
       setConnectionStatus({ connected: true });
       emit('join-dashboard');
       emit('get-metrics');
-      emit('get-metrics-history', { duration: 60 * 60 * 1000 }); // Last hour
+      emit('get-metrics-history', { duration: DASHBOARD_HISTORY_DURATION_MS });
     });
 
     on('disconnect', () => {
@@ -61,7 +64,7 @@ const Dashboard = () => {
       if (connectionStatus.connected) {
         emit('get-metrics');
       }
-    }, 30000);
+    }, DASHBOARD_REFRESH_INTERVAL_MS);
 
     return () => clearInterval(interval);
   }, [connectionStatus.connected, emit]);

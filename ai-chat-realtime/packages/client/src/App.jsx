@@ -8,7 +8,7 @@ import ToastContainer from "./components/ToastContainer.jsx";
 import LoginView from "./components/LoginView.jsx";
 import ChatView from "./components/ChatView.jsx";
 import { ThemeContext } from "./context/ThemeContext.jsx";
-import { SERVER_URL } from "./constants/chat.js";
+import { SERVER_URL, DEFAULT_ROOM_ID } from "./constants/chat.js";
 import {
   normalizeAlias,
   resolveEmoji,
@@ -42,7 +42,7 @@ function App() {
       setUsername(savedUsername);
       // Auto-join if we have a saved username and are connected
       if (connectionStatus.connected) {
-        joinRoom(savedUsername, "default");
+        joinRoom(savedUsername, DEFAULT_ROOM_ID);
       }
     }
   }, []);
@@ -56,7 +56,7 @@ function App() {
       !isJoined &&
       username === savedUsername
     ) {
-      joinRoom(savedUsername, "default");
+      joinRoom(savedUsername, DEFAULT_ROOM_ID);
     }
   }, [connectionStatus.connected, isJoined, username]);
 
@@ -388,7 +388,7 @@ function App() {
     if (username.trim()) {
       // Save username to localStorage
       localStorage.setItem("ai-chat-username", username.trim());
-      joinRoom(username.trim(), "default");
+      joinRoom(username.trim(), DEFAULT_ROOM_ID);
     }
   };
 

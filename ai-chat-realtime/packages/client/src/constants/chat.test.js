@@ -1,5 +1,14 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { SERVER_URL, AI_EMOJI_LOOKUP, AI_MENTION_MAPPINGS } from './chat.js';
+import {
+  SERVER_URL,
+  AI_EMOJI_LOOKUP,
+  AI_MENTION_MAPPINGS,
+  DEFAULT_SERVER_URL,
+  DEFAULT_ROOM_ID,
+  DASHBOARD_HISTORY_DURATION_MS,
+  DASHBOARD_REFRESH_INTERVAL_MS,
+  SOCKET_CONNECTION_OPTIONS,
+} from './chat.js';
 
 describe('chat constants', () => {
   describe('SERVER_URL', () => {
@@ -25,6 +34,42 @@ describe('chat constants', () => {
 
     it('should be a valid URL format', () => {
       expect(() => new URL(SERVER_URL)).not.toThrow();
+    });
+  });
+
+  describe('DEFAULT_SERVER_URL', () => {
+    it('should provide the fallback server URL', () => {
+      expect(DEFAULT_SERVER_URL).toBe('http://localhost:3001');
+    });
+  });
+
+  describe('chat configuration constants', () => {
+    it('should expose dashboard history duration in milliseconds', () => {
+      expect(DASHBOARD_HISTORY_DURATION_MS).toBe(60 * 60 * 1000);
+    });
+
+    it('should expose dashboard refresh interval in milliseconds', () => {
+      expect(DASHBOARD_REFRESH_INTERVAL_MS).toBe(30_000);
+    });
+
+    it('should define a default room id', () => {
+      expect(DEFAULT_ROOM_ID).toBe('default');
+    });
+  });
+
+  describe('SOCKET_CONNECTION_OPTIONS', () => {
+    it('should match the expected socket.io configuration', () => {
+      expect(SOCKET_CONNECTION_OPTIONS).toMatchObject({
+        autoConnect: true,
+        reconnection: true,
+        reconnectionDelay: 1000,
+        reconnectionAttempts: 5,
+        timeout: 20_000,
+      });
+    });
+
+    it('should be frozen to prevent runtime mutation', () => {
+      expect(Object.isFrozen(SOCKET_CONNECTION_OPTIONS)).toBe(true);
     });
   });
 
