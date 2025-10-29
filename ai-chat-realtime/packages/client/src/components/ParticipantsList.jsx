@@ -3,8 +3,9 @@
  */
 
 import React from 'react';
-import { motion } from 'framer-motion';
 import Icon from './Icon.jsx';
+import AnimatedListItem from './AnimatedListItem.jsx';
+import SectionHeader from './SectionHeader.jsx';
 
 export const DEFAULT_AI_PARTICIPANTS = [
   { id: 'ANTHROPIC_CLAUDE3_7_SONNET', name: 'Claude 3.7 Sonnet', alias: 'claude', provider: 'Anthropic', status: 'active', emoji: '🤖' },
@@ -68,28 +69,15 @@ const ParticipantsList = ({ participants = [], aiParticipants = [], typingUsers 
         {/* Users */}
         {participants.length > 0 && (
           <div className="border-b border-slate-100 dark:border-slate-800/60">
-            <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wide px-4 py-3 bg-slate-50/70 backdrop-blur-sm flex items-center gap-2 dark:text-slate-300 dark:bg-slate-900/60">
-              <Icon name="users" className="w-4 h-4" />
-              Users ({participants.length})
-            </h4>
+            <SectionHeader icon="users" title="Users" count={participants.length} />
             <div className="pb-2">
               {participants.map((participant, index) => {
                 const typing = isUserTyping(participant.username);
                 return (
-                  <motion.div 
-                    key={`user-${index}`} 
-                    className="flex items-center gap-3 px-4 py-3 hover:bg-blue-50 transition-colors border-b border-slate-50 last:border-b-0 dark:border-slate-900/40 dark:hover:bg-slate-800/60"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ 
-                      delay: index * 0.05, 
-                      duration: 0.3,
-                      ease: "easeOut"
-                    }}
-                    whileHover={{ 
-                      scale: 1.02,
-                      transition: { duration: 0.2 }
-                    }}
+                  <AnimatedListItem
+                    key={`user-${index}`}
+                    index={index}
+                    className="hover:bg-blue-50 dark:hover:bg-slate-800/60"
                   >
                     <div className={`w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white text-sm font-semibold ${typing ? 'animate-pulse' : ''}`}>
                       {participant.username.charAt(0).toUpperCase()}
@@ -105,7 +93,7 @@ const ParticipantsList = ({ participants = [], aiParticipants = [], typingUsers 
                         online
                       </span>
                     )}
-                  </motion.div>
+                  </AnimatedListItem>
                 );
               })}
             </div>
@@ -114,28 +102,15 @@ const ParticipantsList = ({ participants = [], aiParticipants = [], typingUsers 
 
         {/* AI Participants */}
         <div>
-          <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wide px-4 py-3 bg-slate-50/70 backdrop-blur-sm flex items-center gap-2 dark:text-slate-300 dark:bg-slate-900/60">
-            <Icon name="monitor" className="w-4 h-4" />
-            AI Assistants ({aiList.length})
-          </h4>
+          <SectionHeader icon="monitor" title="AI Assistants" count={aiList.length} />
           <div className="pb-2">
             {aiList.map((ai, index) => {
               const generating = isAITyping(ai);
               return (
-                <motion.div 
-                  key={`ai-${index}`} 
-                  className="flex items-center gap-3 px-4 py-3 hover:bg-purple-50 transition-colors border-b border-slate-50 last:border-b-0 dark:border-slate-900/40 dark:hover:bg-slate-800/60"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ 
-                    delay: index * 0.05, 
-                    duration: 0.3,
-                    ease: "easeOut"
-                  }}
-                  whileHover={{ 
-                    scale: 1.02,
-                    transition: { duration: 0.2 }
-                  }}
+                <AnimatedListItem
+                  key={`ai-${index}`}
+                  index={index}
+                  className="hover:bg-purple-50 dark:hover:bg-slate-800/60"
                 >
                   <div className={`text-2xl ${generating ? 'animate-pulse' : ''}`}>{ai.emoji || '🤖'}</div>
                   <div className="flex-1 min-w-0">
@@ -149,14 +124,14 @@ const ParticipantsList = ({ participants = [], aiParticipants = [], typingUsers 
                     </span>
                   ) : (
                     <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                      ai.status === 'active' 
-                        ? 'bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-200' 
+                      ai.status === 'active'
+                        ? 'bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-200'
                         : 'bg-orange-100 text-orange-800 dark:bg-orange-500/20 dark:text-orange-200'
                     }`}>
                       {ai.status}
                     </span>
                   )}
-                </motion.div>
+                </AnimatedListItem>
               );
             })}
           </div>
