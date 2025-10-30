@@ -89,20 +89,21 @@ const MessageInput = ({ onSendMessage, disabled = false, onAIMention, onTypingSt
     // Check for @ trigger to show AI selection
     const cursorPosition = e.target.selectionStart;
     const textBeforeCursor = value.substring(0, cursorPosition);
-    const mentionMatch = textBeforeCursor.match(/@([a-zA-Z0-9_\-\.]*)$/);
+    const mentionMatch = textBeforeCursor.match(/@([^\s@]*)$/);
     
-    // Only show dialog if we're actually typing an AI mention (not file names like .env.example)
-    if (mentionMatch && (!mentionMatch[1].includes('.') || mentionMatch[1].match(/^[a-zA-Z]/))) {
-      setCurrentMention(mentionMatch[1]);
+    if (mentionMatch) {
+      setCurrentMention(mentionMatch[1] || '');
       setShowAIDialog(true);
       
       // Calculate position for dialog
       const textarea = textareaRef.current;
       if (textarea) {
         const rect = textarea.getBoundingClientRect();
+        const scrollX = typeof window !== 'undefined' ? window.scrollX : 0;
+        const scrollY = typeof window !== 'undefined' ? window.scrollY : 0;
         setMentionPosition({
-          x: rect.left,
-          y: rect.top - 10
+          x: rect.left + scrollX + rect.width * 0.1,
+          y: rect.top + scrollY
         });
       }
     } else {
@@ -117,7 +118,7 @@ const MessageInput = ({ onSendMessage, disabled = false, onAIMention, onTypingSt
     const textAfterCursor = message.substring(cursorPosition);
     
     // Replace the current @mention with the selected AI
-    const mentionMatch = textBeforeCursor.match(/@([a-zA-Z0-9_\-\.]*)$/);
+    const mentionMatch = textBeforeCursor.match(/@([^\s@]*)$/);
     if (mentionMatch) {
       const beforeMention = textBeforeCursor.substring(0, mentionMatch.index);
       const newMessage = beforeMention + '@' + aiName + ' ' + textAfterCursor;
@@ -160,11 +161,11 @@ const MessageInput = ({ onSendMessage, disabled = false, onAIMention, onTypingSt
 
   return (
     <>
-      <form onSubmit={handleSubmit} className="flex gap-4 items-end p-1">
+      <form onSubmit={handleSubmit} className="flex gap-4 items-center p-1">
         <div className="flex-1 relative">
           <textarea
             ref={textareaRef}
-            className="w-full px-5 py-4 pr-12 rounded-2xl border border-slate-200 focus:border-primary-400 focus:ring-2 focus:ring-primary-200 outline-none transition-all resize-none placeholder-slate-400 bg-white/90 backdrop-blur-sm shadow-sm hover:shadow-md dark:bg-slate-900/80 dark:border-slate-700 dark:text-slate-100 dark:placeholder-slate-500 dark:focus:border-primary-400 dark:focus:ring-primary-500/30"
+            className="w-full px-5 py-4 pr-12 rounded-2xl border border-slate-200 focus:border-primary-400 focus:ring-2 focus:ring-primary-200 outline-none transition-all resize-none placeholder-slate-400 bg-white/90 backdrop-blur-sm shadow-sm hover:shadow-md no-scrollbar overflow-y-auto dark:bg-slate-900/80 dark:border-slate-700 dark:text-slate-100 dark:placeholder-slate-500 dark:focus:border-primary-400 dark:focus:ring-primary-500/30"
             value={message}
             onChange={handleChange}
             onKeyPress={handleKeyPress}
@@ -182,7 +183,7 @@ const MessageInput = ({ onSendMessage, disabled = false, onAIMention, onTypingSt
         </div>
         <button
           type="submit"
-          className="bg-gradient-to-r from-emerald-300 via-emerald-400 to-teal-300 hover:from-emerald-400 hover:via-emerald-500 hover:to-teal-400 disabled:from-slate-300 disabled:to-slate-400 text-emerald-900 p-4 rounded-2xl font-semibold disabled:cursor-not-allowed transform hover:scale-105 transition-all duration-300 shadow-md hover:shadow-lg flex items-center gap-2 group dark:from-emerald-400 dark:via-emerald-500 dark:to-teal-500 dark:hover:from-emerald-500 dark:hover:via-emerald-600 dark:hover:to-teal-600 dark:text-slate-900 dark:disabled:from-slate-700 dark:disabled:to-slate-800"
+          className="send-button h-[52px] min-w-[120px] px-6 bg-emerald-500 text-white font-semibold rounded-xl shadow-md flex items-center justify-center gap-2 group hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-200 disabled:bg-emerald-200 disabled:text-emerald-600 disabled:cursor-not-allowed dark:bg-emerald-500 dark:hover:bg-emerald-400 dark:text-slate-900 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
           disabled={disabled || !message.trim()}
         >
           <Icon

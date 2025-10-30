@@ -38,6 +38,9 @@ function App() {
   });
   const [hasSavedUsername, setHasSavedUsername] = useState(false);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
+  const [previewMessages, setPreviewMessages] = useState([]);
+  const [previewParticipants, setPreviewParticipants] = useState([]);
+  const [previewAiParticipants, setPreviewAiParticipants] = useState([]);
 
   const { on, joinRoom, sendMessage, triggerAI, startTyping, stopTyping } =
     useSocket(SERVER_URL);
@@ -122,10 +125,10 @@ function App() {
       }
     };
 
-    if (messages.length > 0) {
+    if (isJoined && messages.length > 0) {
       saveMessagesToStorage(messages);
     }
-  }, [messages]);
+  }, [messages, isJoined]);
   const [roomInfo, setRoomInfo] = useState({ topic: "General discussion" });
   const [aiStatus, setAiStatus] = useState({ status: "active" });
   const [error, setError] = useState(null);
@@ -137,6 +140,9 @@ function App() {
   const messagesContainerRef = useRef(null);
   const usernameRef = useRef("");
   const toastTimeouts = useRef(new Map());
+  const isJoinedRef = useRef(false);
+  const previewMessagesRef = useRef([]);
+  const previewParticipantsRef = useRef([]);
 
   useEffect(() => {
     usernameRef.current = username || "";
@@ -146,6 +152,17 @@ function App() {
     toastTimeouts.current.forEach((timeoutId) => clearTimeout(timeoutId));
     toastTimeouts.current.clear();
   }, []);
+  useEffect(() => {
+    isJoinedRef.current = isJoined;
+  }, [isJoined]);
+
+  useEffect(() => {
+    previewMessagesRef.current = previewMessages;
+  }, [previewMessages]);
+
+  useEffect(() => {
+    previewParticipantsRef.current = previewParticipants;
+  }, [previewParticipants]);
 
   const showToast = useCallback((message, type = "info") => {
     const id = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
@@ -174,6 +191,47 @@ function App() {
       console.log("Connection established:", data);
     });
 
+    on("recent-messages", (payload = {}) => {
+      const incomingMessages = Array.isArray(payload.messages)
+        ? payload.messages
+        : [];
+      const incomingParticipants = Array.isArray(payload.participants)
+        ? payload.participants
+        : [];
+      const incomingAiParticipants = Array.isArray(payload.aiParticipants)
+        ? payload.aiParticipants
+        : [];
+
+      setPreviewMessages(incomingMessages);
+      setPreviewParticipants(incomingParticipants);
+      setPreviewAiParticipants(incomingAiParticipants);
+
+      if (!isJoinedRef.current) {
+        setMessages(incomingMessages);
+      }
+    });
+
+    on("preview-message", (payload = {}) => {
+      const message = payload.message;
+      if (!message) return;
+
+      setPreviewMessages((prev) => {
+        const next = [...prev, message];
+        return next.slice(-20);
+      });
+
+      if (Array.isArray(payload.participants)) {
+        setPreviewParticipants(payload.participants);
+      }
+      if (Array.isArray(payload.aiParticipants)) {
+        setPreviewAiParticipants(payload.aiParticipants);
+      }
+
+      if (!isJoinedRef.current) {
+        setMessages((prev) => [...prev, message].slice(-20));
+      }
+    });
+
     // Room events
     on("room-joined", (data) => {
       setIsJoined(true);
@@ -182,6 +240,14 @@ function App() {
       setError(null);
       setIsAuthLoading(false);
       setHasSavedUsername(true);
+      setMessages(() =>
+        previewMessagesRef.current.length > 0
+          ? [...previewMessagesRef.current]
+          : []
+      );
+      if ((data.participants || []).length === 0 && previewParticipantsRef.current.length > 0) {
+        setParticipants(previewParticipantsRef.current);
+      }
       console.log("Joined room:", data);
     });
 
@@ -408,7 +474,11 @@ function App() {
     localStorage.removeItem("ai-chat-username");
     setUsername("");
     setIsJoined(false);
-    setMessages([]);
+    setMessages(
+      previewMessagesRef.current.length > 0
+        ? [...previewMessagesRef.current]
+        : []
+    );
     setTypingUsers([]);
     setTypingAIs([]);
     setHasSavedUsername(false);
@@ -476,6 +546,9 @@ function App() {
             onUsernameChange={setUsername}
             onJoin={handleJoinRoom}
             error={error}
+            previewMessages={previewMessages}
+            previewParticipants={previewParticipants}
+            previewAiParticipants={previewAiParticipants}
           />
         ))}
       <ToastContainer toasts={toasts} />

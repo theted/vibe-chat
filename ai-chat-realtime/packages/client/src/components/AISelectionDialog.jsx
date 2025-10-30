@@ -2,34 +2,89 @@
  * AISelectionDialog Component - Modal for selecting AI to mention
  */
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Icon from './Icon.jsx';
+import { DEFAULT_AI_PARTICIPANTS } from './ParticipantsList.jsx';
+
+const normalize = (value) => value?.toLowerCase?.().replace(/[^a-z0-9]/g, '') || '';
+
+const fuzzyMatch = (term, candidate) => {
+  if (!term) return true;
+  let termIndex = 0;
+  const normalizedTerm = term.toLowerCase();
+  const normalizedCandidate = candidate.toLowerCase();
+  for (let i = 0; i < normalizedCandidate.length && termIndex < normalizedTerm.length; i++) {
+    if (normalizedCandidate[i] === normalizedTerm[termIndex]) {
+      termIndex += 1;
+    }
+  }
+  return termIndex === normalizedTerm.length;
+};
+
+const computeScore = (term, option) => {
+  if (!term) return 0;
+  const alias = option.name.toLowerCase();
+  const display = option.displayName.toLowerCase();
+  const provider = option.provider.toLowerCase();
+
+  if (alias.startsWith(term)) return 0;
+  if (display.startsWith(term)) return 0.5;
+  if (alias.includes(term)) return 1;
+  if (display.includes(term)) return 1.5;
+  if (provider.includes(term)) return 2;
+  if (option.keywords.some((keyword) => keyword.includes(term))) return 2.5;
+  if (option.keywords.some((keyword) => fuzzyMatch(term, keyword))) return 3;
+  return Number.POSITIVE_INFINITY;
+};
 
 const AISelectionDialog = ({ isOpen, onClose, onSelect, searchTerm = '', position }) => {
   const dialogRef = useRef(null);
 
-  // Default AI participants (optimized for @mentions)
-  const aiParticipants = [
-    { name: 'claude', displayName: 'Claude', provider: 'Anthropic', emoji: '🤖', keywords: ['claude', 'anthropic'] },
-    { name: 'gpt-4', displayName: 'GPT-4', provider: 'OpenAI', emoji: '🧠', keywords: ['gpt', 'gpt4', 'openai', 'chatgpt'] },
-    { name: 'grok', displayName: 'Grok', provider: 'xAI', emoji: '🦾', keywords: ['grok', 'xai'] },
-    { name: 'gemini', displayName: 'Gemini', provider: 'Google', emoji: '💎', keywords: ['gemini', 'google', 'bard'] },
-    { name: 'cohere', displayName: 'Command R', provider: 'Cohere', emoji: '🔮', keywords: ['command', 'cohere', 'commandr'] },
-    { name: 'mistral', displayName: 'Mistral', provider: 'Mistral AI', emoji: '🌟', keywords: ['mistral'] },
-    { name: 'kimi', displayName: 'Kimi', provider: 'Moonshot AI', emoji: '🎯', keywords: ['kimi', 'moonshot'] },
-    { name: 'z.ai', displayName: 'Z.ai', provider: 'Z.ai', emoji: '⚡', keywords: ['z.ai', 'z', 'zai'] }
-  ];
+  const mentionOptions = useMemo(() => {
+    const extras = [
+      { id: 'OPENAI_GPT4', name: 'gpt-4', alias: 'gpt-4', provider: 'OpenAI', emoji: '🧠' },
+      { id: 'OPENAI_CHATGPT', name: 'chatgpt', alias: 'chatgpt', provider: 'OpenAI', emoji: '💬' },
+    ];
 
-  // Filter AIs based on search term
-  const filteredAIs = aiParticipants.filter(ai => {
-    if (!searchTerm) return true;
-    const term = searchTerm.toLowerCase();
-    return ai.name.toLowerCase().includes(term) || 
-           ai.displayName.toLowerCase().includes(term) ||
-           ai.provider.toLowerCase().includes(term) ||
-           ai.keywords.some(keyword => keyword.includes(term));
-  });
+    const combined = [...DEFAULT_AI_PARTICIPANTS, ...extras];
+
+    return combined.map((ai) => {
+      const alias = ai.alias || ai.name || ai.displayName;
+      const displayName = ai.displayName || ai.name || alias || ai.id;
+      const normalizedAlias = normalize(alias);
+      const normalizedName = normalize(ai.name || displayName);
+      const normalizedProvider = normalize(ai.provider || '');
+      const keywords = [alias, ai.name, ai.provider, ai.id, displayName]
+        .filter(Boolean)
+        .map((value) => normalize(value))
+        .filter(Boolean);
+
+      return {
+        id: ai.id,
+        name: alias,
+        displayName,
+        provider: ai.provider || 'AI',
+        emoji: ai.emoji || '🤖',
+        keywords: Array.from(new Set([normalizedAlias, normalizedName, normalizedProvider, ...keywords])).filter(Boolean),
+      };
+    });
+  }, []);
+
+  const normalizedTerm = searchTerm?.trim().toLowerCase() || '';
+
+  const filteredAIs = useMemo(() => {
+    return mentionOptions
+      .map((option) => ({
+        ...option,
+        score: computeScore(normalizedTerm, option)
+      }))
+      .filter((option) => normalizedTerm ? option.score < Number.POSITIVE_INFINITY : true)
+      .sort((a, b) => {
+        if (a.score !== b.score) return a.score - b.score;
+        return a.displayName.localeCompare(b.displayName);
+      });
+  }, [mentionOptions, normalizedTerm]);
 
   // Handle keyboard navigation
   useEffect(() => {
@@ -61,6 +116,16 @@ const AISelectionDialog = ({ isOpen, onClose, onSelect, searchTerm = '', positio
     }
   }, [isOpen, onClose]);
 
+  const safePosition = useMemo(() => {
+    if (position && typeof position.x === 'number' && typeof position.y === 'number') {
+      return position;
+    }
+    if (typeof window !== 'undefined') {
+      return { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+    }
+    return { x: 0, y: 0 };
+  }, [position]);
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -77,8 +142,8 @@ const AISelectionDialog = ({ isOpen, onClose, onSelect, searchTerm = '', positio
         duration: 0.2
       }}
       style={{
-        left: position.x,
-        top: position.y - 10,
+        left: safePosition.x,
+        top: safePosition.y - 10,
         transform: 'translateY(-100%)'
       }}
     >

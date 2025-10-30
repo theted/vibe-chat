@@ -1,6 +1,7 @@
 import React from "react";
-import ParticipantsList from "./ParticipantsList.jsx";
+import ParticipantsList, { DEFAULT_AI_PARTICIPANTS } from "./ParticipantsList.jsx";
 import Icon from "./Icon.jsx";
+import ChatMessage from "./ChatMessage.jsx";
 
 const LoginView = ({
   connectionStatus,
@@ -10,6 +11,9 @@ const LoginView = ({
   onUsernameChange,
   onJoin,
   error,
+  previewMessages = [],
+  previewParticipants = [],
+  previewAiParticipants = [],
 }) => (
   <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center p-4 dark:from-slate-950 dark:via-slate-900 dark:to-slate-900">
     <div className="flex bg-white rounded-3xl shadow-2xl max-w-6xl w-full max-h-[900px] overflow-hidden animate-scale-in border border-white/20 dark:bg-slate-900/90 dark:border-slate-800">
@@ -96,12 +100,38 @@ const LoginView = ({
               Join Chat
             </button>
           </form>
+
+          {previewMessages.length > 0 && (
+            <div className="w-full max-w-2xl mt-8 animate-fade-in">
+              <div className="flex items-center gap-2 mb-3 text-slate-500 uppercase text-xs tracking-[0.28em] dark:text-slate-300">
+                <Icon name="chat" className="w-4 h-4" />
+                Recent Conversation
+              </div>
+              <div className="max-h-72 overflow-y-auto no-scrollbar space-y-4 bg-white/60 border border-slate-200/60 rounded-2xl p-4 shadow-inner dark:bg-slate-900/60 dark:border-slate-800/60">
+                {previewMessages.map((message) => (
+                  <ChatMessage
+                    key={message.id || `${message.timestamp}-${message.sender}`}
+                    message={message}
+                    aiParticipants={
+                      previewAiParticipants.length > 0
+                        ? previewAiParticipants
+                        : DEFAULT_AI_PARTICIPANTS
+                    }
+                  />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
       <ParticipantsList
-        participants={[]}
-        aiParticipants={[]}
+        participants={previewParticipants}
+        aiParticipants={
+          previewAiParticipants.length > 0
+            ? previewAiParticipants
+            : DEFAULT_AI_PARTICIPANTS
+        }
         typingUsers={[]}
         typingAIs={[]}
         isVisible={true}

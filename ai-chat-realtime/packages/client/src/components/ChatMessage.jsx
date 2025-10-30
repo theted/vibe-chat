@@ -7,49 +7,90 @@ import ReactMarkdown from 'react-markdown';
 import { motion } from 'framer-motion';
 import { normalizeAlias, resolveEmoji } from '../utils/ai.js';
 
+const MENTION_REGEX = /(@[a-zA-Z0-9_\-\.]+)/g;
+const MENTION_ONLY_REGEX = /^@[a-zA-Z0-9_\-\.]+$/;
+
 const ChatMessage = ({ message, aiParticipants = [] }) => {
+  const highlightMentions = React.useCallback((value) => {
+    if (typeof value !== 'string') {
+      if (Array.isArray(value)) {
+        value = value.join('');
+      } else if (value == null) {
+        return value;
+      } else {
+        value = String(value);
+      }
+    }
+
+    if (!value.includes('@')) return value;
+
+    const segments = value.split(MENTION_REGEX);
+    let key = 0;
+
+    return segments.map((segment) => {
+      if (!segment) return null;
+      if (MENTION_ONLY_REGEX.test(segment)) {
+        return (
+          <span key={`mention-${key++}`} className="mention-chip">
+            {segment}
+          </span>
+        );
+      }
+      return (
+        <React.Fragment key={`text-${key++}`}>
+          {segment}
+        </React.Fragment>
+      );
+    }).filter(Boolean);
+  }, []);
+
+  const renderPlainContent = React.useCallback(
+    (content) => highlightMentions(content),
+    [highlightMentions]
+  );
+
+  const matchedAI = React.useMemo(() => {
+    if (message.senderType !== 'ai') {
+      return null;
+    }
+
+    const normalizedTargets = [
+      normalizeAlias(message.aiId),
+      normalizeAlias(message.aiName),
+      normalizeAlias(message.alias),
+      normalizeAlias(message.displayName),
+      normalizeAlias(message.modelName),
+      normalizeAlias(message.modelKey),
+      normalizeAlias(message.modelId),
+      normalizeAlias(message.sender),
+    ].filter(Boolean);
+
+    if (normalizedTargets.length === 0) {
+      return null;
+    }
+
+    return aiParticipants.find((participant) => {
+      const candidateValues = [
+        participant.id,
+        participant.alias,
+        participant.displayName,
+        participant.name,
+        participant.modelId,
+      ]
+        .map(normalizeAlias)
+        .filter(Boolean);
+
+      return candidateValues.some((value) =>
+        normalizedTargets.some((target) => target === value)
+      );
+    }) || null;
+  }, [aiParticipants, message]);
+
   const formatTime = (timestamp) => {
     return new Date(timestamp).toLocaleTimeString('en-US', {
       hour: '2-digit',
       minute: '2-digit'
     });
-  };
-
-  const parseContentWithMentions = (content) => {
-    if (!content) return content;
-    
-    // Enhanced regex to match @mentions with various formats
-    const mentionRegex = /@([a-zA-Z0-9_\-\.]+)/g;
-    const parts = [];
-    let lastIndex = 0;
-    let match;
-
-    while ((match = mentionRegex.exec(content)) !== null) {
-      // Add text before mention
-      if (match.index > lastIndex) {
-        parts.push(content.substring(lastIndex, match.index));
-      }
-      
-      // Add styled mention
-      parts.push(
-        <span
-          key={`mention-${match.index}`}
-          className="inline-flex items-center bg-primary-600 text-white px-2.5 py-1 rounded-lg font-semibold tracking-tight border border-primary-400 shadow-sm shadow-primary-300/40 dark:bg-primary-500/30 dark:text-primary-100 dark:border-primary-400/60 dark:shadow-primary-900/30"
-          title={`Mentioned @${match[1]}`}
-        >
-          @{match[1]}
-        </span>
-      );
-      
-      lastIndex = match.index + match[0].length;
-    }
-    
-    // Add remaining text
-    if (lastIndex < content.length) {
-      parts.push(content.substring(lastIndex));
-    }
-    
-    return parts.length > 1 ? parts : content;
   };
 
   const getMessageClass = (senderType) => {
@@ -78,30 +119,6 @@ const ChatMessage = ({ message, aiParticipants = [] }) => {
       return message.aiEmoji;
     }
 
-    const normalizedMessageId = normalizeAlias(message.aiId);
-    const normalizedSender = normalizeAlias(message.sender);
-    const normalizedAlias = normalizeAlias(
-      message.alias || message.displayName || message.aiName
-    );
-
-    const matchedAI = aiParticipants.find((participant) => {
-      const normalizedIds = [
-        normalizeAlias(participant.id),
-        normalizeAlias(participant.alias),
-        normalizeAlias(participant.displayName),
-        normalizeAlias(participant.name),
-      ];
-
-      return normalizedIds.some((value) => {
-        if (!value) return false;
-        return (
-          value === normalizedMessageId ||
-          value === normalizedSender ||
-          value === normalizedAlias
-        );
-      });
-    });
-
     if (matchedAI?.emoji) {
       return matchedAI.emoji;
     }
@@ -119,13 +136,38 @@ const ChatMessage = ({ message, aiParticipants = [] }) => {
     return resolveEmoji(message.aiId || message.sender);
   };
 
+  const getAIDisplayName = () => {
+    if (message.senderType !== 'ai') {
+      return message.sender;
+    }
+
+    const formatModelReference = (value) =>
+      value ? value.replace(/_/g, ' ').trim() : '';
+
+    const candidates = [
+      matchedAI?.displayName,
+      matchedAI?.name,
+      message.displayName,
+      message.modelName,
+      formatModelReference(message.modelKey),
+      formatModelReference(message.modelId),
+      message.alias,
+      message.aiName,
+      message.sender,
+    ];
+
+    return candidates.find((value) => value && value.trim().length > 0) || 'AI Assistant';
+  };
+
   const getSenderDisplay = (sender, senderType) => {
     if (senderType === 'system') {
       return null; // System messages don't show sender
     }
     
     if (senderType === 'ai') {
-      return `${getAIEmoji()} ${sender}`;
+      const emoji = getAIEmoji();
+      const displayName = getAIDisplayName();
+      return `${emoji ? `${emoji} ` : ''}${displayName}`;
     }
     
     return `👤 ${sender}`;
@@ -250,14 +292,14 @@ const ChatMessage = ({ message, aiParticipants = [] }) => {
                   {children}
                 </a>
               ),
-              // Custom text renderer to handle @mentions
-              text: ({ children }) => parseContentWithMentions(children)
+              // Custom text renderer to handle @mentions post-markdown
+              text: ({ children }) => highlightMentions(children)
             }}
           >
             {message.content}
           </ReactMarkdown>
         ) : (
-          <div>{parseContentWithMentions(message.content)}</div>
+          <div>{renderPlainContent(message.content)}</div>
         )}
       </div>
       <div className={`text-xs mt-2 ${

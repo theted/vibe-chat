@@ -5,11 +5,20 @@
 import { RoomManager } from '../managers/RoomManager.js';
 import { AIMessageTracker } from '../managers/AIMessageTracker.js';
 
+const RECENT_MESSAGE_LIMIT = 20;
+const MESSAGE_TTL_SECONDS = 60 * 60 * 24 * 7; // 7 days
+
+const normalizeAlias = (value) =>
+  value ? value.toString().toLowerCase().replace(/[^a-z0-9]/g, '') : '';
+
 export class SocketController {
-  constructor(io, chatOrchestrator, metricsService) {
+  constructor(io, chatOrchestrator, metricsService, redisClient = null) {
     this.io = io;
     this.chatOrchestrator = chatOrchestrator;
     this.metricsService = metricsService;
+    this.redisClient = redisClient;
+    this.recentMessageLimit = RECENT_MESSAGE_LIMIT;
+    this.previewRoomId = 'preview-default-room';
     this.roomManager = new RoomManager();
     this.aiTracker = new AIMessageTracker();
     this.connectedUsers = new Map(); // socketId -> user data
@@ -21,13 +30,8 @@ export class SocketController {
    * Setup chat orchestrator event listeners
    */
   setupChatOrchestratorEvents() {
-    this.chatOrchestrator.on('message-broadcast', ({ message, roomId }) => {
-      this.io.to(roomId).emit('new-message', message);
-      
-      // Track metrics based on message type
-      if (message.senderType === 'ai') {
-        this.metricsService.recordAIMessage(roomId, message.aiId || message.sender, message);
-      }
+    this.chatOrchestrator.on('message-broadcast', async ({ message, roomId }) => {
+      await this.handleBroadcastMessage(message, roomId);
     });
 
     this.chatOrchestrator.on('ais-sleeping', ({ reason }) => {
@@ -57,6 +61,27 @@ export class SocketController {
     });
   }
 
+  async handleBroadcastMessage(message, roomId) {
+    try {
+      await this.storeMessage(roomId, message);
+    } catch (error) {
+      console.warn('Failed to persist message history:', error?.message || error);
+    }
+
+    this.io.to(roomId).emit('new-message', message);
+    this.io.to(this.previewRoomId).emit('preview-message', {
+      roomId,
+      message,
+      participants: this.roomManager.getRoomParticipants(roomId),
+      aiParticipants: this.getActiveAIParticipants(),
+    });
+
+    // Track metrics based on message type
+    if (message.senderType === 'ai') {
+      this.metricsService.recordAIMessage(roomId, message.aiId || message.sender, message);
+    }
+  }
+
   /**
    * Handle new socket connection
    * @param {Object} socket - Socket.IO socket
@@ -66,12 +91,17 @@ export class SocketController {
 
     // Set up event handlers
     this.setupSocketEvents(socket);
+    socket.join(this.previewRoomId);
 
     // Send initial data
     socket.emit('connection-established', {
       socketId: socket.id,
       serverTime: Date.now(),
       availableRooms: this.roomManager.getRoomList()
+    });
+
+    this.sendRecentMessages(socket).catch((error) => {
+      console.warn('Failed to send recent messages on connect:', error?.message || error);
     });
   }
 
@@ -207,6 +237,11 @@ export class SocketController {
         roomName: room.name,
         topic: room.topic,
         participants: this.roomManager.getRoomParticipants(roomId)
+      });
+
+      socket.leave(this.previewRoomId);
+      this.sendRecentMessages(socket, roomId).catch((error) => {
+        console.warn('Failed to send room history after join:', error?.message || error);
       });
 
       // Notify others in room
@@ -389,6 +424,108 @@ export class SocketController {
     } catch (error) {
       console.error('Error getting AI status:', error);
       socket.emit('error', { message: 'Failed to get AI status' });
+    }
+  }
+
+  getRoomMessageKey(roomId = 'default') {
+    return `ai-chat:rooms:${roomId}:messages`;
+  }
+
+  async storeMessage(roomId = 'default', message) {
+    if (!this.redisClient) return;
+
+    const key = this.getRoomMessageKey(roomId);
+    const storedMessage = {
+      ...message,
+      roomId,
+      timestamp: message.timestamp || Date.now(),
+      storedAt: Date.now(),
+    };
+
+    try {
+      await this.redisClient
+        .multi()
+        .lPush(key, JSON.stringify(storedMessage))
+        .lTrim(key, 0, this.recentMessageLimit - 1)
+        .expire(key, MESSAGE_TTL_SECONDS)
+        .exec();
+    } catch (error) {
+      console.warn('Failed to store message in Redis:', error?.message || error);
+    }
+  }
+
+  async getRecentMessages(roomId = 'default') {
+    if (!this.redisClient) {
+      // Fallback to in-memory context
+      return this.chatOrchestrator
+        .contextManager
+        .getContextForAI(this.recentMessageLimit)
+        .map((ctx) => ({
+          id: ctx.id || `ctx-${ctx.timestamp || Date.now()}-${Math.random().toString(16).slice(2)}`,
+          sender: ctx.sender,
+          displayName: ctx.displayName || ctx.sender,
+          alias: ctx.alias,
+          normalizedAlias: ctx.normalizedAlias,
+          content: ctx.content,
+          senderType: ctx.senderType,
+          timestamp: ctx.timestamp || Date.now(),
+          roomId,
+        }));
+    }
+
+    const key = this.getRoomMessageKey(roomId);
+    try {
+      const entries = await this.redisClient.lRange(key, 0, this.recentMessageLimit - 1);
+      return entries
+        .map((entry) => {
+          try {
+            const parsed = JSON.parse(entry);
+            return {
+              ...parsed,
+              timestamp: parsed.timestamp || parsed.storedAt || Date.now(),
+              roomId: parsed.roomId || roomId,
+            };
+          } catch (error) {
+            return null;
+          }
+        })
+        .filter(Boolean)
+        .reverse();
+    } catch (error) {
+      console.warn('Failed to load recent messages from Redis:', error?.message || error);
+      return [];
+    }
+  }
+
+  getActiveAIParticipants() {
+    return Array.from(this.chatOrchestrator.aiServices.values()).map((ai) => ({
+      id: ai.id,
+      name: ai.displayName || ai.name,
+      displayName: ai.displayName || ai.name,
+      alias: ai.alias,
+      normalizedAlias: ai.normalizedAlias,
+      emoji: ai.emoji,
+      provider: ai.config?.providerKey?.toUpperCase?.() || ai.name,
+      status: ai.isActive ? 'active' : 'inactive'
+    }));
+  }
+
+  async sendRecentMessages(socket, roomId = 'default') {
+    try {
+      const [messages, participants, aiParticipants] = await Promise.all([
+        this.getRecentMessages(roomId),
+        Promise.resolve(this.roomManager.getRoomParticipants(roomId)),
+        Promise.resolve(this.getActiveAIParticipants()),
+      ]);
+
+      socket.emit('recent-messages', {
+        roomId,
+        messages,
+        participants,
+        aiParticipants,
+      });
+    } catch (error) {
+      console.warn('Failed to send recent messages:', error?.message || error);
     }
   }
 

@@ -2,13 +2,29 @@
  * Chat Orchestrator - Manages multi-AI conversations
  */
 
-import { EventEmitter } from 'events';
-import { AIServiceFactory } from '../services/AIServiceFactory.js';
-import { ContextManager } from './ContextManager.js';
-import { MessageBroker } from './MessageBroker.js';
+import { EventEmitter } from "events";
+import { AIServiceFactory } from "../services/AIServiceFactory.js";
+import { ContextManager } from "./ContextManager.js";
+import { MessageBroker } from "./MessageBroker.js";
 
 const normalizeAlias = (value) =>
-  value ? value.toString().toLowerCase().replace(/[^a-z0-9]/g, '') : '';
+  value
+    ? value
+        .toString()
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, "")
+    : "";
+
+const toMentionAlias = (value, fallback = "") => {
+  const base = value && value.trim() ? value : fallback;
+  if (!base) return "";
+  return base
+    .toString()
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9\-]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+};
 
 export class ChatOrchestrator extends EventEmitter {
   constructor(options = {}) {
@@ -20,7 +36,7 @@ export class ChatOrchestrator extends EventEmitter {
     this.messageTracker = {
       aiMessageCount: 0,
       maxAIMessages: options.maxAIMessages || 10,
-      isAsleep: false
+      isAsleep: false,
     };
     this.lastAIMessageTime = 0;
     // Fast responses to user messages (1-10 seconds)
@@ -31,7 +47,7 @@ export class ChatOrchestrator extends EventEmitter {
     this.maxBackgroundDelay = options.maxBackgroundDelay || 30000; // 30 seconds
     this.minDelayBetweenAI = options.minDelayBetweenAI || 1200;
     this.maxDelayBetweenAI = options.maxDelayBetweenAI || 3200;
-    
+
     this.backgroundConversationTimer = null;
     this.topicChangeChance = options.topicChangeChance || 0.1; // 10% chance
 
@@ -43,16 +59,16 @@ export class ChatOrchestrator extends EventEmitter {
    * Setup message broker event handlers
    */
   setupMessageBroker() {
-    this.messageBroker.on('message-ready', (message) => {
+    this.messageBroker.on("message-ready", (message) => {
       this.handleMessage(message);
     });
 
-    this.messageBroker.on('broadcast', ({ message, roomId }) => {
-      this.emit('message-broadcast', { message, roomId });
+    this.messageBroker.on("broadcast", ({ message, roomId }) => {
+      this.emit("message-broadcast", { message, roomId });
     });
 
-    this.messageBroker.on('message-error', ({ message, error }) => {
-      this.emit('error', { message, error });
+    this.messageBroker.on("message-error", ({ message, error }) => {
+      this.emit("error", { message, error });
     });
   }
 
@@ -63,14 +79,17 @@ export class ChatOrchestrator extends EventEmitter {
   async initializeAIs(aiConfigs) {
     for (const config of aiConfigs) {
       try {
-        const service = AIServiceFactory.createServiceByName(config.providerKey, config.modelKey);
+        const service = AIServiceFactory.createServiceByName(
+          config.providerKey,
+          config.modelKey
+        );
         await service.initialize();
-        
+
         const aiId = `${config.providerKey}_${config.modelKey}`;
         const displayName =
           config.displayName || `${service.getName()} ${service.getModel()}`;
-        const alias = config.alias || displayName;
-        const emoji = config.emoji || '🤖';
+        const alias = toMentionAlias(config.alias, displayName);
+        const emoji = config.emoji || "🤖";
 
         this.aiServices.set(aiId, {
           service,
@@ -82,12 +101,15 @@ export class ChatOrchestrator extends EventEmitter {
           normalizedAlias: normalizeAlias(alias),
           emoji,
           isActive: true,
-          lastMessageTime: 0
+          lastMessageTime: 0,
         });
-        
+
         this.activeAIs.push(aiId);
       } catch (error) {
-        console.error(`Failed to initialize AI ${config.providerKey}_${config.modelKey}:`, error);
+        console.error(
+          `Failed to initialize AI ${config.providerKey}_${config.modelKey}:`,
+          error
+        );
       }
     }
 
@@ -102,7 +124,7 @@ export class ChatOrchestrator extends EventEmitter {
     // Add to context
     this.contextManager.addMessage(message);
 
-    if (message.senderType === 'user') {
+    if (message.senderType === "user") {
       await this.handleUserMessage(message);
     } else {
       await this.handleAIMessage(message);
@@ -119,7 +141,7 @@ export class ChatOrchestrator extends EventEmitter {
   async handleUserMessage(message) {
     // Reset AI message tracker - users wake up AIs
     this.wakeUpAIs();
-    
+
     // Schedule AI responses with random delays
     this.scheduleAIResponses(message.roomId);
   }
@@ -132,7 +154,9 @@ export class ChatOrchestrator extends EventEmitter {
     this.messageTracker.aiMessageCount++;
     this.lastAIMessageTime = Date.now();
 
-    if (this.messageTracker.aiMessageCount >= this.messageTracker.maxAIMessages) {
+    if (
+      this.messageTracker.aiMessageCount >= this.messageTracker.maxAIMessages
+    ) {
       this.putAIsToSleep();
     }
   }
@@ -147,18 +171,66 @@ export class ChatOrchestrator extends EventEmitter {
       return;
     }
 
-    const activeCount = this.activeAIs.length;
-    const maxResponders = isUserResponse
+    const eligibleAIs = this.activeAIs.filter((aiId) => {
+      const ai = this.aiServices.get(aiId);
+      return ai && ai.isActive;
+    });
+
+    if (eligibleAIs.length === 0) return;
+
+    const activeCount = eligibleAIs.length;
+    const baseMaxResponders = isUserResponse
       ? Math.max(2, Math.ceil(activeCount * 0.45))
       : Math.max(1, Math.ceil(activeCount * 0.25));
-    const minResponders = isUserResponse ? 1 : 0;
-    const respondingAIs = this.selectRespondingAIs(minResponders, maxResponders);
-    
-    respondingAIs.forEach((aiId, index) => {
-      const delay = this.calculateResponseDelay(index, isUserResponse);
-      
+    const baseMinResponders = isUserResponse ? 1 : 0;
+
+    const lastMessage = this.contextManager.getLastMessage();
+    const mentionTargets = new Set(lastMessage?.mentionsNormalized || []);
+
+    const mentionedAIs = eligibleAIs
+      .map((aiId) => this.aiServices.get(aiId))
+      .filter((ai) => ai && mentionTargets.has(ai.normalizedAlias))
+      .map((ai) => ai.id);
+
+    const uniqueMentioned = Array.from(new Set(mentionedAIs));
+
+    const finalMin = Math.max(
+      baseMinResponders,
+      uniqueMentioned.length || baseMinResponders
+    );
+    const finalMax = Math.max(baseMaxResponders, finalMin);
+
+    const availableForRandom = eligibleAIs.filter(
+      (aiId) => !uniqueMentioned.includes(aiId)
+    );
+
+    const minAdditional = Math.max(finalMin - uniqueMentioned.length, 0);
+    const maxAdditional = Math.max(finalMax - uniqueMentioned.length, 0);
+
+    const additionalResponders =
+      maxAdditional > 0
+        ? this.selectRespondingAIs(
+            minAdditional,
+            maxAdditional,
+            availableForRandom
+          )
+        : [];
+
+    const responders = [...uniqueMentioned, ...additionalResponders];
+
+    responders.forEach((aiId, index) => {
+      const isMentioned = uniqueMentioned.includes(aiId);
+      const delay = this.calculateResponseDelay(
+        index,
+        isUserResponse,
+        isMentioned
+      );
+
       setTimeout(() => {
-        this.generateAIResponse(aiId, roomId, isUserResponse);
+        this.generateAIResponse(aiId, roomId, isUserResponse, {
+          isMentioned,
+          triggerMessage: lastMessage,
+        });
       }, delay);
     });
   }
@@ -169,19 +241,66 @@ export class ChatOrchestrator extends EventEmitter {
    * @param {number} maxResponders - Maximum number of responders
    * @returns {Array} Array of AI IDs that should respond
    */
-  selectRespondingAIs(minResponders = 1, maxResponders = 3) {
-    const availableAIs = this.activeAIs.filter(aiId => {
+  selectRespondingAIs(
+    minResponders = 1,
+    maxResponders = 3,
+    candidateList = null
+  ) {
+    const pool = candidateList || this.activeAIs;
+    const availableAIs = pool.filter((aiId) => {
       const ai = this.aiServices.get(aiId);
       return ai && ai.isActive;
     });
 
     // Randomly select between min and max AIs
     const numResponders = Math.min(
-      Math.floor(Math.random() * (maxResponders - minResponders + 1)) + minResponders, 
+      Math.floor(Math.random() * (maxResponders - minResponders + 1)) +
+        minResponders,
       availableAIs.length
     );
     const shuffled = [...availableAIs].sort(() => Math.random() - 0.5);
     return shuffled.slice(0, numResponders);
+  }
+
+  findAIByNormalizedAlias(normalizedAlias) {
+    if (!normalizedAlias) return null;
+    for (const ai of this.aiServices.values()) {
+      if (!ai) continue;
+      if (ai.normalizedAlias === normalizedAlias) return ai;
+      if (normalizeAlias(ai.displayName) === normalizedAlias) return ai;
+      if (normalizeAlias(ai.name) === normalizedAlias) return ai;
+      if (normalizeAlias(ai.config?.modelKey) === normalizedAlias) return ai;
+    }
+    return null;
+  }
+
+  findAIFromContextMessage(message) {
+    if (!message) return null;
+
+    if (message.aiId && this.aiServices.has(message.aiId)) {
+      return this.aiServices.get(message.aiId);
+    }
+
+    const candidates = [
+      message.alias,
+      message.normalizedAlias,
+      message.displayName,
+      message.sender,
+    ].filter(Boolean);
+
+    for (const candidate of candidates) {
+      const ai = this.findAIByNormalizedAlias(normalizeAlias(candidate));
+      if (ai) return ai;
+    }
+
+    return null;
+  }
+
+  getMentionTokenForAI(ai) {
+    if (!ai) return null;
+    if (ai.alias) return ai.alias;
+    if (ai.displayName) return toMentionAlias(ai.displayName);
+    return toMentionAlias(ai.name || ai.id || "");
   }
 
   /**
@@ -190,19 +309,25 @@ export class ChatOrchestrator extends EventEmitter {
    * @param {boolean} isUserResponse - Whether this is a response to user message
    * @returns {number} Delay in milliseconds
    */
-  calculateResponseDelay(index, isUserResponse = true) {
+  calculateResponseDelay(index, isUserResponse = true, isMentioned = false) {
     let baseDelay;
-    
+
     if (isUserResponse) {
       // Fast responses to user messages (1-10 seconds)
-      baseDelay = this.minUserResponseDelay + 
+      baseDelay =
+        this.minUserResponseDelay +
         Math.random() * (this.maxUserResponseDelay - this.minUserResponseDelay);
     } else {
       // Background conversation timing (10-30 seconds)
-      baseDelay = this.minBackgroundDelay + 
+      baseDelay =
+        this.minBackgroundDelay +
         Math.random() * (this.maxBackgroundDelay - this.minBackgroundDelay);
     }
-    
+
+    if (isMentioned) {
+      baseDelay = Math.max(400, baseDelay * 0.35);
+    }
+
     const randomness = Math.random();
     const staggerDelay =
       index * (this.minDelayBetweenAI || 1000) +
@@ -219,7 +344,7 @@ export class ChatOrchestrator extends EventEmitter {
    * @param {string} roomId - Room ID
    * @param {boolean} isUserResponse - Whether this is a response to user message
    */
-  async generateAIResponse(aiId, roomId, isUserResponse = true) {
+  async generateAIResponse(aiId, roomId, isUserResponse = true, options = {}) {
     if (this.messageTracker.isAsleep) {
       return;
     }
@@ -239,67 +364,111 @@ export class ChatOrchestrator extends EventEmitter {
       modelKey: aiService.config?.modelKey,
       roomId,
       isUserResponse,
+      isMentioned: options.isMentioned || false,
     };
 
-    this.emit('ai-generating-start', aiMeta);
+    this.emit("ai-generating-start", aiMeta);
     aiService.isGenerating = true;
 
     try {
-      console.log(`🤖 ${aiService.name} is generating ${isUserResponse ? 'user response' : 'background message'}...`);
-      
+      console.log(
+        `🤖 ${aiService.name} is generating ${
+          isUserResponse ? "user response" : "background message"
+        }...`
+      );
+
       let context = this.contextManager.getContextForAI(25); // Get more context for better AI interactions
-      let responseType = 'response';
-      let systemPrompt = this.createEnhancedSystemPrompt(aiService, context, isUserResponse);
-      
+      let responseType = "response";
+      let systemPrompt = this.createEnhancedSystemPrompt(
+        aiService,
+        context,
+        isUserResponse
+      );
+
       // Determine AI interaction strategy based on context
-      const interactionStrategy = this.determineInteractionStrategy(aiService, context, isUserResponse);
+      const interactionStrategy = this.determineInteractionStrategy(
+        aiService,
+        context,
+        isUserResponse
+      );
       responseType = interactionStrategy.type;
-      
+
       // Apply interaction strategy to context
-      context = this.applyInteractionStrategy(context, interactionStrategy, aiService);
-      
+      context = this.applyInteractionStrategy(
+        context,
+        interactionStrategy,
+        aiService
+      );
+
       // Add the enhanced system prompt
       const messagesWithSystem = [
         {
-          role: 'system',
+          role: "system",
           content: systemPrompt,
-          senderType: 'system',
-          isInternal: true
+          senderType: "system",
+          isInternal: true,
         },
-        ...context
+        ...context,
       ];
 
-      const response = await aiService.service.generateResponse(messagesWithSystem);
+      const response = await aiService.service.generateResponse(
+        messagesWithSystem
+      );
       let processedResponse = this.truncateResponse(response);
       aiService.lastMessageTime = Date.now();
-      
+
       // Add @mentions if strategy calls for it
       if (interactionStrategy.shouldMention && interactionStrategy.targetAI) {
-        processedResponse = this.addMentionToResponse(processedResponse, interactionStrategy.targetAI);
+        processedResponse = this.addMentionToResponse(
+          processedResponse,
+          interactionStrategy.targetAI
+        );
       }
-      
-      console.log(`✨ ${aiService.name} ${responseType}: ${processedResponse.substring(0, 100)}${processedResponse.length > 100 ? '...' : ''}`);
+
+      console.log(
+        `✨ ${aiService.name} ${responseType}: ${processedResponse.substring(
+          0,
+          100
+        )}${processedResponse.length > 100 ? "..." : ""}`
+      );
 
       const aiMessage = {
-        sender: aiService.name,
+        sender: aiService.displayName || aiService.name,
+        displayName: aiService.displayName || aiService.name,
+        alias: aiService.alias,
+        normalizedAlias: aiService.normalizedAlias,
         content: processedResponse,
-        senderType: 'ai',
+        senderType: "ai",
         roomId,
         aiId,
+        aiName: aiService.displayName || aiService.name,
+        modelKey: aiService.config?.modelKey,
+        modelId: aiService.service?.getModel?.() || aiService.config?.modelKey,
+        providerKey: aiService.config?.providerKey,
+        mentionsTriggerMessageId:
+          options.isMentioned && options.triggerMessage
+            ? options.triggerMessage.id
+            : null,
+        mentionsTriggerSender:
+          options.isMentioned && options.triggerMessage
+            ? options.triggerMessage.sender
+            : null,
         responseType,
         interactionStrategy: interactionStrategy.type,
-        priority: isUserResponse ? 500 : 0
+        priority: isUserResponse ? 500 : 0,
       };
 
       // Queue the AI response
       this.messageBroker.enqueueMessage(aiMessage);
-      
     } catch (error) {
-      console.error(`❌ AI ${aiId} failed to generate response:`, error.message);
-      this.emit('ai-error', { aiId, error });
+      console.error(
+        `❌ AI ${aiId} failed to generate response:`,
+        error.message
+      );
+      this.emit("ai-error", { aiId, error });
     } finally {
       aiService.isGenerating = false;
-      this.emit('ai-generating-stop', aiMeta);
+      this.emit("ai-generating-stop", aiMeta);
     }
   }
 
@@ -309,27 +478,29 @@ export class ChatOrchestrator extends EventEmitter {
    * @returns {string} Truncated response
    */
   truncateResponse(response) {
-    if (!response || typeof response !== 'string') {
+    if (!response || typeof response !== "string") {
       return response;
     }
 
     // Split into sentences (looking for periods, exclamation marks, question marks)
-    const sentences = response.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 0);
-    
-    // Keep max 2-3 sentences
-    const maxSentences = 3;
+    const sentences = response
+      .split(/(?<=[.!?])\s+/)
+      .filter((s) => s.trim().length > 0);
+
+    // Keep max 15 sentences
+    const maxSentences = 15;
     if (sentences.length <= maxSentences) {
       return response.trim();
     }
 
     // Take first 2-3 sentences and ensure they end properly
-    let truncated = sentences.slice(0, maxSentences).join(' ').trim();
-    
+    let truncated = sentences.slice(0, maxSentences).join(" ").trim();
+
     // Ensure it ends with proper punctuation
     if (!truncated.match(/[.!?]$/)) {
-      truncated += '.';
+      truncated += ".";
     }
-    
+
     return truncated;
   }
 
@@ -339,8 +510,8 @@ export class ChatOrchestrator extends EventEmitter {
   wakeUpAIs() {
     this.messageTracker.aiMessageCount = 0;
     this.messageTracker.isAsleep = false;
-    this.emit('ais-awakened');
-    
+    this.emit("ais-awakened");
+
     // Restart background conversation if it was stopped
     if (!this.backgroundConversationTimer) {
       this.startBackgroundConversation();
@@ -352,7 +523,7 @@ export class ChatOrchestrator extends EventEmitter {
    */
   putAIsToSleep() {
     this.messageTracker.isAsleep = true;
-    this.emit('ais-sleeping', { reason: 'message-limit-reached' });
+    this.emit("ais-sleeping", { reason: "message-limit-reached" });
   }
 
   /**
@@ -371,15 +542,15 @@ export class ChatOrchestrator extends EventEmitter {
    */
   changeTopic(newTopic, changedBy, roomId) {
     const topicMessage = {
-      sender: 'System',
+      sender: "System",
       content: `Topic changed to: "${newTopic}" by ${changedBy}`,
-      senderType: 'system',
+      senderType: "system",
       roomId,
-      priority: 1000 // High priority for system messages
+      priority: 1000, // High priority for system messages
     };
 
     this.addMessage(topicMessage);
-    this.emit('topic-changed', { newTopic, changedBy, roomId });
+    this.emit("topic-changed", { newTopic, changedBy, roomId });
   }
 
   /**
@@ -392,7 +563,7 @@ export class ChatOrchestrator extends EventEmitter {
       activeAIs: this.activeAIs.length,
       messageTracker: { ...this.messageTracker },
       contextSize: this.contextManager.size(),
-      queueStatus: this.messageBroker.getQueueStatus()
+      queueStatus: this.messageBroker.getQueueStatus(),
     };
   }
 
@@ -403,23 +574,28 @@ export class ChatOrchestrator extends EventEmitter {
     const scheduleNextMessage = () => {
       if (this.messageTracker.isAsleep || this.activeAIs.length === 0) {
         // Retry in 30 seconds if AIs are asleep
-        this.backgroundConversationTimer = setTimeout(scheduleNextMessage, 30000);
+        this.backgroundConversationTimer = setTimeout(
+          scheduleNextMessage,
+          30000
+        );
         return;
       }
 
-      const delay = this.minBackgroundDelay + 
+      const delay =
+        this.minBackgroundDelay +
         Math.random() * (this.maxBackgroundDelay - this.minBackgroundDelay);
 
       this.backgroundConversationTimer = setTimeout(() => {
         // Only generate background messages if there has been recent activity
         const timeSinceLastMessage = Date.now() - this.lastAIMessageTime;
-        if (timeSinceLastMessage > 120000) { // 2 minutes of silence
+        if (timeSinceLastMessage > 120000) {
+          // 2 minutes of silence
           scheduleNextMessage();
           return;
         }
 
         // Generate background AI message
-        this.scheduleAIResponses('default', false); // false = background message
+        this.scheduleAIResponses("default", false); // false = background message
         scheduleNextMessage();
       }, delay);
     };
@@ -435,11 +611,12 @@ export class ChatOrchestrator extends EventEmitter {
   enhanceContextForTopicChange(context) {
     const enhancedContext = [...context];
     enhancedContext.push({
-      sender: 'System',
-      content: 'Feel free to introduce a new interesting topic or shift the conversation in a different direction.',
-      senderType: 'system',
-      role: 'system',
-      isInternal: true
+      sender: "System",
+      content:
+        "Feel free to introduce a new interesting topic or shift the conversation in a different direction.",
+      senderType: "system",
+      role: "system",
+      isInternal: true,
     });
     return enhancedContext;
   }
@@ -453,16 +630,18 @@ export class ChatOrchestrator extends EventEmitter {
    */
   createEnhancedSystemPrompt(aiService, context, isUserResponse) {
     const recentMessages = context.slice(-5); // Focus on last 5 messages
-    const aiNames = Array.from(this.aiServices.values()).map(ai => ai.name.toLowerCase());
-    
+    const aiNames = Array.from(this.aiServices.values()).map((ai) =>
+      ai.name.toLowerCase()
+    );
+
     let prompt = `You are ${aiService.name}, an AI participating in a dynamic group chat. `;
-    
+
     if (isUserResponse) {
       prompt += `A user just posted. Respond naturally and conversationally. `;
     } else {
       prompt += `Continue the ongoing conversation between AIs. `;
     }
-    
+
     prompt += `
 
 Key guidelines:
@@ -475,10 +654,12 @@ Key guidelines:
 • Don't repeat what others just said - add new value
 • Ask questions to spark further discussion
 
-Other AIs in this chat: ${aiNames.filter(name => name.toLowerCase() !== aiService.name.toLowerCase()).join(', ')}
+Other AIs in this chat: ${aiNames
+      .filter((name) => name.toLowerCase() !== aiService.name.toLowerCase())
+      .join(", ")}
 
 Respond naturally and keep the conversation flowing!`;
-    
+
     return prompt;
   }
 
@@ -491,60 +672,107 @@ Respond naturally and keep the conversation flowing!`;
    */
   determineInteractionStrategy(aiService, context, isUserResponse) {
     const recentMessages = context.slice(-8); // Look at last 8 messages
-    const aiMessages = recentMessages.filter(msg => msg.senderType === 'ai');
+    const aiMessages = recentMessages.filter((msg) => msg.senderType === "ai");
     const lastMessage = recentMessages[recentMessages.length - 1];
-    
+
     const strategies = {
-      AGREE_AND_EXPAND: { type: 'agree-expand', weight: 0.3 },
-      CHALLENGE_AND_DEBATE: { type: 'challenge', weight: 0.25 },
-      REDIRECT_TOPIC: { type: 'redirect', weight: 0.15 },
-      ASK_QUESTION: { type: 'question', weight: 0.2 },
-      DIRECT_RESPONSE: { type: 'direct', weight: 0.1 }
+      AGREE_AND_EXPAND: { type: "agree-expand", weight: 0.3 },
+      CHALLENGE_AND_DEBATE: { type: "challenge", weight: 0.25 },
+      REDIRECT_TOPIC: { type: "redirect", weight: 0.15 },
+      ASK_QUESTION: { type: "question", weight: 0.2 },
+      DIRECT_RESPONSE: { type: "direct", weight: 0.1 },
     };
-    
+
     // Adjust weights based on context
-    if (lastMessage?.senderType === 'ai' && !isUserResponse) {
+    if (lastMessage?.senderType === "ai" && !isUserResponse) {
       strategies.CHALLENGE_AND_DEBATE.weight += 0.2;
       strategies.AGREE_AND_EXPAND.weight += 0.15;
     }
-    
+
     if (aiMessages.length >= 3) {
       strategies.REDIRECT_TOPIC.weight += 0.1;
       strategies.ASK_QUESTION.weight += 0.1;
     }
-    
-    // Select strategy based on weighted random
-    const randomValue = Math.random();
-    let cumulativeWeight = 0;
-    let selectedStrategy = strategies.DIRECT_RESPONSE;
-    
-    for (const strategy of Object.values(strategies)) {
-      cumulativeWeight += strategy.weight;
-      if (randomValue <= cumulativeWeight) {
-        selectedStrategy = strategy;
-        break;
-      }
-    }
-    
-    // Determine if should mention another AI
-    const shouldMention = Math.random() < 0.35; // slightly rarer than before
-    let targetAI = null;
-    
-    if (shouldMention && aiMessages.length > 0) {
-      const recentAIs = aiMessages
-        .slice(-5)
-        .map(msg => msg.sender)
-        .filter(sender => sender && sender !== aiService.displayName && sender !== aiService.name);
 
-      if (recentAIs.length > 0) {
-        targetAI = recentAIs[Math.floor(Math.random() * recentAIs.length)];
+    const selfNormalized =
+      aiService.normalizedAlias ||
+      normalizeAlias(
+        aiService.alias || aiService.displayName || aiService.name
+      );
+    const mentionTargets = new Set(lastMessage?.mentionsNormalized || []);
+    const mentionsCurrentAI = mentionTargets.has(selfNormalized);
+
+    // Select strategy based on weighted random
+    let selectedStrategy = strategies.DIRECT_RESPONSE;
+    if (mentionsCurrentAI) {
+      selectedStrategy = strategies.DIRECT_RESPONSE;
+    } else {
+      const randomValue = Math.random();
+      let cumulativeWeight = 0;
+      for (const strategy of Object.values(strategies)) {
+        cumulativeWeight += strategy.weight;
+        if (randomValue <= cumulativeWeight) {
+          selectedStrategy = strategy;
+          break;
+        }
       }
     }
-    
+
+    let shouldMention = false;
+    let targetAI = null;
+
+    if (mentionsCurrentAI) {
+      if (lastMessage?.senderType === "ai") {
+        const sourceAI = this.findAIFromContextMessage(lastMessage);
+        if (sourceAI && sourceAI.id !== aiService.id) {
+          shouldMention = true;
+          targetAI = this.getMentionTokenForAI(sourceAI);
+        }
+      }
+    } else {
+      const potentialTargets = [];
+
+      if (lastMessage?.senderType === "ai") {
+        const lastAI = this.findAIFromContextMessage(lastMessage);
+        if (lastAI && lastAI.id !== aiService.id) {
+          potentialTargets.push(lastAI);
+        }
+      }
+
+      for (
+        let i = aiMessages.length - 1;
+        i >= 0 && potentialTargets.length < 3;
+        i--
+      ) {
+        const msg = aiMessages[i];
+        const targetAIInfo = this.findAIFromContextMessage(msg);
+        if (
+          targetAIInfo &&
+          targetAIInfo.id !== aiService.id &&
+          !potentialTargets.some((existing) => existing.id === targetAIInfo.id)
+        ) {
+          potentialTargets.push(targetAIInfo);
+        }
+      }
+
+      if (potentialTargets.length > 0) {
+        shouldMention = Math.random() < 0.35;
+        if (shouldMention) {
+          const selected = potentialTargets[0];
+          targetAI = this.getMentionTokenForAI(selected);
+        }
+      }
+    }
+
+    if (!targetAI) {
+      shouldMention = false;
+    }
+
     return {
       ...selectedStrategy,
       shouldMention,
-      targetAI
+      targetAI,
+      mentionsCurrentAI,
     };
   }
 
@@ -558,45 +786,69 @@ Respond naturally and keep the conversation flowing!`;
   applyInteractionStrategy(context, strategy, aiService) {
     const enhancedContext = [...context];
     const lastMessage = context[context.length - 1];
-    
-    let instructionPrompt = '';
-    
-    switch (strategy.type) {
-      case 'agree-expand':
-        if (lastMessage?.senderType === 'ai') {
-          instructionPrompt = `Build on ${lastMessage.sender}'s point and add your own insights. Show agreement but expand with new information or examples.`;
-        }
-        break;
-        
-      case 'challenge':
-        if (lastMessage?.senderType === 'ai') {
-          instructionPrompt = `Respectfully challenge ${lastMessage.sender}'s perspective. Offer a counterpoint or alternative viewpoint while keeping it constructive.`;
-        }
-        break;
-        
-      case 'redirect':
-        instructionPrompt = 'Gracefully steer the conversation toward a related but new angle or topic that might be more interesting.';
-        break;
-        
-      case 'question':
-        instructionPrompt = 'Ask a thought-provoking question that will get the other AIs thinking and responding.';
-        break;
-        
-      case 'direct':
-        instructionPrompt = 'Respond directly to the most recent message with your perspective.';
-        break;
+
+    let instructionPrompt = "";
+
+    const aiNormalized =
+      aiService.normalizedAlias ||
+      normalizeAlias(
+        aiService.alias || aiService.displayName || aiService.name
+      );
+    const mentionsCurrentAI =
+      lastMessage?.mentionsNormalized?.includes(aiNormalized);
+    const mentionerName = lastMessage?.displayName || lastMessage?.sender;
+    const mentionerAlias = lastMessage?.alias || lastMessage?.normalizedAlias;
+    const mentionerToken = mentionerAlias
+      ? `@${mentionerAlias}`
+      : mentionerName;
+
+    if (mentionsCurrentAI) {
+      if (lastMessage?.senderType === "ai" && mentionerToken) {
+        instructionPrompt = `You were directly mentioned by ${mentionerToken}. Respond specifically to their message and address the key points they raised.`;
+      } else {
+        instructionPrompt = `You were directly mentioned by the user. Respond directly to their message and focus on answering or acknowledging their mention.`;
+      }
+    } else {
+      switch (strategy.type) {
+        case "agree-expand":
+          if (lastMessage?.senderType === "ai") {
+            instructionPrompt = `Build on ${lastMessage.sender}'s point and add your own insights. Show agreement but expand with new information or examples.`;
+          }
+          break;
+
+        case "challenge":
+          if (lastMessage?.senderType === "ai") {
+            instructionPrompt = `Respectfully challenge ${lastMessage.sender}'s perspective. Offer a counterpoint or alternative viewpoint while keeping it constructive.`;
+          }
+          break;
+
+        case "redirect":
+          instructionPrompt =
+            "Gracefully steer the conversation toward a related but new angle or topic that might be more interesting.";
+          break;
+
+        case "question":
+          instructionPrompt =
+            "Ask a thought-provoking question that will get the other AIs thinking and responding.";
+          break;
+
+        case "direct":
+          instructionPrompt =
+            "Respond directly to the most recent message with your perspective.";
+          break;
+      }
     }
-    
+
     if (instructionPrompt) {
       enhancedContext.push({
-        sender: 'System',
+        sender: "System",
         content: instructionPrompt,
-        senderType: 'system',
-        role: 'system',
-        isInternal: true
+        senderType: "system",
+        role: "system",
+        isInternal: true,
       });
     }
-    
+
     return enhancedContext;
   }
 
@@ -607,19 +859,35 @@ Respond naturally and keep the conversation flowing!`;
    * @returns {string} Response with mention
    */
   addMentionToResponse(response, targetAI) {
-    if (!targetAI || response.includes('@')) {
-      return response; // Already has mentions or no target
+    if (!targetAI) {
+      return response;
     }
-    
+
+    const normalizedTarget = normalizeAlias(targetAI);
+    const targetService = this.findAIByNormalizedAlias(normalizedTarget);
+    const mentionAlias =
+      this.getMentionTokenForAI(targetService) || toMentionAlias(targetAI);
+
+    if (!mentionAlias) {
+      return response;
+    }
+
+    const mentionHandle = mentionAlias.startsWith("@")
+      ? mentionAlias
+      : `@${mentionAlias}`;
+
+    if (response.includes(mentionHandle)) {
+      return response;
+    }
+
     // Try to naturally incorporate the mention
     const mentionFormats = [
-      `@${targetAI}, ${response}`,
-      `${response} What do you think, @${targetAI}?`,
-      `${response} I'd love to hear @${targetAI}'s perspective on this.`,
-      `Building on what we discussed, @${targetAI}, ${response}`
+      `${mentionHandle}, ${response}`,
+      `${response} What do you think, ${mentionHandle}?`,
+      `${response} I'd love to hear ${mentionHandle}'s perspective on this.`,
+      `Building on what we discussed, ${mentionHandle}, ${response}`,
     ];
-    
-    // Use different format based on response type
+
     const formatIndex = Math.floor(Math.random() * mentionFormats.length);
     return mentionFormats[formatIndex];
   }
@@ -633,11 +901,11 @@ Respond naturally and keep the conversation flowing!`;
   enhanceContextForComment(context, lastMessage) {
     const enhancedContext = [...context];
     enhancedContext.push({
-      sender: 'System',
+      sender: "System",
       content: `Consider commenting on or building upon ${lastMessage.sender}'s message: "${lastMessage.content}"`,
-      senderType: 'system',
-      role: 'system',
-      isInternal: true
+      senderType: "system",
+      role: "system",
+      isInternal: true,
     });
     return enhancedContext;
   }
