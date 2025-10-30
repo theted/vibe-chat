@@ -25,6 +25,7 @@ jobs:
       PERPLEXITY_API_KEY_SECRET_ARN: ${{ secrets.PERPLEXITY_API_KEY_SECRET_ARN }}
       ECS_EXECUTION_ROLE_ARN: ${{ secrets.ECS_EXECUTION_ROLE_ARN }}
       ECS_TASK_ROLE_ARN: ${{ secrets.ECS_TASK_ROLE_ARN }}
+      CLIENT_URL: ${{ secrets.CLIENT_URL }}
     defaults:
       run:
         working-directory: ai-chat-realtime
@@ -73,6 +74,7 @@ jobs:
               -e "s|__Z_API_KEY_SECRET_ARN__|$Z_API_KEY_SECRET_ARN|g" \
               -e "s|__LLAMA_API_KEY_SECRET_ARN__|$LLAMA_API_KEY_SECRET_ARN|g" \
               -e "s|__PERPLEXITY_API_KEY_SECRET_ARN__|$PERPLEXITY_API_KEY_SECRET_ARN|g" \
+              -e "s|__CLIENT_URL__|$CLIENT_URL|g" \
             ecs-taskdef.json > taskdef.json
 
       - name: Deploy Amazon ECS task definition

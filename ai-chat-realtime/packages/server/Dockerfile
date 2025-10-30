@@ -1,6 +1,22 @@
 # Server Dockerfile
-FROM node:18-alpine
 
+# Stage 1 - build client assets
+FROM node:18-alpine AS client-builder
+WORKDIR /app/client
+
+COPY packages/client/package.json ./package.json
+# Install dependencies (include dev deps for Vite build)
+RUN npm install --include=dev
+
+COPY packages/client/ .
+
+ARG VITE_SERVER_URL=http://localhost:3001
+ENV VITE_SERVER_URL=$VITE_SERVER_URL
+
+RUN npm run build
+
+# Stage 2 - build server
+FROM node:18-alpine
 WORKDIR /app
 
 # Copy and install core package first
@@ -17,6 +33,11 @@ RUN npm install
 
 # Copy server source
 COPY packages/server/src ./src
+
+# Copy built client assets
+COPY --from=client-builder /app/client/dist ./public
+
+ENV STATIC_DIR=/app/server/public
 
 # Expose port
 EXPOSE 3001

@@ -8,6 +8,9 @@ import { createServer } from "http";
 import { Server } from "socket.io";
 import cors from "cors";
 import dotenv from "dotenv";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 import { ChatOrchestrator } from "@ai-chat/core";
 import { SocketController } from "./controllers/SocketController.js";
 import { MetricsService } from "./services/MetricsService.js";
@@ -68,6 +71,12 @@ const AI_DISPLAY_INFO = {
   },
 };
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const staticDir =
+  process.env.STATIC_DIR || path.resolve(__dirname, "../public");
+const hasStaticAssets = fs.existsSync(staticDir);
+
 const app = express();
 const server = createServer(app);
 const io = new Server(server, {
@@ -86,6 +95,12 @@ app.use(
   })
 );
 app.use(express.json());
+
+if (hasStaticAssets) {
+  app.use(express.static(staticDir));
+} else {
+  console.warn("⚠️  No static assets found; frontend will not be served.");
+}
 
 // Health check endpoint
 app.get("/health", (req, res) => {
@@ -134,6 +149,18 @@ app.get("/api/rooms", (req, res) => {
   } catch (error) {
     res.status(500).json({ error: "Failed to get rooms" });
   }
+});
+
+app.get("*", (req, res, next) => {
+  if (!hasStaticAssets) {
+    return next();
+  }
+
+  if (req.path.startsWith("/api") || req.path.startsWith("/socket.io")) {
+    return next();
+  }
+
+  res.sendFile(path.join(staticDir, "index.html"));
 });
 
 // Initialize AI Chat System
