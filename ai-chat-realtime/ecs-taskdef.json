@@ -1,0 +1,93 @@
+{
+  "family": "vibe-chat-task",
+  "requiresCompatibilities": ["EC2"],
+  "networkMode": "bridge",
+  "cpu": "512",
+  "memory": "1024",
+  "executionRoleArn": "arn:aws:iam::471112549477:role/ecsTaskExecutionRole-vibe-chat",
+  "taskRoleArn": "arn:aws:iam::471112549477:role/ecsTaskRole-vibe-chat",
+  "containerDefinitions": [
+    {
+      "name": "vibe-chat",
+      "image": "IMAGE_URI",
+      "essential": true,
+      "portMappings": [
+        { "containerPort": 3001, "hostPort": 80, "protocol": "tcp" }
+      ],
+      "environment": [
+        { "name": "NODE_ENV", "value": "production" },
+        { "name": "LOG_LEVEL", "value": "info" },
+        { "name": "MAX_CONVERSATION_TURNS", "value": "10" },
+        { "name": "CONVERSATION_TIMEOUT_MS", "value": "300000" }
+      ],
+      "secrets": [
+        {
+          "name": "OPENAI_API_KEY",
+          "valueFrom": "arn:aws:ssm:eu-west-1:471112549477:parameter/OPENAI_API_KEY"
+        },
+        {
+          "name": "ANTHROPIC_API_KEY",
+          "valueFrom": "arn:aws:ssm:eu-west-1:471112549477:parameter/ANTHROPIC_API_KEY"
+        },
+        {
+          "name": "GROK_API_KEY",
+          "valueFrom": "arn:aws:ssm:eu-west-1:471112549477:parameter/GROK_API_KEY"
+        },
+        {
+          "name": "GOOGLE_AI_API_KEY",
+          "valueFrom": "arn:aws:ssm:eu-west-1:471112549477:parameter/GOOGLE_AI_API_KEY"
+        },
+        {
+          "name": "MISTRAL_API_KEY",
+          "valueFrom": "arn:aws:ssm:eu-west-1:471112549477:parameter/MISTRAL_API_KEY"
+        },
+        {
+          "name": "COHERE_API_KEY",
+          "valueFrom": "arn:aws:ssm:eu-west-1:471112549477:parameter/COHERE_API_KEY"
+        },
+        {
+          "name": "DEEPSEEK_API_KEY",
+          "valueFrom": "arn:aws:ssm:eu-west-1:471112549477:parameter/DEEPSEEK_API_KEY"
+        },
+        {
+          "name": "QWEN_API_KEY",
+          "valueFrom": "arn:aws:ssm:eu-west-1:471112549477:parameter/QWEN_API_KEY"
+        },
+        {
+          "name": "KIMI_API_KEY",
+          "valueFrom": "arn:aws:ssm:eu-west-1:471112549477:parameter/KIMI_API_KEY"
+        },
+        {
+          "name": "Z_API_KEY",
+          "valueFrom": "arn:aws:ssm:eu-west-1:471112549477:parameter/Z_API_KEY"
+        },
+        {
+          "name": "LLAMA_API_KEY",
+          "valueFrom": "arn:aws:ssm:eu-west-1:471112549477:parameter/LLAMA_API_KEY"
+        },
+        {
+          "name": "PERPLEXITY_API_KEY",
+          "valueFrom": "arn:aws:ssm:eu-west-1:471112549477:parameter/PERPLEXITY_API_KEY"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/vibe-chat",
+          "awslogs-region": "eu-west-1",
+          "awslogs-stream-prefix": "ecs"
+        }
+      },
+      "healthCheck": {
+        "command": [
+          "CMD-SHELL",
+          "node -e \"require('http').get('http://localhost:3001/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) }).on('error', () => process.exit(1))\""
+        ],
+        "interval": 30,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 60
+      }
+    }
+  ]
+}

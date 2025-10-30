@@ -17,8 +17,8 @@ services:
       context: .
       dockerfile: packages/server/Dockerfile
     container_name: ai-chat-server-prod
-    ports:
-      - "3001:3001"
+    expose:
+      - "3001"
     environment:
       - NODE_ENV=production
       - CLIENT_URL=${CLIENT_URL:-http://localhost:3000}
@@ -51,8 +51,8 @@ services:
       args:
         - VITE_SERVER_URL=${SERVER_URL:-http://localhost:3001}
     container_name: ai-chat-client-prod
-    ports:
-      - "80:80"
+    expose:
+      - "80"
     depends_on:
       - ai-chat-server
     restart: always
