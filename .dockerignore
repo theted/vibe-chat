@@ -1,0 +1,7 @@
+node_modules
+npm-debug.log
+dist
+ai-chat-realtime/packages/client/node_modules
+ai-chat-realtime/packages/client/dist
+ai-chat-realtime/packages/server/node_modules
+ai-chat-realtime/packages/server/public
