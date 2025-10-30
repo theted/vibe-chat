@@ -7,6 +7,7 @@ import { useSocket } from "./hooks/useSocket";
 import ToastContainer from "./components/ToastContainer.jsx";
 import LoginView from "./components/LoginView.jsx";
 import ChatView from "./components/ChatView.jsx";
+import LoadingOverlay from "./components/LoadingOverlay.jsx";
 import { ThemeContext } from "./context/ThemeContext.jsx";
 import { SERVER_URL } from "./constants/chat.js";
 import {
@@ -35,30 +36,40 @@ function App() {
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
     return prefersDark ? "dark" : "light";
   });
-  // Load username from localStorage on mount and auto-join
+  const [hasSavedUsername, setHasSavedUsername] = useState(false);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
+
+  const { on, joinRoom, sendMessage, triggerAI, startTyping, stopTyping } =
+    useSocket(SERVER_URL);
+  // Load username from localStorage on mount and prepare auto-join
   useEffect(() => {
     const savedUsername = localStorage.getItem("ai-chat-username");
     if (savedUsername) {
       setUsername(savedUsername);
-      // Auto-join if we have a saved username and are connected
-      if (connectionStatus.connected) {
-        joinRoom(savedUsername, "default");
-      }
+      setHasSavedUsername(true);
+    } else {
+      setIsAuthLoading(false);
     }
   }, []);
 
   // Auto-join when connection is established and we have a saved username
   useEffect(() => {
-    const savedUsername = localStorage.getItem("ai-chat-username");
     if (
-      savedUsername &&
+      hasSavedUsername &&
       connectionStatus.connected &&
       !isJoined &&
-      username === savedUsername
+      username
     ) {
-      joinRoom(savedUsername, "default");
+      joinRoom(username, "default");
+      setIsAuthLoading(true);
     }
-  }, [connectionStatus.connected, isJoined, username]);
+  }, [connectionStatus.connected, hasSavedUsername, isJoined, joinRoom, username]);
+
+  useEffect(() => {
+    if (isJoined) {
+      setIsAuthLoading(false);
+    }
+  }, [isJoined]);
 
   // Apply theme and persist selection
   useEffect(() => {
@@ -127,10 +138,6 @@ function App() {
   const usernameRef = useRef("");
   const toastTimeouts = useRef(new Map());
 
-  // Socket connection
-  const { on, joinRoom, sendMessage, triggerAI, startTyping, stopTyping } =
-    useSocket(SERVER_URL);
-
   useEffect(() => {
     usernameRef.current = username || "";
   }, [username]);
@@ -173,6 +180,8 @@ function App() {
       setRoomInfo(data);
       setParticipants(data.participants || []);
       setError(null);
+      setIsAuthLoading(false);
+      setHasSavedUsername(true);
       console.log("Joined room:", data);
     });
 
@@ -227,6 +236,7 @@ function App() {
     // Error events
     on("error", (data) => {
       setError(data.message);
+      setIsAuthLoading(false);
       setTimeout(() => setError(null), 5000);
     });
 
@@ -388,6 +398,8 @@ function App() {
     if (username.trim()) {
       // Save username to localStorage
       localStorage.setItem("ai-chat-username", username.trim());
+      setHasSavedUsername(true);
+      setIsAuthLoading(true);
       joinRoom(username.trim(), "default");
     }
   };
@@ -399,6 +411,8 @@ function App() {
     setMessages([]);
     setTypingUsers([]);
     setTypingAIs([]);
+    setHasSavedUsername(false);
+    setIsAuthLoading(false);
   };
 
   const toggleTheme = () => {
@@ -429,39 +443,41 @@ function App() {
 
   return (
     <ThemeContext.Provider value={{ theme, setTheme, toggleTheme }}>
-      {isJoined ? (
-        <ChatView
-          theme={theme}
-          toggleTheme={toggleTheme}
-          connectionStatus={connectionStatus}
-          roomInfo={roomInfo}
-          username={username}
-          participants={participants}
-          messages={messages}
-          typingUsers={typingUsers}
-          typingAIs={typingAIs}
-          showScrollButton={showScrollButton}
-          onScrollToBottom={scrollToBottom}
-          onLogout={handleLogout}
-          onSendMessage={handleSendMessage}
-          onAIMention={handleAIMention}
-          onTypingStart={startTyping}
-          onTypingStop={stopTyping}
-          error={error}
-          messagesEndRef={messagesEndRef}
-          messagesContainerRef={messagesContainerRef}
-        />
-      ) : (
-        <LoginView
-          connectionStatus={connectionStatus}
-          toggleTheme={toggleTheme}
-          theme={theme}
-          username={username}
-          onUsernameChange={setUsername}
-          onJoin={handleJoinRoom}
-          error={error}
-        />
-      )}
+      <LoadingOverlay visible={isAuthLoading} />
+      {!isAuthLoading &&
+        (isJoined ? (
+          <ChatView
+            theme={theme}
+            toggleTheme={toggleTheme}
+            connectionStatus={connectionStatus}
+            roomInfo={roomInfo}
+            username={username}
+            participants={participants}
+            messages={messages}
+            typingUsers={typingUsers}
+            typingAIs={typingAIs}
+            showScrollButton={showScrollButton}
+            onScrollToBottom={scrollToBottom}
+            onLogout={handleLogout}
+            onSendMessage={handleSendMessage}
+            onAIMention={handleAIMention}
+            onTypingStart={startTyping}
+            onTypingStop={stopTyping}
+            error={error}
+            messagesEndRef={messagesEndRef}
+            messagesContainerRef={messagesContainerRef}
+          />
+        ) : (
+          <LoginView
+            connectionStatus={connectionStatus}
+            toggleTheme={toggleTheme}
+            theme={theme}
+            username={username}
+            onUsernameChange={setUsername}
+            onJoin={handleJoinRoom}
+            error={error}
+          />
+        ))}
       <ToastContainer toasts={toasts} />
     </ThemeContext.Provider>
   );

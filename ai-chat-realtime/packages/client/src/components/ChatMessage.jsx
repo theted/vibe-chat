@@ -5,8 +5,9 @@
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import { motion } from 'framer-motion';
+import { normalizeAlias, resolveEmoji } from '../utils/ai.js';
 
-const ChatMessage = ({ message }) => {
+const ChatMessage = ({ message, aiParticipants = [] }) => {
   const formatTime = (timestamp) => {
     return new Date(timestamp).toLocaleTimeString('en-US', {
       hour: '2-digit',
@@ -64,13 +65,67 @@ const ChatMessage = ({ message }) => {
     }
   };
 
+  const getAIEmoji = () => {
+    if (message.senderType !== 'ai') {
+      return '';
+    }
+
+    if (message.emoji) {
+      return message.emoji;
+    }
+
+    if (message.aiEmoji) {
+      return message.aiEmoji;
+    }
+
+    const normalizedMessageId = normalizeAlias(message.aiId);
+    const normalizedSender = normalizeAlias(message.sender);
+    const normalizedAlias = normalizeAlias(
+      message.alias || message.displayName || message.aiName
+    );
+
+    const matchedAI = aiParticipants.find((participant) => {
+      const normalizedIds = [
+        normalizeAlias(participant.id),
+        normalizeAlias(participant.alias),
+        normalizeAlias(participant.displayName),
+        normalizeAlias(participant.name),
+      ];
+
+      return normalizedIds.some((value) => {
+        if (!value) return false;
+        return (
+          value === normalizedMessageId ||
+          value === normalizedSender ||
+          value === normalizedAlias
+        );
+      });
+    });
+
+    if (matchedAI?.emoji) {
+      return matchedAI.emoji;
+    }
+
+    if (message.providerKey || message.modelKey) {
+      const provider = normalizeAlias(message.providerKey);
+      const model = normalizeAlias(message.modelKey);
+      const combined = `${provider}${model}`;
+      const resolved = resolveEmoji(combined);
+      if (resolved) {
+        return resolved;
+      }
+    }
+
+    return resolveEmoji(message.aiId || message.sender);
+  };
+
   const getSenderDisplay = (sender, senderType) => {
     if (senderType === 'system') {
       return null; // System messages don't show sender
     }
     
     if (senderType === 'ai') {
-      return `🤖 ${sender}`;
+      return `${getAIEmoji()} ${sender}`;
     }
     
     return `👤 ${sender}`;

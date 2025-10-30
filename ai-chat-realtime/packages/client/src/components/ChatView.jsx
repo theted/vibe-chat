@@ -103,7 +103,11 @@ const ChatView = ({
             ref={messagesContainerRef}
           >
             {messages.map((message) => (
-              <ChatMessage key={message.id} message={message} />
+              <ChatMessage
+                key={message.id}
+                message={message}
+                aiParticipants={aiParticipantList}
+              />
             ))}
             <div ref={messagesEndRef} />
           </div>
