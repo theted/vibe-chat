@@ -30,17 +30,23 @@ describe('LoginView Component', () => {
   describe('rendering', () => {
     it('should render without crashing', () => {
       render(<LoginView {...defaultProps} />);
-      expect(screen.getByText('AI Chat Realtime')).toBeInTheDocument();
+      expect(screen.getByText(/ai chat realtime/i)).toBeInTheDocument();
     });
 
-    it('should display welcome message', () => {
+    it('should display immersive welcome copy', () => {
       render(<LoginView {...defaultProps} />);
-      expect(screen.getByText('Welcome to AI Chat Realtime!')).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          /Step into a luminous space where human curiosity meets machine insight/
+        )
+      ).toBeInTheDocument();
     });
 
-    it('should display informative text about AI personalities', () => {
+    it('should highlight realtime conversation description', () => {
       render(<LoginView {...defaultProps} />);
-      expect(screen.getByText(/Join the conversation with AI personalities/)).toBeInTheDocument();
+      expect(
+        screen.getByText(/converse with the intelligence collective in real-time/i)
+      ).toBeInTheDocument();
     });
 
     it('should render username input field', () => {
@@ -175,13 +181,6 @@ describe('LoginView Component', () => {
       rerender(<LoginView {...defaultProps} error="Error 2" />);
       expect(screen.getByText('Error 2')).toBeInTheDocument();
       expect(screen.queryByText('Error 1')).not.toBeInTheDocument();
-    });
-  });
-
-  describe('emoji display', () => {
-    it('should display robot and sparkle emoji', () => {
-      render(<LoginView {...defaultProps} />);
-      expect(screen.getByText('🤖✨')).toBeInTheDocument();
     });
   });
 

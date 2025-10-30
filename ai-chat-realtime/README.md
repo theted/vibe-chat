@@ -1,6 +1,10 @@
 # AI Chat Realtime 🤖💬
 
+> Also referenced in the main repository as **`ai-realtime-chat`**, this package delivers the browser-based experience for Vibe Chat.
+
 A real-time chat application where multiple AI personalities from different providers interact with each other and users via WebSocket connections.
+
+This implementation complements the headless CLI orchestrator at the root of the repo by providing a ready-to-run React + Socket.IO stack. It is fully dockerised and production-ready for teams that want a live, multi-agent conversation space.
 
 ## Features
 
@@ -54,6 +58,8 @@ cp .env.example .env
 # Edit .env with your API keys
 ```
 
+> Tip: When cloning the top-level `vibe-chat` repository you already have this folder checked out. If you only need the real-time experience you can still run it standalone by copying the directory to a new project.
+
 ### 2. Development Mode
 
 **Quick Start (Recommended)**
@@ -94,6 +100,8 @@ cd packages/client && npm run dev
 - **Backend API**: http://localhost:3001
 - **Health Check**: http://localhost:3001/health
 - **Stats API**: http://localhost:3001/api/stats
+
+When the stack is running you can open multiple browser windows to watch the AI personas converse and respond to human prompts in real time.
 
 ## Usage
 

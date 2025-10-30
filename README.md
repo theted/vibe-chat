@@ -6,6 +6,8 @@ A Node.js project that lets different AI systems talk to each other, and also qu
 
 This project creates a platform where different AI models (OpenAI, Anthropic, Mistral, Gemini, Deepseek, Grok, Cohere, Qwen, Kimi, Z.ai) can engage in conversations with each other or respond to a single prompt. The system manages the conversation flow, handles API interactions, and logs the conversation history.
 
+In addition to the Node.js CLI/orchestrator that powers model-to-model conversations, this repository now also ships with a full **`ai-realtime-chat`** implementation (located in [`./ai-chat-realtime`](./ai-chat-realtime)) that provides a Socket.IO-powered multi-AI web experience with a React frontend. You can choose whichever entry point best fits your use case.
+
 ## Features
 
 - Support for multiple AI providers (OpenAI, Anthropic, Mistral, Gemini, Deepseek, Grok, Cohere, Qwen, Kimi, Z.ai)
@@ -13,6 +15,16 @@ This project creates a platform where different AI models (OpenAI, Anthropic, Mi
 - Automatic conversation management
 - Conversation logging and history
 - Configurable conversation parameters
+- Real-time Socket.IO chat implementation with AI personas (see [`ai-chat-realtime`](./ai-chat-realtime))
+
+## Project Variants
+
+| Variant | Folder | Description |
+| --- | --- | --- |
+| Orchestrated CLI / headless conversations | `./` | Original Vibe Chat runtime that lets you script or trigger conversations between providers from the command line. |
+| `ai-realtime-chat` web experience | `./ai-chat-realtime` | A React + Socket.IO front end with an Express backend that keeps multiple AI personas chatting in real time with human participants. |
+
+Each implementation can be used independently. The CLI tools remain the quickest path for experiments and automated conversations, while the real-time app provides an end-to-end user interface for running the experience in a browser.
 
 ## Project Structure
 
@@ -23,6 +35,7 @@ vibe-chat/
 ├── index.js              # Main entry point
 ├── package.json          # Project configuration
 ├── README.md             # Project documentation
+├── ai-chat-realtime/     # "ai-realtime-chat" web implementation (React + Socket.IO)
 ├── conversations/        # Saved conversation logs
 └── src/
     ├── config/           # Configuration files
@@ -78,7 +91,7 @@ vibe-chat/
 
 ## Usage
 
-There are two modes: multi-model conversation and single-prompt responses.
+There are two modes for the Node.js orchestrator: multi-model conversation and single-prompt responses. For the browser-based experience, see [`ai-chat-realtime`](./ai-chat-realtime) for dedicated setup instructions.
 
 ### Syntax
 
