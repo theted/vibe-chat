@@ -5,7 +5,8 @@
 import React from 'react';
 
 const TypingIndicator = ({ typingUsers = [], typingAIs = [] }) => {
-  const allTyping = [...typingUsers, ...typingAIs];
+  const otherTypingUsers = typingUsers.filter((user) => !user.isLocal);
+  const allTyping = [...otherTypingUsers, ...typingAIs];
   
   if (allTyping.length === 0) return null;
 

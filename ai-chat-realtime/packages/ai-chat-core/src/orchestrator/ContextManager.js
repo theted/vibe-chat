@@ -2,6 +2,30 @@
  * Context Manager - Handles conversation context with sliding window
  */
 
+const normalizeAlias = (value) =>
+  value ? value.toString().toLowerCase().replace(/[^a-z0-9]/g, "") : "";
+
+const parseMentions = (content = "") => {
+  const mentionRegex = /@([^\s@]+)/g;
+  const mentions = [];
+  const normalized = [];
+  const seen = new Set();
+
+  let match;
+  while ((match = mentionRegex.exec(content)) !== null) {
+    const token = match[1];
+    if (!token) continue;
+    const normalizedToken = normalizeAlias(token);
+    if (normalizedToken && !seen.has(normalizedToken)) {
+      mentions.push(token);
+      normalized.push(normalizedToken);
+      seen.add(normalizedToken);
+    }
+  }
+
+  return { mentions, normalized };
+};
+
 export class ContextManager {
   constructor(maxMessages = 100) {
     this.messages = [];
@@ -18,12 +42,26 @@ export class ContextManager {
       return;
     }
 
+    const { mentions, normalized } = parseMentions(message.content);
+
+    const displayName = message.displayName || message.sender;
+    const alias = message.alias || displayName;
+    const normalizedAlias = message.normalizedAlias || normalizeAlias(alias);
+
     const contextMessage = {
       role: message.senderType === 'user' ? 'user' : 'assistant',
       content: message.content,
       timestamp: message.timestamp,
       sender: message.sender,
-      senderType: message.senderType
+      senderType: message.senderType,
+      displayName,
+      alias,
+      normalizedAlias,
+      aiId: message.aiId,
+      modelKey: message.modelKey,
+      mentions,
+      mentionsNormalized: normalized,
+      id: message.id
     };
 
     if (this.messages.length >= this.maxMessages) {

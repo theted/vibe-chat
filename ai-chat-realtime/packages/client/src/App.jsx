@@ -7,6 +7,7 @@ import { useSocket } from "./hooks/useSocket";
 import ToastContainer from "./components/ToastContainer.jsx";
 import LoginView from "./components/LoginView.jsx";
 import ChatView from "./components/ChatView.jsx";
+import LoadingOverlay from "./components/LoadingOverlay.jsx";
 import { ThemeContext } from "./context/ThemeContext.jsx";
 import { SERVER_URL } from "./constants/chat.js";
 import {
@@ -35,30 +36,43 @@ function App() {
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
     return prefersDark ? "dark" : "light";
   });
-  // Load username from localStorage on mount and auto-join
+  const [hasSavedUsername, setHasSavedUsername] = useState(false);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
+  const [previewMessages, setPreviewMessages] = useState([]);
+  const [previewParticipants, setPreviewParticipants] = useState([]);
+  const [previewAiParticipants, setPreviewAiParticipants] = useState([]);
+
+  const { on, joinRoom, sendMessage, triggerAI, startTyping, stopTyping } =
+    useSocket(SERVER_URL);
+  // Load username from localStorage on mount and prepare auto-join
   useEffect(() => {
     const savedUsername = localStorage.getItem("ai-chat-username");
     if (savedUsername) {
       setUsername(savedUsername);
-      // Auto-join if we have a saved username and are connected
-      if (connectionStatus.connected) {
-        joinRoom(savedUsername, "default");
-      }
+      setHasSavedUsername(true);
+    } else {
+      setIsAuthLoading(false);
     }
   }, []);
 
   // Auto-join when connection is established and we have a saved username
   useEffect(() => {
-    const savedUsername = localStorage.getItem("ai-chat-username");
     if (
-      savedUsername &&
+      hasSavedUsername &&
       connectionStatus.connected &&
       !isJoined &&
-      username === savedUsername
+      username
     ) {
-      joinRoom(savedUsername, "default");
+      joinRoom(username, "default");
+      setIsAuthLoading(true);
     }
-  }, [connectionStatus.connected, isJoined, username]);
+  }, [connectionStatus.connected, hasSavedUsername, isJoined, joinRoom, username]);
+
+  useEffect(() => {
+    if (isJoined) {
+      setIsAuthLoading(false);
+    }
+  }, [isJoined]);
 
   // Apply theme and persist selection
   useEffect(() => {
@@ -111,10 +125,10 @@ function App() {
       }
     };
 
-    if (messages.length > 0) {
+    if (isJoined && messages.length > 0) {
       saveMessagesToStorage(messages);
     }
-  }, [messages]);
+  }, [messages, isJoined]);
   const [roomInfo, setRoomInfo] = useState({ topic: "General discussion" });
   const [aiStatus, setAiStatus] = useState({ status: "active" });
   const [error, setError] = useState(null);
@@ -126,10 +140,9 @@ function App() {
   const messagesContainerRef = useRef(null);
   const usernameRef = useRef("");
   const toastTimeouts = useRef(new Map());
-
-  // Socket connection
-  const { on, joinRoom, sendMessage, triggerAI, startTyping, stopTyping } =
-    useSocket(SERVER_URL);
+  const isJoinedRef = useRef(false);
+  const previewMessagesRef = useRef([]);
+  const previewParticipantsRef = useRef([]);
 
   useEffect(() => {
     usernameRef.current = username || "";
@@ -139,6 +152,17 @@ function App() {
     toastTimeouts.current.forEach((timeoutId) => clearTimeout(timeoutId));
     toastTimeouts.current.clear();
   }, []);
+  useEffect(() => {
+    isJoinedRef.current = isJoined;
+  }, [isJoined]);
+
+  useEffect(() => {
+    previewMessagesRef.current = previewMessages;
+  }, [previewMessages]);
+
+  useEffect(() => {
+    previewParticipantsRef.current = previewParticipants;
+  }, [previewParticipants]);
 
   const showToast = useCallback((message, type = "info") => {
     const id = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
@@ -167,12 +191,63 @@ function App() {
       console.log("Connection established:", data);
     });
 
+    on("recent-messages", (payload = {}) => {
+      const incomingMessages = Array.isArray(payload.messages)
+        ? payload.messages
+        : [];
+      const incomingParticipants = Array.isArray(payload.participants)
+        ? payload.participants
+        : [];
+      const incomingAiParticipants = Array.isArray(payload.aiParticipants)
+        ? payload.aiParticipants
+        : [];
+
+      setPreviewMessages(incomingMessages);
+      setPreviewParticipants(incomingParticipants);
+      setPreviewAiParticipants(incomingAiParticipants);
+
+      if (!isJoinedRef.current) {
+        setMessages(incomingMessages);
+      }
+    });
+
+    on("preview-message", (payload = {}) => {
+      const message = payload.message;
+      if (!message) return;
+
+      setPreviewMessages((prev) => {
+        const next = [...prev, message];
+        return next.slice(-20);
+      });
+
+      if (Array.isArray(payload.participants)) {
+        setPreviewParticipants(payload.participants);
+      }
+      if (Array.isArray(payload.aiParticipants)) {
+        setPreviewAiParticipants(payload.aiParticipants);
+      }
+
+      if (!isJoinedRef.current) {
+        setMessages((prev) => [...prev, message].slice(-20));
+      }
+    });
+
     // Room events
     on("room-joined", (data) => {
       setIsJoined(true);
       setRoomInfo(data);
       setParticipants(data.participants || []);
       setError(null);
+      setIsAuthLoading(false);
+      setHasSavedUsername(true);
+      setMessages(() =>
+        previewMessagesRef.current.length > 0
+          ? [...previewMessagesRef.current]
+          : []
+      );
+      if ((data.participants || []).length === 0 && previewParticipantsRef.current.length > 0) {
+        setParticipants(previewParticipantsRef.current);
+      }
       console.log("Joined room:", data);
     });
 
@@ -227,6 +302,7 @@ function App() {
     // Error events
     on("error", (data) => {
       setError(data.message);
+      setIsAuthLoading(false);
       setTimeout(() => setError(null), 5000);
     });
 
@@ -388,6 +464,8 @@ function App() {
     if (username.trim()) {
       // Save username to localStorage
       localStorage.setItem("ai-chat-username", username.trim());
+      setHasSavedUsername(true);
+      setIsAuthLoading(true);
       joinRoom(username.trim(), "default");
     }
   };
@@ -396,9 +474,15 @@ function App() {
     localStorage.removeItem("ai-chat-username");
     setUsername("");
     setIsJoined(false);
-    setMessages([]);
+    setMessages(
+      previewMessagesRef.current.length > 0
+        ? [...previewMessagesRef.current]
+        : []
+    );
     setTypingUsers([]);
     setTypingAIs([]);
+    setHasSavedUsername(false);
+    setIsAuthLoading(false);
   };
 
   const toggleTheme = () => {
@@ -429,39 +513,44 @@ function App() {
 
   return (
     <ThemeContext.Provider value={{ theme, setTheme, toggleTheme }}>
-      {isJoined ? (
-        <ChatView
-          theme={theme}
-          toggleTheme={toggleTheme}
-          connectionStatus={connectionStatus}
-          roomInfo={roomInfo}
-          username={username}
-          participants={participants}
-          messages={messages}
-          typingUsers={typingUsers}
-          typingAIs={typingAIs}
-          showScrollButton={showScrollButton}
-          onScrollToBottom={scrollToBottom}
-          onLogout={handleLogout}
-          onSendMessage={handleSendMessage}
-          onAIMention={handleAIMention}
-          onTypingStart={startTyping}
-          onTypingStop={stopTyping}
-          error={error}
-          messagesEndRef={messagesEndRef}
-          messagesContainerRef={messagesContainerRef}
-        />
-      ) : (
-        <LoginView
-          connectionStatus={connectionStatus}
-          toggleTheme={toggleTheme}
-          theme={theme}
-          username={username}
-          onUsernameChange={setUsername}
-          onJoin={handleJoinRoom}
-          error={error}
-        />
-      )}
+      <LoadingOverlay visible={isAuthLoading} />
+      {!isAuthLoading &&
+        (isJoined ? (
+          <ChatView
+            theme={theme}
+            toggleTheme={toggleTheme}
+            connectionStatus={connectionStatus}
+            roomInfo={roomInfo}
+            username={username}
+            participants={participants}
+            messages={messages}
+            typingUsers={typingUsers}
+            typingAIs={typingAIs}
+            showScrollButton={showScrollButton}
+            onScrollToBottom={scrollToBottom}
+            onLogout={handleLogout}
+            onSendMessage={handleSendMessage}
+            onAIMention={handleAIMention}
+            onTypingStart={startTyping}
+            onTypingStop={stopTyping}
+            error={error}
+            messagesEndRef={messagesEndRef}
+            messagesContainerRef={messagesContainerRef}
+          />
+        ) : (
+          <LoginView
+            connectionStatus={connectionStatus}
+            toggleTheme={toggleTheme}
+            theme={theme}
+            username={username}
+            onUsernameChange={setUsername}
+            onJoin={handleJoinRoom}
+            error={error}
+            previewMessages={previewMessages}
+            previewParticipants={previewParticipants}
+            previewAiParticipants={previewAiParticipants}
+          />
+        ))}
       <ToastContainer toasts={toasts} />
     </ThemeContext.Provider>
   );

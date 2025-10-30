@@ -1,6 +1,11 @@
 import React from "react";
+
+import ParticipantsList, { DEFAULT_AI_PARTICIPANTS } from "./ParticipantsList.jsx";
 import Icon from "./Icon.jsx";
+import ChatMessage from "./ChatMessage.jsx";
+
 import CircuitIcon from "./CircuitIcon.jsx";
+
 
 const LoginView = ({
   connectionStatus,
@@ -10,6 +15,9 @@ const LoginView = ({
   onUsernameChange,
   onJoin,
   error,
+  previewMessages = [],
+  previewParticipants = [],
+  previewAiParticipants = [],
 }) => (
   <div className="relative min-h-screen overflow-hidden bg-slate-950 text-slate-100">
     <div className="absolute inset-0">
@@ -88,8 +96,42 @@ const LoginView = ({
               <span className="relative">Join Chat</span>
             </button>
           </form>
+
+          {previewMessages.length > 0 && (
+            <div className="w-full max-w-2xl mt-8 animate-fade-in">
+              <div className="flex items-center gap-2 mb-3 text-slate-500 uppercase text-xs tracking-[0.28em] dark:text-slate-300">
+                <Icon name="chat" className="w-4 h-4" />
+                Recent Conversation
+              </div>
+              <div className="max-h-72 overflow-y-auto no-scrollbar space-y-4 bg-white/60 border border-slate-200/60 rounded-2xl p-4 shadow-inner dark:bg-slate-900/60 dark:border-slate-800/60">
+                {previewMessages.map((message) => (
+                  <ChatMessage
+                    key={message.id || `${message.timestamp}-${message.sender}`}
+                    message={message}
+                    aiParticipants={
+                      previewAiParticipants.length > 0
+                        ? previewAiParticipants
+                        : DEFAULT_AI_PARTICIPANTS
+                    }
+                  />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
+
+      <ParticipantsList
+        participants={previewParticipants}
+        aiParticipants={
+          previewAiParticipants.length > 0
+            ? previewAiParticipants
+            : DEFAULT_AI_PARTICIPANTS
+        }
+        typingUsers={[]}
+        typingAIs={[]}
+        isVisible={true}
+      />
     </div>
   </div>
 );

@@ -2,6 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
+@keyframes pageFadeIn {
+  0% {
+    opacity: 0;
+  }
+  60% {
+    opacity: 0.85;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
 @layer base {
   * {
     box-sizing: border-box;
@@ -12,6 +24,14 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     @apply bg-slate-50 text-slate-900 transition-colors duration-300;
+  }
+
+  body.preload {
+    opacity: 0;
+  }
+
+  body.page-loaded {
+    animation: pageFadeIn 1200ms ease-out forwards;
   }
 
   .dark body {
@@ -78,7 +98,7 @@
   .markdown-content blockquote {
     @apply border-l-4 border-primary-400 ml-0 my-2 py-2 pl-4 bg-slate-50 italic text-slate-600;
   }
-  
+
   .markdown-content h4 {
     @apply text-lg font-semibold text-slate-800 mt-3 mb-2;
   }
@@ -117,6 +137,22 @@
 
   .dark .markdown-list li {
     @apply text-slate-200;
+  }
+
+  .mention-chip {
+    @apply inline-flex items-center px-2 py-0.5 rounded-full border font-semibold tracking-tight uppercase text-xs bg-emerald-500/15 border-emerald-400/60 text-emerald-700 shadow-sm transition-transform duration-150;
+  }
+
+  .mention-chip:hover {
+    @apply scale-[1.03] bg-emerald-500/20;
+  }
+
+  .dark .mention-chip {
+    @apply bg-emerald-400/10 border-emerald-500/40 text-emerald-200;
+  }
+
+  .send-button {
+    transition: background-color 180ms ease, color 180ms ease, transform 200ms ease, box-shadow 200ms ease;
   }
 
   .header-title {

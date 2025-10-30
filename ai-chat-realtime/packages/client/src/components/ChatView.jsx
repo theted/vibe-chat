@@ -28,7 +28,6 @@ const ChatView = ({
   messagesEndRef,
   messagesContainerRef,
 }) => {
-  const isUserTyping = typingUsers.some((user) => user.isLocal);
   const aiParticipantList =
     aiParticipants.length > 0 ? aiParticipants : DEFAULT_AI_PARTICIPANTS;
   const aiParticipantCount = aiParticipantList.length;
@@ -103,16 +102,16 @@ const ChatView = ({
             ref={messagesContainerRef}
           >
             {messages.map((message) => (
-              <ChatMessage key={message.id} message={message} />
+              <ChatMessage
+                key={message.id}
+                message={message}
+                aiParticipants={aiParticipantList}
+              />
             ))}
             <div ref={messagesEndRef} />
           </div>
 
-          <TypingIndicator
-            typingUsers={typingUsers}
-            typingAIs={typingAIs}
-            isUserTyping={isUserTyping}
-          />
+          <TypingIndicator typingUsers={typingUsers} typingAIs={typingAIs} />
 
           {showScrollButton && (
             <button
