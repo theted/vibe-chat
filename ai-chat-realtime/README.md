@@ -80,9 +80,9 @@ docker-compose -f docker-compose.prod.yml up --build
 docker-compose -f docker-compose.debug.yml up --build
 ```
 
-> The Compose files mount `../scripts` and `../packages/mcp-assistant` into the container and export `CHAT_ASSISTANT_SCRIPT=/app/scripts/run-mcp-chat.js`, `CHAT_ASSISTANT_AUTO_INDEX=true`, and `NODE_PATH=/app/server/node_modules`, so the in-chat `@Chat` assistant works automatically inside Docker (it will build embeddings on first use).
+> The Compose files mount `../scripts` and `../packages/mcp-assistant`, start a `chroma` vector-store service, and export `CHAT_ASSISTANT_SCRIPT=/app/scripts/run-mcp-chat.js`, `CHAT_ASSISTANT_AUTO_INDEX=true`, `NODE_PATH=/app/server/node_modules`, and `CHROMA_URL=http://chroma:8000`, so the in-chat `@Chat` assistant works automatically (it will build embeddings on first use when an OpenAI key is available).
 
-The `start.sh` script ensures `.mcp-data/` exists so Docker builds succeed even if you haven't indexed yet. If you run `node ../scripts/index-mcp-chat.js` before building, the resulting `.mcp-data/` contents are copied into `/app/.mcp-data`, giving @Chat immediate access to embeddings.
+If you want @Chat to have context straight after boot, run `node ../scripts/index-mcp-chat.js --chroma-url http://localhost:8000` from the repository root while the Chroma service is running. The server will re-use that collection without rebuilding.
 
 **Manual Setup (No Docker)**
 ```bash

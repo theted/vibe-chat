@@ -96,20 +96,19 @@ There are two modes for the Node.js orchestrator: multi-model conversation and s
 
 ### MCP code lookups
 
-The internal `@Chat` assistant and the real-time app both rely on the MCP generator script. You can run it manually from the project root:
+The internal `@Chat` assistant and the real-time app both rely on the MCP generator script backed by a Chroma vector store. Before indexing, ensure a Chroma instance is reachable (the docker-compose files in `ai-chat-realtime/` expose one named `chroma`):
 
 ```bash
-node scripts/index-mcp-chat.js   # build or refresh the embedding store (requires OPENAI_API_KEY)
+docker compose -f ai-chat-realtime/docker-compose.dev.yml up chroma   # optional helper, runs Chroma only
+node scripts/index-mcp-chat.js --chroma-url http://localhost:8000     # builds or refreshes the embeddings
 node scripts/run-mcp-chat.js --question "How are messages styled?"
 ```
 
-This walks the repository (excluding `.git`, `node_modules`, and `.env`) and prints the most relevant file snippets for the question.
+`index-mcp-chat` accepts `--collection`, `--chunk-size`, `--chunk-overlap`, `--project-root`, and `--no-delete` (preserves existing vectors—useful in CI when multiple jobs share the database). It walks the repository (excluding `.git`, `node_modules`, `.env`, build artefacts, etc.) and writes the chunks into Chroma. The runner script streams an answer using the same collection.
 
 If you run the realtime server from a different working directory (e.g., inside Docker), set either `CHAT_ASSISTANT_ROOT=/path/to/repo` or `CHAT_ASSISTANT_SCRIPT=/path/to/repo/scripts/run-mcp-chat.js` so the server can locate the generator.
 
-In the realtime Docker Compose setups we already mount the scripts plus `packages/mcp-assistant` and export `CHAT_ASSISTANT_SCRIPT=/app/scripts/run-mcp-chat.js`, `CHAT_ASSISTANT_AUTO_INDEX=true`, and `NODE_PATH=/app/server/node_modules`, so no additional configuration is required there. Embeddings are built automatically on first use when an OpenAI key is present.
-
-If you prefer to bake the embeddings into the Docker image, run `node scripts/index-mcp-chat.js` before building so the generated `.mcp-data/` directory exists in the build context—it will be copied into `/app/.mcp-data` inside the container.
+In the realtime Docker Compose setups we already mount the scripts plus `packages/mcp-assistant`, start a Chroma vector-store container, and export `CHAT_ASSISTANT_SCRIPT=/app/scripts/run-mcp-chat.js`, `CHAT_ASSISTANT_AUTO_INDEX=true`, `NODE_PATH=/app/server/node_modules`, and `CHROMA_URL=http://chroma:8000`, so no additional configuration is required there. Run `node scripts/index-mcp-chat.js` whenever you want to refresh the collection; @Chat will pick up the new embeddings immediately.
 
 ### Syntax
 

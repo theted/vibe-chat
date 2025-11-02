@@ -12,6 +12,10 @@ RUN npm install
 WORKDIR /app
 COPY packages/mcp-assistant ./mcp-assistant
 
+# Install MCP assistant dependencies (shared via workspace links)
+WORKDIR /app/mcp-assistant
+RUN npm install --omit=dev
+
 # Switch to server directory and copy package files
 WORKDIR /app/server
 COPY packages/server/package*.json ./

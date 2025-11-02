@@ -3,7 +3,10 @@
 import path from "path";
 import process from "process";
 import { fileURLToPath } from "url";
-import { createLocalCodeMcpServer } from "../ai-chat-realtime/packages/mcp-assistant/src/index.js";
+import {
+  createLocalCodeMcpServer,
+  MCP_ERROR_CODES,
+} from "../ai-chat-realtime/packages/mcp-assistant/src/index.js";
 
 const parseArgs = () => {
   const args = process.argv.slice(2);
@@ -61,9 +64,15 @@ const main = async () => {
   try {
     await server.ensureEmbeddingStore();
   } catch (error) {
-    console.error(
-      `MCP embedding store missing or unreadable. Run 'node scripts/index-mcp-chat.js' first. (${error.message})`
-    );
+    if (error?.code === MCP_ERROR_CODES.VECTOR_STORE_UNAVAILABLE) {
+      console.error(
+        `MCP embedding lookup failed: could not reach Chroma at ${process.env.CHROMA_URL || "http://localhost:8000"}. ${error.message}`
+      );
+    } else {
+      console.error(
+        `MCP embedding store missing or unreadable. Run 'node scripts/index-mcp-chat.js' first. (${error.message})`
+      );
+    }
     process.exit(1);
   }
 

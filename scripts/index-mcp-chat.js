@@ -3,14 +3,27 @@
 import path from "path";
 import process from "process";
 import { fileURLToPath } from "url";
-import { createWorkspaceIndexer } from "../ai-chat-realtime/packages/mcp-assistant/src/indexer.js";
+import {
+  createWorkspaceIndexer,
+} from "../ai-chat-realtime/packages/mcp-assistant/src/indexer.js";
+import {
+  MCP_ERROR_CODES,
+} from "../ai-chat-realtime/packages/mcp-assistant/src/index.js";
+
+const DEFAULT_COLLECTION_NAME =
+  process.env.CHAT_ASSISTANT_COLLECTION || "ai-chat-workspace";
+const DEFAULT_CHROMA_URL =
+  process.env.CHROMA_URL || "http://localhost:8000";
 
 const parseArgs = () => {
   const args = process.argv.slice(2);
   const result = {
     chunkSize: undefined,
     chunkOverlap: undefined,
-    batchSize: undefined,
+    chromaUrl: undefined,
+    collectionName: undefined,
+    projectRoot: undefined,
+    skipDelete: false,
   };
 
   for (let i = 0; i < args.length; i += 1) {
@@ -25,9 +38,23 @@ const parseArgs = () => {
       i += 1;
       continue;
     }
-    if (arg === "--batch-size" && args[i + 1]) {
-      result.batchSize = parseInt(args[i + 1], 10);
+    if (arg === "--chroma-url" && args[i + 1]) {
+      result.chromaUrl = args[i + 1];
       i += 1;
+      continue;
+    }
+    if (arg === "--collection" && args[i + 1]) {
+      result.collectionName = args[i + 1];
+      i += 1;
+      continue;
+    }
+    if (arg === "--project-root" && args[i + 1]) {
+      result.projectRoot = path.resolve(args[i + 1]);
+      i += 1;
+      continue;
+    }
+    if (arg === "--no-delete" || arg === "--skip-delete") {
+      result.skipDelete = true;
       continue;
     }
   }
@@ -50,7 +77,14 @@ const tryLoadDotenv = async (projectRoot) => {
 
 const main = async () => {
   const scriptDir = path.dirname(fileURLToPath(import.meta.url));
-  const projectRoot = path.resolve(scriptDir, "..");
+  const defaultProjectRoot = path.resolve(scriptDir, "..");
+
+  const args = parseArgs();
+  const projectRoot =
+    args.projectRoot ||
+    process.env.CHAT_ASSISTANT_ROOT ||
+    defaultProjectRoot;
+
   await tryLoadDotenv(projectRoot);
 
   if (!process.env.OPENAI_API_KEY) {
@@ -60,22 +94,40 @@ const main = async () => {
     process.exit(1);
   }
 
-  const args = parseArgs();
+  const chromaUrl = args.chromaUrl || process.env.CHROMA_URL || DEFAULT_CHROMA_URL;
+  const collectionName =
+    args.collectionName ||
+    process.env.CHAT_ASSISTANT_COLLECTION ||
+    DEFAULT_COLLECTION_NAME;
+
+  process.env.CHROMA_URL = chromaUrl;
+  process.env.CHAT_ASSISTANT_COLLECTION = collectionName;
+
   const indexer = createWorkspaceIndexer({
     rootDir: projectRoot,
     chunkSize: args.chunkSize,
     chunkOverlap: args.chunkOverlap,
-    batchSize: args.batchSize,
+    chromaUrl,
+    collectionName,
+    skipDelete: args.skipDelete,
   });
 
   console.log("🔍 Building MCP embedding store...");
-  const result = await indexer.buildEmbeddingStore();
-  console.log(
-    `✅ Indexed ${result.chunks} chunks. Saved to ${path.relative(
-      projectRoot,
-      result.storePath
-    )}`
-  );
+  try {
+    const result = await indexer.buildEmbeddingStore();
+    console.log(
+      `✅ Indexed ${result.chunks} chunks into collection "${result.collectionName}" at ${result.chromaUrl}`
+    );
+  } catch (error) {
+    if (error?.code === MCP_ERROR_CODES.VECTOR_STORE_UNAVAILABLE) {
+      console.error(
+        `index-mcp-chat: Unable to reach Chroma at ${chromaUrl}. Start the vector store (e.g. 'docker compose up chroma') or set CHROMA_URL before retrying.`
+      );
+    } else {
+      console.error(`index-mcp-chat failed: ${error.message}`);
+    }
+    process.exit(1);
+  }
 };
 
 main().catch((error) => {

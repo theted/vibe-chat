@@ -12,6 +12,15 @@ services:
     networks:
       - ai-chat-network
 
+  chroma:
+    image: ghcr.io/chroma-core/chroma:latest
+    container_name: ai-chat-chroma-dev
+    restart: unless-stopped
+    networks:
+      - ai-chat-network
+    volumes:
+      - chroma-data:/chroma
+
   ai-chat-server:
     build:
       context: .
@@ -33,18 +42,20 @@ services:
       - CHAT_ASSISTANT_SCRIPT=/app/scripts/run-mcp-chat.js
       - CHAT_ASSISTANT_AUTO_INDEX=true
       - NODE_PATH=/app/server/node_modules
-      - CHAT_ASSISTANT_EMBEDDINGS_PATH=/app/.mcp-data/embeddings.json
+      - CHROMA_URL=http://chroma:8000
+      - CHAT_ASSISTANT_COLLECTION=ai-chat-workspace
     volumes:
       - ./packages/server/src:/app/server/src
       - ./packages/ai-chat-core/src:/app/ai-chat-core/src
       - ./packages/server/package.json:/app/server/package.json
       - ../scripts:/app/scripts:ro
-      - ./packages/mcp-assistant:/app/mcp-assistant:ro
+      - ./packages/mcp-assistant/src:/app/mcp-assistant/src:ro
     restart: unless-stopped
     networks:
       - ai-chat-network
     depends_on:
       - redis
+      - chroma
 
   ai-chat-client:
     build:
@@ -72,3 +83,4 @@ networks:
 
 volumes:
   redis-data:
+  chroma-data:

@@ -3,6 +3,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import {
   createLocalCodeMcpServer,
+  MCP_ERROR_CODES,
 } from "@ai-chat/mcp-assistant";
 import { createWorkspaceIndexer } from "@ai-chat/mcp-assistant/indexer";
 
@@ -40,18 +41,12 @@ const findWorkspaceRoot = (startDir) => {
   return null;
 };
 
-const resolveDefaultConfig = (options = {}) => {
+const resolveWorkspaceRoot = (options = {}) => {
   const moduleDir = path.dirname(fileURLToPath(import.meta.url));
-  const envScript = process.env.CHAT_ASSISTANT_SCRIPT;
   const envRoot = process.env.CHAT_ASSISTANT_ROOT;
 
-  const explicitScript =
-    options.scriptPath ||
-    (envScript ? envScript.trim() : null);
-
   const explicitRoot =
-    options.projectRoot ||
-    (envRoot ? envRoot.trim() : null);
+    options.projectRoot || (envRoot ? envRoot.trim() : null);
 
   const resolvedProject =
     (explicitRoot && path.resolve(explicitRoot)) ||
@@ -59,36 +54,21 @@ const resolveDefaultConfig = (options = {}) => {
     findWorkspaceRoot(process.cwd());
 
   if (!resolvedProject) {
-    return {
-      projectRoot: moduleDir,
-      scriptPath: options.scriptPath
-        ? path.isAbsolute(options.scriptPath)
-          ? options.scriptPath
-          : path.resolve(moduleDir, options.scriptPath)
-        : path.join(moduleDir, "../../../scripts/run-mcp-chat.js"),
-      unresolved: true,
-    };
+    return { projectRoot: moduleDir, unresolved: true };
   }
 
-  const scriptPath = explicitScript
-    ? path.isAbsolute(explicitScript)
-      ? explicitScript
-      : path.resolve(resolvedProject, explicitScript)
-    : path.join(resolvedProject, "scripts", "run-mcp-chat.js");
-
-  return { projectRoot: resolvedProject, scriptPath, unresolved: false };
+  return { projectRoot: resolvedProject, unresolved: false };
 };
 
 export class ChatAssistantService {
   constructor(options = {}) {
     const {
       mentionName = "Chat",
-      scriptPath,
       projectRoot,
       timeoutMs = 15_000,
     } = options;
 
-    const resolved = resolveDefaultConfig({ scriptPath, projectRoot });
+    const resolved = resolveWorkspaceRoot({ projectRoot });
 
     this.name = mentionName;
     this.displayName = `@${mentionName}`;
@@ -98,53 +78,60 @@ export class ChatAssistantService {
     this.timeoutMs = timeoutMs;
     this.mentionRegex = new RegExp(`@${mentionName}\\b`, "i");
     this.configUnresolved = resolved.unresolved;
-    this.scriptPath = resolved.scriptPath;
-    this.embeddingStorePath = process.env.CHAT_ASSISTANT_EMBEDDINGS_PATH
-      ? path.resolve(process.env.CHAT_ASSISTANT_EMBEDDINGS_PATH)
-      : undefined;
     this.autoIndex =
-      String(process.env.CHAT_ASSISTANT_AUTO_INDEX || "").toLowerCase() ===
-      "true";
+      String(process.env.CHAT_ASSISTANT_AUTO_INDEX || "")
+        .toLowerCase()
+        .trim() === "true";
+
+    this.chromaUrl = process.env.CHROMA_URL || "http://localhost:8000";
+    this.collectionName =
+      process.env.CHAT_ASSISTANT_COLLECTION || "ai-chat-workspace";
+
     this.server = null;
     this.indexPromise = null;
+    this.vectorStoreReachable = null;
+    this.collectionReady = null;
+    this.vectorStoreError = null;
   }
 
   async initialise() {
     if (this.configUnresolved) {
       throw new Error(
-        "Unable to locate MCP scripts directory automatically. Set CHAT_ASSISTANT_SCRIPT or CHAT_ASSISTANT_ROOT environment variables to point at the repository scripts."
+        "Unable to locate project root. Set CHAT_ASSISTANT_ROOT or provide projectRoot explicitly."
       );
     }
 
     this.server = createLocalCodeMcpServer({
       rootDir: this.projectRoot,
-      embeddingStorePath: this.embeddingStorePath,
+      chromaUrl: this.chromaUrl,
+      collectionName: this.collectionName,
       openAiApiKey: process.env.OPENAI_API_KEY,
     });
 
     try {
-      await this.server.ensureEmbeddingStore();
-      console.info(
-        `[ChatAssistant] Initialised RAG store at ${path.relative(
-          this.projectRoot,
-          this.server.embeddingStorePath
-        )}`
-      );
-    } catch (error) {
-      console.warn(
-        `[ChatAssistant] Unable to load embedding store: ${error.message}`
-      );
-      if (this.autoIndex && !this.indexPromise) {
-        this.indexPromise = this.buildEmbeddings()
-          .catch((indexError) => {
+      const { collectionReady } = await this.ensureVectorStoreAvailability();
+
+      if (!collectionReady && this.autoIndex && this.vectorStoreReachable) {
+        this.indexPromise = this.buildIndex()
+          .catch((error) => {
             console.warn(
-              `[ChatAssistant] Auto-index failed: ${indexError.message}`
+              `[ChatAssistant] Auto-index failed: ${error.message}`
             );
             return null;
           })
           .finally(() => {
             this.indexPromise = null;
           });
+      }
+    } catch (error) {
+      if (error?.code === MCP_ERROR_CODES.VECTOR_STORE_UNAVAILABLE) {
+        console.warn(
+          `[ChatAssistant] Vector store unreachable (${error.message}). @Chat will respond with setup guidance until the index becomes available.`
+        );
+      } else {
+        console.warn(
+          `[ChatAssistant] Unable to verify vector store availability: ${error.message}`
+        );
       }
     }
   }
@@ -177,6 +164,7 @@ export class ChatAssistantService {
       const target = roomId ? emitter.to(roomId) : emitter;
       target.emit(event, { roomId, ...payload });
     };
+
     const question = this.extractQuestion(content);
     if (!question) {
       return null;
@@ -189,8 +177,14 @@ export class ChatAssistantService {
         throw new Error("assistant not initialised");
       }
 
-      if (!this.server.hasEmbeddingStore()) {
-        await this.ensureEmbeddings();
+      if (this.indexPromise) {
+        try {
+          await this.indexPromise;
+        } catch (error) {
+          console.warn(
+            `[ChatAssistant] Background indexing failed: ${error.message}`
+          );
+        }
       }
 
       emitTyping("ai-generating-start", {
@@ -199,7 +193,51 @@ export class ChatAssistantService {
         alias: this.alias,
       });
 
-      const { answer } = await this.server.answerQuestion(question);
+      await this.ensureVectorStoreAvailability();
+      if (this.vectorStoreReachable === false) {
+        emitTyping("ai-generating-stop", {
+          aiId: "internal_chat_assistant",
+        });
+        return {
+          question,
+          answer: [
+            "I can't reach the shared knowledge index right now.",
+            `Check that the Chroma service is running at ${this.chromaUrl} and try re-indexing with \`node scripts/index-mcp-chat.js\`.`,
+          ].join(" "),
+        };
+      }
+
+      let result = await this.server.answerQuestion(question);
+
+      if (
+        this.autoIndex &&
+        (!result.contexts || result.contexts.length === 0) &&
+        !this.indexPromise &&
+        this.vectorStoreReachable
+      ) {
+        this.indexPromise = this.buildIndex()
+          .catch((error) => {
+            console.warn(
+              `[ChatAssistant] Auto-index failed: ${error.message}`
+            );
+            return null;
+          })
+          .finally(() => {
+            this.indexPromise = null;
+          });
+
+        try {
+          await this.indexPromise;
+          await this.ensureVectorStoreAvailability();
+          if (this.vectorStoreReachable) {
+            result = await this.server.answerQuestion(question);
+          }
+        } catch (error) {
+          console.warn(
+            `[ChatAssistant] Failed to rebuild vector index: ${error.message}`
+          );
+        }
+      }
 
       emitTyping("ai-generating-stop", {
         aiId: "internal_chat_assistant",
@@ -208,20 +246,20 @@ export class ChatAssistantService {
       return {
         question,
         answer:
-          answer ||
+          result.answer ||
           `I looked for "${question}" but did not find any relevant code snippets.`,
-        error: null,
+        contexts: result.contexts || [],
+        error: result.error || null,
       };
     } catch (error) {
       emitTyping("ai-generating-stop", {
         aiId: "internal_chat_assistant",
       });
-      const failure = {
+      return {
         question,
         answer: `I tried to look up "${question}" but ran into an issue (${error.message}).`,
         error,
       };
-      return failure;
     }
   }
 
@@ -240,63 +278,64 @@ export class ChatAssistantService {
     return cleaned || null;
   }
 
-  async ensureEmbeddings() {
-    if (this.server?.hasEmbeddingStore()) {
-      return;
-    }
-    if (this.indexPromise) {
-      try {
-        await this.indexPromise;
-      } catch {
-        // ignore here; failure handled below
-      }
-      if (this.server?.hasEmbeddingStore()) {
-        return;
-      }
-    }
+  async buildIndex() {
+    await this.ensureVectorStoreAvailability({ throwOnUnavailable: true });
 
-    if (this.autoIndex && !this.indexPromise) {
-      this.indexPromise = this.buildEmbeddings()
-        .catch((error) => {
-          console.warn(`[ChatAssistant] Auto-index failed: ${error.message}`);
-          return null;
-        })
-        .finally(() => {
-          this.indexPromise = null;
-        });
+    const indexer = createWorkspaceIndexer({
+      rootDir: this.projectRoot,
+      chromaUrl: this.chromaUrl,
+      collectionName: this.collectionName,
+    });
 
-      try {
-        await this.indexPromise;
-      } catch {
-        // handled below
-      }
-
-      if (this.server?.hasEmbeddingStore()) {
-        return;
-      }
-    }
-
-    throw new Error(
-      "Embedding store missing. Run node scripts/index-mcp-chat.js to build it."
+    const result = await indexer.buildEmbeddingStore();
+    console.info(
+      `[ChatAssistant] Indexed ${result.chunks} chunks into "${result.collectionName}" at ${result.chromaUrl}`
     );
+
+    await this.server.ensureCollection();
+    this.vectorStoreReachable = true;
+    this.collectionReady = true;
+    this.vectorStoreError = null;
   }
 
-  async buildEmbeddings() {
+  async ensureVectorStoreAvailability(options = {}) {
+    if (!this.server) {
+      this.vectorStoreReachable = false;
+      this.collectionReady = false;
+      this.vectorStoreError = new Error("assistant not initialised");
+      if (options.throwOnUnavailable) {
+        throw this.vectorStoreError;
+      }
+      return {
+        reachable: false,
+        collectionReady: false,
+        error: this.vectorStoreError,
+      };
+    }
+
     try {
-      console.info("[ChatAssistant] Building embedding store on-demand...");
-      const indexer = createWorkspaceIndexer({
-        rootDir: this.projectRoot,
-        embeddingStorePath: this.embeddingStorePath,
-      });
-      const result = await indexer.buildEmbeddingStore();
-      console.info(
-        `[ChatAssistant] Indexed ${result.chunks} chunks -> ${path.relative(
-          this.projectRoot,
-          result.storePath
-        )}`
-      );
-      await this.server.ensureEmbeddingStore();
+      const exists = await this.server.ensureCollection();
+      this.vectorStoreReachable = true;
+      this.collectionReady = Boolean(exists);
+      this.vectorStoreError = null;
+      return {
+        reachable: true,
+        collectionReady: this.collectionReady,
+      };
     } catch (error) {
+      if (error?.code === MCP_ERROR_CODES.VECTOR_STORE_UNAVAILABLE) {
+        this.vectorStoreReachable = false;
+        this.collectionReady = false;
+        this.vectorStoreError = error;
+        if (options.throwOnUnavailable) {
+          throw error;
+        }
+        return {
+          reachable: false,
+          collectionReady: false,
+          error,
+        };
+      }
       throw error;
     }
   }

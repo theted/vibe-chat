@@ -1,345 +1,260 @@
-import fs from "fs/promises";
-import { existsSync } from "fs";
 import path from "path";
-import { OpenAI } from "openai";
+import { ChromaClient } from "chromadb";
+import { OpenAIEmbeddings } from "@langchain/openai";
+import { ChatOpenAI } from "@langchain/openai";
 
-const DEFAULT_IGNORE_DIRS = new Set(["node_modules", ".git"]);
-const DEFAULT_IGNORE_FILES = new Set([".env"]);
-const DEFAULT_ALLOWED_EXTENSIONS = new Set([
-  ".js",
-  ".mjs",
-  ".cjs",
-  ".ts",
-  ".json",
-  ".md",
-]);
-
-const DEFAULT_MAX_FILE_SIZE = 512 * 1024;
+const DEFAULT_COLLECTION_NAME = "ai-chat-workspace";
+const DEFAULT_CHROMA_URL = "http://localhost:8000";
 const DEFAULT_EMBEDDING_MODEL = "text-embedding-3-small";
 const DEFAULT_COMPLETION_MODEL = "gpt-4o-mini";
-const DEFAULT_EMBEDDING_STORE = ".mcp-data/embeddings.json";
 
-const ensureArray = (maybeArray) =>
-  Array.isArray(maybeArray) ? maybeArray : [maybeArray];
+const VECTOR_STORE_UNAVAILABLE_CODE = "E_VECTOR_STORE_UNAVAILABLE";
+const EMBEDDING_STORE_MISSING_CODE = "E_EMBEDDING_STORE_MISSING";
 
-const toFloatArray = (vector) => Float32Array.from(vector);
-
-const vectorNorm = (vector) => {
-  let sum = 0;
-  for (let i = 0; i < vector.length; i += 1) {
-    sum += vector[i] * vector[i];
-  }
-  return Math.sqrt(sum);
+const buildSourceLabel = (metadata, index) => {
+  if (!metadata) return `[${index + 1}]`;
+  const base = metadata.relativePath || metadata.path || "unknown";
+  const lineInfo =
+    metadata.startLine && metadata.endLine
+      ? `:${metadata.startLine}-${metadata.endLine}`
+      : "";
+  return `[${index + 1}] ${base}${lineInfo}`;
 };
 
-const cosineSimilarity = (a, b, normA, normB) => {
-  if (a.length !== b.length) {
-    throw new Error("Embedding vector sizes do not match.");
-  }
-
-  let dot = 0;
-  for (let i = 0; i < a.length; i += 1) {
-    dot += a[i] * b[i];
-  }
-  const denom = normA * normB;
-  return denom === 0 ? 0 : dot / denom;
-};
-
-export class LocalCodeMcpServer {
+export class LangChainMcpServer {
   constructor(options = {}) {
     const {
       rootDir = process.cwd(),
-      ignoreDirs = DEFAULT_IGNORE_DIRS,
-      ignoreFiles = DEFAULT_IGNORE_FILES,
-      allowedExtensions = DEFAULT_ALLOWED_EXTENSIONS,
-      maxFileSize = DEFAULT_MAX_FILE_SIZE,
+      chromaUrl = process.env.CHROMA_URL || DEFAULT_CHROMA_URL,
+      collectionName =
+        process.env.CHAT_ASSISTANT_COLLECTION || DEFAULT_COLLECTION_NAME,
       embeddingModel = DEFAULT_EMBEDDING_MODEL,
       completionModel = DEFAULT_COMPLETION_MODEL,
-      embeddingStorePath = DEFAULT_EMBEDDING_STORE,
       openAiApiKey = process.env.OPENAI_API_KEY,
     } = options;
 
-    if (!rootDir) {
-      throw new Error("rootDir is required to initialise LocalCodeMcpServer.");
+    if (!openAiApiKey) {
+      throw new Error(
+        "OPENAI_API_KEY is required to initialise LangChainMcpServer."
+      );
     }
 
     this.rootDir = path.resolve(rootDir);
-    this.ignoreDirs = new Set(ignoreDirs);
-    this.ignoreFiles = new Set(ignoreFiles);
-    this.allowedExtensions = new Set(allowedExtensions);
-    this.maxFileSize = maxFileSize;
+    this.chromaUrl = chromaUrl;
+    this.collectionName = collectionName;
     this.embeddingModel = embeddingModel;
     this.completionModel = completionModel;
-    this.embeddingStorePath = path.isAbsolute(embeddingStorePath)
-      ? embeddingStorePath
-      : path.resolve(this.rootDir, embeddingStorePath);
     this.openAiApiKey = openAiApiKey;
 
-    this.embeddingStore = null;
-    this.openAiClient = null;
-  }
-
-  isPathAllowed(relativePath, { isDirectory = false } = {}) {
-    if (!relativePath || relativePath.startsWith("..")) {
-      return false;
-    }
-
-    const segments = relativePath.split(path.sep);
-    if (segments.some((segment) => this.ignoreDirs.has(segment))) {
-      return false;
-    }
-
-    if (segments.some((segment) => this.ignoreFiles.has(segment))) {
-      return false;
-    }
-
-    if (!isDirectory) {
-      const ext = path.extname(relativePath);
-      if (ext && !this.allowedExtensions.has(ext)) {
-        return false;
-      }
-      const basename = path.basename(relativePath);
-      if (this.ignoreFiles.has(basename)) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  async listResources() {
-    const resources = [];
-    await this.#walkDirectory(this.rootDir, resources);
-    return resources;
-  }
-
-  async #walkDirectory(currentDir, resources) {
-    const entries = await fs.readdir(currentDir, { withFileTypes: true });
-    for (const entry of entries) {
-      const absolutePath = path.join(currentDir, entry.name);
-      const relativePath = path.relative(this.rootDir, absolutePath);
-      const isDirectory = entry.isDirectory();
-
-      if (!this.isPathAllowed(relativePath, { isDirectory })) {
-        continue;
-      }
-
-      if (isDirectory) {
-        await this.#walkDirectory(absolutePath, resources);
-        continue;
-      }
-
-      const stats = await fs.stat(absolutePath);
-      if (stats.size > this.maxFileSize) {
-        continue;
-      }
-
-      resources.push({
-        relativePath,
-        size: stats.size,
-        modifiedAt: stats.mtime.toISOString(),
-      });
-    }
-  }
-
-  async readResource(relativePath) {
-    if (!this.isPathAllowed(relativePath)) {
-      throw new Error(`Access to ${relativePath} is not permitted.`);
-    }
-
-    const absolutePath = path.join(this.rootDir, relativePath);
-    const stats = await fs.stat(absolutePath);
-    if (!stats.isFile()) {
-      throw new Error(`Resource ${relativePath} is not a regular file.`);
-    }
-
-    if (stats.size > this.maxFileSize) {
-      throw new Error(`Resource ${relativePath} exceeds maximum readable size.`);
-    }
-
-    return fs.readFile(absolutePath, "utf8");
-  }
-
-  async loadEmbeddingStore() {
-    if (!existsSync(this.embeddingStorePath)) {
-      throw new Error(
-        `Embedding store not found at ${this.embeddingStorePath}. Run the indexing script first.`
-      );
-    }
-
-    const raw = await fs.readFile(this.embeddingStorePath, "utf8");
-    const parsed = JSON.parse(raw);
-    const chunks = parsed.chunks || [];
-
-    const processedChunks = chunks.map((chunk) => {
-      const vector = toFloatArray(chunk.embedding);
-      const norm = chunk.embeddingNorm || vectorNorm(vector);
-      return {
-        ...chunk,
-        embedding: vector,
-        embeddingNorm: norm,
-      };
+    this.client = new ChromaClient({ path: this.chromaUrl });
+    this.embeddings = new OpenAIEmbeddings({
+      apiKey: this.openAiApiKey,
+      model: this.embeddingModel,
     });
 
-    this.embeddingStore = {
-      ...parsed,
-      chunks: processedChunks,
-    };
-
-    return this.embeddingStore;
+    this.llm = new ChatOpenAI({
+      apiKey: this.openAiApiKey,
+      model: this.completionModel,
+      temperature: 0.2,
+    });
   }
 
-  hasEmbeddingStore() {
-    return this.embeddingStore !== null;
+  static #isMissingCollection(error) {
+    const message = (error?.message || "").toLowerCase();
+    if (!message.includes("collection")) {
+      return false;
+    }
+    return message.includes("not found") || message.includes("does not exist");
+  }
+
+  static #isUnavailable(error) {
+    const codes = new Set([
+      "ECONNREFUSED",
+      "ECONNRESET",
+      "ENOTFOUND",
+      "EAI_AGAIN",
+      "ETIMEDOUT",
+      "ECONNABORTED",
+    ]);
+    const errorCode = error?.code || error?.cause?.code;
+    if (errorCode && codes.has(errorCode)) {
+      return true;
+    }
+
+    const message = (error?.message || "").toLowerCase();
+    if (!message) {
+      return false;
+    }
+
+    return (
+      message.includes("failed to fetch") ||
+      message.includes("connect") ||
+      message.includes("bad gateway") ||
+      message.includes("fetch error") ||
+      message.includes("timeout") ||
+      message.includes("econn")
+    );
+  }
+
+  static #unavailableError(chromaUrl, originalError) {
+    const error = new Error(
+      `Unable to reach Chroma vector store at ${chromaUrl}. Ensure the service is running and reachable.`
+    );
+    error.code = VECTOR_STORE_UNAVAILABLE_CODE;
+    error.cause = originalError;
+    return error;
+  }
+
+  async ensureCollection() {
+    try {
+      const collection = await this.client.getCollection({
+        name: this.collectionName,
+      });
+      await collection.count();
+      return true;
+    } catch (error) {
+      if (LangChainMcpServer.#isMissingCollection(error)) {
+        console.warn(
+          `[MCP] Chroma collection "${this.collectionName}" not found yet. Run the indexing script to populate it.`
+        );
+        return false;
+      }
+
+      if (LangChainMcpServer.#isUnavailable(error)) {
+        throw LangChainMcpServer.#unavailableError(this.chromaUrl, error);
+      }
+
+      throw error;
+    }
   }
 
   async ensureEmbeddingStore() {
-    if (this.embeddingStore) {
-      return this.embeddingStore;
-    }
-    return this.loadEmbeddingStore();
-  }
-
-  ensureOpenAIClient() {
-    if (this.openAiClient) {
-      return this.openAiClient;
-    }
-    if (!this.openAiApiKey) {
-      throw new Error(
-        "OPENAI_API_KEY is required to perform embeddings or completions."
+    const exists = await this.ensureCollection();
+    if (!exists) {
+      const error = new Error(
+        `Embedding store "${this.collectionName}" not found at ${this.chromaUrl}. Run the indexing script first.`
       );
+      error.code = EMBEDDING_STORE_MISSING_CODE;
+      throw error;
     }
-    this.openAiClient = new OpenAI({ apiKey: this.openAiApiKey });
-    return this.openAiClient;
-  }
-
-  async embedText(text) {
-    const client = this.ensureOpenAIClient();
-    const response = await client.embeddings.create({
-      model: this.embeddingModel,
-      input: ensureArray(text),
-    });
-
-    const embeddings = response.data.map((item) => toFloatArray(item.embedding));
-    return embeddings.length === 1 ? embeddings[0] : embeddings;
-  }
-
-  async getRelevantChunks(question, options = {}) {
-    const { topK = 6 } = options;
-    const store = await this.ensureEmbeddingStore();
-    if (!store || !store.chunks || store.chunks.length === 0) {
-      return [];
-    }
-
-    const queryEmbedding = await this.embedText(question);
-    const queryNorm = vectorNorm(queryEmbedding);
-
-    const scored = store.chunks.map((chunk) => ({
-      ...chunk,
-      score: cosineSimilarity(
-        queryEmbedding,
-        chunk.embedding,
-        queryNorm,
-        chunk.embeddingNorm
-      ),
-    }));
-
-    scored.sort((a, b) => b.score - a.score);
-    return scored.slice(0, topK);
+    return true;
   }
 
   async answerQuestion(question, options = {}) {
-    const {
-      topK = 5,
-      minScore = 0.15,
-      fallbackToSummary = true,
-      includeSnippets = true,
-    } = options;
+    const { topK = 5 } = options;
 
-    const relevantChunks = await this.getRelevantChunks(question, { topK });
-    const pruned = relevantChunks.filter((chunk) => chunk.score >= minScore);
+    let collection;
+    try {
+      collection = await this.client.getCollection({
+        name: this.collectionName,
+      });
+    } catch (error) {
+      if (LangChainMcpServer.#isMissingCollection(error)) {
+        return {
+          answer:
+            "I could not find an indexed knowledge base. Run `node scripts/index-mcp-chat.js` to build it, then ask again.",
+          contexts: [],
+        };
+      }
+      if (LangChainMcpServer.#isUnavailable(error)) {
+        throw LangChainMcpServer.#unavailableError(this.chromaUrl, error);
+      }
+      throw error;
+    }
 
-    if (pruned.length === 0) {
+    let queryResult;
+    try {
+      const queryEmbedding = await this.embeddings.embedQuery(question);
+      queryResult = await collection.query({
+        queryEmbeddings: [queryEmbedding],
+        nResults: topK,
+        include: ["metadatas", "documents", "distances"],
+      });
+    } catch (error) {
+      if (LangChainMcpServer.#isUnavailable(error)) {
+        throw LangChainMcpServer.#unavailableError(this.chromaUrl, error);
+      }
+      throw error;
+    }
+
+    const documents = queryResult.documents?.[0] || [];
+    const metadatas = queryResult.metadatas?.[0] || [];
+    const distances = queryResult.distances?.[0] || [];
+
+    if (!documents.length) {
       return {
-        answer: `I could not find any indexed code related to "${question}".`,
+        answer: `I could not find indexed code related to "${question}".`,
         contexts: [],
       };
     }
 
-    const contexts = pruned.map((chunk, index) => ({
-      id: index + 1,
-      relativePath: chunk.relativePath,
-      startLine: chunk.startLine,
-      endLine: chunk.endLine,
-      content: chunk.content,
-      score: chunk.score,
-    }));
+    const contexts = documents.map((content, index) => {
+      const metadata = metadatas[index] || {};
+      const distance = distances[index];
+      return {
+        id: index + 1,
+        relativePath: metadata.relativePath || metadata.path || "unknown",
+        startLine: metadata.startLine || null,
+        endLine: metadata.endLine || null,
+        content,
+        score:
+          typeof distance === "number" ? Number(distance) : metadata.score || null,
+      };
+    });
 
-    let answer = null;
-    if (fallbackToSummary) {
-      try {
-        answer = await this.generateSummaryFromContexts(question, contexts);
-      } catch (error) {
-        answer = null;
-      }
-    }
-
-    if (!answer && includeSnippets) {
-      const lines = contexts.map(
-        (ctx) =>
-          `- [${ctx.id}] ${ctx.relativePath}:${ctx.startLine} – ${ctx.content
-            .replace(/\s+/g, " ")
-            .trim()
-            .slice(0, 160)}`
-      );
-      answer = [
-        `Relevant code snippets for "${question}":`,
-        ...lines,
-      ].join("\n");
-    }
-
-    return {
-      answer,
-      contexts,
-    };
-  }
-
-  async generateSummaryFromContexts(question, contexts = []) {
-    if (contexts.length === 0) {
-      return null;
-    }
-
-    const client = this.ensureOpenAIClient();
-    const contextBlocks = contexts
-      .map(
-        (ctx) =>
-          `[${ctx.id}] File: ${ctx.relativePath} (lines ${ctx.startLine}-${ctx.endLine})\n${ctx.content}`
-      )
+    const contextBlock = contexts
+      .map((ctx, idx) => {
+        const label = buildSourceLabel(ctx, idx);
+        return `${label}\n${ctx.content}`;
+      })
       .join("\n\n");
 
-    const messages = [
+    const promptMessages = [
       {
         role: "system",
         content:
-          "You are an internal code assistant. Answer the user's question using ONLY the provided context snippets. Reference snippets as [id] when citing them. If context is insufficient, say so explicitly.",
+          "You are an internal engineering assistant with access to the project's source code. Answer the user's question using only the provided context snippets. Reference sources using the format [id]. If the context is insufficient, say so explicitly.",
       },
       {
         role: "user",
-        content: `Question: ${question}\n\nContext:\n${contextBlocks}\n\nAnswer:`,
+        content: `Question: ${question}\n\nContext:\n${contextBlock}\n\nAnswer:`,
       },
     ];
 
-    const response = await client.chat.completions.create({
-      model: this.completionModel,
-      messages,
-      temperature: 0.2,
-      max_tokens: 500,
-    });
+    let answerText = null;
+    try {
+      const completion = await this.llm.invoke(promptMessages);
+      answerText = completion?.content?.toString()?.trim() || null;
+    } catch (error) {
+      answerText = null;
+      console.warn(`[MCP] Failed to generate summary answer: ${error.message}`);
+    }
 
-    const choice = response.choices?.[0]?.message?.content;
-    return choice?.trim() || null;
+    if (!answerText) {
+      const fallback = [
+        `Here are the most relevant code snippets related to "${question}":`,
+        ...contexts.map(
+          (ctx, idx) =>
+            `- ${buildSourceLabel(ctx, idx)} – ${ctx.content
+              .replace(/\s+/g, " ")
+              .trim()
+              .slice(0, 200)}`
+        ),
+      ].join("\n");
+      answerText = fallback;
+    }
+
+    return {
+      answer: answerText,
+      contexts,
+    };
   }
 }
 
 export const createLocalCodeMcpServer = (options = {}) =>
-  new LocalCodeMcpServer(options);
+  new LangChainMcpServer(options);
+
+export const MCP_ERROR_CODES = {
+  VECTOR_STORE_UNAVAILABLE: VECTOR_STORE_UNAVAILABLE_CODE,
+  EMBEDDING_STORE_MISSING: EMBEDDING_STORE_MISSING_CODE,
+};

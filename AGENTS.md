@@ -11,7 +11,7 @@ Welcome! This document gives automated agents and humans a quick reference for h
 - `/ai-chat-realtime/` – Git sub-package that exposes the `@ai-chat/core` dependency used by the app. Contains Docker tooling, deployment scripts, and additional packages.
 - `/ai-chat-realtime/packages/mcp-assistant/` – Local MCP server package that powers the internal @Chat assistant.
 - `/scripts/` – Workspace scripts, including the MCP generation driver.
-- `/.mcp-data/` – Generated embedding cache for the MCP assistant (run `node scripts/index-mcp-chat.js` to refresh). This directory is ignored by git.
+- `/.mcp-data/` (legacy) – Previous on-disk embedding cache. The new LangChain/Chroma setup stores vectors in the `chroma` Docker volume; this folder can be ignored or deleted if present.
 - `/play.js` – Scratchpad for manual experiments; avoid shipping critical logic here.
 
 If you add new folders, extend this list so future contributors (and agents) stay oriented.
