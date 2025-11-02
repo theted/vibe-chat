@@ -721,7 +721,31 @@ Respond naturally and keep the conversation flowing!`;
     let shouldMention = false;
     let targetAI = null;
 
-    if (mentionsCurrentAI) {
+    const mentionCandidateRaw =
+      lastMessage?.alias ||
+      lastMessage?.displayName ||
+      lastMessage?.sender ||
+      "";
+    const mentionCandidate = mentionCandidateRaw.trim();
+    const shouldMentionUser =
+      isUserResponse &&
+      lastMessage?.senderType === "user" &&
+      mentionCandidate.length > 0;
+
+    if (shouldMentionUser) {
+      const cleanedAlias = mentionCandidate.startsWith("@")
+        ? mentionCandidate.slice(1)
+        : mentionCandidate;
+
+      if (cleanedAlias.length > 0) {
+        shouldMention = true;
+        targetAI = {
+          type: "user",
+          alias: cleanedAlias,
+          displayName: lastMessage.displayName || cleanedAlias,
+        };
+      }
+    } else if (mentionsCurrentAI) {
       if (lastMessage?.senderType === "ai") {
         const sourceAI = this.findAIFromContextMessage(lastMessage);
         if (sourceAI && sourceAI.id !== aiService.id) {
@@ -863,18 +887,40 @@ Respond naturally and keep the conversation flowing!`;
       return response;
     }
 
-    const normalizedTarget = normalizeAlias(targetAI);
-    const targetService = this.findAIByNormalizedAlias(normalizedTarget);
-    const mentionAlias =
-      this.getMentionTokenForAI(targetService) || toMentionAlias(targetAI);
+    let mentionHandle = "";
 
-    if (!mentionAlias) {
-      return response;
+    if (typeof targetAI === "object") {
+      const aliasSourceRaw =
+        (targetAI.alias && targetAI.alias.toString()) ||
+        (targetAI.displayName && targetAI.displayName.toString()) ||
+        "";
+      const aliasSource = aliasSourceRaw.trim();
+
+      if (!aliasSource) {
+        return response;
+      }
+
+      mentionHandle = aliasSource.startsWith("@")
+        ? aliasSource
+        : `@${aliasSource}`;
+    } else {
+      const normalizedTarget = normalizeAlias(targetAI);
+      const targetService = this.findAIByNormalizedAlias(normalizedTarget);
+      const mentionAlias =
+        this.getMentionTokenForAI(targetService) || toMentionAlias(targetAI);
+
+      if (!mentionAlias) {
+        return response;
+      }
+
+      mentionHandle = mentionAlias.startsWith("@")
+        ? mentionAlias
+        : `@${mentionAlias}`;
     }
 
-    const mentionHandle = mentionAlias.startsWith("@")
-      ? mentionAlias
-      : `@${mentionAlias}`;
+    if (!mentionHandle.trim()) {
+      return response;
+    }
 
     if (response.includes(mentionHandle)) {
       return response;
