@@ -21,7 +21,7 @@
         { "name": "CONVERSATION_TIMEOUT_MS", "value": "300000" },
         {
           "name": "CLIENT_URL",
-          "value": "http://ec2-54-76-204-166.eu-west-1.compute.amazonaws.com"
+          "value": "https://vibe-chat.sundbergsolutions.se"
         }
       ],
       "secrets": [
