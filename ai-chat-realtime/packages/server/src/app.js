@@ -72,26 +72,14 @@ const AI_DISPLAY_INFO = {
   },
 };
 
-const originEnv = process.env.CLIENT_URL || "*";
-let allowedOrigins;
-if (originEnv.trim() === "*" || originEnv.trim() === "") {
-  allowedOrigins = "*";
-} else {
-  allowedOrigins = originEnv
-    .split(",")
-    .map((value) => value.trim())
-    .filter(Boolean);
-  if (allowedOrigins.length === 0) {
-    allowedOrigins = "*";
-  }
-}
+const allowedOrigins = "*";
 
 const app = express();
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
     origin: allowedOrigins,
-    credentials: allowedOrigins !== "*",
+    credentials: false,
     methods: ["GET", "POST"],
   },
 });
@@ -99,16 +87,7 @@ const io = new Server(server, {
 const PORT = process.env.PORT || 3001;
 
 // Middleware
-if (allowedOrigins === "*") {
-  app.use(cors());
-} else {
-    app.use(
-      cors({
-        origin: allowedOrigins,
-        credentials: true,
-      })
-    );
-}
+app.use(cors());
 app.use(express.json());
 
 // Determine client build directory for serving static assets in production
