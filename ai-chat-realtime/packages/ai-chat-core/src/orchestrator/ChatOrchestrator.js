@@ -891,8 +891,8 @@ Respond naturally and keep the conversation flowing!`;
 
     if (typeof targetAI === "object") {
       const aliasSourceRaw =
-        (targetAI.alias && targetAI.alias.toString()) ||
         (targetAI.displayName && targetAI.displayName.toString()) ||
+        (targetAI.alias && targetAI.alias.toString()) ||
         "";
       const aliasSource = aliasSourceRaw.trim();
 
