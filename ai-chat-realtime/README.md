@@ -151,10 +151,13 @@ GROK_API_KEY=your_key
 NODE_ENV=production
 PORT=3001
 CLIENT_URL=https://your-domain.com
+CLIENT_BUILD_DIR=/path/to/client/dist  # Optional: serve built frontend from server
 
 # Client Config  
 VITE_SERVER_URL=https://api.your-domain.com
 ```
+
+Set `CLIENT_BUILD_DIR` if you want the Express server to serve the pre-built frontend bundle (defaults to `packages/client/dist` when present). The server falls back to API-only mode when the directory is missing.
 
 ### AI Settings
 

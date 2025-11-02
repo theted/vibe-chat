@@ -32,7 +32,7 @@ export const ANTHROPIC = {
       maxTokens: DEFAULT_MAX_TOKENS,
       temperature: DEFAULT_TEMPERATURE,
       systemPrompt:
-        "You are Claude 3.5 Haiku by Anthropic. Provide thoughtful responses that are 3-5 sentences long.",
+        "You are Claude 3.5 Haiku by Anthropic. Provide thoughtful, well-developed responses and match the level of detail requested.",
     },
     CLAUDE_SONNET_4: {
       id: "claude-sonnet-4-20250514",

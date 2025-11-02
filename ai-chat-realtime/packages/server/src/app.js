@@ -8,6 +8,9 @@ import { createServer } from "http";
 import { Server } from "socket.io";
 import cors from "cors";
 import dotenv from "dotenv";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 import { ChatOrchestrator } from "@ai-chat/core";
 import { SocketController } from "./controllers/SocketController.js";
 import { MetricsService } from "./services/MetricsService.js";
@@ -98,6 +101,38 @@ app.use(
   })
 );
 app.use(express.json());
+
+// Determine client build directory for serving static assets in production
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const defaultClientBuildDir = path.resolve(
+  __dirname,
+  "../../client/dist"
+);
+const clientBuildDir = process.env.CLIENT_BUILD_DIR
+  ? path.resolve(process.env.CLIENT_BUILD_DIR)
+  : defaultClientBuildDir;
+
+if (fs.existsSync(clientBuildDir)) {
+  console.info(`📦 Serving static client assets from ${clientBuildDir}`);
+  app.use(express.static(clientBuildDir));
+
+  app.get("*", (req, res, next) => {
+    if (
+      req.path.startsWith("/api") ||
+      req.path === "/health" ||
+      req.path.startsWith("/socket.io")
+    ) {
+      return next();
+    }
+
+    res.sendFile(path.join(clientBuildDir, "index.html"));
+  });
+} else {
+  console.warn(
+    "⚠️  CLIENT_BUILD_DIR not found. Static assets will not be served by the API server."
+  );
+}
 
 // Health check endpoint
 app.get("/health", (req, res) => {
