@@ -21,7 +21,7 @@ services:
       - "3001:3001"
     environment:
       - NODE_ENV=development
-      - CLIENT_URL=http://localhost:3000
+      - CLIENT_URL=*
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
       - GROK_API_KEY=${GROK_API_KEY}
@@ -30,10 +30,16 @@ services:
       - COHERE_API_KEY=${COHERE_API_KEY}
       - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
       - REDIS_URL=redis://redis:6379
+      - CHAT_ASSISTANT_SCRIPT=/app/scripts/run-mcp-chat.js
+      - CHAT_ASSISTANT_AUTO_INDEX=true
+      - NODE_PATH=/app/server/node_modules
+      - CHAT_ASSISTANT_EMBEDDINGS_PATH=/app/.mcp-data/embeddings.json
     volumes:
       - ./packages/server/src:/app/server/src
       - ./packages/ai-chat-core/src:/app/ai-chat-core/src
       - ./packages/server/package.json:/app/server/package.json
+      - ../scripts:/app/scripts:ro
+      - ./packages/mcp-assistant:/app/mcp-assistant:ro
     restart: unless-stopped
     networks:
       - ai-chat-network

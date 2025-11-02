@@ -15,6 +15,7 @@ In addition to the Node.js CLI/orchestrator that powers model-to-model conversat
 - Automatic conversation management
 - Conversation logging and history
 - Configurable conversation parameters
+- Built-in `@Chat` code assistant powered by RAG that any participant can mention for implementation details
 - Real-time Socket.IO chat implementation with AI personas (see [`ai-chat-realtime`](./ai-chat-realtime))
 
 ## Project Variants
@@ -92,6 +93,23 @@ vibe-chat/
 ## Usage
 
 There are two modes for the Node.js orchestrator: multi-model conversation and single-prompt responses. For the browser-based experience, see [`ai-chat-realtime`](./ai-chat-realtime) for dedicated setup instructions.
+
+### MCP code lookups
+
+The internal `@Chat` assistant and the real-time app both rely on the MCP generator script. You can run it manually from the project root:
+
+```bash
+node scripts/index-mcp-chat.js   # build or refresh the embedding store (requires OPENAI_API_KEY)
+node scripts/run-mcp-chat.js --question "How are messages styled?"
+```
+
+This walks the repository (excluding `.git`, `node_modules`, and `.env`) and prints the most relevant file snippets for the question.
+
+If you run the realtime server from a different working directory (e.g., inside Docker), set either `CHAT_ASSISTANT_ROOT=/path/to/repo` or `CHAT_ASSISTANT_SCRIPT=/path/to/repo/scripts/run-mcp-chat.js` so the server can locate the generator.
+
+In the realtime Docker Compose setups we already mount the scripts plus `packages/mcp-assistant` and export `CHAT_ASSISTANT_SCRIPT=/app/scripts/run-mcp-chat.js`, `CHAT_ASSISTANT_AUTO_INDEX=true`, and `NODE_PATH=/app/server/node_modules`, so no additional configuration is required there. Embeddings are built automatically on first use when an OpenAI key is present.
+
+If you prefer to bake the embeddings into the Docker image, run `node scripts/index-mcp-chat.js` before building so the generated `.mcp-data/` directory exists in the build context—it will be copied into `/app/.mcp-data` inside the container.
 
 ### Syntax
 

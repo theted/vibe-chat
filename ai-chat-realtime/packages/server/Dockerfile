@@ -8,12 +8,19 @@ COPY packages/ai-chat-core ./ai-chat-core
 WORKDIR /app/ai-chat-core
 RUN npm install
 
+# Copy MCP assistant package
+WORKDIR /app
+COPY packages/mcp-assistant ./mcp-assistant
+
 # Switch to server directory and copy package files
 WORKDIR /app/server
 COPY packages/server/package*.json ./
 
 # Install server dependencies (this will link to the core package)
 RUN npm install
+
+# Expose node_modules for workspace packages
+RUN ln -s /app/server/node_modules /app/node_modules
 
 # Copy server source
 COPY packages/server/src ./src

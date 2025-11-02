@@ -1,0 +1,15 @@
+{
+  "name": "@ai-chat/mcp-assistant",
+  "version": "0.1.0",
+  "description": "Local code RAG helper powering the internal @Chat assistant.",
+  "type": "module",
+  "main": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./indexer": "./src/indexer.js"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "openai": "^4.52.1"
+  }
+}

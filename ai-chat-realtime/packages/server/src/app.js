@@ -15,6 +15,7 @@ import { ChatOrchestrator } from "@ai-chat/core";
 import { SocketController } from "./controllers/SocketController.js";
 import { MetricsService } from "./services/MetricsService.js";
 import { createRedisClient } from "./services/RedisClient.js";
+import { ChatAssistantService } from "./services/ChatAssistantService.js";
 
 dotenv.config();
 
@@ -71,14 +72,18 @@ const AI_DISPLAY_INFO = {
   },
 };
 
-const originEnv = process.env.CLIENT_URL || "http://localhost:3000";
-const allowedOrigins = originEnv
-  .split(",")
-  .map((value) => value.trim())
-  .filter(Boolean);
-
-if (allowedOrigins.length === 0) {
-  allowedOrigins.push("http://localhost:3000");
+const originEnv = process.env.CLIENT_URL || "*";
+let allowedOrigins;
+if (originEnv.trim() === "*" || originEnv.trim() === "") {
+  allowedOrigins = "*";
+} else {
+  allowedOrigins = originEnv
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
+  if (allowedOrigins.length === 0) {
+    allowedOrigins = "*";
+  }
 }
 
 const app = express();
@@ -86,7 +91,7 @@ const server = createServer(app);
 const io = new Server(server, {
   cors: {
     origin: allowedOrigins,
-    credentials: true,
+    credentials: allowedOrigins !== "*",
     methods: ["GET", "POST"],
   },
 });
@@ -94,12 +99,16 @@ const io = new Server(server, {
 const PORT = process.env.PORT || 3001;
 
 // Middleware
-app.use(
-  cors({
-    origin: allowedOrigins,
-    credentials: true,
-  })
-);
+if (allowedOrigins === "*") {
+  app.use(cors());
+} else {
+    app.use(
+      cors({
+        origin: allowedOrigins,
+        credentials: true,
+      })
+    );
+}
 app.use(express.json());
 
 // Determine client build directory for serving static assets in production
@@ -279,12 +288,25 @@ async function startServer() {
     await metricsService.initialize();
     global.metricsService = metricsService;
 
+    let chatAssistantService = null;
+    try {
+      chatAssistantService = new ChatAssistantService();
+      await chatAssistantService.initialise();
+      console.log("💬 Chat assistant enabled for @Chat mentions.");
+    } catch (error) {
+      chatAssistantService = null;
+      console.warn(
+        `⚠️  Chat assistant disabled: ${error.message || "initialisation failed"}`
+      );
+    }
+
     // Create socket controller
     global.socketController = new SocketController(
       io,
       chatOrchestrator,
       global.metricsService,
-      redisClient
+      redisClient,
+      { chatAssistantService }
     );
 
     // Handle Socket.IO connections

@@ -64,7 +64,8 @@ const buildSystemMessage = (cm, participant) => {
         ? "DIRECTLY RESPOND to the last message from the other participant - make this a real conversation and consider @mentioning them."
         : `Start the conversation in an engaging way and consider @mentioning one of the participants (${otherParticipants || "no others"}) to kick things off.`
     }
-6. If the conversation gets repetitive, change the direction. Feel free to pivot or reference others by name to keep energy high.${
+6. If you need details about the app itself, @mention the internal assistant as "@Chat <question>" and wait for its reply before continuing.
+7. If the conversation gets repetitive, change the direction. Feel free to pivot or reference others by name to keep energy high.${
       recentMentions.length
         ? ` Recently active voices: ${recentMentions.join(", ")}.`
         : ""
@@ -81,6 +82,7 @@ export class ConversationManager {
     const {
       statsTracker: statsTrackerDependency = statsTracker,
       core = {},
+      internalResponders = [],
     } = dependencies;
 
     const {
@@ -100,6 +102,7 @@ export class ConversationManager {
     this.aiServiceFactory = injectedFactory;
     this.getRandomAIConfig = injectedRandomConfig;
     this.streamText = injectedStreamText;
+    this.internalResponders = internalResponders;
   }
 
   /**
@@ -160,6 +163,7 @@ export class ConversationManager {
 
     // Stream the initial message
     await this.streamText(initialMessage, "[User]: ", STREAM_WORD_DELAY_MS);
+    await this.#handleInternalResponders(this.messages[this.messages.length - 1]);
 
     // Start the conversation loop immediately without delay
     await this.continueConversation();
@@ -198,6 +202,9 @@ export class ConversationManager {
           response,
           `[${participant.name}]: `,
           STREAM_WORD_DELAY_MS
+        );
+        await this.#handleInternalResponders(
+          this.messages[this.messages.length - 1]
         );
 
         // Increment the turn count
@@ -245,16 +252,24 @@ export class ConversationManager {
       ...message,
       timestamp: new Date().toISOString(),
     };
-    this.messages.push(enrichedMessage);
-
     const participant =
       enrichedMessage.participantId !== null &&
       enrichedMessage.participantId !== undefined
         ? this.participants[enrichedMessage.participantId]
         : null;
 
+    const authorName =
+      enrichedMessage.authorName ||
+      participant?.name ||
+      (enrichedMessage.participantId === null ? "User" : null);
+
+    enrichedMessage.authorName = authorName;
+
+    this.messages.push(enrichedMessage);
+
     const providerName =
       participant?.config?.provider?.name ||
+      authorName ||
       (enrichedMessage.participantId === null ? "User" : null);
     const modelId = participant?.config?.model?.id || null;
 
@@ -280,7 +295,7 @@ export class ConversationManager {
           : { name: "User" };
 
       return {
-        from: participant.name,
+        from: msg.authorName || participant.name,
         content: msg.content,
         timestamp: msg.timestamp,
       };
@@ -293,5 +308,55 @@ export class ConversationManager {
   stopConversation() {
     this.isActive = false;
     console.log("Conversation stopped");
+  }
+
+  async #handleInternalResponders(sourceMessage) {
+    if (!sourceMessage || this.internalResponders.length === 0) {
+      return;
+    }
+
+    for (const responder of this.internalResponders) {
+      if (
+        !responder ||
+        typeof responder.shouldHandle !== "function" ||
+        typeof responder.handleMessage !== "function"
+      ) {
+        continue;
+      }
+
+      try {
+        if (!responder.shouldHandle(sourceMessage, this.messages)) {
+          continue;
+        }
+
+        const response = await responder.handleMessage({
+          message: sourceMessage,
+          conversation: this.messages,
+        });
+
+        if (!response || !response.content) {
+          continue;
+        }
+
+        this.addMessage({
+          role: response.role || "assistant",
+          content: response.content,
+          participantId: null,
+          authorName: response.authorName || responder.name || "Internal",
+        });
+
+        await this.streamText(
+          response.content,
+          `[${response.authorName || responder.name || "Internal"}]: `,
+          STREAM_WORD_DELAY_MS
+        );
+      } catch (error) {
+        console.error(
+          `Internal responder "${
+            responder.name || "unknown"
+          }" failed: ${error.message}`
+        );
+      }
+    }
   }
 }

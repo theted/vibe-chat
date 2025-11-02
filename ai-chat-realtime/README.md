@@ -80,6 +80,10 @@ docker-compose -f docker-compose.prod.yml up --build
 docker-compose -f docker-compose.debug.yml up --build
 ```
 
+> The Compose files mount `../scripts` and `../packages/mcp-assistant` into the container and export `CHAT_ASSISTANT_SCRIPT=/app/scripts/run-mcp-chat.js`, `CHAT_ASSISTANT_AUTO_INDEX=true`, and `NODE_PATH=/app/server/node_modules`, so the in-chat `@Chat` assistant works automatically inside Docker (it will build embeddings on first use).
+
+The `start.sh` script ensures `.mcp-data/` exists so Docker builds succeed even if you haven't indexed yet. If you run `node ../scripts/index-mcp-chat.js` before building, the resulting `.mcp-data/` contents are copied into `/app/.mcp-data`, giving @Chat immediate access to embeddings.
+
 **Manual Setup (No Docker)**
 ```bash
 # Install dependencies
@@ -152,6 +156,8 @@ NODE_ENV=production
 PORT=3001
 CLIENT_URL=https://your-domain.com
 CLIENT_BUILD_DIR=/path/to/client/dist  # Optional: serve built frontend from server
+CHAT_ASSISTANT_SCRIPT=/absolute/path/to/scripts/run-mcp-chat.js  # Optional when not using docker-compose
+CHAT_ASSISTANT_AUTO_INDEX=true                                   # Auto-build embeddings when missing
 
 # Client Config  
 VITE_SERVER_URL=https://api.your-domain.com

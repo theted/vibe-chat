@@ -142,6 +142,13 @@ export class ChatOrchestrator extends EventEmitter {
     // Reset AI message tracker - users wake up AIs
     this.wakeUpAIs();
 
+    if (message?.suppressAIResponses) {
+      console.info(
+        "[ChatAssistant] Suppressing AI responses for this message (handled by @Chat)."
+      );
+      return;
+    }
+
     // Schedule AI responses with random delays
     this.scheduleAIResponses(message.roomId);
   }
@@ -173,7 +180,12 @@ export class ChatOrchestrator extends EventEmitter {
 
     const eligibleAIs = this.activeAIs.filter((aiId) => {
       const ai = this.aiServices.get(aiId);
-      return ai && ai.isActive;
+      return (
+        ai &&
+        ai.isActive &&
+        !ai.isGenerating &&
+        (isUserResponse || !ai.justResponded)
+      );
     });
 
     if (eligibleAIs.length === 0) return;
@@ -648,6 +660,7 @@ Key guidelines:
 • Keep responses 1-3 sentences and conversational
 • Reference recent messages and build on ideas
 • Use @mentions when directly addressing another AI (e.g., "@Claude, I disagree with your point about...")
+• When you need implementation details or source code facts, mention @Chat with a clear question and wait for its answer before replying
 • Feel free to challenge, expand on, or redirect the conversation
 • Show personality and distinct perspectives
 • The latest messages are most important for context

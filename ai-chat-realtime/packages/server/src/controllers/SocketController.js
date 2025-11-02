@@ -12,7 +12,13 @@ const normalizeAlias = (value) =>
   value ? value.toString().toLowerCase().replace(/[^a-z0-9]/g, '') : '';
 
 export class SocketController {
-  constructor(io, chatOrchestrator, metricsService, redisClient = null) {
+  constructor(
+    io,
+    chatOrchestrator,
+    metricsService,
+    redisClient = null,
+    options = {}
+  ) {
     this.io = io;
     this.chatOrchestrator = chatOrchestrator;
     this.metricsService = metricsService;
@@ -22,6 +28,10 @@ export class SocketController {
     this.roomManager = new RoomManager();
     this.aiTracker = new AIMessageTracker();
     this.connectedUsers = new Map(); // socketId -> user data
+    this.chatAssistantService = options.chatAssistantService || null;
+    this.chatAssistantMetadata = this.chatAssistantService
+      ? this.chatAssistantService.getMetadata()
+      : null;
 
     this.setupChatOrchestratorEvents();
   }
@@ -79,6 +89,23 @@ export class SocketController {
     // Track metrics based on message type
     if (message.senderType === 'ai') {
       this.metricsService.recordAIMessage(roomId, message.aiId || message.sender, message);
+    }
+
+    if (
+      message.senderType === 'ai' &&
+      this.chatAssistantService &&
+      !message.isInternalResponder
+    ) {
+      await this.triggerChatAssistant({
+        roomId,
+        content: message.content,
+        origin: {
+          type: 'ai',
+          sender: message.sender,
+          aiId: message.aiId,
+          isInternalResponder: message.isInternalResponder,
+        },
+      });
     }
   }
 
@@ -263,7 +290,7 @@ export class SocketController {
    * @param {Object} socket - Socket.IO socket
    * @param {Object} data - Message data
    */
-  handleUserMessage(socket, data) {
+  async handleUserMessage(socket, data) {
     try {
       const user = this.connectedUsers.get(socket.id);
       if (!user) {
@@ -287,13 +314,27 @@ export class SocketController {
         content: content.trim(),
         senderType: 'user',
         roomId: user.roomId,
-        priority: 1000 // High priority for user messages
+        priority: 1000, // High priority for user messages
+        suppressAIResponses: false
       };
+
+      const isChatAssistantQuery =
+        !!this.chatAssistantService &&
+        this.chatAssistantService.shouldHandle(message);
+
+      if (isChatAssistantQuery) {
+        message.suppressAIResponses = true;
+      }
 
       // Track user message
       this.aiTracker.onUserMessage(user.roomId, user.username);
       this.metricsService.recordUserMessage(user.roomId, user.username, message);
-
+      if (isChatAssistantQuery) {
+        console.info(
+          `[ChatAssistant] User "${user.username}" mentioned @${this.chatAssistantService.name} with question:`,
+          message.content
+        );
+      }
       // Add message to chat orchestrator
       this.chatOrchestrator.addMessage(message);
       this.io.to(user.roomId).emit('user-typing-stop', {
@@ -302,6 +343,14 @@ export class SocketController {
       });
 
       console.log(`Message from ${user.username} in ${user.roomId}: ${content.substring(0, 50)}...`);
+
+      if (isChatAssistantQuery) {
+        await this.triggerChatAssistant({
+          roomId: user.roomId,
+          content: message.content,
+          origin: { type: 'user', username: user.username },
+        });
+      }
 
     } catch (error) {
       console.error('Error handling user message:', error);
@@ -625,5 +674,88 @@ export class SocketController {
       aiTracker: this.aiTracker.getStats(),
       orchestrator: this.chatOrchestrator.getStatus()
     };
+  }
+
+  async triggerChatAssistant({ roomId, content, origin = {} }) {
+    if (!this.chatAssistantService || !this.chatAssistantMetadata || !content) {
+      return;
+    }
+
+    if (!this.chatAssistantService.shouldHandle({ content })) {
+      return;
+    }
+
+    if (origin.type === 'ai') {
+      if (origin.isInternalResponder) {
+        return;
+      }
+      const assistantId = this.chatAssistantMetadata?.aiId;
+      const assistantName = this.chatAssistantMetadata?.displayName;
+      if (assistantId && origin.aiId && origin.aiId === assistantId) {
+        return;
+      }
+      if (assistantName && origin.sender && origin.sender === assistantName) {
+        return;
+      }
+    }
+
+    try {
+      const result = await this.chatAssistantService.createResponseFromContent(
+        content,
+        {
+          emitter: this.io,
+          roomId,
+        }
+      );
+      if (!result || !result.answer) {
+        return;
+      }
+
+      if (result.error) {
+        console.warn(
+          'Chat assistant encountered an issue:',
+          result.error?.message || result.error
+        );
+      }
+
+      const messageId =
+        this.chatOrchestrator?.messageBroker?.generateMessageId?.() ||
+        `chat-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
+      const message = {
+        ...this.chatAssistantMetadata,
+        content: result.answer,
+        senderType: 'ai',
+        roomId,
+        priority: 800,
+        isInternalResponder: true,
+        suppressAIResponses: true,
+        mentionsTriggerSender:
+          origin.type === 'user'
+            ? origin.username
+            : origin.sender || null,
+        contextQuestion: result.question,
+        timestamp: Date.now(),
+        id: messageId,
+      };
+
+      const originLabel =
+        origin.type === 'user'
+          ? `user "${origin.username}"`
+          : origin.sender
+          ? `AI "${origin.sender}"`
+          : 'trigger';
+
+      console.info(
+        `[ChatAssistant] Dispatching answer for ${originLabel} (question: "${result.question}")`
+      );
+
+      await this.chatOrchestrator.handleMessage(message);
+    } catch (error) {
+      console.error(
+        'Failed to dispatch chat assistant response:',
+        error?.message || error
+      );
+    }
   }
 }

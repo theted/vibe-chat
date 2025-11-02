@@ -9,6 +9,9 @@ Welcome! This document gives automated agents and humans a quick reference for h
 - `/src/services/StatsTracker.js` – Lightweight metrics helper used to track conversation statistics.
 - `/tests/` – Node test suites. `unit/` focuses on pure logic, while top-level `test-*.js` and `integration-ok-*.js` files exercise provider integrations and contract checks.
 - `/ai-chat-realtime/` – Git sub-package that exposes the `@ai-chat/core` dependency used by the app. Contains Docker tooling, deployment scripts, and additional packages.
+- `/ai-chat-realtime/packages/mcp-assistant/` – Local MCP server package that powers the internal @Chat assistant.
+- `/scripts/` – Workspace scripts, including the MCP generation driver.
+- `/.mcp-data/` – Generated embedding cache for the MCP assistant (run `node scripts/index-mcp-chat.js` to refresh). This directory is ignored by git.
 - `/play.js` – Scratchpad for manual experiments; avoid shipping critical logic here.
 
 If you add new folders, extend this list so future contributors (and agents) stay oriented.

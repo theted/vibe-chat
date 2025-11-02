@@ -1,6 +1,9 @@
 # Dependency directories
 node_modules/
 
+# Local MCP cache
+.mcp-data/
+
 # Environment variables
 .env
 
@@ -48,3 +51,6 @@ conversations/
 
 # CodeceptJS output directory
 tests/e2e/output/
+ai-chat-realtime/packages/client/dist/
+
+**/*.md

@@ -32,6 +32,9 @@ if [ $API_KEYS_FOUND -eq 0 ]; then
     exit 1
 fi
 
+# Ensure embedding cache directory exists so Docker COPY succeeds
+mkdir -p .mcp-data
+
 echo ""
 echo "Choose startup mode:"
 echo "1) Development with live reloading (recommended for development)"

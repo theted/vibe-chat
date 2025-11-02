@@ -7,6 +7,7 @@
 
 import fs from "fs";
 import path from "path";
+import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 import { ConversationManager } from "./src/conversation/ConversationManager.js";
 import {
@@ -21,6 +22,7 @@ import {
 import {
   statsTracker,
 } from "./src/services/StatsTracker.js";
+import { ChatMCPAssistant } from "./src/services/ChatMCPAssistant.js";
 import {
   DEFAULT_TOPIC,
   CLI_ALIASES,
@@ -33,6 +35,31 @@ import {
 
 // Load environment variables
 dotenv.config();
+
+const moduleDir = path.dirname(fileURLToPath(import.meta.url));
+const projectRoot = moduleDir;
+
+const createConversationManager = async (config = {}) => {
+  const chatAssistant = new ChatMCPAssistant({
+    mentionName: "Chat",
+    projectRoot,
+  });
+
+  const responders = [];
+
+  try {
+    await chatAssistant.initialise();
+    responders.push(chatAssistant);
+  } catch (error) {
+    console.error(
+      `Warning: Chat assistant initialisation failed (${error.message}).`
+    );
+  }
+
+  return new ConversationManager(config, {
+    internalResponders: responders,
+  });
+};
 
 /**
  * Display usage instructions and supported models
@@ -376,7 +403,7 @@ const startAIConversation = async (options) => {
   console.log(`Max turns: ${options.maxTurns}`);
 
   // Create a conversation manager
-  const conversationManager = new ConversationManager({
+  const conversationManager = await createConversationManager({
     maxTurns: options.maxTurns,
   });
 
@@ -616,7 +643,7 @@ const continueConversationFromFile = async (options) => {
     );
 
     if (mode === "conversation") {
-      const conversationManager = new ConversationManager();
+      const conversationManager = await createConversationManager();
       const participantMeta = [];
 
       participantInputs.forEach((participantInput, index) => {
