@@ -1,5 +1,23 @@
-export const SERVER_URL =
-  import.meta.env.VITE_SERVER_URL || "http://localhost:3001";
+const resolveServerUrl = () => {
+  const envUrl = (import.meta.env.VITE_SERVER_URL || "").trim();
+  if (envUrl) {
+    return envUrl;
+  }
+
+  if (typeof window !== "undefined" && window.location) {
+    const { protocol, hostname, port } = window.location;
+    if (port === "3000") {
+      const targetPort = import.meta.env.VITE_SERVER_PORT || "3001";
+      return `${protocol}//${hostname}:${targetPort}`;
+    }
+    const portSegment = port ? `:${port}` : "";
+    return `${protocol}//${hostname}${portSegment}`;
+  }
+
+  return "http://localhost:3001";
+};
+
+export const SERVER_URL = resolveServerUrl();
 
 export const AI_EMOJI_LOOKUP = {
   claude: "🤖",

@@ -76,6 +76,8 @@ const allowedOrigins = "*";
 
 const app = express();
 const server = createServer(app);
+
+app.set("trust proxy", true);
 const io = new Server(server, {
   cors: {
     origin: allowedOrigins,

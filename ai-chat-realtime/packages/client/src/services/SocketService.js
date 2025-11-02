@@ -3,6 +3,7 @@
  */
 
 import { io } from 'socket.io-client';
+import { SERVER_URL } from '../constants/chat';
 
 class SocketService {
   constructor() {
@@ -11,7 +12,7 @@ class SocketService {
     this.eventCallbacks = new Map(); // Internal event system for React components
   }
 
-  connect(serverUrl = 'http://localhost:3001') {
+  connect(serverUrl = SERVER_URL) {
     if (this.socket) {
       return this.socket;
     }
