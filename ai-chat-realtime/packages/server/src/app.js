@@ -95,10 +95,7 @@ app.use(express.json());
 // Determine client build directory for serving static assets in production
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const defaultClientBuildDir = path.resolve(
-  __dirname,
-  "../../client/dist"
-);
+const defaultClientBuildDir = path.resolve(__dirname, "../../client/dist");
 const clientBuildDir = process.env.CLIENT_BUILD_DIR
   ? path.resolve(process.env.CLIENT_BUILD_DIR)
   : defaultClientBuildDir;
@@ -277,7 +274,9 @@ async function startServer() {
     } catch (error) {
       chatAssistantService = null;
       console.warn(
-        `⚠️  Chat assistant disabled: ${error.message || "initialisation failed"}`
+        `⚠️  Chat assistant disabled: ${
+          error.message || "initialisation failed"
+        }`
       );
     }
 
