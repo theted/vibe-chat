@@ -12,7 +12,8 @@
       "image": "IMAGE_URI",
       "essential": true,
       "portMappings": [
-        { "containerPort": 3001, "hostPort": 80, "protocol": "tcp" }
+        { "containerPort": 3001, "hostPort": 80, "protocol": "tcp" },
+        { "containerPort": 3001, "hostPort": 443, "protocol": "tcp" }
       ],
       "environment": [
         { "name": "NODE_ENV", "value": "production" },
