@@ -269,8 +269,25 @@ async function startServer() {
     let chatAssistantService = null;
     try {
       chatAssistantService = new ChatAssistantService();
-      await chatAssistantService.initialise();
-      console.log("💬 Chat assistant enabled for @Chat mentions.");
+      chatAssistantService
+        .initialise()
+        .then(() => {
+          console.log("💬 Chat assistant enabled for @Chat mentions.");
+          return true;
+        })
+        .catch((error) => {
+          console.warn(
+            `⚠️  Chat assistant disabled: ${
+              error.message || "initialisation failed"
+            }`
+          );
+          chatAssistantService = null;
+          if (global.socketController) {
+            global.socketController.chatAssistantService = null;
+            global.socketController.chatAssistantMetadata = null;
+          }
+          return false;
+        });
     } catch (error) {
       chatAssistantService = null;
       console.warn(
