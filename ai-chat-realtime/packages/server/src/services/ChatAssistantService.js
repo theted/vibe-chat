@@ -15,6 +15,37 @@ const normalizeAlias = (value) =>
         .replace(/[^a-z0-9]/g, "")
     : "";
 
+const withTimeout = async (promise, timeoutMs, createTimeoutError) => {
+  if (!timeoutMs || Number.isNaN(timeoutMs) || timeoutMs <= 0) {
+    return Promise.resolve(promise);
+  }
+
+  let timeoutId = null;
+
+  try {
+    return await Promise.race([
+      promise,
+      new Promise((_, reject) => {
+        timeoutId = setTimeout(() => {
+          const error =
+            typeof createTimeoutError === "function"
+              ? createTimeoutError()
+              : new Error(
+                  typeof createTimeoutError === "string"
+                    ? createTimeoutError
+                    : `Operation timed out after ${timeoutMs}ms`
+                );
+          reject(error);
+        }, timeoutMs);
+      }),
+    ]);
+  } finally {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+  }
+};
+
 const findWorkspaceRoot = (startDir) => {
   if (!startDir) {
     return null;
@@ -314,7 +345,21 @@ export class ChatAssistantService {
     }
 
     try {
-      const exists = await this.server.ensureCollection();
+      const timeoutMs = Number.isFinite(this.timeoutMs)
+        ? Math.max(0, Number(this.timeoutMs))
+        : 0;
+
+      const exists = await withTimeout(
+        this.server.ensureCollection(),
+        timeoutMs,
+        () => {
+          const error = new Error(
+            `Timed out after ${timeoutMs}ms while contacting the Chroma vector store at ${this.chromaUrl}.`
+          );
+          error.code = MCP_ERROR_CODES.VECTOR_STORE_UNAVAILABLE;
+          return error;
+        }
+      );
       this.vectorStoreReachable = true;
       this.collectionReady = Boolean(exists);
       this.vectorStoreError = null;
