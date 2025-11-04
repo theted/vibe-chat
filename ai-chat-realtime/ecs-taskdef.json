@@ -22,7 +22,7 @@
         { "name": "CONVERSATION_TIMEOUT_MS", "value": "300000" },
         {
           "name": "CLIENT_URL",
-          "value": "https://vibe-chat.sundbergsolutions.se"
+          "value": "http://vibe-chat.sundbergsolutions.se"
         }
       ],
       "secrets": [
