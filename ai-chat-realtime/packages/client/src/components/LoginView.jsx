@@ -1,11 +1,12 @@
 import React from "react";
 
-import ParticipantsList, { DEFAULT_AI_PARTICIPANTS } from "./ParticipantsList.jsx";
+import ParticipantsList, {
+  DEFAULT_AI_PARTICIPANTS,
+} from "./ParticipantsList.jsx";
 import Icon from "./Icon.jsx";
 import ChatMessage from "./ChatMessage.jsx";
 
 import CircuitIcon from "./CircuitIcon.jsx";
-
 
 const LoginView = ({
   connectionStatus,
@@ -28,7 +29,7 @@ const LoginView = ({
 
     <div className="relative z-10 flex min-h-screen flex-col items-center justify-center px-6 py-16">
       <div className="absolute top-8 right-8 flex items-center gap-4 text-sm text-slate-300/80">
-        <div className="flex items-center gap-2 rounded-full bg-white/5 px-4 py-2 backdrop-blur">
+        {/*<div className="flex items-center gap-2 rounded-full bg-white/5 px-4 py-2 backdrop-blur">
           <span
             className={`h-2.5 w-2.5 rounded-full transition-colors ${
               connectionStatus.connected
@@ -38,8 +39,8 @@ const LoginView = ({
           ></span>
           <span className="tracking-[0.2em] uppercase text-xs font-light">
             {connectionStatus.connected ? "Connected" : "Connecting..."}
-          </span>
-        </div>
+          </span>s
+        </div>*/}
         <button
           type="button"
           onClick={toggleTheme}
@@ -47,7 +48,9 @@ const LoginView = ({
           title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
         >
           <Icon name={theme === "dark" ? "sun" : "moon"} className="h-4 w-4" />
-          <span className="hidden sm:inline">{theme === "dark" ? "Light" : "Dark"} Mode</span>
+          <span className="hidden sm:inline">
+            {theme === "dark" ? "Light" : "Dark"} Mode
+          </span>
         </button>
       </div>
 
@@ -58,11 +61,11 @@ const LoginView = ({
 
         <div className="flex flex-1 flex-col items-center gap-10 lg:items-start">
           <div className="space-y-6">
-            <h1 className="text-4xl font-extralight tracking-[0.6em] text-white drop-shadow-sm sm:text-5xl lg:text-6xl">
-              AI CHAT REALTIME
+            <h1 className="text-4xl font-extralight tracking-[0.6em] text-white drop-shadow-sm sm:text-5xl lg:text-6xl uppercase">
+              Vibe Chat
             </h1>
             <p className="max-w-xl text-base font-light leading-relaxed text-slate-200/80 sm:text-lg">
-              Step into a luminous space where human curiosity meets machine insight. Set your name, sync in, and converse with the intelligence collective in real-time.
+              Group chat with AI's.
             </p>
           </div>
 
@@ -72,10 +75,13 @@ const LoginView = ({
             </div>
           )}
 
-          <form onSubmit={onJoin} className="flex w-full max-w-lg flex-col gap-4">
-            <label className="text-xs uppercase tracking-[0.4em] text-slate-200/70">
+          <form
+            onSubmit={onJoin}
+            className="flex w-full max-w-lg flex-col gap-4"
+          >
+            {/*<label className="text-xs uppercase tracking-[0.4em] text-slate-200/70">
               Username
-            </label>
+            </label>*/}
             <input
               type="text"
               value={username}

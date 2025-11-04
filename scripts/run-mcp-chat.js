@@ -66,7 +66,9 @@ const main = async () => {
   } catch (error) {
     if (error?.code === MCP_ERROR_CODES.VECTOR_STORE_UNAVAILABLE) {
       console.error(
-        `MCP embedding lookup failed: could not reach Chroma at ${process.env.CHROMA_URL || "http://localhost:8000"}. ${error.message}`
+        `MCP embedding lookup failed: could not reach Chroma at ${
+          process.env.CHROMA_URL || "http://localhost:8000"
+        }. ${error.message}`
       );
     } else {
       console.error(
@@ -91,9 +93,9 @@ const main = async () => {
       const refs = result.contexts
         .map(
           (ctx) =>
-            `[${ctx.id}] ${ctx.relativePath}:${ctx.startLine}-${ctx.endLine} (score=${ctx.score.toFixed(
-              3
-            )})`
+            `[${ctx.id}] ${ctx.relativePath}:${ctx.startLine}-${
+              ctx.endLine
+            } (score=${ctx.score.toFixed(3)})`
         )
         .join("\n");
       console.log(`\nContexts:\n${refs}`);

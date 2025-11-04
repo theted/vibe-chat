@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🚀 AI Chat Realtime Startup Script"
+echo "🚀 Vibe Chat Startup Script"
 echo ""
 
 # Check if .env exists

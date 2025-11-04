@@ -2,7 +2,9 @@ import React from "react";
 import { Link } from "react-router-dom";
 import ChatMessage from "./ChatMessage.jsx";
 import MessageInput from "./MessageInput.jsx";
-import ParticipantsList, { DEFAULT_AI_PARTICIPANTS } from "./ParticipantsList.jsx";
+import ParticipantsList, {
+  DEFAULT_AI_PARTICIPANTS,
+} from "./ParticipantsList.jsx";
 import TypingIndicator from "./TypingIndicator.jsx";
 import Icon from "./Icon.jsx";
 
@@ -43,11 +45,13 @@ const ChatView = ({
                   <Icon name="chat" className="w-6 h-6 text-white" />
                 </div>
                 <div className="flex flex-col justify-center">
-                  <h1 className="header-title header-title--compact">AI Chat Realtime</h1>
-                  <div className="text-slate-300/90 text-xs uppercase tracking-[0.24em] mt-2 flex items-center gap-2">
+                  <h1 className="header-title header-title--compact">
+                    Vibe Chat
+                  </h1>
+                  {/*<div className="text-slate-300/90 text-xs uppercase tracking-[0.24em] mt-2 flex items-center gap-2">
                     <Icon name="topic" className="w-4 h-4" />
                     {roomInfo.topic} • {username}
-                  </div>
+                  </div>*/}
                 </div>
               </div>
               <div className="flex items-center gap-3 self-stretch flex-wrap justify-end">
@@ -56,9 +60,14 @@ const ChatView = ({
                     type="button"
                     onClick={toggleTheme}
                     className="bg-white/10 hover:bg-white/20 text-white/80 px-3 py-1 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 dark:bg-slate-900/60 dark:hover:bg-slate-900/80 dark:text-slate-200 dark:border dark:border-slate-700"
-                    title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+                    title={`Switch to ${
+                      theme === "dark" ? "light" : "dark"
+                    } mode`}
                   >
-                    <Icon name={theme === "dark" ? "sun" : "moon"} className="w-4 h-4" />
+                    <Icon
+                      name={theme === "dark" ? "sun" : "moon"}
+                      className="w-4 h-4"
+                    />
                     <span className="hidden sm:inline">
                       {theme === "dark" ? "Light mode" : "Dark mode"}
                     </span>
@@ -76,7 +85,7 @@ const ChatView = ({
                 >
                   Logout
                 </button>
-                <div className="flex items-center gap-2 text-sm">
+                {/*<div className="flex items-center gap-2 text-sm">
                   <div
                     className={`w-2 h-2 rounded-full transition-colors ${
                       connectionStatus.connected
@@ -85,14 +94,18 @@ const ChatView = ({
                     }`}
                   ></div>
                   <span>
-                    {connectionStatus.connected ? "Connected" : "Reconnecting..."}
+                    {connectionStatus.connected
+                      ? "Connected"
+                      : "Reconnecting..."}
                   </span>
                 </div>
                 <div className="text-primary-200 text-xs dark:text-slate-300">
                   {participants.length} user
-                  {participants.length !== 1 ? "s" : ""} + {aiParticipantCount} AI
+                  {participants.length !== 1 ? "s" : ""} + {aiParticipantCount}{" "}
+                  AI
                   {aiParticipantCount !== 1 ? "s" : ""}
                 </div>
+                */}
               </div>
             </div>
           </div>
