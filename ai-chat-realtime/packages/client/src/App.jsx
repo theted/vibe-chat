@@ -490,7 +490,25 @@ function App() {
   };
 
 
+  const handleClearCommand = useCallback(() => {
+    setMessages([]);
+    try {
+      localStorage.removeItem("ai-chat-messages");
+    } catch (error) {
+      console.warn("Failed to clear messages from localStorage:", error);
+    }
+    showToast("Chat history cleared", "info");
+  }, [showToast]);
+
   function handleSendMessage(content) {
+    if (content.startsWith("/")) {
+      const [command] = content.slice(1).trim().split(/\s+/, 1);
+      if (command?.toLowerCase() === "clear") {
+        handleClearCommand();
+        return;
+      }
+    }
+
     sendMessage(content);
   }
 
