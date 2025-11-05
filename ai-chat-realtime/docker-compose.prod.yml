@@ -6,6 +6,8 @@ services:
     image: redis:7.4-alpine
     container_name: ai-chat-redis-prod
     command: redis-server --save 60 1 --appendonly yes --loglevel warning
+    profiles:
+      - internal-redis
     volumes:
       - redis-data:/data
     ports:
@@ -51,7 +53,7 @@ services:
       - QWEN_API_KEY=${QWEN_API_KEY}
       - KIMI_API_KEY=${KIMI_API_KEY}
       - Z_API_KEY=${Z_API_KEY}
-      - REDIS_URL=redis://redis:6379
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
       - CHAT_ASSISTANT_SCRIPT=/app/scripts/run-mcp-chat.js
       - CHAT_ASSISTANT_AUTO_INDEX=true
       - NODE_PATH=/app/server/node_modules

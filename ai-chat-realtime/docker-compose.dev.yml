@@ -6,6 +6,8 @@ services:
     image: redis:7.4-alpine
     container_name: ai-chat-redis-dev
     command: redis-server --save 60 1 --appendonly yes --loglevel warning
+    profiles:
+      - internal-redis
     volumes:
       - redis-data:/data
     ports:
@@ -48,7 +50,7 @@ services:
       - MISTRAL_API_KEY=${MISTRAL_API_KEY}
       - COHERE_API_KEY=${COHERE_API_KEY}
       - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
-      - REDIS_URL=redis://redis:6379
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
       - CHAT_ASSISTANT_SCRIPT=/app/scripts/run-mcp-chat.js
       - CHAT_ASSISTANT_AUTO_INDEX=true
       - NODE_PATH=/app/server/node_modules
