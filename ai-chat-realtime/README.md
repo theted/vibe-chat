@@ -68,20 +68,20 @@ cp .env.example .env
 ```
 Choose option 1 for development with live reloading!
 
-> The startup script automatically skips the bundled Redis container when another Docker container or host process is already listening on port 6379. When this happens it defaults `REDIS_URL=redis://host.docker.internal:6379` so the stack talks to that instance. Export `FORCE_INTERNAL_REDIS=true` if you need to force the internal instance to start anyway.
+> The startup script automatically skips the bundled Redis or Chroma services when another Docker container or host process is already listening on ports 6379 or 8000. In that case it defaults `REDIS_URL=redis://host.docker.internal:6379` and/or `CHROMA_URL=http://host.docker.internal:8000` so the stack talks to the external instances. Export `FORCE_INTERNAL_REDIS=true` or `FORCE_INTERNAL_CHROMA=true` if you need to force the bundled services to start anyway.
 
 **Manual Docker Commands**
 ```bash
 # Development with live reloading
-docker compose --profile internal-redis -f docker-compose.dev.yml up --build
+docker compose --profile internal-redis --profile internal-chroma -f docker-compose.dev.yml up --build
 
 # Production build  
-docker compose --profile internal-redis -f docker-compose.prod.yml up --build
+docker compose --profile internal-redis --profile internal-chroma -f docker-compose.prod.yml up --build
 
 # Debug mode (for troubleshooting)
-docker compose --profile internal-redis -f docker-compose.debug.yml up --build
+docker compose --profile internal-redis --profile internal-chroma -f docker-compose.debug.yml up --build
 ```
-> Omit `--profile internal-redis` (or set `COMPOSE_PROFILES=`) if you plan to reuse an external Redis instance and have pointed `REDIS_URL` at it.
+> Omit the relevant `--profile` flags (or set `COMPOSE_PROFILES=`) if you plan to reuse external Redis and/or Chroma instances and have pointed the corresponding URLs at them.
 
 > The Compose files mount `../scripts` and `../packages/mcp-assistant`, start a `chroma` vector-store service, and export `CHAT_ASSISTANT_SCRIPT=/app/scripts/run-mcp-chat.js`, `CHAT_ASSISTANT_AUTO_INDEX=true`, `NODE_PATH=/app/server/node_modules`, and `CHROMA_URL=http://chroma:8000`, so the in-chat `@Chat` assistant works automatically (it will build embeddings on first use when an OpenAI key is available).
 
@@ -172,6 +172,10 @@ VITE_SERVER_URL=https://api.your-domain.com
 # Redis (optional)
 REDIS_URL=redis://redis:6379        # Override to reuse an external Redis instance
 FORCE_INTERNAL_REDIS=false          # Set true to force bundled Redis even if another is detected
+
+# Chroma (optional)
+CHROMA_URL=http://chroma:8000       # Override to reuse an external Chroma instance
+FORCE_INTERNAL_CHROMA=false         # Set true to force bundled Chroma even if another is detected
 ```
 
 Set `CLIENT_BUILD_DIR` if you want the Express server to serve the pre-built frontend bundle (defaults to `packages/client/dist` when present). The server falls back to API-only mode when the directory is missing.
@@ -194,9 +198,9 @@ const orchestrator = new ChatOrchestrator({
 ### Docker Production
 
 ```bash
-docker compose --profile internal-redis -f docker-compose.prod.yml up -d
+docker compose --profile internal-redis --profile internal-chroma -f docker-compose.prod.yml up -d
 ```
-> Drop the profile flag if you deploy against an external Redis cluster.
+> Drop any profile flags for services you replace with managed infrastructure (e.g. external Redis/Chroma).
 
 ### AWS ECS Deployment
 

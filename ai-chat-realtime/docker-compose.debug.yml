@@ -19,6 +19,8 @@ services:
   chroma:
     image: ghcr.io/chroma-core/chroma:latest
     container_name: ai-chat-chroma-debug
+    profiles:
+      - internal-chroma
     restart: unless-stopped
     networks:
       - ai-chat-network
@@ -57,7 +59,7 @@ services:
       - CHAT_ASSISTANT_SCRIPT=/app/scripts/run-mcp-chat.js
       - CHAT_ASSISTANT_AUTO_INDEX=true
       - NODE_PATH=/app/server/node_modules
-      - CHROMA_URL=http://chroma:8000
+      - CHROMA_URL=${CHROMA_URL:-http://chroma:8000}
       - CHAT_ASSISTANT_COLLECTION=ai-chat-workspace
     volumes:
       - ../scripts:/app/scripts:ro

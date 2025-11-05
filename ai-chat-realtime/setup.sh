@@ -70,9 +70,13 @@ case $choice in
         if [ "${DOCKER_AVAILABLE}" = true ]; then
             echo "🐳 Starting with Docker Compose..."
             FORCE_INTERNAL_REDIS="${FORCE_INTERNAL_REDIS:-false}"
+            FORCE_INTERNAL_CHROMA="${FORCE_INTERNAL_CHROMA:-false}"
             START_INTERNAL_REDIS="true"
+            START_INTERNAL_CHROMA="true"
             EXTERNAL_REDIS_CONTAINER=""
+            EXTERNAL_CHROMA_TARGET=""
             OUR_INTERNAL_REDIS_CONTAINERS=("ai-chat-redis" "ai-chat-redis-dev" "ai-chat-redis-prod" "ai-chat-redis-debug")
+            OUR_INTERNAL_CHROMA_CONTAINERS=("ai-chat-chroma" "ai-chat-chroma-dev" "ai-chat-chroma-prod" "ai-chat-chroma-debug")
 
             detect_external_redis() {
                 if [ "$FORCE_INTERNAL_REDIS" = "true" ]; then
@@ -105,7 +109,39 @@ case $choice in
                 fi
             }
 
+            detect_external_chroma() {
+                if [ "$FORCE_INTERNAL_CHROMA" = "true" ]; then
+                    return
+                fi
+
+                if command -v docker >/dev/null 2>&1; then
+                    mapfile -t CHROMA_CONTAINERS_RAW < <(docker ps --format '{{.Names}}|{{.Ports}}' || true)
+                    for entry in "${CHROMA_CONTAINERS_RAW[@]}"; do
+                        IFS='|' read -r container ports <<< "$entry"
+                        if [ -z "$container" ] || [ -z "$ports" ]; then
+                            continue
+                        fi
+                        if [[ " ${OUR_INTERNAL_CHROMA_CONTAINERS[*]} " =~ " ${container} " ]]; then
+                            continue
+                        fi
+                        if [[ "$ports" == *":8000->"* ]]; then
+                            START_INTERNAL_CHROMA="false"
+                            EXTERNAL_CHROMA_TARGET="$container"
+                            return
+                        fi
+                    done
+                fi
+
+                if [ "$START_INTERNAL_CHROMA" = "true" ] && command -v lsof >/dev/null 2>&1; then
+                    if lsof -iTCP:8000 -sTCP:LISTEN >/dev/null 2>&1; then
+                        START_INTERNAL_CHROMA="false"
+                        EXTERNAL_CHROMA_TARGET="host:8000"
+                    fi
+                fi
+            }
+
             detect_external_redis
+            detect_external_chroma
 
             if [ "$FORCE_INTERNAL_REDIS" = "true" ]; then
                 echo "ℹ️  FORCE_INTERNAL_REDIS=true — internal Redis will start even if another container is detected."
@@ -119,16 +155,41 @@ case $choice in
                 fi
             fi
 
+            if [ "$FORCE_INTERNAL_CHROMA" = "true" ]; then
+                echo "ℹ️  FORCE_INTERNAL_CHROMA=true — internal Chroma will start even if another container is detected."
+            elif [ "$START_INTERNAL_CHROMA" = "false" ]; then
+                if [ "$EXTERNAL_CHROMA_TARGET" = "host:8000" ]; then
+                    echo "ℹ️  Port 8000 is already in use on the host."
+                    echo "   Skipping the bundled Chroma vector store. Ensure CHROMA_URL points to the external instance."
+                else
+                    echo "ℹ️  Detected existing Chroma-compatible container \"${EXTERNAL_CHROMA_TARGET}\" publishing port 8000."
+                    echo "   Skipping the bundled Chroma vector store. Ensure CHROMA_URL points to the external instance."
+                fi
+            fi
+
             if [ "$START_INTERNAL_REDIS" = "false" ] && [ -z "${REDIS_URL:-}" ]; then
                 export REDIS_URL="redis://host.docker.internal:6379"
                 echo "ℹ️  Defaulting REDIS_URL to ${REDIS_URL} so containers reach the external Redis."
             fi
-
-            if [ "$START_INTERNAL_REDIS" = "true" ]; then
-                "${DOCKER_COMPOSE_COMMAND[@]}" --profile internal-redis up --build
-            else
-                "${DOCKER_COMPOSE_COMMAND[@]}" up --build
+            if [ "$START_INTERNAL_CHROMA" = "false" ] && [ -z "${CHROMA_URL:-}" ]; then
+                export CHROMA_URL="http://host.docker.internal:8000"
+                echo "ℹ️  Defaulting CHROMA_URL to ${CHROMA_URL} so containers reach the external Chroma instance."
             fi
+
+            ACTIVE_PROFILES=()
+            if [ "$START_INTERNAL_REDIS" = "true" ]; then
+                ACTIVE_PROFILES+=("internal-redis")
+            fi
+            if [ "$START_INTERNAL_CHROMA" = "true" ]; then
+                ACTIVE_PROFILES+=("internal-chroma")
+            fi
+
+            COMPOSE_PROFILE_ARGS=()
+            for profile in "${ACTIVE_PROFILES[@]}"; do
+                COMPOSE_PROFILE_ARGS+=(--profile "$profile")
+            done
+
+            "${DOCKER_COMPOSE_COMMAND[@]}" "${COMPOSE_PROFILE_ARGS[@]}" up --build
         else
             echo "❌ Docker not available. Please choose option 2."
             exit 1
@@ -191,8 +252,8 @@ echo "   - README.md for full instructions"
 echo "   - .env file for API key configuration"
 echo ""
 echo "🔧 Quick commands:"
-echo "   - Development: docker compose --profile internal-redis up"
-echo "   - Production: docker compose --profile internal-redis -f docker-compose.prod.yml up"
+echo "   - Development: docker compose --profile internal-redis --profile internal-chroma up"
+echo "   - Production: docker compose --profile internal-redis --profile internal-chroma -f docker-compose.prod.yml up"
 echo "   - Health check: curl http://localhost:3001/health"
 echo ""
 echo "Need help? Check the README.md file!"
