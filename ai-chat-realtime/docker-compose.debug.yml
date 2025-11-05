@@ -24,6 +24,12 @@ services:
       - chroma-data:/chroma
     ports:
       - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   ai-chat-server:
     build:
@@ -58,8 +64,10 @@ services:
     networks:
       - ai-chat-network
     depends_on:
-      - redis
-      - chroma
+      redis:
+        condition: service_started
+      chroma:
+        condition: service_healthy
 
   ai-chat-client:
     build:
