@@ -150,6 +150,7 @@ sequenceDiagram
 OPENAI_API_KEY=your_key
 ANTHROPIC_API_KEY=your_key
 GROK_API_KEY=your_key
+TOGETHER_API_KEY=your_key  # Together AI for Llama models
 
 # Server Config
 NODE_ENV=production
@@ -161,6 +162,9 @@ CHAT_ASSISTANT_AUTO_INDEX=true                                   # Auto-build em
 
 # Client Config  
 VITE_SERVER_URL=https://api.your-domain.com
+# Optional Together overrides
+# TOGETHER_BASE_URL=https://api.together.xyz/v1
+# LLAMA_MODEL_ID=meta-llama/Llama-4.1-11B-Instruct-Maverick
 ```
 
 Set `CLIENT_BUILD_DIR` if you want the Express server to serve the pre-built frontend bundle (defaults to `packages/client/dist` when present). The server falls back to API-only mode when the directory is missing.

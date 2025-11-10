@@ -14,7 +14,7 @@ dotenv.config();
 export class LlamaService extends BaseAIService {
   constructor(config) {
     super(config);
-    this.name = "Llama";
+    this.name = "Llama (Together)";
     this.apiKey = null;
     this.apiEndpoint = null;
   }
@@ -25,13 +25,19 @@ export class LlamaService extends BaseAIService {
    */
   async initialize() {
     if (!this.isConfigured()) {
-      throw new Error("Llama API key is not configured");
+      throw new Error("Together AI API key is not configured");
     }
 
     const baseUrl =
-      process.env.LLAMA_BASE_URL || "https://api.llama.com/v1";
+      process.env.TOGETHER_BASE_URL ||
+      process.env.LLAMA_BASE_URL ||
+      "https://api.together.xyz/v1";
 
-    this.apiKey = process.env[this.config.provider.apiKeyEnvVar];
+    this.apiKey =
+      process.env[this.config.provider.apiKeyEnvVar] ||
+      process.env.TOGETHER_API_KEY ||
+      process.env.LLAMA_API_KEY;
+
     this.apiEndpoint = `${baseUrl.replace(/\/$/, "")}/chat/completions`;
   }
 
@@ -40,7 +46,11 @@ export class LlamaService extends BaseAIService {
    * @returns {boolean} True if the API key is available
    */
   isConfigured() {
-    return !!process.env[this.config.provider.apiKeyEnvVar];
+    return Boolean(
+      process.env[this.config.provider.apiKeyEnvVar] ||
+        process.env.TOGETHER_API_KEY ||
+        process.env.LLAMA_API_KEY
+    );
   }
 
   /**
@@ -68,6 +78,8 @@ export class LlamaService extends BaseAIService {
         messages: formattedMessages,
         temperature: this.config.model.temperature,
         max_tokens: this.config.model.maxTokens,
+        max_output_tokens: this.config.model.maxTokens,
+        stream: false,
       };
 
       const response = await fetch(this.apiEndpoint, {
@@ -82,23 +94,30 @@ export class LlamaService extends BaseAIService {
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(
-          `Llama API Error: ${response.status} - ${errorText}`
+          `Together AI Error: ${response.status} - ${errorText}`
         );
       }
 
       const data = await response.json();
 
-      if (!data?.choices?.length || !data.choices[0].message) {
+      const choice = data?.choices?.[0];
+      const content =
+        choice?.message?.content ??
+        choice?.text ??
+        data?.output_text ??
+        null;
+
+      if (!content) {
         throw new Error(
-          `Llama API returned an unexpected response format: ${JSON.stringify(
+          `Together AI returned an unexpected response format: ${JSON.stringify(
             data
           )}`
         );
       }
 
-      return data.choices[0].message.content;
+      return content;
     } catch (error) {
-      console.error(`Llama API Error: ${error.message}`);
+      console.error(`Together AI (Llama) Error: ${error.message}`);
       throw new Error(`Failed to generate response: ${error.message}`);
     }
   }

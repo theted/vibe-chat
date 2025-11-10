@@ -67,6 +67,10 @@
           "valueFrom": "arn:aws:ssm:eu-west-1:471112549477:parameter/Z_API_KEY"
         },
         {
+          "name": "TOGETHER_API_KEY",
+          "valueFrom": "arn:aws:ssm:eu-west-1:471112549477:parameter/TOGETHER_API_KEY"
+        },
+        {
           "name": "LLAMA_API_KEY",
           "valueFrom": "arn:aws:ssm:eu-west-1:471112549477:parameter/LLAMA_API_KEY"
         },

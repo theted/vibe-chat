@@ -30,6 +30,6 @@ export const DEFAULT_MODELS = {
   [GROK.name]: GROK.models.GROK_3,
   [QWEN.name]: QWEN.models.QWEN3_MAX,
   [KIMI.name]: KIMI.models.KIMI_8K,
-  [LLAMA.name]: LLAMA.models.LLAMA_3_1_70B_INSTRUCT,
+  [LLAMA.name]: LLAMA.models.LLAMA_4_1_MAVERICK_11B,
   [PERPLEXITY.name]: PERPLEXITY.models.PERPLEXITY_SONAR_LARGE,
 };
