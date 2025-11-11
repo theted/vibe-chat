@@ -52,24 +52,28 @@ export class MistralService extends BaseAIService {
 
     try {
       // Format messages for Mistral API
-      // Mistral expects the last message to be from a user or tool, not an assistant
+      // Mistral requires: system messages first, then alternating user/assistant
+      // Last message must be from user or tool, not assistant
       const formattedMessages = mapToOpenAIChat(messages);
-      const lastMessage = formattedMessages[formattedMessages.length - 1];
 
-      // If the last message is from an assistant, convert it to a user message
-      // This is a workaround for Mistral's requirement that the last message be from a user or tool
-      if (lastMessage.role === "assistant") {
-        formattedMessages.push({
+      // Ensure system messages are at the beginning
+      const systemMessages = formattedMessages.filter(m => m.role === 'system');
+      const nonSystemMessages = formattedMessages.filter(m => m.role !== 'system');
+      const orderedMessages = [...systemMessages, ...nonSystemMessages];
+
+      const lastMessage = orderedMessages[orderedMessages.length - 1];
+
+      // If last message is assistant, append user message to satisfy Mistral requirements
+      if (lastMessage?.role === "assistant") {
+        orderedMessages.push({
           role: "user",
           content: `Please respond to this message: "${lastMessage.content}"`,
         });
-      } else {
-        formattedMessages.push(lastMessage);
       }
 
       const response = await this.client.chat.complete({
         model: this.config.model.id,
-        messages: formattedMessages,
+        messages: orderedMessages,
         max_tokens: this.config.model.maxTokens,
         temperature: this.config.model.temperature,
       });
