@@ -8,9 +8,17 @@ import { motion } from 'framer-motion';
 import { normalizeAlias, resolveEmoji } from '../utils/ai.js';
 
 const MENTION_REGEX = /(@[a-zA-Z0-9_\-\.]+)/g;
-const MENTION_ONLY_REGEX = /^@[a-zA-Z0-9_\-\.]+$/;
 
 const ChatMessage = ({ message, aiParticipants = [] }) => {
+  // Format @mentions as bold text in code blocks for markdown
+  const formatMentionsForMarkdown = React.useCallback((content) => {
+    if (typeof content !== 'string') return content;
+    if (!content.includes('@')) return content;
+
+    // Replace @mentions with `**@mention**` format
+    return content.replace(MENTION_REGEX, "**`$1`**");
+  }, []);
+
   const highlightMentions = React.useCallback((value) => {
     if (typeof value !== 'string') {
       if (Array.isArray(value)) {
@@ -29,7 +37,7 @@ const ChatMessage = ({ message, aiParticipants = [] }) => {
 
     return segments.map((segment) => {
       if (!segment) return null;
-      if (MENTION_ONLY_REGEX.test(segment)) {
+      if (MENTION_REGEX.test(segment)) {
         return (
           <span key={`mention-${key++}`} className="mention-chip">
             {segment}
@@ -272,8 +280,8 @@ const ChatMessage = ({ message, aiParticipants = [] }) => {
             components={{
               // Prevent dangerous HTML
               h1: 'h4',
-              h2: 'h4', 
-              h3: 'h4',
+              h2: 'h4',
+              h3: 'h3',
               // Style code blocks
               code: ({ children, className }) => (
                 <code className={`inline-code ${className || ''}`}>
@@ -292,11 +300,9 @@ const ChatMessage = ({ message, aiParticipants = [] }) => {
                   {children}
                 </a>
               ),
-              // Custom text renderer to handle @mentions post-markdown
-              text: ({ children }) => highlightMentions(children)
             }}
           >
-            {message.content}
+            {formatMentionsForMarkdown(message.content)}
           </ReactMarkdown>
         ) : (
           <div>{renderPlainContent(message.content)}</div>

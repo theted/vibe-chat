@@ -132,6 +132,13 @@ export class ChatAssistantService {
       );
     }
 
+    console.log(`[ChatAssistant Debug] Initializing with config:`, {
+      projectRoot: this.projectRoot,
+      chromaUrl: this.chromaUrl,
+      collectionName: this.collectionName,
+      autoIndex: this.autoIndex,
+    });
+
     this.server = createLocalCodeMcpServer({
       rootDir: this.projectRoot,
       chromaUrl: this.chromaUrl,
@@ -140,19 +147,33 @@ export class ChatAssistantService {
     });
 
     try {
+      console.log(`[ChatAssistant Debug] Checking vector store availability...`);
       const { collectionReady } = await this.ensureVectorStoreAvailability();
+      console.log(`[ChatAssistant Debug] Vector store check result:`, {
+        reachable: this.vectorStoreReachable,
+        collectionReady,
+      });
 
       if (!collectionReady && this.autoIndex && this.vectorStoreReachable) {
+        console.log(`[ChatAssistant Debug] 🔄 Auto-indexing enabled and collection missing - starting background index build...`);
         this.indexPromise = this.buildIndex()
+          .then(() => {
+            console.log(`[ChatAssistant] ✅ Auto-index completed successfully`);
+          })
           .catch((error) => {
-            console.warn(
-              `[ChatAssistant] Auto-index failed: ${error.message}`
+            console.error(
+              `[ChatAssistant] ❌ Auto-index failed: ${error.message}`
             );
             return null;
           })
           .finally(() => {
             this.indexPromise = null;
           });
+      } else if (!collectionReady && !this.autoIndex && this.vectorStoreReachable) {
+        console.warn(`[ChatAssistant] ⚠️  Collection not found and auto-indexing is disabled.`);
+        console.warn(`[ChatAssistant] To create the collection, either:`);
+        console.warn(`[ChatAssistant]   1. Run: node scripts/index-mcp-chat.js`);
+        console.warn(`[ChatAssistant]   2. Set CHAT_ASSISTANT_AUTO_INDEX=true and restart`);
       }
     } catch (error) {
       if (error?.code === MCP_ERROR_CODES.VECTOR_STORE_UNAVAILABLE) {
@@ -344,6 +365,8 @@ export class ChatAssistantService {
       };
     }
 
+    console.log(`[ChatAssistant Debug] Checking vector store availability at ${this.chromaUrl} (timeout: ${this.timeoutMs}ms)`);
+
     try {
       const timeoutMs = Number.isFinite(this.timeoutMs)
         ? Math.max(0, Number(this.timeoutMs))
@@ -360,6 +383,7 @@ export class ChatAssistantService {
           return error;
         }
       );
+      console.log(`[ChatAssistant Debug] ✅ Vector store reachable, collection exists: ${exists}`);
       this.vectorStoreReachable = true;
       this.collectionReady = Boolean(exists);
       this.vectorStoreError = null;
@@ -368,6 +392,12 @@ export class ChatAssistantService {
         collectionReady: this.collectionReady,
       };
     } catch (error) {
+      console.error(`[ChatAssistant Debug] ❌ Vector store check failed:`, {
+        errorMessage: error.message,
+        errorCode: error.code,
+        chromaUrl: this.chromaUrl,
+      });
+
       if (error?.code === MCP_ERROR_CODES.VECTOR_STORE_UNAVAILABLE) {
         this.vectorStoreReachable = false;
         this.collectionReady = false;

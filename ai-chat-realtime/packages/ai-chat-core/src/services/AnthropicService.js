@@ -89,12 +89,20 @@ export class AnthropicService extends BaseAIService {
       });
 
       // Handle the response structure properly
-      if (
-        response &&
-        response.content &&
-        Array.isArray(response.content) &&
-        response.content.length > 0
-      ) {
+      if (response && response.content && Array.isArray(response.content)) {
+        // Handle empty content array (valid response, model chose not to generate text)
+        if (response.content.length === 0) {
+          console.warn(
+            "Anthropic returned empty content array. Stop reason:",
+            response.stop_reason
+          );
+          // Return empty string or default message based on stop reason
+          if (response.stop_reason === "end_turn") {
+            return ""; // Model completed but had nothing to say
+          }
+          return ""; // Other stop reasons - return empty
+        }
+
         const contentItem = response.content[0];
         let responseText = "";
 
@@ -110,9 +118,14 @@ export class AnthropicService extends BaseAIService {
         return responseText;
       }
 
-      // If we reach here, we couldn't extract text properly from the response
-      console.error("Unexpected Anthropic response structure:", JSON.stringify(response, null, 2));
-      throw new Error("Failed to parse Anthropic response: unexpected response structure");
+      // If we reach here, response structure is truly unexpected
+      console.error(
+        "Unexpected Anthropic response structure:",
+        JSON.stringify(response, null, 2)
+      );
+      throw new Error(
+        "Failed to parse Anthropic response: unexpected response structure"
+      );
     } catch (error) {
       console.error(`Anthropic API Error: ${error.message}`);
       throw new Error(`Failed to generate response: ${error.message}`);

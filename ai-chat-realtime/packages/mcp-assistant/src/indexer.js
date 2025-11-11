@@ -256,7 +256,10 @@ export class WorkspaceIndexer {
           throw WorkspaceIndexer.#unavailableError(this.chromaUrl, error);
         }
 
-        if (!error?.message?.includes("not found")) {
+        // Suppress "not found" errors - collection didn't exist, which is fine
+        const message = (error?.message || "").toLowerCase();
+        const isNotFound = message.includes("not found") || message.includes("could not be found");
+        if (!isNotFound) {
           console.warn(
             `[MCP] Could not delete existing collection: ${error.message}`
           );

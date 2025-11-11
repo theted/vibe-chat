@@ -46,6 +46,17 @@ export class LangChainMcpServer {
     this.completionModel = completionModel;
     this.openAiApiKey = openAiApiKey;
 
+    console.log(`[MCP Debug] Initializing ChromaClient with URL: ${this.chromaUrl}`);
+    console.log(`[MCP Debug] Target collection: ${this.collectionName}`);
+
+    // Test basic connectivity by parsing URL
+    try {
+      const url = new URL(this.chromaUrl);
+      console.log(`[MCP Debug] Parsed Chroma URL - protocol: ${url.protocol}, host: ${url.host}, port: ${url.port || 'default'}`);
+    } catch (error) {
+      console.error(`[MCP Debug] ❌ Invalid Chroma URL format: ${this.chromaUrl}`);
+    }
+
     this.client = new ChromaClient({ path: this.chromaUrl });
     this.embeddings = new OpenAIEmbeddings({
       apiKey: this.openAiApiKey,
@@ -61,10 +72,21 @@ export class LangChainMcpServer {
 
   static #isMissingCollection(error) {
     const message = (error?.message || "").toLowerCase();
-    if (!message.includes("collection")) {
+
+    // Check if error mentions collection/collections
+    const hasCollectionRef = message.includes("collection");
+    if (!hasCollectionRef) {
       return false;
     }
-    return message.includes("not found") || message.includes("does not exist");
+
+    // Check for various "not found" patterns
+    return (
+      message.includes("not found") ||
+      message.includes("could not be found") ||
+      message.includes("does not exist") ||
+      message.includes("not exist") ||
+      message.includes("404")
+    );
   }
 
   static #isUnavailable(error) {
@@ -106,21 +128,42 @@ export class LangChainMcpServer {
   }
 
   async ensureCollection() {
+    console.log(`[MCP Debug] Attempting to connect to Chroma at ${this.chromaUrl}`);
+    console.log(`[MCP Debug] Looking for collection: ${this.collectionName}`);
+
     try {
       const collection = await this.client.getCollection({
         name: this.collectionName,
       });
-      await collection.count();
+      console.log(`[MCP Debug] ✅ Successfully retrieved collection "${this.collectionName}"`);
+
+      const count = await collection.count();
+      console.log(`[MCP Debug] Collection contains ${count} documents`);
       return true;
     } catch (error) {
+      console.error(`[MCP Debug] ❌ Failed to access collection:`, {
+        errorMessage: error.message,
+        errorCode: error.code,
+        causeCode: error.cause?.code,
+        chromaUrl: this.chromaUrl,
+        collectionName: this.collectionName,
+      });
+
       if (LangChainMcpServer.#isMissingCollection(error)) {
         console.warn(
-          `[MCP] Chroma collection "${this.collectionName}" not found yet. Run the indexing script to populate it.`
+          `[MCP] ⚠️  Chroma collection "${this.collectionName}" not found.`
+        );
+        console.warn(
+          `[MCP] To create and populate the collection, run: node scripts/index-mcp-chat.js`
+        );
+        console.warn(
+          `[MCP] Or set CHAT_ASSISTANT_AUTO_INDEX=true to auto-create on startup.`
         );
         return false;
       }
 
       if (LangChainMcpServer.#isUnavailable(error)) {
+        console.error(`[MCP Debug] Connection to Chroma failed - service appears unreachable`);
         throw LangChainMcpServer.#unavailableError(this.chromaUrl, error);
       }
 
@@ -142,13 +185,17 @@ export class LangChainMcpServer {
 
   async answerQuestion(question, options = {}) {
     const { topK = 5 } = options;
+    console.log(`[MCP Debug] Answering question (topK=${topK}): "${question}"`);
 
     let collection;
     try {
+      console.log(`[MCP Debug] Fetching collection "${this.collectionName}" for query...`);
       collection = await this.client.getCollection({
         name: this.collectionName,
       });
+      console.log(`[MCP Debug] ✅ Collection retrieved successfully`);
     } catch (error) {
+      console.error(`[MCP Debug] ❌ Failed to retrieve collection for query:`, error.message);
       if (LangChainMcpServer.#isMissingCollection(error)) {
         return {
           answer:
@@ -164,13 +211,17 @@ export class LangChainMcpServer {
 
     let queryResult;
     try {
+      console.log(`[MCP Debug] Embedding query with OpenAI...`);
       const queryEmbedding = await this.embeddings.embedQuery(question);
+      console.log(`[MCP Debug] Query embedded, searching Chroma collection...`);
       queryResult = await collection.query({
         queryEmbeddings: [queryEmbedding],
         nResults: topK,
         include: ["metadatas", "documents", "distances"],
       });
+      console.log(`[MCP Debug] ✅ Query completed, found ${queryResult.documents?.[0]?.length || 0} results`);
     } catch (error) {
+      console.error(`[MCP Debug] ❌ Query failed:`, error.message);
       if (LangChainMcpServer.#isUnavailable(error)) {
         throw LangChainMcpServer.#unavailableError(this.chromaUrl, error);
       }

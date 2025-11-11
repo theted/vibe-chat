@@ -1,6 +1,4 @@
 # Development Docker Compose with Live Reloading
-version: "3.8"
-
 services:
   redis:
     image: redis:7.4-alpine
@@ -17,7 +15,7 @@ services:
       - ai-chat-network
 
   chroma:
-    image: ghcr.io/chroma-core/chroma:latest
+    image: chromadb/chroma:latest
     container_name: ai-chat-chroma-dev
     profiles:
       - internal-chroma
@@ -25,7 +23,10 @@ services:
     networks:
       - ai-chat-network
     volumes:
-      - chroma-data:/chroma
+      - chroma-data:/chroma/chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+      - ANONYMIZED_TELEMETRY=FALSE
     ports:
       - "8000:8000"
     healthcheck:
@@ -67,11 +68,8 @@ services:
     restart: unless-stopped
     networks:
       - ai-chat-network
-    depends_on:
-      redis:
-        condition: service_started
-      chroma:
-        condition: service_healthy
+    # Note: depends_on removed - handled by network + health checks in code
+    # When using external redis/chroma via profiles, they won't be in this compose file
 
   ai-chat-client:
     build:

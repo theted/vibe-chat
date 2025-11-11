@@ -7,6 +7,8 @@
   "scripts": {
     "start": "node index.js",
     "dev": "node --watch index.js",
+    "index": "node scripts/index-mcp-chat.js",
+    "index:docker": "docker exec ai-chat-server-dev node /app/scripts/index-mcp-chat.js",
     "test": "node --test \"tests/unit/**/*.test.js\" \"tests/integration/**/*.test.js\"",
     "test:grok": "node tests/integration-ok-grok.js",
     "test:openai": "node tests/integration-ok-openai.js",
@@ -32,7 +34,12 @@
   "license": "ISC",
   "dependencies": {
     "@ai-chat/core": "file:./ai-chat-realtime/packages/ai-chat-core",
+    "@ai-chat/mcp-assistant": "file:./ai-chat-realtime/packages/mcp-assistant",
+    "@langchain/core": "^0.2.36",
+    "@langchain/openai": "^0.2.7",
+    "chromadb": "^1.8.1",
     "dotenv": "^16.4.7",
+    "fast-glob": "^3.3.2",
     "node-fetch": "^3.3.2",
     "openai": "^4.52.1",
     "redis": "^4.6.13"

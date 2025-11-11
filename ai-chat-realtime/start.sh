@@ -55,9 +55,8 @@ detect_external_redis() {
     fi
 
     if command -v docker >/dev/null 2>&1; then
-        mapfile -t REDIS_CONTAINERS_RAW < <(docker ps --format '{{.Names}}|{{.Ports}}' || true)
-        for entry in "${REDIS_CONTAINERS_RAW[@]}"; do
-            IFS='|' read -r container ports <<< "$entry"
+        # Use while read loop for better shell compatibility (mapfile not available in all shells)
+        while IFS='|' read -r container ports; do
             if [ -z "$container" ] || [ -z "$ports" ]; then
                 continue
             fi
@@ -69,7 +68,7 @@ detect_external_redis() {
                 EXTERNAL_REDIS_CONTAINER=$container
                 return
             fi
-        done
+        done < <(docker ps --format '{{.Names}}|{{.Ports}}' 2>/dev/null || true)
     fi
 
     if [ "$START_INTERNAL_REDIS" = "true" ] && command -v lsof >/dev/null 2>&1; then
@@ -86,9 +85,8 @@ detect_external_chroma() {
     fi
 
     if command -v docker >/dev/null 2>&1; then
-        mapfile -t CHROMA_CONTAINERS_RAW < <(docker ps --format '{{.Names}}|{{.Ports}}' || true)
-        for entry in "${CHROMA_CONTAINERS_RAW[@]}"; do
-            IFS='|' read -r container ports <<< "$entry"
+        # Use while read loop for better shell compatibility (mapfile not available in all shells)
+        while IFS='|' read -r container ports; do
             if [ -z "$container" ] || [ -z "$ports" ]; then
                 continue
             fi
@@ -100,7 +98,7 @@ detect_external_chroma() {
                 EXTERNAL_CHROMA_TARGET=$container
                 return
             fi
-        done
+        done < <(docker ps --format '{{.Names}}|{{.Ports}}' 2>/dev/null || true)
     fi
 
     if [ "$START_INTERNAL_CHROMA" = "true" ] && command -v lsof >/dev/null 2>&1; then
