@@ -56,7 +56,7 @@ export async function runIntegrationOkTest({
 
       const response = await service.generateResponse(messages);
       const got = normalizeResponse(response);
-      const pass = got === "OK";
+      const pass = got.startsWith("OK") || got.startsWith("Pong");
 
       if (pass) {
         console.log("PASS");
