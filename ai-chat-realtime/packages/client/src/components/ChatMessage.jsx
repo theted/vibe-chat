@@ -5,8 +5,8 @@
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import { motion } from 'framer-motion';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism/one-dark.js';
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism/index.js";
 import { normalizeAlias, resolveEmoji } from '../utils/ai.js';
 
 const MENTION_REGEX = /(@[a-zA-Z0-9_\-\.]+)/g;
