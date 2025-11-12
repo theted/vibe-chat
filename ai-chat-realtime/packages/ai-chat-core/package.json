@@ -22,9 +22,10 @@
     "@anthropic-ai/sdk": "^0.39.0",
     "@google/generative-ai": "^0.24.0",
     "@mistralai/mistralai": "^1.5.2",
-    "openai": "^4.89.0",
     "dotenv": "^16.4.7",
-    "node-fetch": "^3.3.2"
+    "highlight.js": "^11.9.0",
+    "node-fetch": "^3.3.2",
+    "openai": "^4.89.0"
   },
   "devDependencies": {
     "eslint": "^8.56.0"
