@@ -5,6 +5,8 @@
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import { motion } from 'framer-motion';
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism/index.js";
 import { normalizeAlias, resolveEmoji } from '../utils/ai.js';
 
 const MENTION_REGEX = /(@[a-zA-Z0-9_\-\.]+)/g;
@@ -282,15 +284,54 @@ const ChatMessage = ({ message, aiParticipants = [] }) => {
               h1: 'h4',
               h2: 'h4',
               h3: 'h3',
-              // Style code blocks
-              code: ({ children, className }) => (
-                <code className={`inline-code ${className || ''}`}>
-                  {children}
-                </code>
-              ),
-              pre: ({ children }) => (
-                <pre className="code-block">{children}</pre>
-              ),
+              // Style code blocks with syntax highlighting
+              code: ({ inline, className, children, ...props }) => {
+                const languageMatch = /language-([\w+#-]+)/.exec(className || "");
+                const normalizedChildren = String(children).replace(/\n$/, "");
+
+                if (inline) {
+                  return (
+                    <code className={`inline-code ${className || ""}`} {...props}>
+                      {children}
+                    </code>
+                  );
+                }
+
+                if (!normalizedChildren.includes("\n")) {
+                  return (
+                    <code
+                      className={`inline-code ${className || ""}`}
+                      {...props}
+                    >
+                      {normalizedChildren}
+                    </code>
+                  );
+                }
+
+                return (
+                  <SyntaxHighlighter
+                    language={languageMatch ? languageMatch[1] : "text"}
+                    style={oneDark}
+                    PreTag="pre"
+                    wrapLongLines
+                    customStyle={{
+                      background: "transparent",
+                      margin: '15px 0',
+                      padding: 10,
+                    }}
+                    codeTagProps={{
+                      style: {
+                        fontFamily: "inherit",
+                      },
+                    }}
+                    className={`code-block ${className || ""}`.trim()}
+                    {...props}
+                  >
+                    {normalizedChildren}
+                  </SyntaxHighlighter>
+                );
+              },
+              pre: ({ children }) => <>{children}</>,
               // Style lists
               ul: ({ children }) => <ul className="markdown-list">{children}</ul>,
               ol: ({ children }) => <ol className="markdown-list">{children}</ol>,
