@@ -4,9 +4,12 @@
 
 import { RoomManager } from '../managers/RoomManager.js';
 import { AIMessageTracker } from '../managers/AIMessageTracker.js';
+import { RateLimiter } from '../services/RateLimiter.js';
 
 const RECENT_MESSAGE_LIMIT = 20;
 const MESSAGE_TTL_SECONDS = 60 * 60 * 24 * 7; // 7 days
+const USER_MESSAGE_LIMIT = 10;
+const USER_MESSAGE_WINDOW_MS = 10 * 60 * 1000;
 
 const normalizeAlias = (value) =>
   value ? value.toString().toLowerCase().replace(/[^a-z0-9]/g, '') : '';
@@ -32,6 +35,12 @@ export class SocketController {
     this.chatAssistantMetadata = this.chatAssistantService
       ? this.chatAssistantService.getMetadata()
       : null;
+    this.rateLimiter = new RateLimiter({
+      redisClient,
+      windowMs: USER_MESSAGE_WINDOW_MS,
+      maxMessages: USER_MESSAGE_LIMIT,
+      keyPrefix: 'rate-limiter:ip:',
+    });
 
     this.setupChatOrchestratorEvents();
   }
@@ -309,6 +318,24 @@ export class SocketController {
         return;
       }
 
+      const ipAddress = this.getClientIp(socket);
+      const rateLimitResult = await this.rateLimiter.check(ipAddress);
+
+      if (!rateLimitResult.allowed) {
+        const retryAfterSeconds = rateLimitResult.retryAfterMs
+          ? Math.ceil(rateLimitResult.retryAfterMs / 1000)
+          : undefined;
+        socket.emit('error', {
+          message: 'Rate limit exceeded: max 10 messages per 10 minutes. Please wait before sending more.',
+          code: 'RATE_LIMITED',
+          retryAfterSeconds,
+        });
+        console.warn(
+          `Rate limit exceeded for IP ${ipAddress || 'unknown'} (user: ${user.username})`
+        );
+        return;
+      }
+
       const message = {
         sender: user.username,
         content: content.trim(),
@@ -356,6 +383,33 @@ export class SocketController {
       console.error('Error handling user message:', error);
       socket.emit('error', { message: 'Failed to send message' });
     }
+  }
+
+  getClientIp(socket) {
+    const headers = socket.handshake?.headers || {};
+
+    const forwarded = headers['x-forwarded-for'];
+    if (forwarded) {
+      const forwardedIps = forwarded
+        .split(',')
+        .map((part) => part.trim())
+        .filter(Boolean);
+      if (forwardedIps.length > 0) {
+        return forwardedIps[0];
+      }
+    }
+
+    const realIp = headers['x-real-ip'] || headers['cf-connecting-ip'];
+    if (realIp) {
+      return realIp;
+    }
+
+    return (
+      socket.handshake?.address ||
+      socket.conn?.remoteAddress ||
+      socket.request?.connection?.remoteAddress ||
+      null
+    );
   }
 
   /**
