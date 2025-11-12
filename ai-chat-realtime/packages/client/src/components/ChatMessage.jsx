@@ -286,7 +286,7 @@ const ChatMessage = ({ message, aiParticipants = [] }) => {
               h3: 'h3',
               // Style code blocks with syntax highlighting
               code: ({ inline, className, children, ...props }) => {
-                const languageMatch = /language-([\w-]+)/.exec(className || "");
+                const languageMatch = /language-([\w+#-]+)/.exec(className || "");
                 const normalizedChildren = String(children).replace(/\n$/, "");
 
                 if (inline) {
