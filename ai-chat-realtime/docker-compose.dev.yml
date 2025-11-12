@@ -62,6 +62,7 @@ services:
     volumes:
       - ./packages/server/src:/app/server/src
       - ./packages/ai-chat-core/src:/app/ai-chat-core/src
+      - ./packages/client/src:/app/client/src:ro
       - ./packages/server/package.json:/app/server/package.json
       - ../scripts:/app/scripts:ro
       - ./packages/mcp-assistant/src:/app/mcp-assistant/src:ro

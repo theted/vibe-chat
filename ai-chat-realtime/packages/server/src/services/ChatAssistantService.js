@@ -91,6 +91,49 @@ const resolveWorkspaceRoot = (options = {}) => {
   return { projectRoot: resolvedProject, unresolved: false };
 };
 
+const formatGitHubUrl = (relativePath, startLine = null, endLine = null) => {
+  const baseUrl = "https://github.com/theted/vibe-chat/blob/master";
+  const lineFragment =
+    startLine && endLine
+      ? `#L${startLine}-L${endLine}`
+      : startLine
+      ? `#L${startLine}`
+      : "";
+  return `${baseUrl}/${relativePath}${lineFragment}`;
+};
+
+const enhanceAnswerWithLinks = (answer, contexts, projectRoot) => {
+  if (!answer || !contexts || contexts.length === 0) {
+    return answer;
+  }
+
+  let enhanced = answer;
+
+  // Add source references section if contexts exist
+  const sourceRefs = contexts
+    .map((ctx) => {
+      const fullPath = path.join(projectRoot, ctx.relativePath);
+      const lineInfo =
+        ctx.startLine && ctx.endLine
+          ? `:${ctx.startLine}-${ctx.endLine}`
+          : "";
+      const githubUrl = formatGitHubUrl(
+        ctx.relativePath,
+        ctx.startLine,
+        ctx.endLine
+      );
+      return `- [\`${ctx.relativePath}${lineInfo}\`](${githubUrl})`;
+    })
+    .join("\n");
+
+  // Append sources section if not already present
+  if (!enhanced.includes("**Sources:**") && !enhanced.includes("**References:**")) {
+    enhanced += `\n\n**Sources:**\n${sourceRefs}`;
+  }
+
+  return enhanced;
+};
+
 export class ChatAssistantService {
   constructor(options = {}) {
     const {
@@ -295,12 +338,15 @@ export class ChatAssistantService {
         aiId: "internal_chat_assistant",
       });
 
+      const answer =
+        result.answer ||
+        `I looked for "${question}" but did not find any relevant code snippets.`;
+      const contexts = result.contexts || [];
+
       return {
         question,
-        answer:
-          result.answer ||
-          `I looked for "${question}" but did not find any relevant code snippets.`,
-        contexts: result.contexts || [],
+        answer: enhanceAnswerWithLinks(answer, contexts, this.projectRoot),
+        contexts,
         error: result.error || null,
       };
     } catch (error) {
