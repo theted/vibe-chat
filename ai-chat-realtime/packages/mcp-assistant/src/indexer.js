@@ -26,8 +26,8 @@ const DEFAULT_ALLOWED_EXTENSIONS = new Set([
   ".scss",
 ]);
 
-const DEFAULT_CHUNK_SIZE = 1200;
-const DEFAULT_CHUNK_OVERLAP = 200;
+const DEFAULT_CHUNK_SIZE = 1800;
+const DEFAULT_CHUNK_OVERLAP = 300;
 const DEFAULT_BATCH_SIZE = 64;
 
 const IGNORED_PATHS = [
@@ -38,6 +38,7 @@ const IGNORED_PATHS = [
   "**/build/**",
   "**/.mcp-data/**",
   "**/.cache/**",
+  "**/package-lock.json",
 ];
 
 const VECTOR_STORE_UNAVAILABLE_CODE =
@@ -109,6 +110,27 @@ const chunkContent = (content, options = {}) => {
   return chunks;
 };
 
+const extractComponentInfo = (content, relativePath) => {
+  const info = {};
+
+  // Extract component/function names from file
+  const componentMatch = content.match(/(?:export\s+(?:default\s+)?(?:function|const)\s+(\w+)|const\s+(\w+)\s*=.*?(?:React\.)?(?:memo|forwardRef))/);
+  if (componentMatch) {
+    info.componentName = componentMatch[1] || componentMatch[2];
+  }
+
+  // Extract file type
+  const ext = path.extname(relativePath);
+  info.fileType = ext;
+
+  // Detect if React component
+  if (content.includes('import React') || content.includes('from \'react\'') || content.includes('from "react"')) {
+    info.isReactComponent = true;
+  }
+
+  return info;
+};
+
 const buildDocuments = async (rootDir, options = {}) => {
   const { allowedExtensions = DEFAULT_ALLOWED_EXTENSIONS } = options;
 
@@ -127,7 +149,9 @@ const buildDocuments = async (rootDir, options = {}) => {
     try {
       const content = await fs.readFile(absolutePath, "utf8");
       const relativePath = path.relative(rootDir, absolutePath);
+      const fileInfo = extractComponentInfo(content, relativePath);
       const chunks = chunkContent(content, options);
+
       chunks.forEach((chunk) => {
         docs.push({
           content: chunk.content,
@@ -135,6 +159,7 @@ const buildDocuments = async (rootDir, options = {}) => {
             relativePath,
             startLine: chunk.metadata.startLine,
             endLine: chunk.metadata.endLine,
+            ...fileInfo,
           },
         });
       });
