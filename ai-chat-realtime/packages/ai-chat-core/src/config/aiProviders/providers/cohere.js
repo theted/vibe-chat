@@ -48,13 +48,13 @@ export const COHERE = {
       systemPrompt:
         "You are Cohere Command-R (08-2024). Follow instructions precisely. Be pragmatic and clear.",
     },
-    COMMAND_R7B_12_2024: {
-      id: "command-r7b-12-2024",
-      maxTokens: DEFAULT_MAX_TOKENS,
-      temperature: 0.0, // Lower temperature for more deterministic responses
-      systemPrompt:
-        "You are Cohere Command-R 7B (12-2024). Follow user instructions exactly. Be concise and helpful.",
-    },
+    // COMMAND_R7B_12_2024: {
+    //   id: "command-r7b-12-2024",
+    //   maxTokens: DEFAULT_MAX_TOKENS,
+    //   temperature: 0.0, // Lower temperature for more deterministic responses
+    //   systemPrompt:
+    //     "You are Cohere Command-R 7B (12-2024). Follow user instructions exactly. Be concise and helpful.",
+    // },
   },
   apiKeyEnvVar: "COHERE_API_KEY",
 };

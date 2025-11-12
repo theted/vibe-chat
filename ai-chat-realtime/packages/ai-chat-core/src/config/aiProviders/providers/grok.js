@@ -69,13 +69,13 @@ export const GROK = {
       systemPrompt:
         "You are Grok 4 Fast (reasoning) by xAI. Provide quick and accurate reasoning with 2M token context.",
     },
-    GROK_4_HEAVY: {
-      id: "grok-4-heavy",
-      maxTokens: DEFAULT_MAX_TOKENS,
-      temperature: DEFAULT_TEMPERATURE,
-      systemPrompt:
-        "You are Grok 4 Heavy by xAI. Provide enhanced capabilities for complex tasks.",
-    },
+    // GROK_4_HEAVY: {
+    //   id: "grok-4-heavy",
+    //   maxTokens: DEFAULT_MAX_TOKENS,
+    //   temperature: DEFAULT_TEMPERATURE,
+    //   systemPrompt:
+    //     "You are Grok 4 Heavy by xAI. Provide enhanced capabilities for complex tasks.",
+    // },
     GROK_CODE_FAST_1: {
       id: "grok-code-fast-1",
       maxTokens: DEFAULT_MAX_TOKENS,
@@ -83,13 +83,13 @@ export const GROK = {
       systemPrompt:
         "You are Grok Code Fast 1 by xAI, specialized for agentic coding workflows. Be concise and correct.",
     },
-    GROK_2_IMAGE_1212: {
-      id: "grok-2-image-1212",
-      maxTokens: DEFAULT_MAX_TOKENS,
-      temperature: DEFAULT_TEMPERATURE,
-      systemPrompt:
-        "You are Grok Image, capable of image understanding. Answer clearly.",
-    },
+    // GROK_2_IMAGE_1212: {
+    //   id: "grok-2-image-1212",
+    //   maxTokens: DEFAULT_MAX_TOKENS,
+    //   temperature: DEFAULT_TEMPERATURE,
+    //   systemPrompt:
+    //     "You are Grok Image, capable of image understanding. Answer clearly.",
+    // },
   },
   apiKeyEnvVar: "GROK_API_KEY",
 };
