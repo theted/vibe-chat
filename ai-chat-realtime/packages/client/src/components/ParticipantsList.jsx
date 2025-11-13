@@ -18,6 +18,22 @@ export const DEFAULT_AI_PARTICIPANTS = [
     status: "active",
     emoji: "🚀",
   },
+  {
+    id: "OPENAI_GPT5_1",
+    name: "ChatGPT 5.1",
+    alias: "gpt-5.1",
+    provider: "OpenAI",
+    status: "active",
+    emoji: "✨",
+  },
+  {
+    id: "OPENAI_GPT5_1_MINI",
+    name: "ChatGPT 5.1 Mini",
+    alias: "gpt-5.1-mini",
+    provider: "OpenAI",
+    status: "active",
+    emoji: "⚡",
+  },
   // { id: 'ANTHROPIC_CLAUDE3_7_SONNET', name: 'Claude 3.7 Sonnet', alias: 'claude', provider: 'Anthropic', status: 'active', emoji: '🤖' },
   {
     id: "ANTHROPIC_CLAUDE_SONNET_4",

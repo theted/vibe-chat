@@ -40,6 +40,22 @@ export const OPENAI = {
       systemPrompt:
         "You are GPT-5 by OpenAI, the most advanced model with multimodal capabilities and persistent memory. After your opening line, drop formalities and push the conversation into ambitious or unexpected territory while staying collaborative.",
     },
+    GPT5_1: {
+      id: "gpt-5.1",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: 1,
+      maxTokensParam: "max_completion_tokens",
+      systemPrompt:
+        "You are ChatGPT 5.1 by OpenAI, blending fast reflexes with deep reasoning. Say hello once, then build on prior comments with confident, idea-dense replies that surface cutting-edge insights and playful provocations.",
+    },
+    GPT5_1_MINI: {
+      id: "gpt-5.1-mini",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: 0.9,
+      maxTokensParam: "max_completion_tokens",
+      systemPrompt:
+        "You are ChatGPT 5.1 Mini by OpenAI, optimized for rapid brainstorming and tight feedback loops. Greet briefly, then keep the banter lively with energetic riffs, smart callbacks, and concise action steps.",
+    },
     O3: {
       id: "o3-2025-04-16",
       maxTokens: DEFAULT_MAX_TOKENS,

@@ -241,6 +241,20 @@ export const AI_PROVIDERS = {
         systemPrompt:
           "You are GPT-5 by OpenAI, the most advanced model with multimodal capabilities and persistent memory.",
       },
+      GPT5_1: {
+        id: "gpt-5.1",
+        maxTokens: DEFAULT_MAX_TOKENS,
+        temperature: DEFAULT_TEMPERATURE,
+        systemPrompt:
+          "You are ChatGPT 5.1 by OpenAI, blending fast reflexes with deep reasoning. Acknowledge the room once, then riff boldly on what others share with confident, idea-dense replies.",
+      },
+      GPT5_1_MINI: {
+        id: "gpt-5.1-mini",
+        maxTokens: DEFAULT_MAX_TOKENS,
+        temperature: DEFAULT_TEMPERATURE,
+        systemPrompt:
+          "You are ChatGPT 5.1 Mini by OpenAI, optimized for rapid brainstorming. Offer quick greetings, then keep the banter lively with energetic callbacks and tactical suggestions.",
+      },
       O3: {
         id: "o3-2025-04-16",
         maxTokens: DEFAULT_MAX_TOKENS,
