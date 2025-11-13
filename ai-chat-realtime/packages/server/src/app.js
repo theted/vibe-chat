@@ -30,6 +30,16 @@ const AI_DISPLAY_INFO = {
     alias: "gpt-5",
     emoji: "🚀",
   },
+  OPENAI_GPT5_1: {
+    displayName: "ChatGPT 5.1",
+    alias: "gpt-5.1",
+    emoji: "✨",
+  },
+  OPENAI_GPT5_1_MINI: {
+    displayName: "ChatGPT 5.1 Mini",
+    alias: "gpt-5.1-mini",
+    emoji: "⚡",
+  },
   OPENAI_GPT35_TURBO: {
     displayName: "GPT-3.5 Turbo",
     alias: "gpt-3-5",
@@ -199,6 +209,8 @@ async function initializeAISystem() {
 
   if (process.env.OPENAI_API_KEY) {
     addConfig("OPENAI", "GPT5");
+    addConfig("OPENAI", "GPT5_1");
+    addConfig("OPENAI", "GPT5_1_MINI");
     addConfig("OPENAI", "GPT4O");
     addConfig("OPENAI", "GPT35_TURBO");
   }
