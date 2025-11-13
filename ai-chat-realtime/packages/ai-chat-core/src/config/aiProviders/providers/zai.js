@@ -21,8 +21,8 @@ export const ZAI = {
   },
   models: {
     ZAI_DEFAULT: {
-      // Allow overriding model ID via env; fallback to glm-4
-      id: process.env.Z_MODEL_ID || "glm-4",
+      // Allow overriding model ID via env; fallback to glm-4.6
+      id: process.env.Z_MODEL_ID || "glm-4.6",
       maxTokens: DEFAULT_MAX_TOKENS,
       temperature: DEFAULT_TEMPERATURE,
       systemPrompt:

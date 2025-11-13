@@ -34,8 +34,8 @@ export class ZaiService extends BaseAIService {
     const baseURL =
       process.env.Z_BASE_URL ||
       process.env.ZAI_BASE_URL ||
-      // Official Zhipu AI (BigModel) OpenAI-compatible endpoint
-      "https://open.bigmodel.cn/api/paas/v4/";
+      // Official Z.ai OpenAI-compatible endpoint
+      "https://api.z.ai/api/paas/v4/";
 
     this.client = new OpenAI({ apiKey, baseURL });
   }
