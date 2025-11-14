@@ -47,23 +47,83 @@ const AI_DISPLAY_INFO = {
   },
   ANTHROPIC_CLAUDE3_7_SONNET: {
     displayName: "Claude 3.7 Sonnet",
-    alias: "claude",
-    emoji: "🤖",
+    alias: "claude-3-7",
+    emoji: "🔵",
+  },
+  ANTHROPIC_CLAUDE3_5_HAIKU_20241022: {
+    displayName: "Claude 3.5 Haiku",
+    alias: "haiku-3-5",
+    emoji: "⚪",
+  },
+  ANTHROPIC_CLAUDE_HAIKU_4_5: {
+    displayName: "Claude Haiku 4.5",
+    alias: "haiku",
+    emoji: "💨",
   },
   ANTHROPIC_CLAUDE_SONNET_4: {
     displayName: "Claude Sonnet 4",
+    alias: "sonnet",
+    emoji: "🟣",
+  },
+  ANTHROPIC_CLAUDE_SONNET_4_5: {
+    displayName: "Claude Sonnet 4.5",
     alias: "claude",
     emoji: "🤖",
+  },
+  ANTHROPIC_CLAUDE_OPUS_4: {
+    displayName: "Claude Opus 4",
+    alias: "opus",
+    emoji: "🟠",
+  },
+  ANTHROPIC_CLAUDE_OPUS_4_1: {
+    displayName: "Claude Opus 4.1",
+    alias: "opus-4-1",
+    emoji: "🔶",
   },
   GROK_GROK_3: {
     displayName: "Grok 3",
     alias: "grok",
     emoji: "🦾",
   },
+  GROK_GROK_3_MINI: {
+    displayName: "Grok 3 Mini",
+    alias: "grok-mini",
+    emoji: "⚙️",
+  },
+  GROK_GROK_4_0709: {
+    displayName: "Grok 4",
+    alias: "grok-4",
+    emoji: "🚀",
+  },
+  GROK_GROK_4_FAST_NON_REASONING: {
+    displayName: "Grok 4 Fast",
+    alias: "grok-fast",
+    emoji: "⚡",
+  },
+  GROK_GROK_4_FAST_REASONING: {
+    displayName: "Grok 4 Fast Reasoning",
+    alias: "grok-reasoning",
+    emoji: "🧠",
+  },
+  GROK_GROK_CODE_FAST_1: {
+    displayName: "Grok Code Fast 1",
+    alias: "grok-code",
+    emoji: "💻",
+  },
+  GROK_GROK_2_1212: {
+    displayName: "Grok 2",
+    alias: "grok-2",
+    emoji: "🤖",
+  },
   GEMINI_GEMINI_PRO: {
     displayName: "Gemini Pro",
     alias: "gemini",
     emoji: "💎",
+  },
+  GEMINI_GEMINI_25: {
+    displayName: "Gemini 2.5 Pro",
+    alias: "gemini-2.5",
+    emoji: "💠",
   },
   MISTRAL_MISTRAL_LARGE: {
     displayName: "Mistral Large",
@@ -79,6 +139,11 @@ const AI_DISPLAY_INFO = {
     displayName: "DeepSeek Chat",
     alias: "deepseek",
     emoji: "🔍",
+  },
+  ZAI_ZAI_DEFAULT: {
+    displayName: "Z.ai GLM-4.6",
+    alias: "zai",
+    emoji: "🔆",
   },
 };
 
@@ -216,15 +281,27 @@ async function initializeAISystem() {
   }
 
   if (process.env.ANTHROPIC_API_KEY) {
-    addConfig("ANTHROPIC", "CLAUDE3_7_SONNET");
+    addConfig("ANTHROPIC", "CLAUDE_SONNET_4_5");
+    addConfig("ANTHROPIC", "CLAUDE_OPUS_4_1");
+    addConfig("ANTHROPIC", "CLAUDE_OPUS_4");
     addConfig("ANTHROPIC", "CLAUDE_SONNET_4");
+    addConfig("ANTHROPIC", "CLAUDE3_7_SONNET");
+    addConfig("ANTHROPIC", "CLAUDE_HAIKU_4_5");
+    addConfig("ANTHROPIC", "CLAUDE3_5_HAIKU_20241022");
   }
 
   if (process.env.GROK_API_KEY) {
+    addConfig("GROK", "GROK_4_0709");
     addConfig("GROK", "GROK_3");
+    addConfig("GROK", "GROK_3_MINI");
+    addConfig("GROK", "GROK_4_FAST_REASONING");
+    addConfig("GROK", "GROK_4_FAST_NON_REASONING");
+    addConfig("GROK", "GROK_CODE_FAST_1");
+    addConfig("GROK", "GROK_2_1212");
   }
 
   if (process.env.GOOGLE_AI_API_KEY) {
+    addConfig("GEMINI", "GEMINI_25");
     addConfig("GEMINI", "GEMINI_PRO");
   }
 
@@ -238,6 +315,10 @@ async function initializeAISystem() {
 
   if (process.env.DEEPSEEK_API_KEY) {
     addConfig("DEEPSEEK", "DEEPSEEK_CHAT");
+  }
+
+  if (process.env.Z_API_KEY) {
+    addConfig("ZAI", "ZAI_DEFAULT");
   }
 
   if (aiConfigs.length === 0) {
@@ -255,7 +336,25 @@ async function initializeAISystem() {
   // Initialize AIs
   try {
     await orchestrator.initializeAIs(aiConfigs);
-    console.log(`✅ Initialized ${aiConfigs.length} AI services`);
+
+    // Get actually initialized models
+    const initializedModels = Array.from(orchestrator.aiServices.values());
+    console.log(`✅ Initialized ${initializedModels.length}/${aiConfigs.length} AI services`);
+
+    // List successfully initialized models
+    if (initializedModels.length > 0) {
+      console.log("📋 Active AI models:");
+      initializedModels.forEach((ai) => {
+        const emoji = ai.emoji || "🤖";
+        const name = ai.displayName || ai.name;
+        console.log(`   ${emoji} ${name}`);
+      });
+    }
+
+    // Warn about failed initializations
+    if (initializedModels.length < aiConfigs.length) {
+      console.warn(`⚠️  ${aiConfigs.length - initializedModels.length} model(s) failed to initialize`);
+    }
   } catch (error) {
     console.error("❌ Failed to initialize some AI services:", error);
   }

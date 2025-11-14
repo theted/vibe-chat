@@ -34,6 +34,13 @@ export const ANTHROPIC = {
       systemPrompt:
         "You are Claude 3.5 Haiku by Anthropic. Provide thoughtful, well-developed responses and match the level of detail requested.",
     },
+    CLAUDE_HAIKU_4_5: {
+      id: "claude-haiku-4-5",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Claude Haiku 4.5 by Anthropic. Fast and efficient, provide concise yet thoughtful responses.",
+    },
     CLAUDE_SONNET_4: {
       id: "claude-sonnet-4-20250514",
       maxTokens: DEFAULT_MAX_TOKENS,
