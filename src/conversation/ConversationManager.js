@@ -13,22 +13,6 @@ import {
 import { statsTracker } from "../services/StatsTracker.js";
 import { STREAM_WORD_DELAY_MS } from "../config/constants.js";
 
-// Helper builders extracted for readability
-const summarizeParticipantTopics = (messages, participants) => {
-  const topics = {};
-  participants.forEach((p) => {
-    const responses = messages
-      .filter((msg) => msg.participantId === p.id)
-      .map((msg) => msg.content);
-    if (responses.length > 0) {
-      topics[p.name] = responses
-        .map((r) => r.substring(0, 150) + (r.length > 150 ? "..." : ""))
-        .join("\n");
-    }
-  });
-  return topics;
-};
-
 const buildSystemMessage = (cm, participant) => {
   const { messages, config, turnCount, participants } = cm;
   const otherParticipants = participants
@@ -232,9 +216,6 @@ export class ConversationManager {
    * @returns {Promise<string>} The generated response
    */
   async generateResponse(participant) {
-    // Optionally summarize prior topics (reserved for future prompts)
-    summarizeParticipantTopics(this.messages, this.participants);
-
     const systemMessage = buildSystemMessage(this, participant);
     const formattedMessages = [
       systemMessage,
