@@ -142,7 +142,7 @@ const AI_DISPLAY_INFO = {
   },
   ZAI_ZAI_DEFAULT: {
     displayName: "Z.ai GLM-4.6",
-    alias: "zai",
+    alias: "z.ai",
     emoji: "🔆",
   },
 };

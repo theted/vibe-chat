@@ -88,7 +88,8 @@ export class ChatOrchestrator extends EventEmitter {
         const aiId = `${config.providerKey}_${config.modelKey}`;
         const displayName =
           config.displayName || `${service.getName()} ${service.getModel()}`;
-        const alias = toMentionAlias(config.alias, displayName);
+        const rawAlias = config.alias || displayName;
+        const alias = toMentionAlias(rawAlias, displayName);
         const emoji = config.emoji || "🤖";
 
         this.aiServices.set(aiId, {
@@ -97,6 +98,7 @@ export class ChatOrchestrator extends EventEmitter {
           id: aiId,
           name: service.getName(),
           displayName,
+          displayAlias: rawAlias,
           alias,
           normalizedAlias: normalizeAlias(alias),
           emoji,
