@@ -37,6 +37,20 @@ const toMentionAlias = (value, fallback = "") => {
     .replace(/^-+|-+$/g, "");
 };
 
+const parseBooleanEnvFlag = (value) => {
+  if (typeof value !== "string") return false;
+  const normalized = value.trim().toLowerCase();
+  if (!normalized) return false;
+  return ["1", "true", "yes", "on"].includes(normalized);
+};
+
+const getEnvFlag = (name) => {
+  if (typeof process === "undefined" || !process?.env) {
+    return undefined;
+  }
+  return process.env[name];
+};
+
 export class ChatOrchestrator extends EventEmitter {
   constructor(options = {}) {
     super();
@@ -71,8 +85,51 @@ export class ChatOrchestrator extends EventEmitter {
     this.topicChangeChance =
       options.topicChangeChance || DEFAULTS.TOPIC_CHANGE_CHANCE;
 
+    const envVerboseFlag = parseBooleanEnvFlag(
+      getEnvFlag("AI_CHAT_VERBOSE_CONTEXT")
+    );
+    this.verboseContextLogging =
+      typeof options.verboseContextLogging === "boolean"
+        ? options.verboseContextLogging
+        : envVerboseFlag;
+
     this.setupMessageBroker();
     this.startBackgroundConversation();
+  }
+
+  logAIContext(aiService, messages) {
+    if (!this.verboseContextLogging || !Array.isArray(messages)) {
+      return;
+    }
+
+    const provider = aiService.config?.providerKey || "unknown";
+    const model =
+      aiService.config?.modelKey || aiService.service?.getModel?.() || "unknown";
+    console.log(
+      `📝 [Verbose] Prompt for ${aiService.name} (${provider}:${model})`
+    );
+
+    messages.forEach((message, index) => {
+      const parts = [];
+      if (message.role) parts.push(message.role);
+      if (message.sender) parts.push(message.sender);
+      const label = parts.length ? parts.join(" · ") : `message-${index + 1}`;
+      const contentValue =
+        typeof message.content === "string"
+          ? message.content
+          : JSON.stringify(message.content, null, 2);
+      const lines = contentValue ? contentValue.split("\n") : ["<empty>"];
+      console.log(`   ${index + 1}. ${label}`);
+      lines.forEach((line) => {
+        if (line.length === 0) {
+          console.log("      ");
+        } else {
+          console.log(`      ${line}`);
+        }
+      });
+    });
+
+    console.log("📝 [Verbose] End prompt\n");
   }
 
   /**
@@ -459,6 +516,8 @@ export class ChatOrchestrator extends EventEmitter {
         },
         ...context,
       ];
+
+      this.logAIContext(aiService, messagesWithSystem);
 
       const response = await aiService.service.generateResponse(
         messagesWithSystem

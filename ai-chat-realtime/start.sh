@@ -1,7 +1,46 @@
 #!/bin/bash
 
+VERBOSE_MODE=false
+VERBOSE_CONTEXT_FLAG="AI_CHAT_VERBOSE_CONTEXT"
+
+print_usage() {
+    cat <<'USAGE'
+Usage: ./start.sh [--verbose]
+
+Options:
+  --verbose, -v   Output the full AI context that will be forwarded to the models.
+                  This is noisy and intended for debugging only.
+  --help, -h      Show this message.
+USAGE
+}
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --verbose|-v)
+            VERBOSE_MODE=true
+            shift
+            ;;
+        --help|-h)
+            print_usage
+            exit 0
+            ;;
+        *)
+            echo "❌ Unknown option: $1"
+            print_usage
+            exit 1
+            ;;
+    esac
+done
+
 echo "🚀 Vibe Chat Startup Script"
 echo ""
+
+enable_verbose_context_logging() {
+    export "${VERBOSE_CONTEXT_FLAG}"=true
+    echo "📝 Verbose AI context logging enabled"
+    echo "   Every AI request will print the exact prompt and context sent to the model."
+    echo "   Check the ai-chat-server logs for the detailed dumps."
+}
 
 # Check if .env exists
 if [ ! -f .env ]; then
@@ -32,14 +71,6 @@ if [ $API_KEYS_FOUND -eq 0 ]; then
     exit 1
 fi
 
-echo ""
-echo "Choose startup mode:"
-echo "1) Development with live reloading (recommended for development)"
-echo "2) Production build (nginx + optimized)"
-echo "3) Debug mode (simple setup for troubleshooting)"
-
-read -p "Enter choice (1-3): " choice
-
 FORCE_INTERNAL_REDIS=${FORCE_INTERNAL_REDIS:-false}
 FORCE_INTERNAL_CHROMA=${FORCE_INTERNAL_CHROMA:-false}
 START_INTERNAL_REDIS=true
@@ -48,6 +79,18 @@ EXTERNAL_REDIS_CONTAINER=""
 EXTERNAL_CHROMA_TARGET=""
 OUR_INTERNAL_REDIS_CONTAINERS=("ai-chat-redis" "ai-chat-redis-dev" "ai-chat-redis-prod" "ai-chat-redis-debug")
 OUR_INTERNAL_CHROMA_CONTAINERS=("ai-chat-chroma" "ai-chat-chroma-dev" "ai-chat-chroma-prod" "ai-chat-chroma-debug")
+
+if [ "$VERBOSE_MODE" = true ]; then
+    enable_verbose_context_logging
+fi
+
+echo ""
+echo "Choose startup mode:"
+echo "1) Development with live reloading (recommended for development)"
+echo "2) Production build (nginx + optimized)"
+echo "3) Debug mode (simple setup for troubleshooting)"
+
+read -p "Enter choice (1-3): " choice
 
 detect_external_redis() {
     if [ "$FORCE_INTERNAL_REDIS" = "true" ]; then
