@@ -661,13 +661,18 @@ export class ChatOrchestrator extends EventEmitter {
 Key guidelines:
 • Keep responses 1-3 sentences and conversational
 • Reference recent messages and build on ideas
-• Use @mentions when directly addressing another AI (e.g., "@Claude, I disagree with your point about...")
+• Use @mentions naturally when addressing someone - weave them into your response organically:
+  - Start with mention: "@Claude, that's an interesting take on..."
+  - End with question: "...what do you think, @Gemini?"
+  - Build on their point: "@GPT, building on what you said..."
+  - Seek input: "...curious for @Claude's perspective here"
 • When you need implementation details or source code facts, mention @Chat with a clear question and wait for its answer before replying
 • Feel free to challenge, expand on, or redirect the conversation
 • Show personality and distinct perspectives
 • The latest messages are most important for context
 • Don't repeat what others just said - add new value
 • Ask questions to spark further discussion
+• Vary how you incorporate @mentions - sometimes front, sometimes back, sometimes middle
 
 Other AIs in this chat: ${aiNames
       .filter((name) => name.toLowerCase() !== aiService.name.toLowerCase())
@@ -941,12 +946,53 @@ Respond naturally and keep the conversation flowing!`;
       return response;
     }
 
-    // Try to naturally incorporate the mention
+    // Try to naturally incorporate the mention with diverse conversational patterns
     const mentionFormats = [
+      // Direct address (front)
       `${mentionHandle}, ${response}`,
+      `${mentionHandle} - ${response}`,
+      `Hey ${mentionHandle}, ${response}`,
+      `${mentionHandle}: ${response}`,
+      `${mentionHandle} ${response}`,
+
+      // Questions (back)
       `${response} What do you think, ${mentionHandle}?`,
-      `${response} I'd love to hear ${mentionHandle}'s perspective on this.`,
-      `Building on what we discussed, ${mentionHandle}, ${response}`,
+      `${response} Thoughts, ${mentionHandle}?`,
+      `${response} Agree, ${mentionHandle}?`,
+      `${response} ${mentionHandle}, does that make sense?`,
+      `${response} How would you approach this, ${mentionHandle}?`,
+      `${response} ${mentionHandle}, have you considered this?`,
+      `${response} What's your take on this, ${mentionHandle}?`,
+      `${response} ${mentionHandle}, am I missing something?`,
+      `${response} Curious for your perspective, ${mentionHandle}?`,
+      `${response} Right, ${mentionHandle}?`,
+      `${response} Don't you think, ${mentionHandle}?`,
+      `${response} ${mentionHandle}, you see what I mean?`,
+      `${response} ${mentionHandle}?`,
+
+      // Collaborative/seeking input (back)
+      `${response} Curious what ${mentionHandle} thinks about this.`,
+      `${response} Would love ${mentionHandle}'s input here.`,
+      `${response} ${mentionHandle} might have thoughts on this.`,
+      `${response} I'd be interested to hear from ${mentionHandle} too.`,
+      `${response} ${mentionHandle}, you probably have experience with this?`,
+      `${response} Tagging ${mentionHandle} for visibility.`,
+      `${response} ${mentionHandle}, care to weigh in?`,
+      `${response} I wonder if ${mentionHandle} agrees with this.`,
+      `${response} Maybe ${mentionHandle} has a different view?`,
+      `${response} Curious if ${mentionHandle} sees it differently.`,
+      `${response} cc ${mentionHandle}`,
+
+      // Deferring/acknowledging expertise (back)
+      `${response} ${mentionHandle} would know better than me.`,
+      `${response} ${mentionHandle}, you've dealt with this before, right?`,
+      `${response} Let's see what ${mentionHandle} says.`,
+      `${response} ${mentionHandle} could probably add more context here.`,
+
+      // Building on their point (front-mid blend)
+      `${mentionHandle}, building on what you said - ${response}`,
+      `${mentionHandle}, interesting point. ${response}`,
+      `${mentionHandle}, I think you're onto something. ${response}`,
     ];
 
     const formatIndex = Math.floor(Math.random() * mentionFormats.length);
