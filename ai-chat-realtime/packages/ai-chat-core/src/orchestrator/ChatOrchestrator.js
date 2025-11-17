@@ -6,6 +6,17 @@ import { EventEmitter } from "events";
 import { AIServiceFactory } from "../services/AIServiceFactory.js";
 import { ContextManager } from "./ContextManager.js";
 import { MessageBroker } from "./MessageBroker.js";
+import {
+  DEFAULTS,
+  CONTEXT_LIMITS,
+  TIMING,
+  STRATEGY_WEIGHTS,
+  STRATEGY_ADJUSTMENTS,
+  MENTION_CONFIG,
+  RESPONDER_CONFIG,
+  DELAY_CALC,
+  MENTION_FORMATS,
+} from "./constants.js";
 
 const normalizeAlias = (value) =>
   value
@@ -29,27 +40,36 @@ const toMentionAlias = (value, fallback = "") => {
 export class ChatOrchestrator extends EventEmitter {
   constructor(options = {}) {
     super();
-    this.contextManager = new ContextManager(options.maxMessages || 100);
+    this.contextManager = new ContextManager(
+      options.maxMessages || DEFAULTS.MAX_MESSAGES
+    );
     this.messageBroker = new MessageBroker();
     this.aiServices = new Map();
     this.activeAIs = [];
     this.messageTracker = {
       aiMessageCount: 0,
-      maxAIMessages: options.maxAIMessages || 10,
+      maxAIMessages: options.maxAIMessages || DEFAULTS.MAX_AI_MESSAGES,
       isAsleep: false,
     };
     this.lastAIMessageTime = 0;
-    // Fast responses to user messages (1-10 seconds)
-    this.minUserResponseDelay = options.minUserResponseDelay || 1000; // 1 second
-    this.maxUserResponseDelay = options.maxUserResponseDelay || 10000; // 10 seconds
-    // Background AI conversation timing (10-30 seconds)
-    this.minBackgroundDelay = options.minBackgroundDelay || 10000; // 10 seconds
-    this.maxBackgroundDelay = options.maxBackgroundDelay || 30000; // 30 seconds
-    this.minDelayBetweenAI = options.minDelayBetweenAI || 1200;
-    this.maxDelayBetweenAI = options.maxDelayBetweenAI || 3200;
+    // Fast responses to user messages
+    this.minUserResponseDelay =
+      options.minUserResponseDelay || DEFAULTS.MIN_USER_RESPONSE_DELAY;
+    this.maxUserResponseDelay =
+      options.maxUserResponseDelay || DEFAULTS.MAX_USER_RESPONSE_DELAY;
+    // Background AI conversation timing
+    this.minBackgroundDelay =
+      options.minBackgroundDelay || DEFAULTS.MIN_BACKGROUND_DELAY;
+    this.maxBackgroundDelay =
+      options.maxBackgroundDelay || DEFAULTS.MAX_BACKGROUND_DELAY;
+    this.minDelayBetweenAI =
+      options.minDelayBetweenAI || DEFAULTS.MIN_DELAY_BETWEEN_AI;
+    this.maxDelayBetweenAI =
+      options.maxDelayBetweenAI || DEFAULTS.MAX_DELAY_BETWEEN_AI;
 
     this.backgroundConversationTimer = null;
-    this.topicChangeChance = options.topicChangeChance || 0.1; // 10% chance
+    this.topicChangeChance =
+      options.topicChangeChance || DEFAULTS.TOPIC_CHANGE_CHANCE;
 
     this.setupMessageBroker();
     this.startBackgroundConversation();
@@ -194,9 +214,17 @@ export class ChatOrchestrator extends EventEmitter {
 
     const activeCount = eligibleAIs.length;
     const baseMaxResponders = isUserResponse
-      ? Math.max(2, Math.ceil(activeCount * 0.45))
-      : Math.max(1, Math.ceil(activeCount * 0.25));
-    const baseMinResponders = isUserResponse ? 1 : 0;
+      ? Math.max(
+          RESPONDER_CONFIG.USER_RESPONSE_MIN_COUNT,
+          Math.ceil(activeCount * RESPONDER_CONFIG.USER_RESPONSE_MAX_MULTIPLIER)
+        )
+      : Math.max(
+          RESPONDER_CONFIG.BACKGROUND_MIN_COUNT,
+          Math.ceil(activeCount * RESPONDER_CONFIG.BACKGROUND_MAX_MULTIPLIER)
+        );
+    const baseMinResponders = isUserResponse
+      ? RESPONDER_CONFIG.USER_RESPONSE_MIN_BASE
+      : RESPONDER_CONFIG.BACKGROUND_MIN_BASE;
 
     const lastMessage = this.contextManager.getLastMessage();
     const mentionTargets = new Set(lastMessage?.mentionsNormalized || []);
@@ -339,15 +367,20 @@ export class ChatOrchestrator extends EventEmitter {
     }
 
     if (isMentioned) {
-      baseDelay = Math.max(400, baseDelay * 0.35);
+      baseDelay = Math.max(
+        TIMING.MIN_MENTIONED_DELAY,
+        baseDelay * TIMING.MENTIONED_DELAY_MULTIPLIER
+      );
     }
 
     const randomness = Math.random();
     const staggerDelay =
-      index * (this.minDelayBetweenAI || 1000) +
-      randomness * (this.maxDelayBetweenAI || 3000);
+      index * this.minDelayBetweenAI +
+      randomness * (this.maxDelayBetweenAI - this.minDelayBetweenAI);
 
-    const catchUpDelay = Math.pow(randomness, 2) * 1500;
+    const catchUpDelay =
+      Math.pow(randomness, DELAY_CALC.CATCH_UP_POWER) *
+      DELAY_CALC.CATCH_UP_MULTIPLIER;
 
     return Math.floor(baseDelay + staggerDelay + catchUpDelay);
   }
@@ -391,7 +424,9 @@ export class ChatOrchestrator extends EventEmitter {
         }...`
       );
 
-      let context = this.contextManager.getContextForAI(25); // Get more context for better AI interactions
+      let context = this.contextManager.getContextForAI(
+        CONTEXT_LIMITS.AI_CONTEXT_SIZE
+      );
       let responseType = "response";
       let systemPrompt = this.createEnhancedSystemPrompt(
         aiService,
@@ -501,14 +536,15 @@ export class ChatOrchestrator extends EventEmitter {
       .split(/(?<=[.!?])\s+/)
       .filter((s) => s.trim().length > 0);
 
-    // Keep max 15 sentences
-    const maxSentences = 15;
-    if (sentences.length <= maxSentences) {
+    if (sentences.length <= CONTEXT_LIMITS.MAX_SENTENCES) {
       return response.trim();
     }
 
-    // Take first 2-3 sentences and ensure they end properly
-    let truncated = sentences.slice(0, maxSentences).join(" ").trim();
+    // Truncate to max sentences
+    let truncated = sentences
+      .slice(0, CONTEXT_LIMITS.MAX_SENTENCES)
+      .join(" ")
+      .trim();
 
     // Ensure it ends with proper punctuation
     if (!truncated.match(/[.!?]$/)) {
@@ -587,10 +623,10 @@ export class ChatOrchestrator extends EventEmitter {
   startBackgroundConversation() {
     const scheduleNextMessage = () => {
       if (this.messageTracker.isAsleep || this.activeAIs.length === 0) {
-        // Retry in 30 seconds if AIs are asleep
+        // Retry after interval if AIs are asleep
         this.backgroundConversationTimer = setTimeout(
           scheduleNextMessage,
-          30000
+          TIMING.SLEEP_RETRY_INTERVAL
         );
         return;
       }
@@ -602,8 +638,7 @@ export class ChatOrchestrator extends EventEmitter {
       this.backgroundConversationTimer = setTimeout(() => {
         // Only generate background messages if there has been recent activity
         const timeSinceLastMessage = Date.now() - this.lastAIMessageTime;
-        if (timeSinceLastMessage > 120000) {
-          // 2 minutes of silence
+        if (timeSinceLastMessage > TIMING.SILENCE_TIMEOUT) {
           scheduleNextMessage();
           return;
         }
@@ -643,7 +678,9 @@ export class ChatOrchestrator extends EventEmitter {
    * @returns {string} Enhanced system prompt
    */
   createEnhancedSystemPrompt(aiService, context, isUserResponse) {
-    const recentMessages = context.slice(-5); // Focus on last 5 messages
+    const recentMessages = context.slice(
+      -CONTEXT_LIMITS.RECENT_MESSAGES_FOR_PROMPT
+    );
     const aiNames = Array.from(this.aiServices.values()).map((ai) =>
       ai.name.toLowerCase()
     );
@@ -691,27 +728,45 @@ Respond naturally and keep the conversation flowing!`;
    * @returns {Object} Interaction strategy
    */
   determineInteractionStrategy(aiService, context, isUserResponse) {
-    const recentMessages = context.slice(-8); // Look at last 8 messages
+    const recentMessages = context.slice(
+      -CONTEXT_LIMITS.RECENT_MESSAGES_FOR_STRATEGY
+    );
     const aiMessages = recentMessages.filter((msg) => msg.senderType === "ai");
     const lastMessage = recentMessages[recentMessages.length - 1];
 
     const strategies = {
-      AGREE_AND_EXPAND: { type: "agree-expand", weight: 0.3 },
-      CHALLENGE_AND_DEBATE: { type: "challenge", weight: 0.25 },
-      REDIRECT_TOPIC: { type: "redirect", weight: 0.15 },
-      ASK_QUESTION: { type: "question", weight: 0.2 },
-      DIRECT_RESPONSE: { type: "direct", weight: 0.1 },
+      AGREE_AND_EXPAND: {
+        type: "agree-expand",
+        weight: STRATEGY_WEIGHTS.AGREE_AND_EXPAND,
+      },
+      CHALLENGE_AND_DEBATE: {
+        type: "challenge",
+        weight: STRATEGY_WEIGHTS.CHALLENGE_AND_DEBATE,
+      },
+      REDIRECT_TOPIC: {
+        type: "redirect",
+        weight: STRATEGY_WEIGHTS.REDIRECT_TOPIC,
+      },
+      ASK_QUESTION: { type: "question", weight: STRATEGY_WEIGHTS.ASK_QUESTION },
+      DIRECT_RESPONSE: {
+        type: "direct",
+        weight: STRATEGY_WEIGHTS.DIRECT_RESPONSE,
+      },
     };
 
     // Adjust weights based on context
     if (lastMessage?.senderType === "ai" && !isUserResponse) {
-      strategies.CHALLENGE_AND_DEBATE.weight += 0.2;
-      strategies.AGREE_AND_EXPAND.weight += 0.15;
+      strategies.CHALLENGE_AND_DEBATE.weight +=
+        STRATEGY_ADJUSTMENTS.AI_MESSAGE_BACKGROUND_CHALLENGE;
+      strategies.AGREE_AND_EXPAND.weight +=
+        STRATEGY_ADJUSTMENTS.AI_MESSAGE_BACKGROUND_AGREE;
     }
 
-    if (aiMessages.length >= 3) {
-      strategies.REDIRECT_TOPIC.weight += 0.1;
-      strategies.ASK_QUESTION.weight += 0.1;
+    if (aiMessages.length >= STRATEGY_ADJUSTMENTS.MANY_AI_MESSAGES_THRESHOLD) {
+      strategies.REDIRECT_TOPIC.weight +=
+        STRATEGY_ADJUSTMENTS.MANY_AI_MESSAGES_REDIRECT;
+      strategies.ASK_QUESTION.weight +=
+        STRATEGY_ADJUSTMENTS.MANY_AI_MESSAGES_QUESTION;
     }
 
     const selfNormalized =
@@ -785,7 +840,8 @@ Respond naturally and keep the conversation flowing!`;
 
       for (
         let i = aiMessages.length - 1;
-        i >= 0 && potentialTargets.length < 3;
+        i >= 0 &&
+        potentialTargets.length < CONTEXT_LIMITS.POTENTIAL_MENTION_TARGETS;
         i--
       ) {
         const msg = aiMessages[i];
@@ -800,7 +856,8 @@ Respond naturally and keep the conversation flowing!`;
       }
 
       if (potentialTargets.length > 0) {
-        shouldMention = Math.random() < 0.35;
+        shouldMention =
+          Math.random() < MENTION_CONFIG.RANDOM_MENTION_PROBABILITY;
         if (shouldMention) {
           const selected = potentialTargets[0];
           targetAI = this.getMentionTokenForAI(selected);
@@ -946,57 +1003,10 @@ Respond naturally and keep the conversation flowing!`;
       return response;
     }
 
-    // Try to naturally incorporate the mention with diverse conversational patterns
-    const mentionFormats = [
-      // Direct address (front)
-      `${mentionHandle}, ${response}`,
-      `${mentionHandle} - ${response}`,
-      `Hey ${mentionHandle}, ${response}`,
-      `${mentionHandle}: ${response}`,
-      `${mentionHandle} ${response}`,
-
-      // Questions (back)
-      `${response} What do you think, ${mentionHandle}?`,
-      `${response} Thoughts, ${mentionHandle}?`,
-      `${response} Agree, ${mentionHandle}?`,
-      `${response} ${mentionHandle}, does that make sense?`,
-      `${response} How would you approach this, ${mentionHandle}?`,
-      `${response} ${mentionHandle}, have you considered this?`,
-      `${response} What's your take on this, ${mentionHandle}?`,
-      `${response} ${mentionHandle}, am I missing something?`,
-      `${response} Curious for your perspective, ${mentionHandle}?`,
-      `${response} Right, ${mentionHandle}?`,
-      `${response} Don't you think, ${mentionHandle}?`,
-      `${response} ${mentionHandle}, you see what I mean?`,
-      `${response} ${mentionHandle}?`,
-
-      // Collaborative/seeking input (back)
-      `${response} Curious what ${mentionHandle} thinks about this.`,
-      `${response} Would love ${mentionHandle}'s input here.`,
-      `${response} ${mentionHandle} might have thoughts on this.`,
-      `${response} I'd be interested to hear from ${mentionHandle} too.`,
-      `${response} ${mentionHandle}, you probably have experience with this?`,
-      `${response} Tagging ${mentionHandle} for visibility.`,
-      `${response} ${mentionHandle}, care to weigh in?`,
-      `${response} I wonder if ${mentionHandle} agrees with this.`,
-      `${response} Maybe ${mentionHandle} has a different view?`,
-      `${response} Curious if ${mentionHandle} sees it differently.`,
-      `${response} cc ${mentionHandle}`,
-
-      // Deferring/acknowledging expertise (back)
-      `${response} ${mentionHandle} would know better than me.`,
-      `${response} ${mentionHandle}, you've dealt with this before, right?`,
-      `${response} Let's see what ${mentionHandle} says.`,
-      `${response} ${mentionHandle} could probably add more context here.`,
-
-      // Building on their point (front-mid blend)
-      `${mentionHandle}, building on what you said - ${response}`,
-      `${mentionHandle}, interesting point. ${response}`,
-      `${mentionHandle}, I think you're onto something. ${response}`,
-    ];
-
-    const formatIndex = Math.floor(Math.random() * mentionFormats.length);
-    return mentionFormats[formatIndex];
+    // Use mention format from constants
+    const formatIndex = Math.floor(Math.random() * MENTION_FORMATS.length);
+    const formatFn = MENTION_FORMATS[formatIndex];
+    return formatFn(mentionHandle, response);
   }
 
   /**
