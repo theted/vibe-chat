@@ -1,7 +1,72 @@
 #!/bin/bash
 
+VERBOSE_MODE=false
+
+print_usage() {
+    cat <<'USAGE'
+Usage: ./start.sh [--verbose]
+
+Options:
+  --verbose, -v   Output the full AI context that will be forwarded to the models.
+                  This is noisy and intended for debugging only.
+  --help, -h      Show this message.
+USAGE
+}
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --verbose|-v)
+            VERBOSE_MODE=true
+            shift
+            ;;
+        --help|-h)
+            print_usage
+            exit 0
+            ;;
+        *)
+            echo "❌ Unknown option: $1"
+            print_usage
+            exit 1
+            ;;
+    esac
+done
+
 echo "🚀 Vibe Chat Startup Script"
 echo ""
+
+print_ai_context_snapshot() {
+    echo "🧠 Verbose context dump (debugging only)"
+    echo "   The following data mirrors what will be forwarded to the AI models."
+    echo ""
+
+    if [ -f .env ]; then
+        echo "----- .env (effective values) -----"
+        # Show non-comment, non-empty lines exactly as written so users can confirm
+        # the configuration being passed through Docker/Node.
+        grep -v '^\s*#' .env | sed '/^\s*$/d' | sed 's/^/   /'
+    else
+        echo "   (No .env file detected; nothing to show.)"
+    fi
+
+    echo ""
+    echo "----- Derived runtime toggles -----"
+    printf '   FORCE_INTERNAL_REDIS=%s\n' "${FORCE_INTERNAL_REDIS:-false}"
+    printf '   FORCE_INTERNAL_CHROMA=%s\n' "${FORCE_INTERNAL_CHROMA:-false}"
+    printf '   REDIS_URL=%s\n' "${REDIS_URL:-<not set>}"
+    printf '   CHROMA_URL=%s\n' "${CHROMA_URL:-<not set>}"
+
+    echo ""
+    if [ -f ../AGENTS.md ] || [ -f ../CLAUDE.md ]; then
+        echo "----- Repository context references -----"
+        for context_file in ../AGENTS.md ../CLAUDE.md; do
+            if [ -f "$context_file" ]; then
+                echo "   >>> ${context_file}";
+                sed 's/^/      /' "$context_file"
+                echo ""
+            fi
+        done
+    fi
+}
 
 # Check if .env exists
 if [ ! -f .env ]; then
@@ -32,14 +97,6 @@ if [ $API_KEYS_FOUND -eq 0 ]; then
     exit 1
 fi
 
-echo ""
-echo "Choose startup mode:"
-echo "1) Development with live reloading (recommended for development)"
-echo "2) Production build (nginx + optimized)"
-echo "3) Debug mode (simple setup for troubleshooting)"
-
-read -p "Enter choice (1-3): " choice
-
 FORCE_INTERNAL_REDIS=${FORCE_INTERNAL_REDIS:-false}
 FORCE_INTERNAL_CHROMA=${FORCE_INTERNAL_CHROMA:-false}
 START_INTERNAL_REDIS=true
@@ -48,6 +105,20 @@ EXTERNAL_REDIS_CONTAINER=""
 EXTERNAL_CHROMA_TARGET=""
 OUR_INTERNAL_REDIS_CONTAINERS=("ai-chat-redis" "ai-chat-redis-dev" "ai-chat-redis-prod" "ai-chat-redis-debug")
 OUR_INTERNAL_CHROMA_CONTAINERS=("ai-chat-chroma" "ai-chat-chroma-dev" "ai-chat-chroma-prod" "ai-chat-chroma-debug")
+
+if [ "$VERBOSE_MODE" = true ]; then
+    echo ""
+    print_ai_context_snapshot
+    echo ""
+fi
+
+echo ""
+echo "Choose startup mode:"
+echo "1) Development with live reloading (recommended for development)"
+echo "2) Production build (nginx + optimized)"
+echo "3) Debug mode (simple setup for troubleshooting)"
+
+read -p "Enter choice (1-3): " choice
 
 detect_external_redis() {
     if [ "$FORCE_INTERNAL_REDIS" = "true" ]; then
