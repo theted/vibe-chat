@@ -44,6 +44,44 @@ const IGNORED_PATHS = [
 const VECTOR_STORE_UNAVAILABLE_CODE =
   MCP_ERROR_CODES.VECTOR_STORE_UNAVAILABLE || "E_VECTOR_STORE_UNAVAILABLE";
 
+// Sanitize text to ensure valid JSON serialization
+// Uses toWellFormed() if available (Node 20+), otherwise manual fix
+const sanitizeText = (text) => {
+  if (!text) return text;
+
+  // Node 20+ has String.prototype.toWellFormed()
+  if (typeof text.toWellFormed === 'function') {
+    return text.toWellFormed();
+  }
+
+  // Fallback for older Node versions
+  // Split into code points and rebuild, replacing lone surrogates
+  const codePoints = [];
+  for (let i = 0; i < text.length; i += 1) {
+    const code = text.charCodeAt(i);
+
+    if (code >= 0xD800 && code <= 0xDBFF) {
+      // High surrogate
+      const nextCode = text.charCodeAt(i + 1);
+      if (nextCode >= 0xDC00 && nextCode <= 0xDFFF) {
+        // Valid pair
+        codePoints.push(text.codePointAt(i));
+        i += 1;
+      } else {
+        // Lone high surrogate
+        codePoints.push(0xFFFD);
+      }
+    } else if (code >= 0xDC00 && code <= 0xDFFF) {
+      // Lone low surrogate
+      codePoints.push(0xFFFD);
+    } else {
+      codePoints.push(code);
+    }
+  }
+
+  return String.fromCodePoint(...codePoints);
+};
+
 const newlineIndicesFor = (text) => {
   const indices = [-1];
   for (let i = 0; i < text.length; i += 1) {
@@ -116,12 +154,13 @@ const extractComponentInfo = (content, relativePath) => {
   // Extract component/function names from file
   const componentMatch = content.match(/(?:export\s+(?:default\s+)?(?:function|const)\s+(\w+)|const\s+(\w+)\s*=.*?(?:React\.)?(?:memo|forwardRef))/);
   if (componentMatch) {
-    info.componentName = componentMatch[1] || componentMatch[2];
+    const name = componentMatch[1] || componentMatch[2];
+    info.componentName = sanitizeText(name);
   }
 
   // Extract file type
   const ext = path.extname(relativePath);
-  info.fileType = ext;
+  info.fileType = sanitizeText(ext);
 
   // Detect if React component
   if (content.includes('import React') || content.includes('from \'react\'') || content.includes('from "react"')) {
@@ -147,14 +186,27 @@ const buildDocuments = async (rootDir, options = {}) => {
 
   for (const absolutePath of filePaths) {
     try {
-      const content = await fs.readFile(absolutePath, "utf8");
-      const relativePath = path.relative(rootDir, absolutePath);
+      const rawContent = await fs.readFile(absolutePath, "utf8");
+      const content = sanitizeText(rawContent);
+      const rawRelativePath = path.relative(rootDir, absolutePath);
+      const relativePath = sanitizeText(rawRelativePath);
       const fileInfo = extractComponentInfo(content, relativePath);
       const chunks = chunkContent(content, options);
 
       chunks.forEach((chunk) => {
+        // Ensure all text is sanitized
+        const sanitizedContent = sanitizeText(chunk.content);
+
+        // Test if this document can be JSON serialized
+        try {
+          JSON.stringify(sanitizedContent);
+        } catch (err) {
+          console.warn(`[MCP] Skipping chunk from ${relativePath} - invalid Unicode after sanitization`);
+          return;
+        }
+
         docs.push({
-          content: chunk.content,
+          content: sanitizedContent,
           metadata: {
             relativePath,
             startLine: chunk.metadata.startLine,
