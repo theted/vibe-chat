@@ -1,6 +1,7 @@
 #!/bin/bash
 
 VERBOSE_MODE=false
+VERBOSE_CONTEXT_FLAG="AI_CHAT_VERBOSE_CONTEXT"
 
 print_usage() {
     cat <<'USAGE'
@@ -34,38 +35,11 @@ done
 echo "🚀 Vibe Chat Startup Script"
 echo ""
 
-print_ai_context_snapshot() {
-    echo "🧠 Verbose context dump (debugging only)"
-    echo "   The following data mirrors what will be forwarded to the AI models."
-    echo ""
-
-    if [ -f .env ]; then
-        echo "----- .env (effective values) -----"
-        # Show non-comment, non-empty lines exactly as written so users can confirm
-        # the configuration being passed through Docker/Node.
-        grep -v '^\s*#' .env | sed '/^\s*$/d' | sed 's/^/   /'
-    else
-        echo "   (No .env file detected; nothing to show.)"
-    fi
-
-    echo ""
-    echo "----- Derived runtime toggles -----"
-    printf '   FORCE_INTERNAL_REDIS=%s\n' "${FORCE_INTERNAL_REDIS:-false}"
-    printf '   FORCE_INTERNAL_CHROMA=%s\n' "${FORCE_INTERNAL_CHROMA:-false}"
-    printf '   REDIS_URL=%s\n' "${REDIS_URL:-<not set>}"
-    printf '   CHROMA_URL=%s\n' "${CHROMA_URL:-<not set>}"
-
-    echo ""
-    if [ -f ../AGENTS.md ] || [ -f ../CLAUDE.md ]; then
-        echo "----- Repository context references -----"
-        for context_file in ../AGENTS.md ../CLAUDE.md; do
-            if [ -f "$context_file" ]; then
-                echo "   >>> ${context_file}";
-                sed 's/^/      /' "$context_file"
-                echo ""
-            fi
-        done
-    fi
+enable_verbose_context_logging() {
+    export "${VERBOSE_CONTEXT_FLAG}"=true
+    echo "📝 Verbose AI context logging enabled"
+    echo "   Every AI request will print the exact prompt and context sent to the model."
+    echo "   Check the ai-chat-server logs for the detailed dumps."
 }
 
 # Check if .env exists
@@ -107,9 +81,7 @@ OUR_INTERNAL_REDIS_CONTAINERS=("ai-chat-redis" "ai-chat-redis-dev" "ai-chat-redi
 OUR_INTERNAL_CHROMA_CONTAINERS=("ai-chat-chroma" "ai-chat-chroma-dev" "ai-chat-chroma-prod" "ai-chat-chroma-debug")
 
 if [ "$VERBOSE_MODE" = true ]; then
-    echo ""
-    print_ai_context_snapshot
-    echo ""
+    enable_verbose_context_logging
 fi
 
 echo ""
