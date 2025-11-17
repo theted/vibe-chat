@@ -71,6 +71,52 @@ export const DELAY_CALC = {
   CATCH_UP_POWER: 2, // Power function for catch-up delay
 };
 
+// System prompt templates - easily configurable conversation guidelines
+export const SYSTEM_PROMPT = {
+  // Introduction based on context
+  INTRO_USER_RESPONSE:
+    "A user just posted. Respond naturally and conversationally.",
+  INTRO_BACKGROUND: "Continue the ongoing conversation between AIs.",
+
+  // Core conversation guidelines
+  GUIDELINES: `
+Key guidelines:
+• Keep responses 1-3 sentences and conversational
+• Reference recent messages and build on ideas
+• Use @mentions naturally when addressing someone - weave them into your response organically:
+  - Start with mention: "@Claude, that's an interesting take on..."
+  - End with question: "...what do you think, @Gemini?"
+  - Build on their point: "@GPT, building on what you said..."
+  - Seek input: "...curious for @Claude's perspective here"
+• When you need implementation details or source code facts, mention @Chat with a clear question and wait for its answer before replying
+• Feel free to challenge, expand on, or redirect the conversation
+• Show personality and distinct perspectives
+• The latest messages are most important for context
+• Don't repeat what others just said - add new value
+• Ask questions to spark further discussion
+• Vary how you incorporate @mentions - sometimes front, sometimes back, sometimes middle`,
+
+  // Closing message
+  CLOSING: "Respond naturally and keep the conversation flowing!",
+};
+
+// Interaction strategy instruction templates
+export const STRATEGY_INSTRUCTIONS = {
+  MENTIONED_BY_AI: (mentionerToken) =>
+    `You were directly mentioned by ${mentionerToken}. Respond specifically to their message and address the key points they raised.`,
+  MENTIONED_BY_USER:
+    "You were directly mentioned by the user. Respond directly to their message and focus on answering or acknowledging their mention.",
+  AGREE_EXPAND: (senderName) =>
+    `Build on ${senderName}'s point and add your own insights. Show agreement but expand with new information or examples.`,
+  CHALLENGE: (senderName) =>
+    `Respectfully challenge ${senderName}'s perspective. Offer a counterpoint or alternative viewpoint while keeping it constructive.`,
+  REDIRECT:
+    "Gracefully steer the conversation toward a related but new angle or topic that might be more interesting.",
+  QUESTION:
+    "Ask a thought-provoking question that will get the other AIs thinking and responding.",
+  DIRECT: "Respond directly to the most recent message with your perspective.",
+};
+
 // Mention format templates - natural conversation patterns
 export const MENTION_FORMATS = [
   // Direct address (front)
@@ -89,14 +135,16 @@ export const MENTION_FORMATS = [
   (mention, response) => `${response} ${mention}, have you considered this?`,
   (mention, response) => `${response} What's your take on this, ${mention}?`,
   (mention, response) => `${response} ${mention}, am I missing something?`,
-  (mention, response) => `${response} Curious for your perspective, ${mention}?`,
+  (mention, response) =>
+    `${response} Curious for your perspective, ${mention}?`,
   (mention, response) => `${response} Right, ${mention}?`,
   (mention, response) => `${response} Don't you think, ${mention}?`,
   (mention, response) => `${response} ${mention}, you see what I mean?`,
   (mention, response) => `${response} ${mention}?`,
 
   // Collaborative/seeking input (back)
-  (mention, response) => `${response} Curious what ${mention} thinks about this.`,
+  (mention, response) =>
+    `${response} Curious what ${mention} thinks about this.`,
   (mention, response) => `${response} Would love ${mention}'s input here.`,
   (mention, response) => `${response} ${mention} might have thoughts on this.`,
   (mention, response) =>
@@ -122,5 +170,6 @@ export const MENTION_FORMATS = [
   // Building on their point (front-mid blend)
   (mention, response) => `${mention}, building on what you said - ${response}`,
   (mention, response) => `${mention}, interesting point. ${response}`,
-  (mention, response) => `${mention}, I think you're onto something. ${response}`,
+  (mention, response) =>
+    `${mention}, I think you're onto something. ${response}`,
 ];

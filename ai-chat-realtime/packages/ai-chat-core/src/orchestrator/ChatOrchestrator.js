@@ -15,6 +15,8 @@ import {
   MENTION_CONFIG,
   RESPONDER_CONFIG,
   DELAY_CALC,
+  SYSTEM_PROMPT,
+  STRATEGY_INSTRUCTIONS,
   MENTION_FORMATS,
 } from "./constants.js";
 
@@ -737,44 +739,30 @@ export class ChatOrchestrator extends EventEmitter {
    * @returns {string} Enhanced system prompt
    */
   createEnhancedSystemPrompt(aiService, context, isUserResponse) {
-    const recentMessages = context.slice(
-      -CONTEXT_LIMITS.RECENT_MESSAGES_FOR_PROMPT
-    );
     const aiNames = Array.from(this.aiServices.values()).map((ai) =>
       ai.name.toLowerCase()
     );
 
     let prompt = `You are ${aiService.name}, an AI participating in a dynamic group chat. `;
 
+    // Add context-specific intro
     if (isUserResponse) {
-      prompt += `A user just posted. Respond naturally and conversationally. `;
+      prompt += `${SYSTEM_PROMPT.INTRO_USER_RESPONSE} `;
     } else {
-      prompt += `Continue the ongoing conversation between AIs. `;
+      prompt += `${SYSTEM_PROMPT.INTRO_BACKGROUND} `;
     }
 
-    prompt += `
+    // Add guidelines
+    prompt += SYSTEM_PROMPT.GUIDELINES;
 
-Key guidelines:
-• Keep responses 1-3 sentences and conversational
-• Reference recent messages and build on ideas
-• Use @mentions naturally when addressing someone - weave them into your response organically:
-  - Start with mention: "@Claude, that's an interesting take on..."
-  - End with question: "...what do you think, @Gemini?"
-  - Build on their point: "@GPT, building on what you said..."
-  - Seek input: "...curious for @Claude's perspective here"
-• When you need implementation details or source code facts, mention @Chat with a clear question and wait for its answer before replying
-• Feel free to challenge, expand on, or redirect the conversation
-• Show personality and distinct perspectives
-• The latest messages are most important for context
-• Don't repeat what others just said - add new value
-• Ask questions to spark further discussion
-• Vary how you incorporate @mentions - sometimes front, sometimes back, sometimes middle
+    // Add other participants
+    prompt += `
 
 Other AIs in this chat: ${aiNames
       .filter((name) => name.toLowerCase() !== aiService.name.toLowerCase())
       .join(", ")}
 
-Respond naturally and keep the conversation flowing!`;
+${SYSTEM_PROMPT.CLOSING}`;
 
     return prompt;
   }
@@ -964,37 +952,38 @@ Respond naturally and keep the conversation flowing!`;
 
     if (mentionsCurrentAI) {
       if (lastMessage?.senderType === "ai" && mentionerToken) {
-        instructionPrompt = `You were directly mentioned by ${mentionerToken}. Respond specifically to their message and address the key points they raised.`;
+        instructionPrompt = STRATEGY_INSTRUCTIONS.MENTIONED_BY_AI(mentionerToken);
       } else {
-        instructionPrompt = `You were directly mentioned by the user. Respond directly to their message and focus on answering or acknowledging their mention.`;
+        instructionPrompt = STRATEGY_INSTRUCTIONS.MENTIONED_BY_USER;
       }
     } else {
       switch (strategy.type) {
         case "agree-expand":
           if (lastMessage?.senderType === "ai") {
-            instructionPrompt = `Build on ${lastMessage.sender}'s point and add your own insights. Show agreement but expand with new information or examples.`;
+            instructionPrompt = STRATEGY_INSTRUCTIONS.AGREE_EXPAND(
+              lastMessage.sender
+            );
           }
           break;
 
         case "challenge":
           if (lastMessage?.senderType === "ai") {
-            instructionPrompt = `Respectfully challenge ${lastMessage.sender}'s perspective. Offer a counterpoint or alternative viewpoint while keeping it constructive.`;
+            instructionPrompt = STRATEGY_INSTRUCTIONS.CHALLENGE(
+              lastMessage.sender
+            );
           }
           break;
 
         case "redirect":
-          instructionPrompt =
-            "Gracefully steer the conversation toward a related but new angle or topic that might be more interesting.";
+          instructionPrompt = STRATEGY_INSTRUCTIONS.REDIRECT;
           break;
 
         case "question":
-          instructionPrompt =
-            "Ask a thought-provoking question that will get the other AIs thinking and responding.";
+          instructionPrompt = STRATEGY_INSTRUCTIONS.QUESTION;
           break;
 
         case "direct":
-          instructionPrompt =
-            "Respond directly to the most recent message with your perspective.";
+          instructionPrompt = STRATEGY_INSTRUCTIONS.DIRECT;
           break;
       }
     }
