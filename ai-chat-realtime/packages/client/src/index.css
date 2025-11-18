@@ -99,6 +99,10 @@
     @apply border-l-4 border-primary-400 ml-0 my-2 py-2 pl-4 bg-slate-50 italic text-slate-600;
   }
 
+  .markdown-content hr {
+    @apply my-6 border-0 border-t border-slate-200/80;
+  }
+
   .markdown-content h4 {
     @apply text-lg font-semibold text-slate-800 mt-3 mb-2;
   }
@@ -133,6 +137,10 @@
 
   .dark .markdown-content blockquote {
     @apply border-primary-500/60 bg-slate-900/60 text-slate-300;
+  }
+
+  .dark .markdown-content hr {
+    @apply border-slate-800;
   }
 
   .dark .markdown-list li {
