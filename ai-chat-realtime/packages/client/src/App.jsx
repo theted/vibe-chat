@@ -10,6 +10,7 @@ import ChatView from "./components/ChatView.jsx";
 import LoadingOverlay from "./components/LoadingOverlay.jsx";
 import { ThemeContext } from "./context/ThemeContext.jsx";
 import { SERVER_URL } from "./constants/chat.js";
+import { LOCAL_STORAGE_MESSAGES_LIMIT } from "./constants/storage.js";
 import {
   normalizeAlias,
   resolveEmoji,
@@ -114,8 +115,10 @@ function App() {
   useEffect(() => {
     const saveMessagesToStorage = (messagesToSave) => {
       try {
-        // Limit to last 20 messages
-        const limitedMessages = messagesToSave.slice(-20);
+        // Limit to the most recent messages so storage usage stays predictable
+        const limitedMessages = messagesToSave.slice(
+          -LOCAL_STORAGE_MESSAGES_LIMIT
+        );
         localStorage.setItem(
           "ai-chat-messages",
           JSON.stringify(limitedMessages)
@@ -217,7 +220,7 @@ function App() {
 
       setPreviewMessages((prev) => {
         const next = [...prev, message];
-        return next.slice(-20);
+        return next.slice(-LOCAL_STORAGE_MESSAGES_LIMIT);
       });
 
       if (Array.isArray(payload.participants)) {
@@ -228,7 +231,9 @@ function App() {
       }
 
       if (!isJoinedRef.current) {
-        setMessages((prev) => [...prev, message].slice(-20));
+        setMessages((prev) =>
+          [...prev, message].slice(-LOCAL_STORAGE_MESSAGES_LIMIT)
+        );
       }
     });
 

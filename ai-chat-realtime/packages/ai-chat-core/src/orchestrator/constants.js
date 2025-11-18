@@ -17,7 +17,7 @@ export const DEFAULTS = {
 
 // Context and message limits
 export const CONTEXT_LIMITS = {
-  AI_CONTEXT_SIZE: 25, // Messages to include in AI context
+  AI_CONTEXT_SIZE: 50, // Messages to include in AI context
   RECENT_MESSAGES_FOR_PROMPT: 5, // Messages to analyze for system prompt
   RECENT_MESSAGES_FOR_STRATEGY: 8, // Messages to analyze for interaction strategy
   MAX_SENTENCES: 15, // Max sentences in AI response

@@ -1,0 +1,1 @@
+export const LOCAL_STORAGE_MESSAGES_LIMIT = 80;
