@@ -53,6 +53,9 @@ services:
       - MISTRAL_API_KEY=${MISTRAL_API_KEY}
       - COHERE_API_KEY=${COHERE_API_KEY}
       - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
+      - QWEN_API_KEY=${QWEN_API_KEY}
+      - KIMI_API_KEY=${KIMI_API_KEY}
+      - Z_API_KEY=${Z_API_KEY}
       - AI_CHAT_VERBOSE_CONTEXT=${AI_CHAT_VERBOSE_CONTEXT:-false}
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
       - CHAT_ASSISTANT_SCRIPT=/app/scripts/run-mcp-chat.js
