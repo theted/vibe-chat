@@ -426,12 +426,16 @@ function App() {
     });
   }, [on, showToast]);
 
-  // Auto-scroll to bottom when new messages arrive or when joining chat
+  // Auto-scroll to bottom when new messages arrive and the user is already near the bottom
   useEffect(() => {
-    if (messagesEndRef.current) {
+    if (!messagesEndRef.current) {
+      return;
+    }
+
+    if (!showScrollButton) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, [messages]);
+  }, [messages, showScrollButton]);
 
   // Scroll to bottom immediately when joining chat
   useEffect(() => {
