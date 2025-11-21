@@ -173,17 +173,27 @@ export class ConversationManager {
       try {
         // Generate a response from the current participant
         const response = await this.generateResponse(participant);
+        const normalizedResponse =
+          typeof response === "string" ? response.trim() : "";
+
+        if (!normalizedResponse) {
+          console.warn(
+            `Participant "${participant.name}" produced an empty response. Skipping.`
+          );
+          this.turnCount++;
+          continue;
+        }
 
         // Add the response to the conversation
         this.addMessage({
           role: "assistant",
-          content: response,
+          content: normalizedResponse,
           participantId: participant.id,
         });
 
         // Stream the response with a delay between words
         await this.streamText(
-          response,
+          normalizedResponse,
           `[${participant.name}]: `,
           STREAM_WORD_DELAY_MS
         );
