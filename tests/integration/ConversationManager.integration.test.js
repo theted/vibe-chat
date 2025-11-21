@@ -105,6 +105,51 @@ describe('ConversationManager integration', () => {
     );
   });
 
+  it('ignores empty model responses so they do not enter the conversation', async () => {
+    const manager = new ConversationManager({ maxTurns: 2 }, dependencies);
+
+    responsesByModel['model-a'] = ['   ', 'Response A2'];
+    responsesByModel['model-b'] = ['Response B1'];
+
+    const participantA = {
+      provider: { name: 'ProviderA' },
+      model: { id: 'model-a' },
+    };
+    const participantB = {
+      provider: { name: 'ProviderB' },
+      model: { id: 'model-b' },
+    };
+
+    manager.addParticipant(participantA);
+    manager.addParticipant(participantB);
+
+    await manager.startConversation('Hello everyone');
+
+    assert.strictEqual(manager.turnCount, 2);
+    assert.strictEqual(manager.messages.length, 2);
+
+    const [userMessage, reply] = manager.messages;
+    assert.strictEqual(userMessage.role, 'user');
+    assert.strictEqual(reply.participantId, 1);
+    assert.strictEqual(reply.content, 'Response B1');
+
+    assert.strictEqual(streamCalls.length, 2);
+    assert.deepStrictEqual(
+      streamCalls.map((call) => call.prefix),
+      ['[User]: ', '[ProviderB (model-b)]: ']
+    );
+
+    assert.strictEqual(recordMessageMock.mock.callCount(), 2);
+    const recordCalls = recordMessageMock.mock.calls.map(({ arguments: [payload] }) => payload);
+    assert.deepStrictEqual(
+      recordCalls.map(({ role, provider, model }) => ({ role, provider, model })),
+      [
+        { role: 'user', provider: 'User', model: null },
+        { role: 'assistant', provider: 'ProviderB', model: 'model-b' },
+      ]
+    );
+  });
+
   it('throws when attempting to start with fewer than two participants', async () => {
     const manager = new ConversationManager({}, dependencies);
 
