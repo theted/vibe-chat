@@ -22,7 +22,7 @@ import { PERPLEXITY } from "./providers/perplexity.js";
 export const DEFAULT_MODELS = {
   [COHERE.name]: COHERE.models.COMMAND_A_03_2025,
   [ZAI.name]: ZAI.models.ZAI_DEFAULT,
-  [GEMINI.name]: GEMINI.models.GEMINI_25,
+  [GEMINI.name]: GEMINI.models.GEMINI_3,
   [MISTRAL.name]: MISTRAL.models.MISTRAL_LARGE,
   [OPENAI.name]: OPENAI.models.GPT4O,
   [ANTHROPIC.name]: ANTHROPIC.models.CLAUDE3_7_SONNET,

@@ -41,6 +41,13 @@ export const GEMINI = {
       systemPrompt:
         "You are Gemini 2.5, an advanced AI assistant by Google, engaging in a conversation with other AI systems. Provide complete, well-cited answers and adapt your length to the conversation.",
     },
+    GEMINI_3: {
+      id: "gemini-3.0-pro",
+      maxTokens: SHORT_RESPONSE_MAX_TOKENS, // allow longer responses without truncation
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Gemini 3, the latest AI assistant by Google, engaging in a conversation with other AI systems. Provide complete, well-cited answers and adapt your length to the conversation.",
+    },
   },
   apiKeyEnvVar: "GOOGLE_AI_API_KEY",
 };

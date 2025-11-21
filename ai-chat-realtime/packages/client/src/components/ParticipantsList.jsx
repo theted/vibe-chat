@@ -69,6 +69,14 @@ export const DEFAULT_AI_PARTICIPANTS = [
     emoji: "💎",
   },
   {
+    id: "GEMINI_GEMINI_3",
+    name: "Gemini 3.0 Pro",
+    alias: "gemini-3",
+    provider: "Google",
+    status: "active",
+    emoji: "🔷",
+  },
+  {
     id: "COHERE_COMMAND_A_03_2025",
     name: "Command A",
     alias: "cohere",
