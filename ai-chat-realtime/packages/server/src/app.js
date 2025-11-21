@@ -120,6 +120,11 @@ const AI_DISPLAY_INFO = {
     alias: "gemini",
     emoji: "💎",
   },
+  GEMINI_GEMINI_3: {
+    displayName: "Gemini 3.0 Pro",
+    alias: "gemini-3",
+    emoji: "🔷",
+  },
   GEMINI_GEMINI_25: {
     displayName: "Gemini 2.5 Pro",
     alias: "gemini-2.5",
