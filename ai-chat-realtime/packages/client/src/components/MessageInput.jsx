@@ -87,7 +87,10 @@ const MessageInput = ({ onSendMessage, disabled = false, onAIMention, onTypingSt
     }
     
     // Check for @ trigger to show AI selection
-    const cursorPosition = e.target.selectionStart;
+    const cursorPosition =
+      typeof e.target.selectionStart === 'number'
+        ? e.target.selectionStart
+        : value.length;
     const textBeforeCursor = value.substring(0, cursorPosition);
     const mentionMatch = textBeforeCursor.match(/@([^\s@]*)$/);
     
