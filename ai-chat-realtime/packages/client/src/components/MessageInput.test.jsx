@@ -38,4 +38,17 @@ describe("MessageInput", () => {
     expect(dialog).toBeInTheDocument();
     expect(dialog).toHaveTextContent("search:Gr");
   });
+
+  it("opens the AI selection dialog even if selectionStart is unavailable", () => {
+    render(<MessageInput {...defaultProps} />);
+    const textarea = screen.getByPlaceholderText(
+      /Use @ to mention an AI/i
+    );
+
+    fireEvent.change(textarea, { target: { value: "@gr" } });
+
+    expect(screen.getByTestId("ai-selection-dialog")).toHaveTextContent(
+      "search:gr"
+    );
+  });
 });
