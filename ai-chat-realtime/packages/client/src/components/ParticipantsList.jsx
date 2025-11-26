@@ -34,7 +34,22 @@ export const DEFAULT_AI_PARTICIPANTS = [
     status: "active",
     emoji: "⚡",
   },
-  // { id: 'ANTHROPIC_CLAUDE3_7_SONNET', name: 'Claude 3.7 Sonnet', alias: 'claude', provider: 'Anthropic', status: 'active', emoji: '🤖' },
+  {
+    id: "ANTHROPIC_CLAUDE_SONNET_4_5",
+    name: "Claude 4.5 Sonnet",
+    alias: "claude",
+    provider: "Anthropic",
+    status: "active",
+    emoji: "🤖",
+  },
+  {
+    id: "ANTHROPIC_CLAUDE_OPUS_4_5",
+    name: "Claude 4.5 Opus",
+    alias: "opus-4-5",
+    provider: "Anthropic",
+    status: "active",
+    emoji: "🟡",
+  },
   {
     id: "ANTHROPIC_CLAUDE_SONNET_4",
     name: "Claude Sonnet 4",

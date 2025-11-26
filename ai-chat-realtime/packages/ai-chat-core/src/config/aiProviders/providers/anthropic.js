@@ -55,6 +55,13 @@ export const ANTHROPIC = {
       systemPrompt:
         "You are Claude Sonnet 4.5 by Anthropic. Best coding model and strongest at building complex agents.",
     },
+    CLAUDE_OPUS_4_5: {
+      id: "claude-opus-4-5",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Claude Opus 4.5 by Anthropic. Deliver exceptionally thorough, thoughtful responses across complex topics.",
+    },
     CLAUDE_OPUS_4: {
       id: "claude-opus-4-20250514",
       maxTokens: DEFAULT_MAX_TOKENS,
