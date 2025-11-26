@@ -70,6 +70,11 @@ const AI_DISPLAY_INFO = {
     alias: "claude",
     emoji: "🤖",
   },
+  ANTHROPIC_CLAUDE_OPUS_4_5: {
+    displayName: "Claude Opus 4.5",
+    alias: "opus-4-5",
+    emoji: "🟡",
+  },
   ANTHROPIC_CLAUDE_OPUS_4: {
     displayName: "Claude Opus 4",
     alias: "opus",
@@ -286,6 +291,7 @@ async function initializeAISystem() {
   }
 
   if (process.env.ANTHROPIC_API_KEY) {
+    addConfig("ANTHROPIC", "CLAUDE_OPUS_4_5");
     addConfig("ANTHROPIC", "CLAUDE_SONNET_4_5");
     addConfig("ANTHROPIC", "CLAUDE_OPUS_4_1");
     addConfig("ANTHROPIC", "CLAUDE_OPUS_4");
