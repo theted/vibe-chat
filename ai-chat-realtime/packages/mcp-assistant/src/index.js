@@ -2,14 +2,14 @@ import path from "path";
 import { ChromaClient } from "chromadb";
 import { OpenAIEmbeddings } from "@langchain/openai";
 import { ChatOpenAI } from "@langchain/openai";
-
-const DEFAULT_COLLECTION_NAME = "ai-chat-workspace";
-const DEFAULT_CHROMA_URL = "http://localhost:8000";
-const DEFAULT_EMBEDDING_MODEL = "text-embedding-3-small";
-const DEFAULT_COMPLETION_MODEL = "gpt-4o-mini";
-
-const VECTOR_STORE_UNAVAILABLE_CODE = "E_VECTOR_STORE_UNAVAILABLE";
-const EMBEDDING_STORE_MISSING_CODE = "E_EMBEDDING_STORE_MISSING";
+import {
+  DEFAULT_CHROMA_URL,
+  DEFAULT_COLLECTION_NAME,
+  DEFAULT_COMPLETION_MODEL,
+  DEFAULT_EMBEDDING_MODEL,
+  EMBEDDING_STORE_MISSING_CODE,
+  VECTOR_STORE_UNAVAILABLE_CODE,
+} from "./constants.js";
 
 const buildSourceLabel = (metadata, index) => {
   if (!metadata) return `[${index + 1}]`;
