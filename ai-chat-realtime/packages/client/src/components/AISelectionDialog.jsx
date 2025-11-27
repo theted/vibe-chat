@@ -2,10 +2,10 @@
  * AISelectionDialog Component - Modal for selecting AI to mention
  */
 
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import Icon from './Icon.jsx';
-import { DEFAULT_AI_PARTICIPANTS } from './ParticipantsList.jsx';
+import React, { useEffect, useMemo, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { DEFAULT_AI_PARTICIPANTS } from "../../../../constants.js";
+import Icon from "./Icon.jsx";
 
 const normalize = (value) => value?.toLowerCase?.().replace(/[^a-z0-9]/g, '') || '';
 

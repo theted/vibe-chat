@@ -5,44 +5,17 @@ import { randomUUID } from "crypto";
 import { ChromaClient } from "chromadb";
 import { OpenAIEmbeddings } from "@langchain/openai";
 import fg from "fast-glob";
-import { MCP_ERROR_CODES } from "./index.js";
-
-const DEFAULT_COLLECTION_NAME = "ai-chat-workspace";
-const DEFAULT_CHROMA_URL = "http://localhost:8000";
-const DEFAULT_EMBEDDING_MODEL = "text-embedding-3-small";
-
-const DEFAULT_ALLOWED_EXTENSIONS = new Set([
-  ".js",
-  ".mjs",
-  ".cjs",
-  ".ts",
-  ".tsx",
-  ".jsx",
-  ".json",
-  ".md",
-  ".yml",
-  ".yaml",
-  ".css",
-  ".scss",
-]);
-
-const DEFAULT_CHUNK_SIZE = 1800;
-const DEFAULT_CHUNK_OVERLAP = 300;
-const DEFAULT_BATCH_SIZE = 64;
-
-const IGNORED_PATHS = [
-  "**/node_modules/**",
-  "**/.git/**",
-  "**/.next/**",
-  "**/dist/**",
-  "**/build/**",
-  "**/.mcp-data/**",
-  "**/.cache/**",
-  "**/package-lock.json",
-];
-
-const VECTOR_STORE_UNAVAILABLE_CODE =
-  MCP_ERROR_CODES.VECTOR_STORE_UNAVAILABLE || "E_VECTOR_STORE_UNAVAILABLE";
+import {
+  DEFAULT_ALLOWED_EXTENSIONS,
+  DEFAULT_BATCH_SIZE,
+  DEFAULT_CHROMA_URL,
+  DEFAULT_CHUNK_OVERLAP,
+  DEFAULT_CHUNK_SIZE,
+  DEFAULT_COLLECTION_NAME,
+  DEFAULT_EMBEDDING_MODEL,
+  IGNORED_PATHS,
+  VECTOR_STORE_UNAVAILABLE_CODE,
+} from "./constants.js";
 
 // Sanitize text to ensure valid JSON serialization
 // Uses toWellFormed() if available (Node 20+), otherwise manual fix

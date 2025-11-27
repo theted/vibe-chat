@@ -35,6 +35,9 @@ vi.mock("./ParticipantsList.jsx", () => ({
       {participants.length} participants, {aiParticipants.length} AIs
     </div>
   ),
+}));
+
+vi.mock("../../../../constants.js", () => ({
   DEFAULT_AI_PARTICIPANTS: mockDefaultAiParticipants,
 }));
 
