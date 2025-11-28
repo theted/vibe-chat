@@ -90,6 +90,7 @@ services:
       - ./packages/client/package.json:/app/package.json
       - ./packages/client/vite.config.js:/app/vite.config.js
       - ./packages/client/index.html:/app/index.html
+      - ./constants.js:/app/constants.js
     depends_on:
       - ai-chat-server
     restart: unless-stopped

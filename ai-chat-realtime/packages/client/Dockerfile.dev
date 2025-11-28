@@ -13,6 +13,7 @@ COPY packages/client/tailwind.config.mjs ./
 COPY packages/client/postcss.config.js ./
 COPY packages/client/index.html ./
 COPY packages/client/src ./src
+COPY constants.js ./
 
 # Expose port
 EXPOSE 3000

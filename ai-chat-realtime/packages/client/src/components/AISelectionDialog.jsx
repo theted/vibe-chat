@@ -2,19 +2,24 @@
  * AISelectionDialog Component - Modal for selecting AI to mention
  */
 
-import React, { useEffect, useMemo, useRef } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { DEFAULT_AI_PARTICIPANTS } from "../../../../constants.js";
+import { DEFAULT_AI_PARTICIPANTS } from "../../constants.js";
 import Icon from "./Icon.jsx";
 
-const normalize = (value) => value?.toLowerCase?.().replace(/[^a-z0-9]/g, '') || '';
+const normalize = (value) =>
+  value?.toLowerCase?.().replace(/[^a-z0-9]/g, "") || "";
 
 const fuzzyMatch = (term, candidate) => {
   if (!term) return true;
   let termIndex = 0;
   const normalizedTerm = term.toLowerCase();
   const normalizedCandidate = candidate.toLowerCase();
-  for (let i = 0; i < normalizedCandidate.length && termIndex < normalizedTerm.length; i++) {
+  for (
+    let i = 0;
+    i < normalizedCandidate.length && termIndex < normalizedTerm.length;
+    i++
+  ) {
     if (normalizedCandidate[i] === normalizedTerm[termIndex]) {
       termIndex += 1;
     }
@@ -38,14 +43,32 @@ const computeScore = (term, option) => {
   return Number.POSITIVE_INFINITY;
 };
 
-const AISelectionDialog = ({ isOpen, onClose, onSelect, searchTerm = '', position }) => {
+const AISelectionDialog = ({
+  isOpen,
+  onClose,
+  onSelect,
+  searchTerm = "",
+  position,
+}) => {
   const dialogRef = useRef(null);
   const [activeIndex, setActiveIndex] = useState(0);
 
   const mentionOptions = useMemo(() => {
     const extras = [
-      { id: 'OPENAI_GPT4', name: 'gpt-4', alias: 'gpt-4', provider: 'OpenAI', emoji: '🧠' },
-      { id: 'OPENAI_CHATGPT', name: 'chatgpt', alias: 'chatgpt', provider: 'OpenAI', emoji: '💬' },
+      {
+        id: "OPENAI_GPT4",
+        name: "gpt-4",
+        alias: "gpt-4",
+        provider: "OpenAI",
+        emoji: "🧠",
+      },
+      {
+        id: "OPENAI_CHATGPT",
+        name: "chatgpt",
+        alias: "chatgpt",
+        provider: "OpenAI",
+        emoji: "💬",
+      },
     ];
 
     const combined = [...DEFAULT_AI_PARTICIPANTS, ...extras];
@@ -55,7 +78,7 @@ const AISelectionDialog = ({ isOpen, onClose, onSelect, searchTerm = '', positio
       const displayName = ai.displayName || ai.name || alias || ai.id;
       const normalizedAlias = normalize(alias);
       const normalizedName = normalize(ai.name || displayName);
-      const normalizedProvider = normalize(ai.provider || '');
+      const normalizedProvider = normalize(ai.provider || "");
       const keywords = [alias, ai.name, ai.provider, ai.id, displayName]
         .filter(Boolean)
         .map((value) => normalize(value))
@@ -65,22 +88,31 @@ const AISelectionDialog = ({ isOpen, onClose, onSelect, searchTerm = '', positio
         id: ai.id,
         name: alias,
         displayName,
-        provider: ai.provider || 'AI',
-        emoji: ai.emoji || '🤖',
-        keywords: Array.from(new Set([normalizedAlias, normalizedName, normalizedProvider, ...keywords])).filter(Boolean),
+        provider: ai.provider || "AI",
+        emoji: ai.emoji || "🤖",
+        keywords: Array.from(
+          new Set([
+            normalizedAlias,
+            normalizedName,
+            normalizedProvider,
+            ...keywords,
+          ])
+        ).filter(Boolean),
       };
     });
   }, []);
 
-  const normalizedTerm = searchTerm?.trim().toLowerCase() || '';
+  const normalizedTerm = searchTerm?.trim().toLowerCase() || "";
 
   const filteredAIs = useMemo(() => {
     return mentionOptions
       .map((option) => ({
         ...option,
-        score: computeScore(normalizedTerm, option)
+        score: computeScore(normalizedTerm, option),
       }))
-      .filter((option) => normalizedTerm ? option.score < Number.POSITIVE_INFINITY : true)
+      .filter((option) =>
+        normalizedTerm ? option.score < Number.POSITIVE_INFINITY : true
+      )
       .sort((a, b) => {
         if (a.score !== b.score) return a.score - b.score;
         return a.displayName.localeCompare(b.displayName);
@@ -99,15 +131,17 @@ const AISelectionDialog = ({ isOpen, onClose, onSelect, searchTerm = '', positio
     const handleKeyDown = (e) => {
       if (!isOpen) return;
 
-      if (e.key === 'Escape') {
+      if (e.key === "Escape") {
         onClose();
-      } else if (e.key === 'ArrowDown' && filteredAIs.length > 0) {
+      } else if (e.key === "ArrowDown" && filteredAIs.length > 0) {
         e.preventDefault();
         setActiveIndex((prev) => (prev + 1) % filteredAIs.length);
-      } else if (e.key === 'ArrowUp' && filteredAIs.length > 0) {
+      } else if (e.key === "ArrowUp" && filteredAIs.length > 0) {
         e.preventDefault();
-        setActiveIndex((prev) => (prev - 1 + filteredAIs.length) % filteredAIs.length);
-      } else if (e.key === 'Enter' && filteredAIs.length > 0) {
+        setActiveIndex(
+          (prev) => (prev - 1 + filteredAIs.length) % filteredAIs.length
+        );
+      } else if (e.key === "Enter" && filteredAIs.length > 0) {
         e.preventDefault();
         const selectedAI = filteredAIs[activeIndex] || filteredAIs[0];
         if (selectedAI) {
@@ -116,8 +150,8 @@ const AISelectionDialog = ({ isOpen, onClose, onSelect, searchTerm = '', positio
       }
     };
 
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
   }, [activeIndex, filteredAIs, isOpen, onClose, onSelect]);
 
   // Handle clicks outside
@@ -129,16 +163,21 @@ const AISelectionDialog = ({ isOpen, onClose, onSelect, searchTerm = '', positio
     };
 
     if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
+      document.addEventListener("mousedown", handleClickOutside);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutside);
     }
   }, [isOpen, onClose]);
 
   const safePosition = useMemo(() => {
-    if (position && typeof position.x === 'number' && typeof position.y === 'number') {
+    if (
+      position &&
+      typeof position.x === "number" &&
+      typeof position.y === "number"
+    ) {
       return position;
     }
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       return { x: window.innerWidth / 2, y: window.innerHeight / 2 };
     }
     return { x: 0, y: 0 };
@@ -162,7 +201,7 @@ const AISelectionDialog = ({ isOpen, onClose, onSelect, searchTerm = '', positio
           style={{
             left: safePosition.x,
             top: safePosition.y - 10,
-            transform: 'translateY(-100%)',
+            transform: "translateY(-100%)",
           }}
         >
           <motion.div
@@ -181,7 +220,10 @@ const AISelectionDialog = ({ isOpen, onClose, onSelect, searchTerm = '', positio
                 No AIs found matching "{searchTerm}"
               </div>
             ) : (
-              <div className="space-y-1 max-h-64 overflow-y-auto no-scrollbar" role="listbox">
+              <div
+                className="space-y-1 max-h-64 overflow-y-auto no-scrollbar"
+                role="listbox"
+              >
                 {filteredAIs.map((ai, index) => {
                   const isActive = index === activeIndex;
 
@@ -197,14 +239,16 @@ const AISelectionDialog = ({ isOpen, onClose, onSelect, searchTerm = '', positio
                       onMouseEnter={() => setActiveIndex(index)}
                       role="option"
                       aria-selected={isActive}
-                      data-active={isActive ? 'true' : 'false'}
+                      data-active={isActive ? "true" : "false"}
                       className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-left group hover:bg-slate-50 dark:hover:bg-slate-800/70 ${
                         isActive
-                          ? 'bg-slate-100 dark:bg-slate-800/70 ring-2 ring-primary-200 dark:ring-primary-500/40'
-                          : ''
+                          ? "bg-slate-100 dark:bg-slate-800/70 ring-2 ring-primary-200 dark:ring-primary-500/40"
+                          : ""
                       }`}
                     >
-                      <div className="text-xl transform group-hover:scale-110 transition-transform duration-200">{ai.emoji}</div>
+                      <div className="text-xl transform group-hover:scale-110 transition-transform duration-200">
+                        {ai.emoji}
+                      </div>
                       <div className="flex-1 min-w-0">
                         <div className="font-medium text-slate-700 group-hover:text-slate-900 flex items-center gap-1 dark:text-slate-200 dark:group-hover:text-white">
                           <span>@{ai.name}</span>
