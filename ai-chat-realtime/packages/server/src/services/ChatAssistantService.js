@@ -161,6 +161,8 @@ export class ChatAssistantService {
     this.collectionName =
       process.env.CHAT_ASSISTANT_COLLECTION || "ai-chat-workspace";
 
+    this.chatHistoryLimit = 5;
+
     this.server = null;
     this.indexPromise = null;
     this.vectorStoreReachable = null;
@@ -252,8 +254,31 @@ export class ChatAssistantService {
     return Boolean(content && this.mentionRegex.test(content));
   }
 
+  prepareChatHistory(chatHistory = []) {
+    if (!Array.isArray(chatHistory) || chatHistory.length === 0) {
+      return [];
+    }
+
+    return chatHistory
+      .filter(
+        (message) =>
+          message && typeof message.content === "string" && message.content.trim()
+      )
+      .slice(-this.chatHistoryLimit)
+      .map((message) => ({
+        sender:
+          message.displayName ||
+          message.sender ||
+          message.alias ||
+          message.normalizedAlias ||
+          "participant",
+        senderType: message.senderType || "user",
+        content: message.content.trim(),
+      }));
+  }
+
   async createResponseFromContent(content, options = {}) {
-    const { emitter = null, roomId = null } = options;
+    const { emitter = null, roomId = null, chatHistory = [] } = options;
     const emitTyping = (event, payload) => {
       if (!emitter) return;
       const target = roomId ? emitter.to(roomId) : emitter;
@@ -266,6 +291,8 @@ export class ChatAssistantService {
     }
 
     console.info(`[ChatAssistant] Generating answer for question: "${question}"`);
+
+    const historyContext = this.prepareChatHistory(chatHistory);
 
     try {
       if (!this.server) {
@@ -302,7 +329,9 @@ export class ChatAssistantService {
         };
       }
 
-      let result = await this.server.answerQuestion(question);
+      let result = await this.server.answerQuestion(question, {
+        chatHistory: historyContext,
+      });
 
       if (
         this.autoIndex &&
@@ -325,7 +354,9 @@ export class ChatAssistantService {
           await this.indexPromise;
           await this.ensureVectorStoreAvailability();
           if (this.vectorStoreReachable) {
-            result = await this.server.answerQuestion(question);
+            result = await this.server.answerQuestion(question, {
+              chatHistory: historyContext,
+            });
           }
         } catch (error) {
           console.warn(
