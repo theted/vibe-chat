@@ -11,6 +11,8 @@ import {
   VECTOR_STORE_UNAVAILABLE_CODE,
 } from "./constants.js";
 
+const CHAT_HISTORY_LIMIT = 5;
+
 const buildSourceLabel = (metadata, index) => {
   if (!metadata) return `[${index + 1}]`;
   const base = metadata.relativePath || metadata.path || "unknown";
@@ -184,8 +186,44 @@ export class LangChainMcpServer {
   }
 
   async answerQuestion(question, options = {}) {
-    const { topK = 5 } = options;
-    console.log(`[MCP Debug] Answering question (topK=${topK}): "${question}"`);
+    const { topK = 5, chatHistory = [] } = options;
+    const normalizedQuestion = question?.toString().trim() || "";
+
+    const normalizedHistory = Array.isArray(chatHistory)
+      ? chatHistory
+          .filter(
+            (message) =>
+              message &&
+              typeof message.content === "string" &&
+              message.content.trim()
+          )
+          .slice(-CHAT_HISTORY_LIMIT)
+          .map((message) => ({
+            sender:
+              message.sender ||
+              message.displayName ||
+              message.alias ||
+              message.normalizedAlias ||
+              "participant",
+            senderType: message.senderType || "user",
+            content: message.content.trim(),
+          }))
+      : [];
+
+    const historyBlock = normalizedHistory
+      .map((message, index) => {
+        const speaker = message.senderType === "ai" ? "AI" : "User";
+        return `${index + 1}. ${speaker} (${message.sender}): ${message.content}`;
+      })
+      .join("\n");
+
+    const queryWithHistory = historyBlock
+      ? `Primary question: ${normalizedQuestion}\n\nRecent conversation (most recent last, for context):\n${historyBlock}`
+      : normalizedQuestion;
+
+    console.log(
+      `[MCP Debug] Answering question (topK=${topK}): "${normalizedQuestion}" with ${normalizedHistory.length} history messages`
+    );
 
     let collection;
     try {
@@ -212,7 +250,9 @@ export class LangChainMcpServer {
     let queryResult;
     try {
       console.log(`[MCP Debug] Embedding query with OpenAI...`);
-      const queryEmbedding = await this.embeddings.embedQuery(question);
+      const queryEmbedding = await this.embeddings.embedQuery(
+        queryWithHistory || normalizedQuestion
+      );
       console.log(`[MCP Debug] Query embedded, searching Chroma collection...`);
       queryResult = await collection.query({
         queryEmbeddings: [queryEmbedding],
@@ -234,7 +274,7 @@ export class LangChainMcpServer {
 
     if (!documents.length) {
       return {
-        answer: `I could not find indexed code related to "${question}".`,
+        answer: `I could not find indexed code related to "${normalizedQuestion}".`,
         contexts: [],
       };
     }
@@ -260,15 +300,19 @@ export class LangChainMcpServer {
       })
       .join("\n\n");
 
+    const historySection = historyBlock
+      ? `Recent chat (most recent last, use for context only and prioritize the latest messages):\n${historyBlock}\n\n`
+      : "";
+
     const promptMessages = [
       {
         role: "system",
         content:
-          "You are an internal engineering assistant with access to the project's source code. Answer the user's question using only the provided context snippets. Reference sources using the format [id]. If the context is insufficient, say so explicitly.",
+          "You are an internal engineering assistant with access to the project's source code. Answer the user's question using only the provided context snippets. When considering the recent chat history, prioritize the current question and the latest messages over earlier ones. Reference sources using the format [id]. If the context is insufficient, say so explicitly.",
       },
       {
         role: "user",
-        content: `Question: ${question}\n\nContext:\n${contextBlock}\n\nAnswer:`,
+        content: `Question: ${normalizedQuestion}\n\n${historySection}Context:\n${contextBlock}\n\nAnswer:`,
       },
     ];
 
@@ -283,7 +327,7 @@ export class LangChainMcpServer {
 
     if (!answerText) {
       const fallback = [
-        `Here are the most relevant code snippets related to "${question}":`,
+        `Here are the most relevant code snippets related to "${normalizedQuestion}":`,
         ...contexts.map(
           (ctx, idx) =>
             `- ${buildSourceLabel(ctx, idx)} – ${ctx.content

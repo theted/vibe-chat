@@ -755,11 +755,18 @@ export class SocketController {
     }
 
     try {
+      const recentMessages = await this.getRecentMessages(roomId);
+      const historyLimit = this.chatAssistantService?.chatHistoryLimit || 5;
+      const chatHistory = Array.isArray(recentMessages)
+        ? recentMessages.slice(-historyLimit)
+        : [];
+
       const result = await this.chatAssistantService.createResponseFromContent(
         content,
         {
           emitter: this.io,
           roomId,
+          chatHistory,
         }
       );
       if (!result || !result.answer) {
