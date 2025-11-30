@@ -4,7 +4,7 @@
 
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { DEFAULT_AI_PARTICIPANTS } from "../../constants.js";
+import { DEFAULT_AI_PARTICIPANTS } from "../../../../constants.js";
 import Icon from "./Icon.jsx";
 
 const normalize = (value) =>

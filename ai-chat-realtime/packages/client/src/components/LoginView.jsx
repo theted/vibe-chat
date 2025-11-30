@@ -1,6 +1,6 @@
 import React from "react";
 
-import { DEFAULT_AI_PARTICIPANTS } from "../../constants.js";
+import { DEFAULT_AI_PARTICIPANTS } from "../../../../constants.js";
 import ParticipantsList from "./ParticipantsList.jsx";
 import Icon from "./Icon.jsx";
 import ChatMessage from "./ChatMessage.jsx";
