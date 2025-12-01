@@ -30,6 +30,8 @@ export const TIMING = {
   SLEEP_RETRY_INTERVAL: 30000, // 30 seconds - retry interval when AIs are asleep
   MENTIONED_DELAY_MULTIPLIER: 0.35, // Respond faster when mentioned
   MIN_MENTIONED_DELAY: 400, // Minimum delay for mentioned AIs
+  TYPING_AWARENESS_DELAY: 2500, // Additional delay per typing AI (ms)
+  TYPING_AWARENESS_MAX_MULTIPLIER: 3.0, // Max multiplier when AIs are typing
 };
 
 // Interaction strategy weights
