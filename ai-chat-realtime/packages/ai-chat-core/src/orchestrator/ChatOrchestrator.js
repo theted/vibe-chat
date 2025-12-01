@@ -259,6 +259,12 @@ export class ChatOrchestrator extends EventEmitter {
       return;
     }
 
+    // Count how many AIs are currently typing/generating
+    const typingAICount = this.activeAIs.filter((aiId) => {
+      const ai = this.aiServices.get(aiId);
+      return ai && ai.isGenerating;
+    }).length;
+
     const eligibleAIs = this.activeAIs.filter((aiId) => {
       const ai = this.aiServices.get(aiId);
       return (
@@ -324,7 +330,8 @@ export class ChatOrchestrator extends EventEmitter {
       const delay = this.calculateResponseDelay(
         index,
         isUserResponse,
-        isMentioned
+        isMentioned,
+        typingAICount
       );
 
       setTimeout(() => {
@@ -408,9 +415,11 @@ export class ChatOrchestrator extends EventEmitter {
    * Calculate response delay for AI
    * @param {number} index - AI response index
    * @param {boolean} isUserResponse - Whether this is a response to user message
+   * @param {boolean} isMentioned - Whether this AI was mentioned
+   * @param {number} typingAICount - Number of AIs currently typing/generating
    * @returns {number} Delay in milliseconds
    */
-  calculateResponseDelay(index, isUserResponse = true, isMentioned = false) {
+  calculateResponseDelay(index, isUserResponse = true, isMentioned = false, typingAICount = 0) {
     let baseDelay;
 
     if (isUserResponse) {
@@ -441,7 +450,23 @@ export class ChatOrchestrator extends EventEmitter {
       Math.pow(randomness, DELAY_CALC.CATCH_UP_POWER) *
       DELAY_CALC.CATCH_UP_MULTIPLIER;
 
-    return Math.floor(baseDelay + staggerDelay + catchUpDelay);
+    // Add typing awareness - increase delay if other AIs are typing
+    let typingAwarenessDelay = 0;
+    if (typingAICount > 0) {
+      // Add base delay per typing AI with randomness
+      typingAwarenessDelay = typingAICount * TIMING.TYPING_AWARENESS_DELAY * (0.8 + Math.random() * 0.4);
+
+      // Apply multiplier to base delay (but not to mentioned AIs - they should still respond relatively quickly)
+      if (!isMentioned) {
+        const multiplier = Math.min(
+          1 + (typingAICount * 0.5),
+          TIMING.TYPING_AWARENESS_MAX_MULTIPLIER
+        );
+        baseDelay *= multiplier;
+      }
+    }
+
+    return Math.floor(baseDelay + staggerDelay + catchUpDelay + typingAwarenessDelay);
   }
 
   /**
