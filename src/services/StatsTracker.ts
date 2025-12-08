@@ -7,6 +7,7 @@
  */
 
 import dotenv from "dotenv";
+import type { RedisClientType } from "redis";
 
 import {
   STATS_LATEST_MESSAGES_KEY,
@@ -19,18 +20,40 @@ import {
 
 dotenv.config();
 
+interface StatsTrackerOptions {
+  clientFactory?: () => Promise<RedisClientType | null>;
+}
+
+interface MessageStats {
+  role: string;
+  content: string;
+  provider?: string | null;
+  model?: string | null;
+}
+
+interface StoredMessage {
+  timestamp: string;
+  role: string;
+  provider: string | null;
+  model: string | null;
+  content: string;
+}
+
 export class StatsTracker {
-  constructor(options = {}) {
+  private enabled: boolean;
+  private clientPromise: Promise<RedisClientType | null> | null = null;
+  private initialized = false;
+  private clientFactory: (() => Promise<RedisClientType | null>) | null;
+
+  constructor(options: StatsTrackerOptions = {}) {
     this.enabled =
       !!process.env.REDIS_URL ||
       !!process.env.REDIS_HOST ||
       !!process.env.REDIS_PORT;
-    this.clientPromise = null;
-    this.initialized = false;
     this.clientFactory = options.clientFactory || null;
   }
 
-  async getClient() {
+  async getClient(): Promise<RedisClientType | null> {
     if (!this.enabled) return null;
     if (this.clientPromise) return this.clientPromise;
 
@@ -38,7 +61,7 @@ export class StatsTracker {
     return this.clientPromise;
   }
 
-  async createClient() {
+  private async createClient(): Promise<RedisClientType | null> {
     try {
       if (this.clientFactory) {
         const client = await this.clientFactory();
@@ -63,24 +86,23 @@ export class StatsTracker {
             password: process.env.REDIS_PASSWORD,
           });
 
-      client.on("error", (err) => {
+      client.on("error", (err: Error) => {
         console.warn(`Redis stats client error: ${err.message}`);
       });
 
       await client.connect();
       this.initialized = true;
       console.log("Redis stats tracker connected");
-      return client;
+      return client as RedisClientType;
     } catch (error) {
-      console.warn(
-        `Redis stats tracker disabled: ${error?.message || "Unknown error"}`
-      );
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      console.warn(`Redis stats tracker disabled: ${errorMessage}`);
       this.enabled = false;
       return null;
     }
   }
 
-  async recordMessage({ role, content, provider, model }) {
+  async recordMessage({ role, content, provider, model }: MessageStats): Promise<void> {
     try {
       const client = await this.getClient();
       if (!client) return;
@@ -89,13 +111,16 @@ export class StatsTracker {
         typeof content === "string"
           ? content.slice(0, STATS_MAX_CONTENT_LENGTH)
           : "";
-      const payload = JSON.stringify({
+
+      const storedMessage: StoredMessage = {
         timestamp: new Date().toISOString(),
         role,
         provider: provider || null,
         model: model || null,
         content: trimmedContent,
-      });
+      };
+
+      const payload = JSON.stringify(storedMessage);
 
       const pipeline = client.multi();
       pipeline.incr(STATS_TOTAL_MESSAGES_KEY);
@@ -116,8 +141,26 @@ export class StatsTracker {
       await pipeline.exec();
     } catch (error) {
       // Swallow errors to avoid affecting the main app flow.
-      console.warn(`Failed to record stats: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.warn(`Failed to record stats: ${errorMessage}`);
     }
+  }
+
+  /**
+   * Get stats tracker status
+   */
+  getStatus(): { enabled: boolean; initialized: boolean } {
+    return {
+      enabled: this.enabled,
+      initialized: this.initialized
+    };
+  }
+
+  /**
+   * Disable the stats tracker
+   */
+  disable(): void {
+    this.enabled = false;
   }
 }
 

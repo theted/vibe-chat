@@ -36,23 +36,56 @@ import {
 // Load environment variables
 dotenv.config();
 
+// Type definitions
+interface ParticipantConfig {
+  provider: string;
+  model: string | null;
+}
+
+interface ParsedArgs {
+  participants: ParticipantConfig[];
+  topic: string;
+  maxTurns: number;
+  singlePromptMode: boolean;
+  command: string;
+  conversationFile?: string;
+  additionalTurns?: number;
+}
+
+interface ConversationOptions {
+  participants: ParticipantConfig[];
+  topic: string;
+  maxTurns: number;
+  singlePromptMode?: boolean;
+  existingResponses?: Array<{ from: string; content: string; timestamp: string }>;
+  initialConversation?: Array<{ role: string; content: string }>;
+  metadata?: Record<string, unknown>;
+}
+
+interface ContinueOptions {
+  conversationFile: string;
+  participants: ParticipantConfig[];
+  additionalTurns: number;
+}
+
 const moduleDir = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = moduleDir;
 
-const createConversationManager = async (config = {}) => {
+const createConversationManager = async (config: Record<string, unknown> = {}): Promise<ConversationManager> => {
   const chatAssistant = new ChatMCPAssistant({
     mentionName: "Chat",
     projectRoot,
   });
 
-  const responders = [];
+  const responders: unknown[] = [];
 
   try {
     await chatAssistant.initialise();
     responders.push(chatAssistant);
-  } catch (error) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
     console.error(
-      `Warning: Chat assistant initialisation failed (${error.message}).`
+      `Warning: Chat assistant initialisation failed (${errorMessage}).`
     );
   }
 
@@ -83,11 +116,10 @@ const displayUsage = () => {
 
 /**
  * Parse command line arguments
- * @returns {Object} Parsed arguments
  */
-const parseArgs = () => {
+const parseArgs = (): ParsedArgs | null => {
   const args = process.argv.slice(2);
-  const result = {
+  const result: ParsedArgs = {
     participants: [],
     topic: DEFAULT_TOPIC,
     maxTurns: DEFAULT_MAX_TURNS,
@@ -235,10 +267,8 @@ const parseArgs = () => {
 
 /**
  * Parse participant string which may include model specification
- * @param {string} participantStr - Participant string (e.g., "mistral:MISTRAL_SMALL" or just "CLAUDE_SONNET_4_5")
- * @param {Object} participant - Participant object to update
  */
-const parseParticipant = (participantStr, participant) => {
+const parseParticipant = (participantStr: string, participant: ParticipantConfig): void => {
   const parts = participantStr.split(":");
   const rawProvider = parts[0].toLowerCase();
   
@@ -264,21 +294,21 @@ const parseParticipant = (participantStr, participant) => {
   }
 };
 
-const findProviderKey = (providerConfig) => {
+const findProviderKey = (providerConfig: unknown): string | null => {
   const entry = Object.entries(AI_PROVIDERS).find(
     ([, provider]) => provider === providerConfig
   );
   return entry ? entry[0] : null;
 };
 
-const findModelKey = (providerConfig, modelConfig) => {
+const findModelKey = (providerConfig: any, modelConfig: unknown): string | null => {
   const entry = Object.entries(providerConfig.models).find(
     ([, model]) => model === modelConfig
   );
   return entry ? entry[0] : null;
 };
 
-const buildParticipantMetadata = (participantConfig) => {
+const buildParticipantMetadata = (participantConfig: any): Record<string, unknown> => {
   const providerKey = findProviderKey(participantConfig.provider);
   const modelKey = findModelKey(
     participantConfig.provider,
@@ -294,7 +324,7 @@ const buildParticipantMetadata = (participantConfig) => {
   };
 };
 
-const participantsFromMetadata = (metadataParticipants = []) =>
+const participantsFromMetadata = (metadataParticipants: any[] = []): ParticipantConfig[] =>
   metadataParticipants
     .filter((meta) => meta.providerKey && meta.modelKey)
     .map((meta) => ({
@@ -302,7 +332,7 @@ const participantsFromMetadata = (metadataParticipants = []) =>
       model: meta.modelKey,
     }));
 
-const resolveConversationPath = (filePath) => {
+const resolveConversationPath = (filePath?: string): string | null => {
   if (!filePath) return null;
   const normalized = path.isAbsolute(filePath)
     ? filePath
@@ -319,10 +349,8 @@ const resolveConversationPath = (filePath) => {
 
 /**
  * Get provider and model configuration based on provider name and optional model name
- * @param {Object} participantConfig - Participant configuration with provider and model
- * @returns {Object} Provider and model configuration
  */
-const getProviderConfig = (participantConfig) => {
+const getProviderConfig = (participantConfig: ParticipantConfig): any => {
   const providerName = participantConfig.provider;
   const modelName = participantConfig.model;
 
@@ -390,9 +418,8 @@ const getProviderConfig = (participantConfig) => {
 
 /**
  * Start a conversation between AI services
- * @param {Object} options - Conversation options
  */
-const startAIConversation = async (options) => {
+const startAIConversation = async (options: ConversationOptions): Promise<void> => {
   console.log("Starting AI conversation...");
   console.log(`Topic: "${options.topic}"`);
 
@@ -450,9 +477,8 @@ const startAIConversation = async (options) => {
 
 /**
  * Get responses from multiple AI services in a multi-turn group chat
- * @param {Object} options - Options including participants and prompt
  */
-const getSinglePromptResponses = async (options) => {
+const getSinglePromptResponses = async (options: ConversationOptions): Promise<void> => {
   console.log("Getting responses from multiple AI services...");
   console.log(`Prompt: "${options.topic}"`);
 
@@ -611,7 +637,7 @@ const getSinglePromptResponses = async (options) => {
   }
 };
 
-const continueConversationFromFile = async (options) => {
+const continueConversationFromFile = async (options: ContinueOptions): Promise<void> => {
   try {
     const resolvedPath = resolveConversationPath(options.conversationFile);
     console.log(`Loading conversation from ${resolvedPath}`);

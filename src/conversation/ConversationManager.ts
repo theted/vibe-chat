@@ -13,7 +13,61 @@ import {
 import { statsTracker } from "../services/StatsTracker.js";
 import { STREAM_WORD_DELAY_MS } from "../config/constants.js";
 
-const buildSystemMessage = (cm, participant) => {
+// Define interfaces
+interface Message {
+  role: string;
+  content: string;
+  participantId?: number | null;
+  timestamp?: string;
+  authorName?: string;
+}
+
+interface Participant {
+  id: number;
+  service: any;
+  name: string;
+  config: any;
+}
+
+interface ConversationConfig {
+  maxTurns: number;
+  timeoutMs: number;
+}
+
+interface InternalResponder {
+  name?: string;
+  shouldHandle: (message: Message, conversation?: Message[]) => boolean;
+  handleMessage: (params: { message: Message; conversation: Message[] }) => Promise<{ role?: string; content: string; authorName?: string } | null>;
+}
+
+interface Dependencies {
+  statsTracker?: typeof statsTracker;
+  core?: {
+    AIServiceFactory?: typeof AIServiceFactory;
+    getRandomAIConfig?: typeof getRandomAIConfig;
+    DEFAULT_CONVERSATION_CONFIG?: any;
+    streamText?: typeof streamText;
+  };
+  internalResponders?: InternalResponder[];
+}
+
+// Helper builders extracted for readability
+const summarizeParticipantTopics = (messages: Message[], participants: Participant[]): Record<string, string> => {
+  const topics: Record<string, string> = {};
+  participants.forEach((p) => {
+    const responses = messages
+      .filter((msg) => msg.participantId === p.id)
+      .map((msg) => msg.content);
+    if (responses.length > 0) {
+      topics[p.name] = responses
+        .map((r) => r.substring(0, 150) + (r.length > 150 ? "..." : ""))
+        .join("\n");
+    }
+  });
+  return topics;
+};
+
+const buildSystemMessage = (cm: ConversationManager, participant: Participant): Message => {
   const { messages, config, turnCount, participants } = cm;
   const otherParticipants = participants
     .filter((p) => p.id !== participant.id)
@@ -26,7 +80,7 @@ const buildSystemMessage = (cm, participant) => {
   const recentMentions = messages
     .slice(-5)
     .filter((msg) => msg.participantId !== null)
-    .map((msg) => cm.participants[msg.participantId]?.name || "")
+    .map((msg) => cm.participants[msg.participantId!]?.name || "")
     .filter(Boolean);
 
   return {
@@ -62,7 +116,20 @@ This is turn #${turnCount + 1} of ${config.maxTurns}${isLastTurn ? " (FINAL TURN
 };
 
 export class ConversationManager {
-  constructor(config = {}, dependencies = {}) {
+  public config: ConversationConfig;
+  public participants: Participant[] = [];
+  public messages: Message[] = [];
+  public isActive: boolean = false;
+  public turnCount: number = 0;
+  public startTime: number | null = null;
+
+  private statsTracker: typeof statsTracker;
+  private aiServiceFactory: typeof AIServiceFactory;
+  private getRandomAIConfig: typeof getRandomAIConfig;
+  private streamText: typeof streamText;
+  private internalResponders: InternalResponder[];
+
+  constructor(config: Partial<ConversationConfig> = {}, dependencies: Dependencies = {}) {
     const {
       statsTracker: statsTrackerDependency = statsTracker,
       core = {},
@@ -77,11 +144,6 @@ export class ConversationManager {
     } = core;
 
     this.config = { ...injectedDefaultConfig, ...config };
-    this.participants = [];
-    this.messages = [];
-    this.isActive = false;
-    this.turnCount = 0;
-    this.startTime = null;
     this.statsTracker = statsTrackerDependency;
     this.aiServiceFactory = injectedFactory;
     this.getRandomAIConfig = injectedRandomConfig;
@@ -91,12 +153,12 @@ export class ConversationManager {
 
   /**
    * Add an AI participant to the conversation
-   * @param {Object} aiConfig - AI provider and model configuration
-   * @returns {number} The participant ID
+   * @param aiConfig - AI provider and model configuration
+   * @returns The participant ID
    */
-  addParticipant(aiConfig) {
+  addParticipant(aiConfig: any): number {
     const service = this.aiServiceFactory.createService(aiConfig);
-    const participant = {
+    const participant: Participant = {
       id: this.participants.length,
       service,
       name: `${service.getName()} (${service.getModel()})`,
@@ -109,19 +171,18 @@ export class ConversationManager {
 
   /**
    * Add a random AI participant to the conversation
-   * @returns {number} The participant ID
+   * @returns The participant ID
    */
-  addRandomParticipant() {
+  addRandomParticipant(): number {
     const aiConfig = this.getRandomAIConfig();
     return this.addParticipant(aiConfig);
   }
 
   /**
    * Start the conversation with an initial message
-   * @param {string} initialMessage - The initial message to start the conversation
-   * @returns {Promise<void>}
+   * @param initialMessage - The initial message to start the conversation
    */
-  async startConversation(initialMessage) {
+  async startConversation(initialMessage: string): Promise<void> {
     if (this.participants.length < 2) {
       throw new Error(
         "At least two participants are required for a conversation"
@@ -155,12 +216,11 @@ export class ConversationManager {
 
   /**
    * Continue the conversation for the specified number of turns
-   * @returns {Promise<void>}
    */
-  async continueConversation() {
+  async continueConversation(): Promise<void> {
     while (this.isActive && this.turnCount < this.config.maxTurns) {
       // Check if the conversation has timed out
-      if (Date.now() - this.startTime > this.config.timeoutMs) {
+      if (this.startTime && Date.now() - this.startTime > this.config.timeoutMs) {
         console.log("Conversation timed out");
         this.isActive = false;
         break;
@@ -173,27 +233,17 @@ export class ConversationManager {
       try {
         // Generate a response from the current participant
         const response = await this.generateResponse(participant);
-        const normalizedResponse =
-          typeof response === "string" ? response.trim() : "";
-
-        if (!normalizedResponse) {
-          console.warn(
-            `Participant "${participant.name}" produced an empty response. Skipping.`
-          );
-          this.turnCount++;
-          continue;
-        }
 
         // Add the response to the conversation
         this.addMessage({
           role: "assistant",
-          content: normalizedResponse,
+          content: response,
           participantId: participant.id,
         });
 
         // Stream the response with a delay between words
         await this.streamText(
-          normalizedResponse,
+          response,
           `[${participant.name}]: `,
           STREAM_WORD_DELAY_MS
         );
@@ -205,7 +255,7 @@ export class ConversationManager {
         this.turnCount++;
 
         // No delay between AI responses to keep the conversation flowing
-      } catch (error) {
+      } catch (error: any) {
         console.error(`Error in conversation: ${error.message}`);
         this.isActive = false;
         break;
@@ -222,10 +272,13 @@ export class ConversationManager {
 
   /**
    * Generate a response from a participant
-   * @param {Object} participant - The participant to generate a response from
-   * @returns {Promise<string>} The generated response
+   * @param participant - The participant to generate a response from
+   * @returns The generated response
    */
-  async generateResponse(participant) {
+  async generateResponse(participant: Participant): Promise<string> {
+    // Optionally summarize prior topics (reserved for future prompts)
+    summarizeParticipantTopics(this.messages, this.participants);
+
     const systemMessage = buildSystemMessage(this, participant);
     const formattedMessages = [
       systemMessage,
@@ -236,10 +289,10 @@ export class ConversationManager {
 
   /**
    * Add a message to the conversation
-   * @param {Object} message - The message to add
+   * @param message - The message to add
    */
-  addMessage(message) {
-    const enrichedMessage = {
+  addMessage(message: Message): void {
+    const enrichedMessage: Message = {
       ...message,
       timestamp: new Date().toISOString(),
     };
@@ -254,7 +307,7 @@ export class ConversationManager {
       participant?.name ||
       (enrichedMessage.participantId === null ? "User" : null);
 
-    enrichedMessage.authorName = authorName;
+    enrichedMessage.authorName = authorName || undefined;
 
     this.messages.push(enrichedMessage);
 
@@ -276,19 +329,19 @@ export class ConversationManager {
 
   /**
    * Get the conversation history
-   * @returns {Array} The conversation history
+   * @returns The conversation history
    */
-  getConversationHistory() {
+  getConversationHistory(): Array<{ from: string; content: string; timestamp: string }> {
     return this.messages.map((msg) => {
       const participant =
         msg.participantId !== null
-          ? this.participants[msg.participantId]
+          ? this.participants[msg.participantId!]
           : { name: "User" };
 
       return {
         from: msg.authorName || participant.name,
         content: msg.content,
-        timestamp: msg.timestamp,
+        timestamp: msg.timestamp || "",
       };
     });
   }
@@ -296,12 +349,12 @@ export class ConversationManager {
   /**
    * Stop the conversation
    */
-  stopConversation() {
+  stopConversation(): void {
     this.isActive = false;
     console.log("Conversation stopped");
   }
 
-  async #handleInternalResponders(sourceMessage) {
+  async #handleInternalResponders(sourceMessage: Message): Promise<void> {
     if (!sourceMessage || this.internalResponders.length === 0) {
       return;
     }
@@ -341,7 +394,7 @@ export class ConversationManager {
           `[${response.authorName || responder.name || "Internal"}]: `,
           STREAM_WORD_DELAY_MS
         );
-      } catch (error) {
+      } catch (error: any) {
         console.error(
           `Internal responder "${
             responder.name || "unknown"
