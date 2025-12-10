@@ -1,7 +1,7 @@
 import { describe, it, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { mock } from 'node:test';
-import { ConversationManager } from '../../src/conversation/ConversationManager.js';
+import { ConversationManager } from '../../dist/src/conversation/ConversationManager.js';
 
 describe('ConversationManager integration', () => {
   let recordMessageMock;

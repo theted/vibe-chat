@@ -28,4 +28,6 @@ export { mapToOpenAIChat, toGeminiHistory, inlineSystemIntoFirstUser, } from "./
 export { streamText } from "./utils/streamText.js";
 export { ensureDirectoryExists, saveConversationToFile, formatConversation, loadConversationFromFile, listConversations, } from "./utils/logger.js";
 export { MessageBroker } from "./orchestrator/MessageBroker.js";
+export { ChatOrchestrator } from "./orchestrator/ChatOrchestrator.js";
+export { ContextManager } from "./orchestrator/ContextManager.js";
 //# sourceMappingURL=index.d.ts.map

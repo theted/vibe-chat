@@ -1,29 +1,5 @@
 export const DEFAULT_AI_PARTICIPANTS = [
   {
-    id: "OPENAI_GPT5",
-    name: "GPT-5",
-    alias: "gpt-5",
-    provider: "OpenAI",
-    status: "active",
-    emoji: "🚀",
-  },
-  {
-    id: "OPENAI_GPT5_1",
-    name: "ChatGPT 5.1",
-    alias: "gpt-5.1",
-    provider: "OpenAI",
-    status: "active",
-    emoji: "✨",
-  },
-  {
-    id: "OPENAI_GPT5_1_MINI",
-    name: "ChatGPT 5.1 Mini",
-    alias: "gpt-5.1-mini",
-    provider: "OpenAI",
-    status: "active",
-    emoji: "⚡",
-  },
-  {
     id: "ANTHROPIC_CLAUDE_SONNET_4_5",
     name: "Claude 4.5 Sonnet",
     alias: "claude-sonnet-4-5",

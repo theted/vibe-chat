@@ -2,12 +2,13 @@
  * GrokService Service - TypeScript conversion
  */
 import { BaseAIService } from "./BaseAIService.js";
-import type { AIServiceConfig, Message } from "../types/index.js";
+import type { AIServiceConfig, Message, ServiceResponse, ServiceInitOptions } from "../types/index.js";
 export declare class GrokService extends BaseAIService {
     private client;
     constructor(config: AIServiceConfig);
-    initialize(): Promise<void>;
+    initialize(options?: ServiceInitOptions): Promise<void>;
     isConfigured(): boolean;
-    generateResponse(messages: Message[]): Promise<string>;
+    generateResponse(messages: Message[], context?: Record<string, unknown>): Promise<ServiceResponse>;
+    validateConfiguration(): Promise<boolean>;
 }
 //# sourceMappingURL=GrokService.d.ts.map

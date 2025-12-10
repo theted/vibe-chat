@@ -3,25 +3,20 @@
  *
  * This service handles interactions with the Mistral AI API.
  */
-import { BaseAIService } from "./BaseAIService.js";
-import type { AIServiceConfig, Message } from "../types/index.js";
-export declare class MistralService extends BaseAIService {
-    private client;
+import { OpenAICompatibleService } from './base/OpenAICompatibleService.js';
+import { OpenAIClient } from '../types/services.js';
+import { AIServiceConfig, ServiceInitOptions, OpenAIMessage } from '../types/index.js';
+export declare class MistralService extends OpenAICompatibleService {
     constructor(config: AIServiceConfig);
     /**
-     * Initialize the Mistral client
+     * Create the Mistral client (which is OpenAI-compatible)
      */
-    initialize(): Promise<void>;
+    protected createClient(apiKey: string, options?: ServiceInitOptions): OpenAIClient;
     /**
-     * Check if the Mistral service is properly configured
-     * @returns True if the API key is available
+     * Process messages for Mistral-specific requirements
+     * Mistral requires: system messages first, then alternating user/assistant
+     * Last message must be from user or tool, not assistant
      */
-    isConfigured(): boolean;
-    /**
-     * Generate a response using Mistral
-     * @param messages - Array of message objects with role and content
-     * @returns The generated response
-     */
-    generateResponse(messages: Message[]): Promise<string>;
+    protected processMessages(messages: OpenAIMessage[]): OpenAIMessage[];
 }
 //# sourceMappingURL=MistralService.d.ts.map

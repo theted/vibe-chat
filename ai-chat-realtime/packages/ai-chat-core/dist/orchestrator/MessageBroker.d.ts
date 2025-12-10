@@ -2,52 +2,27 @@
  * Message Broker - Routes messages between users and AI systems
  */
 import { EventEmitter } from 'events';
-interface QueueMessage {
-    id: string;
-    sender: string;
-    content: string;
-    senderType: 'user' | 'ai';
-    roomId: string;
-    priority: number;
-    timestamp: number;
-}
-interface QueueStatus {
-    queueLength: number;
-    isProcessing: boolean;
-    nextMessage: QueueMessage | null;
-}
-export declare class MessageBroker extends EventEmitter {
+import { IMessageBroker, MessageBrokerConfig, QueuedMessage, QueueStatus } from '../types/orchestrator.js';
+import { Message } from '../types/index.js';
+export declare class MessageBroker extends EventEmitter implements IMessageBroker {
     private messageQueue;
     private isProcessing;
-    constructor();
+    private config;
+    constructor(config?: Partial<MessageBrokerConfig>);
     /**
      * Add a message to the processing queue
-     * @param message - Message object
      */
-    enqueueMessage(message: Omit<QueueMessage, 'id' | 'timestamp' | 'priority'>): void;
-    /**
-     * Insert message into queue based on priority
-     * @param message - Message to insert
-     */
-    private insertByPriority;
+    enqueueMessage(message: Message, priority?: number): void;
     /**
      * Process the message queue
      */
-    private processQueue;
+    processQueue(): Promise<void>;
     /**
      * Broadcast message to all connected clients
-     * @param message - Message to broadcast
-     * @param roomId - Room to broadcast to
      */
-    broadcastMessage(message: QueueMessage, roomId: string): void;
-    /**
-     * Generate unique message ID
-     * @returns Unique message ID
-     */
-    private generateMessageId;
+    broadcastMessage(message: Message, roomId?: string): void;
     /**
      * Get queue status
-     * @returns Queue status information
      */
     getQueueStatus(): QueueStatus;
     /**
@@ -55,16 +30,56 @@ export declare class MessageBroker extends EventEmitter {
      */
     clearQueue(): void;
     /**
+     * Get messages for a specific room
+     */
+    getQueuedMessagesForRoom(roomId: string): QueuedMessage[];
+    /**
+     * Update configuration
+     */
+    updateConfig(config: Partial<MessageBrokerConfig>): void;
+    /**
+     * Get current configuration
+     */
+    getConfig(): MessageBrokerConfig;
+    /**
+     * Get broker metrics
+     */
+    getMetrics(): Record<string, unknown>;
+    /**
+     * Pause message processing
+     */
+    pauseProcessing(): void;
+    /**
+     * Resume message processing
+     */
+    resumeProcessing(): void;
+    /**
+     * Remove messages matching a predicate
+     */
+    removeMessages(predicate: (message: QueuedMessage) => boolean): number;
+    /**
+     * Insert message into queue based on priority
+     */
+    private insertByPriority;
+    /**
+     * Determine message priority
+     */
+    private determinePriority;
+    /**
+     * Generate unique message ID
+     */
+    private generateMessageId;
+    /**
      * Sleep utility
-     * @param ms - Milliseconds to sleep
      */
     private sleep;
     /**
-     * Get messages for a specific room
-     * @param roomId - Room ID
-     * @returns Messages in the room queue
+     * Get priority distribution for metrics
      */
-    getQueuedMessagesForRoom(roomId: string): QueueMessage[];
+    private getPriorityDistribution;
+    /**
+     * Get priority range label for grouping
+     */
+    private getPriorityRange;
 }
-export {};
 //# sourceMappingURL=MessageBroker.d.ts.map

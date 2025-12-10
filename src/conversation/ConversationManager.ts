@@ -234,6 +234,13 @@ export class ConversationManager {
         // Generate a response from the current participant
         const response = await this.generateResponse(participant);
 
+        // Skip empty or whitespace-only responses
+        if (!response || response.trim().length === 0) {
+          console.log(`Participant ${participant.name} provided empty response, skipping turn`);
+          this.turnCount++;
+          continue;
+        }
+
         // Add the response to the conversation
         this.addMessage({
           role: "assistant",

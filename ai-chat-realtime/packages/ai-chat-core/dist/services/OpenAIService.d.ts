@@ -3,25 +3,19 @@
  *
  * This service handles interactions with the OpenAI API.
  */
-import { BaseAIService } from "./BaseAIService.js";
-import type { AIServiceConfig, Message } from "../types/index.js";
-export declare class OpenAIService extends BaseAIService {
-    private client;
+import { OpenAICompatibleService } from './base/OpenAICompatibleService.js';
+import { OpenAIClient } from '../types/services.js';
+import { AIServiceConfig, ServiceInitOptions, OpenAIMessage } from '../types/index.js';
+export declare class OpenAIService extends OpenAICompatibleService {
     constructor(config: AIServiceConfig);
     /**
-     * Initialize the OpenAI client
+     * Create the OpenAI client with proper typing
      */
-    initialize(): Promise<void>;
+    protected createClient(apiKey: string, options?: ServiceInitOptions): OpenAIClient;
     /**
-     * Check if the OpenAI service is properly configured
-     * @returns True if the API key is available
+     * OpenAI doesn't need custom message processing
+     * Messages are used as-is from the base class formatting
      */
-    isConfigured(): boolean;
-    /**
-     * Generate a response using OpenAI
-     * @param messages - Array of message objects with role and content
-     * @returns The generated response
-     */
-    generateResponse(messages: Message[]): Promise<string>;
+    protected processMessages(messages: OpenAIMessage[]): OpenAIMessage[];
 }
 //# sourceMappingURL=OpenAIService.d.ts.map

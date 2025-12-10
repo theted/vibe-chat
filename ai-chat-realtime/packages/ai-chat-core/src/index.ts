@@ -92,6 +92,6 @@ export {
 
 // Orchestrator components
 export { MessageBroker } from "./orchestrator/MessageBroker.js";
-// TODO: Export ChatOrchestrator and ContextManager when fully converted
-// export { ChatOrchestrator } from "./orchestrator/ChatOrchestrator.js";
-// export { ContextManager } from "./orchestrator/ContextManager.js";
+// Temporarily export working JS version until TypeScript conversion is complete
+export { ChatOrchestrator } from "./orchestrator/ChatOrchestrator.js";
+export { ContextManager } from "./orchestrator/ContextManager.js";

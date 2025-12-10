@@ -10,7 +10,7 @@
     "dev": "tsc --watch & node --watch dist/index.js",
     "index": "node scripts/index-mcp-chat.js",
     "index:docker": "docker exec ai-chat-server-dev node /app/scripts/index-mcp-chat.js",
-    "test": "node --test \"tests/unit/**/*.test.js\" \"tests/integration/**/*.test.js\"",
+    "test": "node --test tests/unit/*.test.js tests/integration/*.test.js",
     "test:grok": "node tests/integration-ok-grok.js",
     "test:openai": "node tests/integration-ok-openai.js",
     "test:mistral": "node tests/integration-ok-mistral.js",
@@ -22,6 +22,7 @@
     "test:zai": "node tests/integration-ok-zai.js",
     "test:cohere": "node tests/integration-ok-cohere.js",
     "test:all": "npm run -s test:openai ; npm run -s test:mistral ; npm run -s test:grok ; npm run -s test:gemini ; npm run -s test:anthropic ; npm run -s test:deepseek ; npm run -s test:qwen ; npm run -s test:kimi ; npm run -s test:zai ; npm run -s test:cohere",
+    "type-check": "tsc --noEmit",
     "test:e2e": "npx --yes -p codeceptjs -p playwright codeceptjs run --steps --config codecept.conf.cjs"
   },
   "keywords": [

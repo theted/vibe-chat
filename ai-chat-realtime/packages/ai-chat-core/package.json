@@ -2,34 +2,47 @@
   "name": "@ai-chat/core",
   "version": "1.0.0",
   "description": "Core AI service wrappers, configuration, and utilities shared across AI Chat apps",
-  "main": "src/index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "type": "module",
   "exports": {
     ".": {
-      "import": "./src/index.js"
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
     }
   },
   "files": [
-    "src"
+    "dist"
   ],
   "scripts": {
-    "build": "echo 'Build completed'",
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run clean && npm run build",
     "test": "echo 'No tests specified'",
-    "lint": "eslint . --ext js --report-unused-disable-directives --max-warnings 0",
-    "lint:fix": "eslint . --ext js --fix"
+    "lint": "eslint . --ext js,ts --report-unused-disable-directives --max-warnings 0",
+    "lint:fix": "eslint . --ext js,ts --fix",
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
     "@google/generative-ai": "^0.24.0",
     "@mistralai/mistralai": "^1.5.2",
-    "openai": "^4.89.0",
     "dotenv": "^16.4.7",
-    "node-fetch": "^3.3.2"
+    "node-fetch": "^3.3.2",
+    "openai": "^4.89.0"
   },
   "devDependencies": {
-    "eslint": "^8.56.0"
+    "@types/node": "^24.10.1",
+    "eslint": "^8.56.0",
+    "typescript": "^5.9.3"
   },
-  "keywords": ["ai", "chat", "realtime", "websocket"],
+  "keywords": [
+    "ai",
+    "chat",
+    "realtime",
+    "websocket"
+  ],
   "author": "AI Chat Team",
   "license": "MIT",
   "engines": {
