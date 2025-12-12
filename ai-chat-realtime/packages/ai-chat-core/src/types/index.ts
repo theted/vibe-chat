@@ -24,6 +24,7 @@ export interface AIModel {
   temperature?: number;
   maxTokensParam?: string;
   systemPrompt?: string;
+  useResponsesApi?: boolean;
 }
 
 // Persona configuration

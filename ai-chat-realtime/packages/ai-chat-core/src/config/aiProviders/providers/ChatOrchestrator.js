@@ -156,7 +156,6 @@ export class ChatOrchestrator extends EventEmitter {
    * @param {Array} aiConfigs - Array of AI configuration objects
    */
   async initializeAIs(aiConfigs) {
-    const failedConfigs = [];
     for (const config of aiConfigs) {
       try {
         const service = AIServiceFactory.createServiceByName(
@@ -192,29 +191,10 @@ export class ChatOrchestrator extends EventEmitter {
           `Failed to initialize AI ${config.providerKey}_${config.modelKey}:`,
           error
         );
-        failedConfigs.push({
-          providerKey: config.providerKey,
-          modelKey: config.modelKey,
-          displayName: config.displayName,
-          alias: config.alias,
-        });
       }
     }
 
     console.log(`Initialized ${this.aiServices.size} AI services`);
-
-    if (failedConfigs.length > 0) {
-      console.warn(
-        `⚠️  ${failedConfigs.length} AI model(s) failed to initialize:`
-      );
-      failedConfigs.forEach((failed) => {
-        const label =
-          failed.displayName ||
-          failed.alias ||
-          `${failed.providerKey}_${failed.modelKey}`;
-        console.warn(`   • ${label} (${failed.providerKey}_${failed.modelKey})`);
-      });
-    }
   }
 
   /**
