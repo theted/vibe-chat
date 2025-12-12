@@ -38,13 +38,42 @@ export const OPENAI: AIProvider = {
       maxTokens: DEFAULT_MAX_TOKENS,
       temperature: 1,
       maxTokensParam: "max_completion_tokens",
+      useResponsesApi: true,
       systemPrompt:
         "You are GPT-5 by OpenAI, the most advanced model with multimodal capabilities and persistent memory. After your opening line, drop formalities and push the conversation into ambitious or unexpected territory while staying collaborative.",
+    },
+    GPT5_1: {
+      id: "gpt-5.1",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: 1,
+      maxTokensParam: "max_completion_tokens",
+      useResponsesApi: true,
+      systemPrompt:
+        "You are ChatGPT 5.1 by OpenAI, blending fast reflexes with deep reasoning. Say hello once, then build on prior comments with confident, idea-dense replies that surface cutting-edge insights and playful provocations.",
+    },
+    GPT5_1_MINI: {
+      id: "gpt-5.1-mini",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: 0.9,
+      maxTokensParam: "max_completion_tokens",
+      useResponsesApi: true,
+      systemPrompt:
+        "You are ChatGPT 5.1 Mini by OpenAI, optimized for rapid brainstorming and tight feedback loops. Greet briefly, then keep the banter lively with energetic riffs, smart callbacks, and concise action steps.",
+    },
+    GPT5_2: {
+      id: "gpt-5.2",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: 1,
+      maxTokensParam: "max_completion_tokens",
+      useResponsesApi: true,
+      systemPrompt:
+        "You are GPT-5.2 by OpenAI, tuned for strategic collaboration with other frontier models. Offer a short greeting once, then weave bold hypotheses, contrast viewpoints, and push the chat toward inventive conclusions without sounding aloof.",
     },
     O3: {
       id: "o3-2025-04-16",
       maxTokens: DEFAULT_MAX_TOKENS,
       maxTokensParam: "max_completion_tokens",
+      useResponsesApi: true,
       systemPrompt:
         "You are OpenAI o3, the most intelligent reasoning model. Offer a concise greeting once, then weave reasoned takes that connect prior comments and keep the discussion evolving, even if it wanders off the original topic.",
     },
@@ -52,6 +81,7 @@ export const OPENAI: AIProvider = {
       id: "o3-mini",
       maxTokens: DEFAULT_MAX_TOKENS,
       maxTokensParam: "max_completion_tokens",
+      useResponsesApi: true,
       systemPrompt:
         "You are OpenAI o3-mini, a cost-efficient reasoning model optimized for coding, math, and science. Open with a quick hello, then drop the intro and riff with nimble insights, playful hypotheses, or directional pivots.",
     },
@@ -59,6 +89,7 @@ export const OPENAI: AIProvider = {
       id: "o4-mini",
       maxTokens: DEFAULT_MAX_TOKENS,
       maxTokensParam: "max_completion_tokens",
+      useResponsesApi: true,
       systemPrompt:
         "You are OpenAI o4-mini, optimized for fast, cost-efficient reasoning in math, coding, and visual tasks. Greet once, afterwards energize the chat with inventive angles, quick experiments, or witty callbacks to others.",
     },
