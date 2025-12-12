@@ -1,0 +1,48 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": false,
+    "noImplicitAny": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "noEmit": false,
+    "noEmitOnError": false,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "lib": ["ES2022", "DOM"],
+    "allowJs": true,
+    "checkJs": false,
+    "isolatedModules": true,
+    "preserveConstEnums": true,
+    "removeComments": false
+  },
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "src/orchestrator/ChatOrchestrator.ts",
+    "src/orchestrator/ContextManager.ts",
+    "src/orchestrator/scheduling/**/*.ts",
+    "src/services/CohereService.ts",
+    "src/services/GeminiService.ts",
+    "src/services/LlamaService.ts",
+    "src/services/PerplexityService.ts",
+    "src/services/QwenService.ts",
+    "src/services/ZaiService.ts",
+    "src/services/base/BaseAIService.ts"
+  ]
+}

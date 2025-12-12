@@ -53,4 +53,7 @@ conversations/
 tests/e2e/output/
 ai-chat-realtime/packages/client/dist/
 
+# Build output
+**/dist/**
+
 **/*.md

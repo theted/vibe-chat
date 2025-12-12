@@ -283,9 +283,6 @@ async function initializeAISystem() {
   };
 
   if (process.env.OPENAI_API_KEY) {
-    addConfig("OPENAI", "GPT5");
-    addConfig("OPENAI", "GPT5_1");
-    addConfig("OPENAI", "GPT5_1_MINI");
     addConfig("OPENAI", "GPT4O");
     addConfig("OPENAI", "GPT35_TURBO");
   }

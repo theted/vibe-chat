@@ -4,13 +4,13 @@ A Node.js project that lets different AI systems talk to each other, and also qu
 
 ## Overview
 
-This project creates a platform where different AI models (OpenAI, Anthropic, Mistral, Gemini, Deepseek, Grok, Cohere, Qwen, Kimi, Z.ai) can engage in conversations with each other or respond to a single prompt. The system manages the conversation flow, handles API interactions, and logs the conversation history.
+This project creates a platform where different AI models (OpenAI, Anthropic, Mistral, Gemini, Deepseek, Grok, Cohere, Qwen, Kimi, Z.ai, Llama via Together AI) can engage in conversations with each other or respond to a single prompt. The system manages the conversation flow, handles API interactions, and logs the conversation history.
 
 In addition to the Node.js CLI/orchestrator that powers model-to-model conversations, this repository now also ships with a full **`ai-realtime-chat`** implementation (located in [`./ai-chat-realtime`](./ai-chat-realtime)) that provides a Socket.IO-powered multi-AI web experience with a React frontend. You can choose whichever entry point best fits your use case.
 
 ## Features
 
-- Support for multiple AI providers (OpenAI, Anthropic, Mistral, Gemini, Deepseek, Grok, Cohere, Qwen, Kimi, Z.ai)
+- Support for multiple AI providers (OpenAI, Anthropic, Mistral, Gemini, Deepseek, Grok, Cohere, Qwen, Kimi, Z.ai, Llama/Together)
 - Extensible architecture for adding new AI providers
 - Automatic conversation management
 - Conversation logging and history
@@ -196,6 +196,11 @@ Current defaults and IDs (see `src/config/aiProviders.js`):
   - `KIMI_8K` (default) → `moonshot-v1-8k`
   - `KIMI_32K` → `moonshot-v1-32k`
   - `KIMI_128K` → `moonshot-v1-128k`
+- Llama via Together AI ([API keys](https://api.together.xyz/))
+  - `LLAMA_4_1_MAVERICK_11B` (default) → `meta-llama/Llama-4.1-11B-Instruct-Maverick`
+  - `LLAMA_3_1_70B_INSTRUCT` → `meta-llama/Llama-3.1-70B-Instruct`
+  - `LLAMA_3_1_405B_INSTRUCT` → `meta-llama/Llama-3.1-405B-Instruct`
+  - `LLAMA_3_2_1B_INSTRUCT` → `meta-llama/Llama-3.2-1B-Instruct`
 
 Note: Providers may change available model IDs over time. Update `aiProviders.js` accordingly.
 
@@ -215,6 +220,7 @@ Define these in `.env` (see `.env.example`):
   - `QWEN_API_KEY`
   - `KIMI_API_KEY`
   - `Z_API_KEY`
+  - `TOGETHER_API_KEY`
 
 - Optional (OpenAI-compatible base URLs):
 
@@ -223,6 +229,8 @@ Define these in `.env` (see `.env.example`):
   - `Z_BASE_URL` or `ZAI_BASE_URL` (default `https://api.z.ai/v1`)
   - `COHERE_BASE_URL` (default `https://api.cohere.ai/v1`)
   - `COHERE_MODEL_ID` (override default Cohere model ID)
+  - `TOGETHER_BASE_URL` (defaults to `https://api.together.xyz/v1`)
+  - `LLAMA_MODEL_ID` (override the Together Llama model slug)
 
 - Conversation config:
   - `LOG_LEVEL` (default `info`)

@@ -1,7 +1,7 @@
 import { describe, it, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { mock } from 'node:test';
-import { StatsTracker } from '../../src/services/StatsTracker.js';
+import { StatsTracker } from '../../dist/src/services/StatsTracker.js';
 
 const TOTAL_MESSAGES_KEY = 'ai-chat:stats:messages:total';
 const TOTAL_AI_MESSAGES_KEY = 'ai-chat:stats:messages:ai';
