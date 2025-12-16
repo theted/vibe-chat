@@ -25,6 +25,16 @@ const AI_DISPLAY_INFO = {
     alias: "gpt-4o",
     emoji: "🧠",
   },
+  OPENAI_GPT4_1: {
+    displayName: "GPT-4.1",
+    alias: "gpt-4.1",
+    emoji: "🧩",
+  },
+  OPENAI_GPT5_2: {
+    displayName: "GPT-5.2",
+    alias: "gpt-5.2",
+    emoji: "🌀",
+  },
   OPENAI_GPT5: {
     displayName: "GPT-5",
     alias: "gpt-5",
@@ -39,6 +49,21 @@ const AI_DISPLAY_INFO = {
     displayName: "ChatGPT 5.1 Mini",
     alias: "gpt-5.1-mini",
     emoji: "⚡",
+  },
+  OPENAI_O3: {
+    displayName: "OpenAI o3",
+    alias: "o3",
+    emoji: "🧪",
+  },
+  OPENAI_O3_MINI: {
+    displayName: "OpenAI o3-mini",
+    alias: "o3-mini",
+    emoji: "🧮",
+  },
+  OPENAI_O4_MINI: {
+    displayName: "OpenAI o4-mini",
+    alias: "o4-mini",
+    emoji: "🛰️",
   },
   OPENAI_GPT35_TURBO: {
     displayName: "GPT-3.5 Turbo",
@@ -149,6 +174,21 @@ const AI_DISPLAY_INFO = {
     displayName: "DeepSeek Chat",
     alias: "deepseek",
     emoji: "🔍",
+  },
+  DEEPSEEK_DEEPSEEK_V3: {
+    displayName: "DeepSeek V3",
+    alias: "deepseek-v3",
+    emoji: "🧠",
+  },
+  DEEPSEEK_DEEPSEEK_V3_2: {
+    displayName: "DeepSeek V3.2",
+    alias: "deepseek-v3.2",
+    emoji: "🧬",
+  },
+  KIMI_KIMI_8K: {
+    displayName: "Kimi 8K",
+    alias: "kimi",
+    emoji: "🎯",
   },
   ZAI_ZAI_DEFAULT: {
     displayName: "Z.ai GLM-4.6",
@@ -283,7 +323,15 @@ async function initializeAISystem() {
   };
 
   if (process.env.OPENAI_API_KEY) {
+    addConfig("OPENAI", "GPT5");
+    addConfig("OPENAI", "GPT5_1");
+    addConfig("OPENAI", "GPT5_1_MINI");
+    addConfig("OPENAI", "GPT5_2");
+    addConfig("OPENAI", "GPT4_1");
     addConfig("OPENAI", "GPT4O");
+    addConfig("OPENAI", "O3");
+    addConfig("OPENAI", "O3_MINI");
+    addConfig("OPENAI", "O4_MINI");
     addConfig("OPENAI", "GPT35_TURBO");
   }
 
@@ -323,6 +371,12 @@ async function initializeAISystem() {
 
   if (process.env.DEEPSEEK_API_KEY) {
     addConfig("DEEPSEEK", "DEEPSEEK_CHAT");
+    addConfig("DEEPSEEK", "DEEPSEEK_V3");
+    addConfig("DEEPSEEK", "DEEPSEEK_V3_2");
+  }
+
+  if (process.env.KIMI_API_KEY) {
+    addConfig("KIMI", "KIMI_8K");
   }
 
   if (process.env.Z_API_KEY) {
@@ -334,7 +388,7 @@ async function initializeAISystem() {
       "⚠️  No AI API keys found! Please set API keys in environment variables."
     );
     console.warn(
-      "Available keys: OPENAI_API_KEY, ANTHROPIC_API_KEY, GROK_API_KEY, GOOGLE_AI_API_KEY, MISTRAL_API_KEY, COHERE_API_KEY, DEEPSEEK_API_KEY"
+      "Available keys: OPENAI_API_KEY, ANTHROPIC_API_KEY, GROK_API_KEY, GOOGLE_AI_API_KEY, MISTRAL_API_KEY, COHERE_API_KEY, DEEPSEEK_API_KEY, KIMI_API_KEY, Z_API_KEY"
     );
 
     // Add a mock AI for testing

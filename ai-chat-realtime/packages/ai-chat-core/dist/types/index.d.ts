@@ -18,6 +18,7 @@ export interface AIModel {
     temperature?: number;
     maxTokensParam?: string;
     systemPrompt?: string;
+    useResponsesApi?: boolean;
 }
 export interface PersonaTrait {
     basePersonality: string;
