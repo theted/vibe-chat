@@ -66,6 +66,12 @@ export abstract class OpenAICompatibleService extends BaseAIService {
 
     this.baseURL = this.getBaseURL();
     this.defaultHeaders = this.getDefaultHeaders();
+    if (this.usesResponsesAPI()) {
+      this.defaultHeaders = {
+        ...this.defaultHeaders,
+        "OpenAI-Beta": this.defaultHeaders?.["OpenAI-Beta"] || "assistants=v2",
+      };
+    }
 
     this.client = this.createClient(apiKey, options);
 
@@ -118,6 +124,90 @@ export abstract class OpenAICompatibleService extends BaseAIService {
   protected processMessages(messages: OpenAIMessage[]): OpenAIMessage[] {
     // Default implementation - no processing needed
     return messages;
+  }
+
+  protected usesResponsesAPI(): boolean {
+    return Boolean((this.config.model as { useResponsesApi?: boolean }).useResponsesApi);
+  }
+
+  protected formatResponsesInput(messages: OpenAIMessage[]) {
+    return messages.map((message) => ({
+      role: message.role,
+      type: "message",
+      content: [
+        {
+          type: "text",
+          text: message.content,
+        },
+      ],
+    }));
+  }
+
+  protected extractTextFromResponses(response: any): string {
+    if (typeof response?.output_text === "string" && response.output_text.trim().length > 0) {
+      return response.output_text.trim();
+    }
+
+    if (Array.isArray(response?.output)) {
+      const parts: string[] = [];
+      for (const item of response.output) {
+        if (Array.isArray(item?.content)) {
+          for (const block of item.content) {
+            const text = block?.text || block?.content?.text;
+            if (typeof text === "string" && text.trim().length > 0) {
+              parts.push(text.trim());
+            }
+          }
+        }
+      }
+      if (parts.length > 0) {
+        return parts.join("\n").trim();
+      }
+    }
+
+    throw new ServiceAPIError(
+      "Invalid API response: missing content",
+      this.name,
+      undefined,
+      response
+    );
+  }
+
+  protected async makeResponsesAPIRequest(
+    messages: OpenAIMessage[],
+    context?: Record<string, unknown>
+  ): Promise<ServiceResponse> {
+    if (!this.client || !(this.client as any).responses?.create) {
+      throw new ServiceAPIError(
+        "Responses API is not available on this OpenAI client",
+        this.name
+      );
+    }
+
+    const temperature =
+      context?.temperature ?? this.config.model.temperature ?? 0.7;
+    const maxTokens = context?.maxTokens ?? this.config.model.maxTokens;
+    const payload: Record<string, unknown> = {
+      model: this.getModel(),
+      input: this.formatResponsesInput(messages),
+      temperature,
+      modalities: ["text"],
+      response_format: { type: "text" },
+      reasoning: { effort: (context as any)?.reasoningEffort || "medium" },
+    };
+
+    if (maxTokens) {
+      payload.max_output_tokens = maxTokens;
+    }
+
+    const response = await (this.client as any).responses.create(payload);
+    const content = this.extractTextFromResponses(response);
+
+    return {
+      content,
+      model: response?.model || this.getModel(),
+      rawResponse: response,
+    };
   }
 
   /**
@@ -217,13 +307,12 @@ export abstract class OpenAICompatibleService extends BaseAIService {
     // Process messages for service-specific requirements
     const processedMessages = this.processMessages(formattedMessages);
 
-    // Prepare API request parameters
+    if (this.usesResponsesAPI()) {
+      return this.makeResponsesAPIRequest(processedMessages, context);
+    }
+
     const requestParams = this.prepareRequestParams(processedMessages, context);
-
-    // Make the API request
     const apiResponse = await this.makeAPIRequest(requestParams);
-
-    // Parse and return the response
     return this.parseResponse(apiResponse);
   }
 
