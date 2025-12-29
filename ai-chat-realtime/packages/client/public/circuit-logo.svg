@@ -1,0 +1,103 @@
+<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" fill="#1e293b"/>
+
+  <!-- Main circuit board pattern inspired by the provided image -->
+  <g stroke="#3b82f6" stroke-width="2" fill="none">
+    <!-- Horizontal lines -->
+    <line x1="50" y1="100" x2="462" y2="100"/>
+    <line x1="50" y1="150" x2="462" y2="150"/>
+    <line x1="50" y1="200" x2="462" y2="200"/>
+    <line x1="50" y1="250" x2="462" y2="250"/>
+    <line x1="50" y1="300" x2="462" y2="300"/>
+    <line x1="50" y1="350" x2="462" y2="350"/>
+    <line x1="50" y1="400" x2="462" y2="400"/>
+
+    <!-- Vertical lines -->
+    <line x1="100" y1="50" x2="100" y2="462"/>
+    <line x1="150" y1="50" x2="150" y2="462"/>
+    <line x1="200" y1="50" x2="200" y2="462"/>
+    <line x1="250" y1="50" x2="250" y2="462"/>
+    <line x1="300" y1="50" x2="300" y2="462"/>
+    <line x1="350" y1="50" x2="350" y2="462"/>
+    <line x1="400" y1="50" x2="400" y2="462"/>
+
+    <!-- Diagonal connections -->
+    <line x1="100" y1="100" x2="150" y2="150"/>
+    <line x1="200" y1="100" x2="250" y2="150"/>
+    <line x1="300" y1="100" x2="350" y2="150"/>
+    <line x1="150" y1="200" x2="200" y2="250"/>
+    <line x1="300" y1="200" x2="350" y2="250"/>
+    <line x1="100" y1="300" x2="150" y2="350"/>
+    <line x1="250" y1="300" x2="300" y2="350"/>
+    <line x1="350" y1="300" x2="400" y2="350"/>
+
+    <!-- Complex circuit patterns -->
+    <path d="M 100 150 L 120 150 L 120 180 L 180 180 L 180 150 L 200 150"/>
+    <path d="M 250 200 L 270 200 L 270 230 L 330 230 L 330 200 L 350 200"/>
+    <path d="M 150 300 L 170 300 L 170 330 L 230 330 L 230 300 L 250 300"/>
+    <path d="M 300 350 L 320 350 L 320 380 L 380 380 L 380 350 L 400 350"/>
+  </g>
+
+  <!-- Circuit nodes/connection points -->
+  <g fill="#3b82f6">
+    <circle cx="100" cy="100" r="4"/>
+    <circle cx="150" cy="100" r="4"/>
+    <circle cx="200" cy="100" r="4"/>
+    <circle cx="250" cy="100" r="4"/>
+    <circle cx="300" cy="100" r="4"/>
+    <circle cx="350" cy="100" r="4"/>
+    <circle cx="400" cy="100" r="4"/>
+
+    <circle cx="100" cy="150" r="4"/>
+    <circle cx="150" cy="150" r="4"/>
+    <circle cx="200" cy="150" r="4"/>
+    <circle cx="250" cy="150" r="4"/>
+    <circle cx="300" cy="150" r="4"/>
+    <circle cx="350" cy="150" r="4"/>
+    <circle cx="400" cy="150" r="4"/>
+
+    <circle cx="100" cy="200" r="4"/>
+    <circle cx="150" cy="200" r="4"/>
+    <circle cx="200" cy="200" r="4"/>
+    <circle cx="250" cy="200" r="4"/>
+    <circle cx="300" cy="200" r="4"/>
+    <circle cx="350" cy="200" r="4"/>
+    <circle cx="400" cy="200" r="4"/>
+
+    <circle cx="100" cy="250" r="4"/>
+    <circle cx="150" cy="250" r="4"/>
+    <circle cx="200" cy="250" r="4"/>
+    <circle cx="250" cy="250" r="4"/>
+    <circle cx="300" cy="250" r="4"/>
+    <circle cx="350" cy="250" r="4"/>
+    <circle cx="400" cy="250" r="4"/>
+
+    <circle cx="100" cy="300" r="4"/>
+    <circle cx="150" cy="300" r="4"/>
+    <circle cx="200" cy="300" r="4"/>
+    <circle cx="250" cy="300" r="4"/>
+    <circle cx="300" cy="300" r="4"/>
+    <circle cx="350" cy="300" r="4"/>
+    <circle cx="400" cy="300" r="4"/>
+
+    <circle cx="100" cy="350" r="4"/>
+    <circle cx="150" cy="350" r="4"/>
+    <circle cx="200" cy="350" r="4"/>
+    <circle cx="250" cy="350" r="4"/>
+    <circle cx="300" cy="350" r="4"/>
+    <circle cx="350" cy="350" r="4"/>
+    <circle cx="400" cy="350" r="4"/>
+
+    <circle cx="100" cy="400" r="4"/>
+    <circle cx="150" cy="400" r="4"/>
+    <circle cx="200" cy="400" r="4"/>
+    <circle cx="250" cy="400" r="4"/>
+    <circle cx="300" cy="400" r="4"/>
+    <circle cx="350" cy="400" r="4"/>
+    <circle cx="400" cy="400" r="4"/>
+  </g>
+
+  <!-- Central processing unit representation -->
+  <rect x="226" y="226" width="60" height="60" rx="8" fill="none" stroke="#3b82f6" stroke-width="3"/>
+  <rect x="235" y="235" width="42" height="42" rx="4" fill="#3b82f6" opacity="0.7"/>
+</svg>

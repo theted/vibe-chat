@@ -24,6 +24,11 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     @apply bg-slate-50 text-slate-900 transition-colors duration-300;
+    background-image: url('/circuit-background.svg');
+    background-attachment: fixed;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
   }
 
   body.preload {
@@ -36,6 +41,11 @@
 
   .dark body {
     @apply bg-slate-950 text-slate-100;
+    background-image: url('/circuit-background.svg');
+    background-attachment: fixed;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
   }
 
   /* Hide scrollbars while keeping scroll functionality */
