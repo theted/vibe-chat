@@ -431,6 +431,31 @@ export class ChatOrchestrator extends EventEmitter {
     return toMentionAlias(ai.name || ai.id || "");
   }
 
+  getAIDisplayName(ai) {
+    if (!ai) return "";
+    const candidates = [
+      ai.displayName,
+      ai.config?.displayName,
+      ai.displayAlias,
+      ai.config?.alias,
+      ai.config?.modelKey,
+    ];
+
+    for (const candidate of candidates) {
+      if (typeof candidate === "string") {
+        const trimmed = candidate.trim();
+        if (trimmed) return trimmed;
+      }
+    }
+
+    if (typeof ai.service?.getModel === "function") {
+      const model = ai.service.getModel();
+      if (model) return model;
+    }
+
+    return ai.name || ai.id || "";
+  }
+
   /**
    * Calculate response delay for AI
    * @param {number} index - AI response index
@@ -789,10 +814,6 @@ export class ChatOrchestrator extends EventEmitter {
    * @returns {string} Enhanced system prompt
    */
   createEnhancedSystemPrompt(aiService, context, isUserResponse) {
-    const aiNames = Array.from(this.aiServices.values()).map((ai) =>
-      ai.name.toLowerCase()
-    );
-
     let prompt = `You are ${aiService.name}, an AI participating in a dynamic group chat. `;
 
     // Add context-specific intro
@@ -805,12 +826,15 @@ export class ChatOrchestrator extends EventEmitter {
     // Add guidelines
     prompt += SYSTEM_PROMPT.GUIDELINES;
 
+    const otherAINames = Array.from(this.aiServices.values())
+      .filter((ai) => ai !== aiService)
+      .map((ai) => this.getAIDisplayName(ai))
+      .filter(Boolean);
+
     // Add other participants
     prompt += `
 
-Other AIs in this chat: ${aiNames
-      .filter((name) => name.toLowerCase() !== aiService.name.toLowerCase())
-      .join(", ")}
+Other AIs in this chat: ${otherAINames.join(", ")}
 
 ${SYSTEM_PROMPT.CLOSING}`;
 
