@@ -1,6 +1,6 @@
 import React from "react";
 
-import { DEFAULT_AI_PARTICIPANTS } from "../../../../constants.js";
+import { DEFAULT_AI_PARTICIPANTS } from "../config/aiParticipants.js";
 import ParticipantsList from "./ParticipantsList.jsx";
 import Icon from "./Icon.jsx";
 import ChatMessage from "./ChatMessage.jsx";
@@ -19,11 +19,11 @@ const LoginView = ({
   previewParticipants = [],
   previewAiParticipants = [],
 }) => (
-  <div className="relative min-h-screen overflow-hidden bg-slate-950 text-slate-100">
+  <div className="relative min-h-screen overflow-hidden text-slate-100">
     <div className="absolute inset-0">
       <div className="absolute -top-1/4 -left-1/4 h-[120%] w-[120%] bg-[radial-gradient(circle_at_top,_rgba(96,165,250,0.15),_transparent_60%)]" />
       <div className="absolute bottom-0 right-0 h-[70%] w-[70%] bg-[radial-gradient(circle_at_bottom,_rgba(167,139,250,0.2),_transparent_65%)]" />
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 opacity-90" />
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 opacity-70" />
     </div>
 
     <div className="relative z-10 flex min-h-screen flex-col items-center justify-center px-6 py-16">

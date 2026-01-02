@@ -1,11 +1,12 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { DEFAULT_AI_PARTICIPANTS } from "../../../../constants.js";
+import { DEFAULT_AI_PARTICIPANTS } from "../config/aiParticipants.js";
 import ChatMessage from "./ChatMessage.jsx";
 import MessageInput from "./MessageInput.jsx";
 import ParticipantsList from "./ParticipantsList.jsx";
 import TypingIndicator from "./TypingIndicator.jsx";
 import Icon from "./Icon.jsx";
+import CircuitIcon from "./CircuitIcon.jsx";
 
 const ChatView = ({
   theme,
@@ -34,14 +35,14 @@ const ChatView = ({
   const aiParticipantCount = aiParticipantList.length;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center p-6 dark:from-slate-950 dark:via-slate-900 dark:to-slate-900">
+    <div className="min-h-screen flex items-center justify-center p-6">
       <div className="flex bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl max-w-7xl w-full max-h-[95vh] overflow-hidden animate-fade-in border border-white/30 dark:bg-slate-900/90 dark:border-slate-800">
         <div className="flex-1 flex flex-col">
           <div className="bg-gradient-to-r from-slate-600/90 to-slate-700/90 backdrop-blur-sm text-white p-6 rounded-tl-3xl border-b border-white/10 dark:from-slate-800/90 dark:to-slate-900/90 dark:border-slate-800/60">
             <div className="flex justify-between items-stretch gap-6 flex-wrap">
               <div className="flex items-center gap-4 self-stretch">
                 <div className="w-10 h-10 bg-gradient-to-br from-primary-400 to-primary-600 rounded-xl flex items-center justify-center shadow-lg">
-                  <Icon name="chat" className="w-6 h-6 text-white" />
+                  <CircuitIcon className="w-6 h-6 text-white" />
                 </div>
                 <div className="flex flex-col justify-center">
                   <h1 className="header-title header-title--compact">
