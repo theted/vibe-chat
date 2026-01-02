@@ -35,20 +35,12 @@ describe("LoginView Component", () => {
 
     it("should display immersive welcome copy", () => {
       render(<LoginView {...defaultProps} />);
-      expect(
-        screen.getByText(
-          /Step into a luminous space where human curiosity meets machine insight/
-        )
-      ).toBeInTheDocument();
+      expect(screen.getByText(/group chat with ai's/i)).toBeInTheDocument();
     });
 
     it("should highlight realtime conversation description", () => {
       render(<LoginView {...defaultProps} />);
-      expect(
-        screen.getByText(
-          /converse with the intelligence collective in real-time/i
-        )
-      ).toBeInTheDocument();
+      expect(screen.getByText(/join chat/i)).toBeInTheDocument();
     });
 
     it("should render username input field", () => {
@@ -136,35 +128,35 @@ describe("LoginView Component", () => {
     it("should be disabled when not connected", () => {
       const props = { ...defaultProps, connectionStatus: { connected: false } };
       render(<LoginView {...props} />);
-      const button = screen.getByText("Join Chat");
+      const button = screen.getByRole("button", { name: /join chat/i });
       expect(button).toBeDisabled();
     });
 
     it("should be disabled when username is empty", () => {
       const props = { ...defaultProps, username: "" };
       render(<LoginView {...props} />);
-      const button = screen.getByText("Join Chat");
+      const button = screen.getByRole("button", { name: /join chat/i });
       expect(button).toBeDisabled();
     });
 
     it("should be disabled when username is only whitespace", () => {
       const props = { ...defaultProps, username: "   " };
       render(<LoginView {...props} />);
-      const button = screen.getByText("Join Chat");
+      const button = screen.getByRole("button", { name: /join chat/i });
       expect(button).toBeDisabled();
     });
 
     it("should be enabled when connected and username is valid", () => {
       const props = { ...defaultProps, username: "testuser" };
       render(<LoginView {...props} />);
-      const button = screen.getByText("Join Chat");
+      const button = screen.getByRole("button", { name: /join chat/i });
       expect(button).not.toBeDisabled();
     });
 
     it("should call onJoin when form is submitted", () => {
       const props = { ...defaultProps, username: "testuser" };
       render(<LoginView {...props} />);
-      const button = screen.getByText("Join Chat");
+      const button = screen.getByRole("button", { name: /join chat/i });
       fireEvent.click(button);
       expect(defaultProps.onJoin).toHaveBeenCalledTimes(1);
     });
@@ -199,7 +191,7 @@ describe("LoginView Component", () => {
       await user.type(input, "testuser");
       expect(onUsernameChange).toHaveBeenCalled();
       rerender(<LoginView {...props} username="testuser" />);
-      const button = screen.getByText("Join Chat");
+      const button = screen.getByRole("button", { name: /join chat/i });
       expect(button).not.toBeDisabled();
       fireEvent.click(button);
       expect(onJoin).toHaveBeenCalledTimes(1);
@@ -212,12 +204,12 @@ describe("LoginView Component", () => {
         username: "testuser",
       };
       const { rerender } = render(<LoginView {...props} />);
-      let button = screen.getByText("Join Chat");
+      let button = screen.getByRole("button", { name: /join chat/i });
       expect(button).not.toBeDisabled();
       rerender(
         <LoginView {...props} connectionStatus={{ connected: false }} />
       );
-      button = screen.getByText("Join Chat");
+      button = screen.getByRole("button", { name: /join chat/i });
       expect(button).toBeDisabled();
       expect(screen.getByText("Connecting...")).toBeInTheDocument();
     });

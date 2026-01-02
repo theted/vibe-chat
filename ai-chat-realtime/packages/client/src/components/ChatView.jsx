@@ -39,20 +39,22 @@ const ChatView = ({
         <div className="flex-1 flex flex-col">
           <div className="bg-gradient-to-r from-slate-600/90 to-slate-700/90 backdrop-blur-sm text-white p-6 rounded-tl-3xl border-b border-white/10 dark:from-slate-800/90 dark:to-slate-900/90 dark:border-slate-800/60">
             <div className="flex justify-between items-stretch gap-6 flex-wrap">
-              <div className="flex items-center gap-4 self-stretch">
-                <div className="w-10 h-10 bg-gradient-to-br from-primary-400 to-primary-600 rounded-xl flex items-center justify-center shadow-lg">
-                  <Icon name="chat" className="w-6 h-6 text-white" />
+                <div className="flex items-center gap-4 self-stretch">
+                  <div className="w-10 h-10 bg-gradient-to-br from-primary-400 to-primary-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <Icon name="chat" className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="flex flex-col justify-center">
+                    <h1 className="header-title header-title--compact">
+                      Vibe Chat
+                    </h1>
+                    <div className="text-slate-300/90 text-xs uppercase tracking-[0.24em] mt-2 flex items-center gap-2">
+                      <Icon name="topic" className="w-4 h-4" />
+                      <span>{roomInfo.topic}</span>
+                      <span aria-hidden="true">•</span>
+                      <span>{username}</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex flex-col justify-center">
-                  <h1 className="header-title header-title--compact">
-                    Vibe Chat
-                  </h1>
-                  {/*<div className="text-slate-300/90 text-xs uppercase tracking-[0.24em] mt-2 flex items-center gap-2">
-                    <Icon name="topic" className="w-4 h-4" />
-                    {roomInfo.topic} • {username}
-                  </div>*/}
-                </div>
-              </div>
               <div className="flex items-center gap-3 self-stretch flex-wrap justify-end">
                 <div className="flex items-center gap-2">
                   <button
@@ -84,7 +86,7 @@ const ChatView = ({
                 >
                   Logout
                 </button>
-                {/*<div className="flex items-center gap-2 text-sm">
+                <div className="flex items-center gap-2 text-sm">
                   <div
                     className={`w-2 h-2 rounded-full transition-colors ${
                       connectionStatus.connected
@@ -99,12 +101,12 @@ const ChatView = ({
                   </span>
                 </div>
                 <div className="text-primary-200 text-xs dark:text-slate-300">
-                  {participants.length} user
-                  {participants.length !== 1 ? "s" : ""} + {aiParticipantCount}{" "}
-                  AI
-                  {aiParticipantCount !== 1 ? "s" : ""}
+                  {`${participants.length} user${
+                    participants.length !== 1 ? "s" : ""
+                  } + ${aiParticipantCount} AI${
+                    aiParticipantCount !== 1 ? "s" : ""
+                  }`}
                 </div>
-                */}
               </div>
             </div>
           </div>
