@@ -18,8 +18,14 @@ const LoginView = ({
   previewMessages = [],
   previewParticipants = [],
   previewAiParticipants = [],
-}) => (
-  <div className="relative min-h-screen overflow-hidden bg-slate-950 text-slate-100">
+}) => {
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    onJoin?.(event);
+  };
+
+  return (
+    <div className="relative min-h-screen overflow-hidden bg-slate-950 text-slate-100">
     <div className="absolute inset-0">
       <div className="absolute -top-1/4 -left-1/4 h-[120%] w-[120%] bg-[radial-gradient(circle_at_top,_rgba(96,165,250,0.15),_transparent_60%)]" />
       <div className="absolute bottom-0 right-0 h-[70%] w-[70%] bg-[radial-gradient(circle_at_bottom,_rgba(167,139,250,0.2),_transparent_65%)]" />
@@ -28,7 +34,7 @@ const LoginView = ({
 
     <div className="relative z-10 flex min-h-screen flex-col items-center justify-center px-6 py-16">
       <div className="absolute top-8 right-8 flex items-center gap-4 text-sm text-slate-300/80">
-        {/*<div className="flex items-center gap-2 rounded-full bg-white/5 px-4 py-2 backdrop-blur">
+        <div className="flex items-center gap-2 rounded-full bg-white/5 px-4 py-2 backdrop-blur">
           <span
             className={`h-2.5 w-2.5 rounded-full transition-colors ${
               connectionStatus.connected
@@ -38,8 +44,8 @@ const LoginView = ({
           ></span>
           <span className="tracking-[0.2em] uppercase text-xs font-light">
             {connectionStatus.connected ? "Connected" : "Connecting..."}
-          </span>s
-        </div>*/}
+          </span>
+        </div>
         <button
           type="button"
           onClick={toggleTheme}
@@ -75,7 +81,7 @@ const LoginView = ({
           )}
 
           <form
-            onSubmit={onJoin}
+            onSubmit={handleSubmit}
             className="flex w-full max-w-lg flex-col gap-4"
           >
             {/*<label className="text-xs uppercase tracking-[0.4em] text-slate-200/70">
@@ -138,7 +144,8 @@ const LoginView = ({
         isVisible={true}
       />
     </div>
-  </div>
-);
+    </div>
+  );
+};
 
 export default LoginView;

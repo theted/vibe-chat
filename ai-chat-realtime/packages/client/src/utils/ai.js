@@ -1,7 +1,17 @@
 import { AI_EMOJI_LOOKUP, AI_MENTION_MAPPINGS } from "../constants/chat.js";
 
-export const normalizeAlias = (value) =>
-  value ? value.toString().toLowerCase().replace(/[^a-z0-9]/g, "") : "";
+export const normalizeAlias = (value) => {
+  if (value === null || value === undefined) {
+    return "";
+  }
+
+  const stringValue = value.toString();
+  if (!stringValue) {
+    return "";
+  }
+
+  return stringValue.toLowerCase().replace(/[^a-z0-9]/g, "");
+};
 
 export const resolveEmoji = (value) => {
   const normalized = normalizeAlias(value);
@@ -15,8 +25,8 @@ export const resolveEmoji = (value) => {
   }
 
   const aliasKey = Object.keys(AI_EMOJI_LOOKUP)
-    .sort((a, b) => b.length - a.length)  // Prioritize longer keys
-    .find((key) => normalized.includes(key));
+    .sort((a, b) => b.length - a.length) // Prioritize longer keys
+    .find((key) => normalized.startsWith(key));
   return aliasKey ? AI_EMOJI_LOOKUP[aliasKey] : "🤖";
 };
 
