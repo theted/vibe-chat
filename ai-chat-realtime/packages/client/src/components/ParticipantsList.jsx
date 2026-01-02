@@ -5,6 +5,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { DEFAULT_AI_PARTICIPANTS } from "../config/aiParticipants.js";
+
 import Icon from "./Icon.jsx";
 
 import AnimatedListItem from "./AnimatedListItem.jsx";
