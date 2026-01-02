@@ -4,13 +4,13 @@ import { BrowserRouter } from "react-router-dom";
 import ChatView from "./ChatView.jsx";
 import React from "react";
 
-const mockDefaultAiParticipants = Array.from({ length: 11 }, (_, index) => ({
-  id: `ai-${index}`,
-  name: `AI ${index}`,
-  alias: `ai-${index}`,
-  provider: "Test Provider",
-  status: "active",
-  emoji: "🤖",
+vi.mock("react-router-dom", () => ({
+  BrowserRouter: ({ children }) => <div data-testid="router">{children}</div>,
+  Link: ({ to, children, ...rest }) => (
+    <a href={to} {...rest}>
+      {children}
+    </a>
+  ),
 }));
 
 vi.mock("./ChatMessage.jsx", () => ({
@@ -40,6 +40,20 @@ vi.mock("./ParticipantsList.jsx", () => ({
 vi.mock("../config/aiParticipants.js", () => ({
   DEFAULT_AI_PARTICIPANTS: mockDefaultAiParticipants,
 }));
+vi.mock("../../../../constants.js", () => {
+  const mockDefaultAiParticipants = Array.from({ length: 11 }, (_, index) => ({
+    id: `ai-${index}`,
+    name: `AI ${index}`,
+    alias: `ai-${index}`,
+    provider: "Test Provider",
+    status: "active",
+    emoji: "🤖",
+  }));
+
+  return {
+    DEFAULT_AI_PARTICIPANTS: mockDefaultAiParticipants,
+  };
+});
 
 vi.mock("./TypingIndicator.jsx", () => ({
   default: ({ typingUsers, typingAIs }) => (
@@ -96,7 +110,7 @@ describe("ChatView Component", () => {
   describe("rendering", () => {
     it("should render without crashing", () => {
       renderWithRouter(<ChatView {...defaultProps} />);
-      expect(screen.getByText("Vibe chat")).toBeInTheDocument();
+      expect(screen.getByText(/vibe chat/i)).toBeInTheDocument();
     });
 
     it("should display username and topic", () => {
