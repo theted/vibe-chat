@@ -13,6 +13,7 @@ import {
   AIParticipant,
   InteractionStrategy
 } from '../../types/orchestrator.js';
+import { enhanceSystemPromptWithPersona } from '../../utils/personaUtils.js';
 
 export class SystemPromptBuilder implements ISystemPromptBuilder {
   private config: SystemPromptBuilderConfig;
@@ -30,6 +31,13 @@ export class SystemPromptBuilder implements ISystemPromptBuilder {
   }
 
   /**
+   * Check if persona injection is enabled via environment variable
+   */
+  private isPersonaEnabled(): boolean {
+    return process.env.AI_CHAT_ENABLE_PERSONAS === 'true';
+  }
+
+  /**
    * Build a complete system prompt for an AI participant
    */
   buildPrompt(
@@ -38,6 +46,11 @@ export class SystemPromptBuilder implements ISystemPromptBuilder {
     participant: AIParticipant
   ): string {
     let prompt = basePrompt || this.templates.base;
+
+    // Inject persona into the prompt if enabled and available
+    if (this.isPersonaEnabled() && participant.provider?.persona) {
+      prompt = enhanceSystemPromptWithPersona(prompt, participant.provider.persona);
+    }
 
     // Add participant-specific information
     if (this.config.includeParticipantInfo) {
