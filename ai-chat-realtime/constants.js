@@ -112,6 +112,14 @@ export const DEFAULT_AI_PARTICIPANTS = [
     emoji: "🦾",
   },
   {
+    id: "GROK_GROK_4_0709",
+    name: "Grok 4",
+    alias: "grok-4",
+    provider: "xAI",
+    status: "active",
+    emoji: "🚀",
+  },
+  {
     id: "GEMINI_GEMINI_PRO",
     name: "Gemini Pro",
     alias: "gemini",
