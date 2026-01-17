@@ -127,7 +127,7 @@ describe('Icon Component', () => {
       const handleClick = vi.fn();
       render(<Icon name="chat" onClick={handleClick} data-testid="clickable-icon" />);
       const svg = screen.getByTestId('clickable-icon');
-      svg.click();
+      svg.dispatchEvent(new MouseEvent('click', { bubbles: true }));
       expect(handleClick).toHaveBeenCalledTimes(1);
     });
   });
@@ -167,10 +167,10 @@ describe('Icon Component', () => {
 
     it('should update when styleVariant changes', () => {
       const { rerender } = render(<Icon name="chat" styleVariant="modern" />);
-      const svg1 = document.querySelector('svg');
+      const svg = document.querySelector('svg');
+      const initialStrokeWidth = svg.getAttribute('stroke-width');
       rerender(<Icon name="chat" styleVariant="classic" />);
-      const svg2 = document.querySelector('svg');
-      expect(svg1.getAttribute('stroke-width')).not.toBe(svg2.getAttribute('stroke-width'));
+      expect(svg.getAttribute('stroke-width')).not.toBe(initialStrokeWidth);
     });
   });
 
