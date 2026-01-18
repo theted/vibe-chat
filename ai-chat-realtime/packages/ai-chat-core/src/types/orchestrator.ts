@@ -429,25 +429,36 @@ export interface IMessageBroker extends EventEmitter {
 
 // Context Manager types
 export interface ContextMessage extends Message {
-  importance: number;
+  importance?: number;
   tokens?: number;
+  sender?: string;
+  senderType?: 'user' | 'ai';
+  displayName?: string;
+  alias?: string;
+  normalizedAlias?: string;
+  aiId?: string;
+  modelKey?: string;
+  mentions?: string[];
+  mentionsNormalized?: string[];
 }
 
 export interface ContextManagerConfig {
   maxMessages: number;
   maxTokens?: number;
-  prioritizeRecent: boolean;
-  includeSystemMessages: boolean;
+  prioritizeRecent?: boolean;
+  includeSystemMessages?: boolean;
+  includeMetadata?: boolean;
+  preserveMentions?: boolean;
 }
 
 export interface IContextManager {
   addMessage(message: Message): void;
   getContext(maxMessages?: number): ContextMessage[];
-  clearContext(): void;
+  clear(): void;
   updateConfig(config: Partial<ContextManagerConfig>): void;
-  getMessageImportance(message: Message): number;
-  pruneOldMessages(): void;
-  getTokenCount(): number;
+  getConfig(): ContextManagerConfig;
+  size(): number;
+  hasMessages(): boolean;
 }
 
 // Type guards

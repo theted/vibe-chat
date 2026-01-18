@@ -3,9 +3,9 @@
  *
  * This service handles interactions with the Mistral AI API.
  */
-import { OpenAICompatibleService } from './base/OpenAICompatibleService.js';
-import { OpenAIClient } from '../types/services.js';
-import { AIServiceConfig, ServiceInitOptions, OpenAIMessage } from '../types/index.js';
+import { OpenAICompatibleService } from "./base/OpenAICompatibleService.js";
+import { OpenAIClient } from "../types/services.js";
+import { AIServiceConfig, ServiceInitOptions, OpenAIMessage } from "../types/index.js";
 export declare class MistralService extends OpenAICompatibleService {
     constructor(config: AIServiceConfig);
     /**

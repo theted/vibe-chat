@@ -1,13 +1,12 @@
 /**
  * CohereService Service - TypeScript conversion
  */
-import { BaseAIService } from "./BaseAIService.js";
-import type { AIServiceConfig, Message } from "../types/index.js";
+import { BaseAIService } from "./base/BaseAIService.js";
+import type { AIServiceConfig, Message, ServiceResponse, ServiceInitOptions } from "../types/index.js";
 export declare class CohereService extends BaseAIService {
     private client;
     constructor(config: AIServiceConfig);
-    initialize(): Promise<void>;
-    isConfigured(): boolean;
-    generateResponse(messages: Message[]): Promise<string>;
+    protected performInitialization(_options?: ServiceInitOptions): Promise<void>;
+    protected performGenerateResponse(messages: Message[]): Promise<ServiceResponse>;
 }
 //# sourceMappingURL=CohereService.d.ts.map

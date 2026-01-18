@@ -28,7 +28,7 @@ export class GrokService extends BaseAIService {
       baseURL: options?.baseURL || "https://api.x.ai/v1",
     });
 
-    this.isInitialized = true;
+    this.initialized = true;
 
     if (options?.validateOnInit) {
       await this.validateConfiguration();

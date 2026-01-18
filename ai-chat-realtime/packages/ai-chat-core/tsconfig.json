@@ -34,15 +34,6 @@
     "dist",
     "**/*.test.ts",
     "**/*.spec.ts",
-    "src/orchestrator/ChatOrchestrator.ts",
-    "src/orchestrator/ContextManager.ts",
-    "src/orchestrator/scheduling/**/*.ts",
-    "src/services/CohereService.ts",
-    "src/services/GeminiService.ts",
-    "src/services/LlamaService.ts",
-    "src/services/PerplexityService.ts",
-    "src/services/QwenService.ts",
-    "src/services/ZaiService.ts",
-    "src/services/base/BaseAIService.ts"
+    "src/orchestrator/ChatOrchestrator.ts"
   ]
 }

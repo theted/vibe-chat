@@ -18,7 +18,7 @@ export class OpenAIService extends OpenAICompatibleService {
    * Create the OpenAI client with proper typing
    */
   protected createClient(apiKey: string, options?: ServiceInitOptions): OpenAIClient {
-    const clientConfig: OpenAI.ClientOptions = {
+    const clientConfig: ConstructorParameters<typeof OpenAI>[0] = {
       apiKey
     };
 

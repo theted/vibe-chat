@@ -28,7 +28,7 @@ export class KimiService extends BaseAIService {
       baseURL: options?.baseURL || "https://api.moonshot.cn/v1",
     });
 
-    this.isInitialized = true;
+    this.initialized = true;
 
     if (options?.validateOnInit) {
       await this.validateConfiguration();

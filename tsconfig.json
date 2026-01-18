@@ -12,9 +12,8 @@
     "checkJs": false,
     "outDir": "./dist",
     "baseUrl": ".",
-    "paths": {
-      "@ai-chat/core": ["./ai-chat-realtime/packages/ai-chat-core/src"]
-    }
+    "declaration": false,
+    "noEmitOnError": false
   },
   "include": [
     "src/**/*",
@@ -25,6 +24,7 @@
     "dist",
     "tests/**/*",
     "ai-chat-realtime/**/*",
-    "**/*.js"
+    "**/*.js",
+    "**/dist/**/*"
   ]
 }

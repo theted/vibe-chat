@@ -231,7 +231,7 @@ export class ResponseScheduler implements IResponseScheduler {
   } {
     const nextScheduled = this.responseQueue.length > 0
       ? Math.min(...this.responseQueue.map(item =>
-          (item.context?.scheduledAt || 0) + item.delayMs
+          ((item.context?.scheduledAt as number) || 0) + item.delayMs
         ))
       : undefined;
 
