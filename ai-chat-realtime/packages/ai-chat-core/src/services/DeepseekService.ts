@@ -34,7 +34,7 @@ export class DeepseekService extends BaseAIService {
       baseURL: options?.baseURL || "https://api.deepseek.com/v1",
     });
 
-    this.isInitialized = true;
+    this.initialized = true;
 
     if (options?.validateOnInit) {
       await this.validateConfiguration();

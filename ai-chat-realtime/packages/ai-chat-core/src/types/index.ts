@@ -47,6 +47,7 @@ export interface AIServiceConfig<P extends string = string, M extends string = s
   provider: {
     name: P;
     apiKeyEnvVar: string;
+    persona?: PersonaTrait;
   };
   model: AIModel & { id: M };
   timeout?: number;
@@ -184,11 +185,11 @@ export interface ChatOrchestratorConfig {
 export interface IAIService {
   config: AIServiceConfig;
   name: string;
-  isInitialized?: boolean;
 
   initialize(options?: ServiceInitOptions): Promise<void>;
   generateResponse(messages: Message[], context?: Record<string, unknown>): Promise<ServiceResponse>;
   isConfigured(): boolean;
+  isInitialized?(): boolean;
   getName(): string;
   getModel(): string;
   getEnhancedSystemPrompt(additionalContext?: string): string;

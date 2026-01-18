@@ -11,7 +11,7 @@ import type { AIServiceConfig, Message, IAIService, ServiceResponse, ServiceInit
 export abstract class BaseAIService implements IAIService {
   public readonly config: AIServiceConfig;
   public name: string;
-  public isInitialized: boolean = false;
+  protected initialized: boolean = false;
 
   constructor(config: AIServiceConfig) {
     if (this.constructor === BaseAIService) {
@@ -96,10 +96,18 @@ export abstract class BaseAIService implements IAIService {
   }
 
   /**
+   * Check if the service is initialized
+   * @returns True if initialized
+   */
+  isInitialized(): boolean {
+    return this.initialized;
+  }
+
+  /**
    * Shutdown the service
    */
   async shutdown(): Promise<void> {
-    this.isInitialized = false;
+    this.initialized = false;
     // Base implementation - override in subclasses if needed
   }
 }

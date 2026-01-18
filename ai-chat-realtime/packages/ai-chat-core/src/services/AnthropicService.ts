@@ -35,7 +35,7 @@ export class AnthropicService extends BaseAIService {
       apiKey: options?.apiKey || process.env[this.config.provider.apiKeyEnvVar],
     });
 
-    this.isInitialized = true;
+    this.initialized = true;
     this.lastInitTime = Date.now();
 
     if (options?.validateOnInit) {
@@ -198,7 +198,7 @@ export class AnthropicService extends BaseAIService {
    */
   async resetConnection(): Promise<void> {
     this.client = null;
-    this.isInitialized = false;
+    this.initialized = false;
     await this.initialize();
   }
 
@@ -246,6 +246,6 @@ export class AnthropicService extends BaseAIService {
    */
   async shutdown(): Promise<void> {
     this.client = null;
-    this.isInitialized = false;
+    this.initialized = false;
   }
 }

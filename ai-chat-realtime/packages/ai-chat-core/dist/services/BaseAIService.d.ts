@@ -8,7 +8,7 @@ import type { AIServiceConfig, Message, IAIService, ServiceResponse, ServiceInit
 export declare abstract class BaseAIService implements IAIService {
     readonly config: AIServiceConfig;
     name: string;
-    isInitialized: boolean;
+    protected initialized: boolean;
     constructor(config: AIServiceConfig);
     /**
      * Initialize the AI service
@@ -52,6 +52,11 @@ export declare abstract class BaseAIService implements IAIService {
      * @returns The service configuration
      */
     getConfig(): AIServiceConfig;
+    /**
+     * Check if the service is initialized
+     * @returns True if initialized
+     */
+    isInitialized(): boolean;
     /**
      * Shutdown the service
      */

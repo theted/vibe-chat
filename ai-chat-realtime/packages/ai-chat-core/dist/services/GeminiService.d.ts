@@ -4,38 +4,30 @@
  * This service handles interactions with the Google Gemini AI API.
  */
 import { BaseAIService } from "./base/BaseAIService.js";
-import { Message, AIResponse, GeminiServiceConfig } from "../types/index.js";
-export declare class GeminiService extends BaseAIService<GeminiServiceConfig> {
+import { Message, ServiceResponse, GeminiServiceConfig, ServiceInitOptions } from "../types/index.js";
+export declare class GeminiService extends BaseAIService {
     private client;
-    private model;
+    private geminiModel;
     constructor(config: GeminiServiceConfig);
     /**
      * Initialize the Gemini client
      */
-    initialize(): Promise<void>;
-    /**
-     * Check if the Gemini service is properly configured
-     */
-    isConfigured(): boolean;
+    protected performInitialization(_options?: ServiceInitOptions): Promise<void>;
     /**
      * Generate a response using Gemini
      */
-    generateResponse(messages: Message[]): Promise<AIResponse>;
+    protected performGenerateResponse(messages: Message[]): Promise<ServiceResponse>;
     /**
      * Health check for the Gemini service
      */
-    healthCheck(): Promise<boolean>;
+    protected performHealthCheck(): Promise<boolean>;
     /**
      * Reset the connection (reinitialize client)
      */
-    resetConnection(): Promise<void>;
-    /**
-     * Get service-specific information
-     */
-    getServiceInfo(): Record<string, unknown>;
+    protected performConnectionReset(): Promise<void>;
     /**
      * Shutdown the service
      */
-    shutdown(): Promise<void>;
+    protected performShutdown(): Promise<void>;
 }
 //# sourceMappingURL=GeminiService.d.ts.map
