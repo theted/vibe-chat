@@ -133,13 +133,7 @@ export abstract class OpenAICompatibleService extends BaseAIService {
   protected formatResponsesInput(messages: OpenAIMessage[]) {
     return messages.map((message) => ({
       role: message.role,
-      type: "message",
-      content: [
-        {
-          type: "text",
-          text: message.content,
-        },
-      ],
+      content: message.content,
     }));
   }
 
@@ -191,10 +185,13 @@ export abstract class OpenAICompatibleService extends BaseAIService {
       model: this.getModel(),
       input: this.formatResponsesInput(messages),
       temperature,
-      modalities: ["text"],
-      response_format: { type: "text" },
-      reasoning: { effort: (context as any)?.reasoningEffort || "medium" },
     };
+
+    const reasoningEffort = (context as { reasoningEffort?: string } | undefined)
+      ?.reasoningEffort;
+    if (reasoningEffort) {
+      payload.reasoning = { effort: reasoningEffort };
+    }
 
     if (maxTokens) {
       payload.max_output_tokens = maxTokens;

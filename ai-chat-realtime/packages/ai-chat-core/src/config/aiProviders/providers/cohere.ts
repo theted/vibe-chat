@@ -20,7 +20,13 @@ export const COHERE: AIProvider = {
     ]
   },
   models: {
-    // TODO: Add models from original JS file
+    COMMAND_A_03_2025: {
+      id: "command-a-03-2025",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Command A 2025 by Cohere. Provide clear, structured responses and contribute actionable insights to the conversation.",
+    },
   },
   apiKeyEnvVar: "COHERE_API_KEY",
 };
