@@ -17,10 +17,26 @@ jobs:
         with:
           node-version: '22'
           cache: 'npm'
+          cache-dependency-path: |
+            package-lock.json
+            ai-chat-realtime/package-lock.json
       - name: Install dependencies
         run: npm ci
+      - name: Build @ai-chat/core
+        working-directory: ai-chat-realtime/packages/ai-chat-core
+        run: npm ci && npm run build
+      - name: Build root package
+        run: npm run build
       - name: Run tests
         run: npm test
+      - name: Install ai-chat-realtime dependencies
+        working-directory: ai-chat-realtime
+        run: npm ci
+      - name: Run client UI tests
+        working-directory: ai-chat-realtime
+        env:
+          CI: true
+        run: npm --workspace @ai-chat/client run test -- --watch=false --reporter=basic
 
   deploy:
     needs: test
