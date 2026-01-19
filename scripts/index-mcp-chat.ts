@@ -15,9 +15,18 @@ const DEFAULT_COLLECTION_NAME =
 const DEFAULT_CHROMA_URL =
   process.env.CHROMA_URL || "http://localhost:8000";
 
-const parseArgs = () => {
+type IndexArgs = {
+  chunkSize?: number;
+  chunkOverlap?: number;
+  chromaUrl?: string;
+  collectionName?: string;
+  projectRoot?: string;
+  skipDelete: boolean;
+};
+
+const parseArgs = (): IndexArgs => {
   const args = process.argv.slice(2);
-  const result = {
+  const result: IndexArgs = {
     chunkSize: undefined,
     chunkOverlap: undefined,
     chromaUrl: undefined,
@@ -62,20 +71,20 @@ const parseArgs = () => {
   return result;
 };
 
-const tryLoadDotenv = async (projectRoot) => {
+const tryLoadDotenv = async (projectRoot: string): Promise<void> => {
   try {
     const dotenv = await import("dotenv");
     dotenv.config({ path: path.join(projectRoot, ".env") });
-  } catch (error) {
-    if (error.code !== "ERR_MODULE_NOT_FOUND") {
+  } catch (error: any) {
+    if (error?.code !== "ERR_MODULE_NOT_FOUND") {
       console.warn(
-        `index-mcp-chat: Failed to load dotenv (${error.message}). Continuing with process env.`
+        `index-mcp-chat: Failed to load dotenv (${error?.message || error}). Continuing with process env.`
       );
     }
   }
 };
 
-const main = async () => {
+const main = async (): Promise<void> => {
   const scriptDir = path.dirname(fileURLToPath(import.meta.url));
   const defaultProjectRoot = path.resolve(scriptDir, "..");
 
@@ -118,19 +127,19 @@ const main = async () => {
     console.log(
       `✅ Indexed ${result.chunks} chunks into collection "${result.collectionName}" at ${result.chromaUrl}`
     );
-  } catch (error) {
+  } catch (error: any) {
     if (error?.code === MCP_ERROR_CODES.VECTOR_STORE_UNAVAILABLE) {
       console.error(
         `index-mcp-chat: Unable to reach Chroma at ${chromaUrl}. Start the vector store (e.g. 'docker compose up chroma') or set CHROMA_URL before retrying.`
       );
     } else {
-      console.error(`index-mcp-chat failed: ${error.message}`);
+      console.error(`index-mcp-chat failed: ${error?.message || error}`);
     }
     process.exit(1);
   }
 };
 
-main().catch((error) => {
-  console.error(`index-mcp-chat failed: ${error.message}`);
+main().catch((error: any) => {
+  console.error(`index-mcp-chat failed: ${error?.message || error}`);
   process.exit(1);
 });

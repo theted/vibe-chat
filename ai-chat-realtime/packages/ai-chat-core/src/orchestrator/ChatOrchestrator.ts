@@ -3,9 +3,9 @@
  */
 
 import { EventEmitter } from "events";
-import { AIServiceFactory } from "../../dist/services/AIServiceFactory.js";
-import { ContextManager } from "../../dist/orchestrator/ContextManager.js";
-import { MessageBroker } from "../../dist/orchestrator/MessageBroker.js";
+import { AIServiceFactory } from "../services/AIServiceFactory.js";
+import { ContextManager } from "./ContextManager.js";
+import { MessageBroker } from "./MessageBroker.js";
 import {
   DEFAULTS,
   CONTEXT_LIMITS,
@@ -20,7 +20,30 @@ import {
   MENTION_FORMATS,
 } from "./constants.js";
 
-const normalizeAlias = (value) =>
+type ChatOrchestratorOptions = {
+  maxMessages?: number;
+  maxAIMessages?: number;
+  minUserResponseDelay?: number;
+  maxUserResponseDelay?: number;
+  minBackgroundDelay?: number;
+  maxBackgroundDelay?: number;
+  minDelayBetweenAI?: number;
+  maxDelayBetweenAI?: number;
+  topicChangeChance?: number;
+  verboseContextLogging?: boolean;
+};
+
+type GenerateResponseOptions = {
+  isMentioned?: boolean;
+  triggerMessage?: { id?: string; sender?: string };
+};
+
+type StrategyOption = {
+  type: string;
+  weight: number;
+};
+
+const normalizeAlias = (value?: string | number | null): string =>
   value
     ? value
         .toString()
@@ -28,7 +51,7 @@ const normalizeAlias = (value) =>
         .replace(/[^a-z0-9]/g, "")
     : "";
 
-const toMentionAlias = (value, fallback = "") => {
+const toMentionAlias = (value?: string | null, fallback = ""): string => {
   const base = value && value.trim() ? value : fallback;
   if (!base) return "";
   return base
@@ -39,22 +62,49 @@ const toMentionAlias = (value, fallback = "") => {
     .replace(/^-+|-+$/g, "");
 };
 
-const parseBooleanEnvFlag = (value) => {
+const parseBooleanEnvFlag = (value?: string | null): boolean => {
   if (typeof value !== "string") return false;
   const normalized = value.trim().toLowerCase();
   if (!normalized) return false;
   return ["1", "true", "yes", "on"].includes(normalized);
 };
 
-const getEnvFlag = (name) => {
+const getEnvFlag = (name: string): string | undefined => {
   if (typeof process === "undefined" || !process?.env) {
     return undefined;
   }
   return process.env[name];
 };
 
+/**
+ * Orchestrates multi-AI conversations and background scheduling.
+ */
 export class ChatOrchestrator extends EventEmitter {
-  constructor(options = {}) {
+  contextManager: ContextManager;
+  messageBroker: MessageBroker;
+  aiServices: Map<string, any>;
+  activeAIs: string[];
+  messageTracker: {
+    aiMessageCount: number;
+    maxAIMessages: number;
+    isAsleep: boolean;
+  };
+  lastAIMessageTime: number;
+  minUserResponseDelay: number;
+  maxUserResponseDelay: number;
+  minBackgroundDelay: number;
+  maxBackgroundDelay: number;
+  minDelayBetweenAI: number;
+  maxDelayBetweenAI: number;
+  backgroundConversationTimer: NodeJS.Timeout | null;
+  topicChangeChance: number;
+  verboseContextLogging: boolean;
+
+  /**
+   * Create a ChatOrchestrator instance.
+   * @param options - Overrides for limits, delays, and logging flags.
+   */
+  constructor(options: ChatOrchestratorOptions = {}) {
     super();
     this.contextManager = new ContextManager(
       options.maxMessages || DEFAULTS.MAX_MESSAGES
@@ -156,6 +206,7 @@ export class ChatOrchestrator extends EventEmitter {
    * @param {Array} aiConfigs - Array of AI configuration objects
    */
   async initializeAIs(aiConfigs) {
+    const failedConfigs = [];
     for (const config of aiConfigs) {
       try {
         const service = AIServiceFactory.createServiceByName(
@@ -191,10 +242,29 @@ export class ChatOrchestrator extends EventEmitter {
           `Failed to initialize AI ${config.providerKey}_${config.modelKey}:`,
           error
         );
+        failedConfigs.push({
+          providerKey: config.providerKey,
+          modelKey: config.modelKey,
+          displayName: config.displayName,
+          alias: config.alias,
+        });
       }
     }
 
     console.log(`Initialized ${this.aiServices.size} AI services`);
+
+    if (failedConfigs.length > 0) {
+      console.warn(
+        `⚠️  ${failedConfigs.length} AI model(s) failed to initialize:`
+      );
+      failedConfigs.forEach((failed) => {
+        const label =
+          failed.displayName ||
+          failed.alias ||
+          `${failed.providerKey}_${failed.modelKey}`;
+        console.warn(`   • ${label} (${failed.providerKey}_${failed.modelKey})`);
+      });
+    }
   }
 
   /**
@@ -411,6 +481,31 @@ export class ChatOrchestrator extends EventEmitter {
     return toMentionAlias(ai.name || ai.id || "");
   }
 
+  getAIDisplayName(ai) {
+    if (!ai) return "";
+    const candidates = [
+      ai.displayName,
+      ai.config?.displayName,
+      ai.displayAlias,
+      ai.config?.alias,
+      ai.config?.modelKey,
+    ];
+
+    for (const candidate of candidates) {
+      if (typeof candidate === "string") {
+        const trimmed = candidate.trim();
+        if (trimmed) return trimmed;
+      }
+    }
+
+    if (typeof ai.service?.getModel === "function") {
+      const model = ai.service.getModel();
+      if (model) return model;
+    }
+
+    return ai.name || ai.id || "";
+  }
+
   /**
    * Calculate response delay for AI
    * @param {number} index - AI response index
@@ -475,7 +570,12 @@ export class ChatOrchestrator extends EventEmitter {
    * @param {string} roomId - Room ID
    * @param {boolean} isUserResponse - Whether this is a response to user message
    */
-  async generateAIResponse(aiId, roomId, isUserResponse = true, options = {}) {
+  async generateAIResponse(
+    aiId,
+    roomId,
+    isUserResponse = true,
+    options: GenerateResponseOptions = {}
+  ) {
     if (this.messageTracker.isAsleep) {
       return;
     }
@@ -594,7 +694,7 @@ export class ChatOrchestrator extends EventEmitter {
       };
 
       // Queue the AI response
-      this.messageBroker.enqueueMessage(aiMessage);
+      this.messageBroker.enqueueMessage(aiMessage as any);
     } catch (error) {
       console.error(
         `❌ AI ${aiId} failed to generate response:`,
@@ -672,7 +772,7 @@ export class ChatOrchestrator extends EventEmitter {
    * @param {Object} message - Message to add
    */
   addMessage(message) {
-    this.messageBroker.enqueueMessage(message);
+    this.messageBroker.enqueueMessage(message as any);
   }
 
   /**
@@ -769,10 +869,6 @@ export class ChatOrchestrator extends EventEmitter {
    * @returns {string} Enhanced system prompt
    */
   createEnhancedSystemPrompt(aiService, context, isUserResponse) {
-    const aiNames = Array.from(this.aiServices.values()).map((ai) =>
-      ai.name.toLowerCase()
-    );
-
     let prompt = `You are ${aiService.name}, an AI participating in a dynamic group chat. `;
 
     // Add context-specific intro
@@ -785,12 +881,15 @@ export class ChatOrchestrator extends EventEmitter {
     // Add guidelines
     prompt += SYSTEM_PROMPT.GUIDELINES;
 
+    const otherAINames = Array.from(this.aiServices.values())
+      .filter((ai) => ai !== aiService)
+      .map((ai) => this.getAIDisplayName(ai))
+      .filter(Boolean);
+
     // Add other participants
     prompt += `
 
-Other AIs in this chat: ${aiNames
-      .filter((name) => name.toLowerCase() !== aiService.name.toLowerCase())
-      .join(", ")}
+Other AIs in this chat: ${otherAINames.join(", ")}
 
 ${SYSTEM_PROMPT.CLOSING}`;
 
@@ -811,7 +910,7 @@ ${SYSTEM_PROMPT.CLOSING}`;
     const aiMessages = recentMessages.filter((msg) => msg.senderType === "ai");
     const lastMessage = recentMessages[recentMessages.length - 1];
 
-    const strategies = {
+    const strategies: Record<string, StrategyOption> = {
       AGREE_AND_EXPAND: {
         type: "agree-expand",
         weight: STRATEGY_WEIGHTS.AGREE_AND_EXPAND,

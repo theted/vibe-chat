@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { normalizeAlias, resolveEmoji, mapMentionsToAiNames } from './ai.js';
+import { describe, it, expect } from "vitest";
+import { normalizeAlias, resolveEmoji, mapMentionsToAiNames } from "./ai.ts";
 
 describe('normalizeAlias', () => {
   it('should convert string to lowercase and remove non-alphanumeric characters', () => {

@@ -56,9 +56,14 @@ const findWorkspaceRoot = (startDir) => {
 
   while (!visited.has(current)) {
     visited.add(current);
-    const runPath = path.join(current, "scripts", "run-mcp-chat.js");
-    const indexPath = path.join(current, "scripts", "index-mcp-chat.js");
-    if (existsSync(runPath) && existsSync(indexPath)) {
+    const candidates = [
+      path.join(current, "scripts", "run-mcp-chat.ts"),
+      path.join(current, "scripts", "index-mcp-chat.ts"),
+      path.join(current, "dist", "scripts", "run-mcp-chat.js"),
+      path.join(current, "dist", "scripts", "index-mcp-chat.js"),
+    ];
+    const hasScripts = candidates.every((candidate) => existsSync(candidate));
+    if (hasScripts) {
       return current;
     }
 
@@ -217,7 +222,9 @@ export class ChatAssistantService {
       } else if (!collectionReady && !this.autoIndex && this.vectorStoreReachable) {
         console.warn(`[ChatAssistant] ⚠️  Collection not found and auto-indexing is disabled.`);
         console.warn(`[ChatAssistant] To create the collection, either:`);
-        console.warn(`[ChatAssistant]   1. Run: node scripts/index-mcp-chat.js`);
+        console.warn(
+          `[ChatAssistant]   1. Run: npm run build && node dist/scripts/index-mcp-chat.js`
+        );
         console.warn(`[ChatAssistant]   2. Set CHAT_ASSISTANT_AUTO_INDEX=true and restart`);
       }
     } catch (error) {
@@ -324,7 +331,7 @@ export class ChatAssistantService {
           question,
           answer: [
             "I can't reach the shared knowledge index right now.",
-            `Check that the Chroma service is running at ${this.chromaUrl} and try re-indexing with \`node scripts/index-mcp-chat.js\`.`,
+            `Check that the Chroma service is running at ${this.chromaUrl} and try re-indexing with \`npm run build && node dist/scripts/index-mcp-chat.js\`.`,
           ].join(" "),
         };
       }

@@ -2,20 +2,22 @@
  * useSocket Hook - React hook for Socket.IO integration
  */
 
-import { useEffect, useCallback, useRef } from 'react';
-import socketService from '../services/SocketService';
+import { useEffect, useCallback, useRef } from "react";
+import socketService from "../services/SocketService.ts";
 
-export const useSocket = (serverUrl) => {
-  const listenersRef = useRef(new Map());
+type EventCallback = (...args: unknown[]) => void;
+
+export const useSocket = (serverUrl: string) => {
+  const listenersRef = useRef<Map<string, EventCallback>>(new Map());
 
   useEffect(() => {
-    console.log('🔌 useSocket: Connecting to', serverUrl);
+    console.log("🔌 useSocket: Connecting to", serverUrl);
     // Connect to server
     socketService.connect(serverUrl);
 
     // Cleanup on unmount
     return () => {
-      console.log('🔌 useSocket: Cleaning up listeners');
+      console.log("🔌 useSocket: Cleaning up listeners");
       // Remove all listeners added by this hook instance
       for (const [event, callback] of listenersRef.current) {
         socketService.off(event, callback);
@@ -24,8 +26,8 @@ export const useSocket = (serverUrl) => {
     };
   }, [serverUrl]);
 
-  const on = useCallback((event, callback) => {
-    console.log('🔌 useSocket: Adding listener for', event);
+  const on = useCallback((event: string, callback: EventCallback) => {
+    console.log("🔌 useSocket: Adding listener for", event);
     // Remove existing listener for this event if any
     const existingCallback = listenersRef.current.get(event);
     if (existingCallback) {
@@ -37,19 +39,19 @@ export const useSocket = (serverUrl) => {
     listenersRef.current.set(event, callback);
   }, []);
 
-  const emit = useCallback((event, data) => {
+  const emit = useCallback((event: string, data?: unknown) => {
     socketService.emit(event, data);
   }, []);
 
-  const joinRoom = useCallback((username, roomId) => {
+  const joinRoom = useCallback((username: string, roomId?: string) => {
     socketService.joinRoom(username, roomId);
   }, []);
 
-  const sendMessage = useCallback((content) => {
+  const sendMessage = useCallback((content: string) => {
     socketService.sendMessage(content);
   }, []);
 
-  const changeTopic = useCallback((topic) => {
+  const changeTopic = useCallback((topic: string) => {
     socketService.changeTopic(topic);
   }, []);
 
@@ -69,9 +71,12 @@ export const useSocket = (serverUrl) => {
     socketService.adminSleepAIs();
   }, []);
 
-  const triggerAI = useCallback((aiNames, message, context) => {
-    socketService.triggerAI(aiNames, message, context);
-  }, []);
+  const triggerAI = useCallback(
+    (aiNames: string[], message: string, context?: unknown[]) => {
+      socketService.triggerAI(aiNames, message, context || []);
+    },
+    []
+  );
 
   const startTyping = useCallback(() => {
     socketService.startTyping();
@@ -95,6 +100,6 @@ export const useSocket = (serverUrl) => {
     startTyping,
     stopTyping,
     isConnected: socketService.isConnected(),
-    socketId: socketService.getSocketId()
+    socketId: socketService.getSocketId(),
   };
 };

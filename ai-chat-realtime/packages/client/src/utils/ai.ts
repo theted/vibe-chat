@@ -1,6 +1,6 @@
-import { AI_EMOJI_LOOKUP, AI_MENTION_MAPPINGS } from "../constants/chat.js";
+import { AI_EMOJI_LOOKUP, AI_MENTION_MAPPINGS } from "../constants/chat.ts";
 
-export const normalizeAlias = (value) => {
+export const normalizeAlias = (value?: string | number | null): string => {
   if (value === null || value === undefined) {
     return "";
   }
@@ -13,7 +13,7 @@ export const normalizeAlias = (value) => {
   return stringValue.toLowerCase().replace(/[^a-z0-9]/g, "");
 };
 
-export const resolveEmoji = (value) => {
+export const resolveEmoji = (value?: string | number | null): string => {
   const normalized = normalizeAlias(value);
   if (!normalized) {
     return "🤖";
@@ -30,7 +30,9 @@ export const resolveEmoji = (value) => {
   return aliasKey ? AI_EMOJI_LOOKUP[aliasKey] : "🤖";
 };
 
-export const mapMentionsToAiNames = (mentions = []) =>
+export const mapMentionsToAiNames = (
+  mentions: Array<string | number | boolean | null | undefined> = []
+): string[] =>
   mentions
     .map((mention) => {
       const normalized = mention?.toLowerCase?.();

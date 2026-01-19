@@ -156,7 +156,7 @@ export class LangChainMcpServer {
           `[MCP] ⚠️  Chroma collection "${this.collectionName}" not found.`
         );
         console.warn(
-          `[MCP] To create and populate the collection, run: node scripts/index-mcp-chat.js`
+          `[MCP] To create and populate the collection, run: npm run build && node dist/scripts/index-mcp-chat.js`
         );
         console.warn(
           `[MCP] Or set CHAT_ASSISTANT_AUTO_INDEX=true to auto-create on startup.`
@@ -237,7 +237,7 @@ export class LangChainMcpServer {
       if (LangChainMcpServer.#isMissingCollection(error)) {
         return {
           answer:
-            "I could not find an indexed knowledge base. Run `node scripts/index-mcp-chat.js` to build it, then ask again.",
+            "I could not find an indexed knowledge base. Run `npm run build && node dist/scripts/index-mcp-chat.js` to build it, then ask again.",
           contexts: [],
         };
       }

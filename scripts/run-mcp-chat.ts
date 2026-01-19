@@ -8,9 +8,14 @@ import {
   MCP_ERROR_CODES,
 } from "../ai-chat-realtime/packages/mcp-assistant/src/index.js";
 
-const parseArgs = () => {
+type RunArgs = {
+  question: string;
+  raw: boolean;
+};
+
+const parseArgs = (): RunArgs => {
   const args = process.argv.slice(2);
-  const result = { question: "", raw: false };
+  const result: RunArgs = { question: "", raw: false };
 
   for (let i = 0; i < args.length; i += 1) {
     const arg = args[i];
@@ -31,20 +36,20 @@ const parseArgs = () => {
   return result;
 };
 
-const tryLoadDotenv = async (projectRoot) => {
+const tryLoadDotenv = async (projectRoot: string): Promise<void> => {
   try {
     const dotenv = await import("dotenv");
     dotenv.config({ path: path.join(projectRoot, ".env") });
-  } catch (error) {
-    if (error.code !== "ERR_MODULE_NOT_FOUND") {
+  } catch (error: any) {
+    if (error?.code !== "ERR_MODULE_NOT_FOUND") {
       console.warn(
-        `run-mcp-chat: Failed to load dotenv (${error.message}). Continuing with process env.`
+        `run-mcp-chat: Failed to load dotenv (${error?.message || error}). Continuing with process env.`
       );
     }
   }
 };
 
-const main = async () => {
+const main = async (): Promise<void> => {
   const { question, raw } = parseArgs();
   if (!question || !question.trim()) {
     console.error(
@@ -63,16 +68,16 @@ const main = async () => {
 
   try {
     await server.ensureEmbeddingStore();
-  } catch (error) {
+  } catch (error: any) {
     if (error?.code === MCP_ERROR_CODES.VECTOR_STORE_UNAVAILABLE) {
       console.error(
         `MCP embedding lookup failed: could not reach Chroma at ${
           process.env.CHROMA_URL || "http://localhost:8000"
-        }. ${error.message}`
+        }. ${error?.message || error}`
       );
     } else {
       console.error(
-        `MCP embedding store missing or unreadable. Run 'node scripts/index-mcp-chat.js' first. (${error.message})`
+        `MCP embedding store missing or unreadable. Run 'npm run build && node dist/scripts/index-mcp-chat.js' first. (${error?.message || error})`
       );
     }
     process.exit(1);
@@ -100,13 +105,13 @@ const main = async () => {
         .join("\n");
       console.log(`\nContexts:\n${refs}`);
     }
-  } catch (error) {
-    console.error(`run-mcp-chat failed: ${error.message}`);
+  } catch (error: any) {
+    console.error(`run-mcp-chat failed: ${error?.message || error}`);
     process.exit(1);
   }
 };
 
-main().catch((error) => {
-  console.error(`run-mcp-chat failed: ${error.message}`);
+main().catch((error: any) => {
+  console.error(`run-mcp-chat failed: ${error?.message || error}`);
   process.exit(1);
 });

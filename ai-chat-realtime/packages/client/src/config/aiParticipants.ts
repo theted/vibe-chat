@@ -1,4 +1,15 @@
-export const DEFAULT_AI_PARTICIPANTS = [
+export type AiParticipantStatus = "active" | "inactive";
+
+export type AiParticipant = {
+  id: string;
+  name: string;
+  alias: string;
+  provider: string;
+  status: AiParticipantStatus;
+  emoji: string;
+};
+
+export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
   {
     id: "ANTHROPIC_CLAUDE_SONNET_4_5",
     name: "Claude 4.5 Sonnet",

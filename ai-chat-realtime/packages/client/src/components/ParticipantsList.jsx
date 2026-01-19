@@ -4,7 +4,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { DEFAULT_AI_PARTICIPANTS } from "../config/aiParticipants.js";
+import { DEFAULT_AI_PARTICIPANTS } from "../config/aiParticipants.ts";
 
 import Icon from "./Icon.jsx";
 

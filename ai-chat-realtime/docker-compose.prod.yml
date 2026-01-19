@@ -65,7 +65,7 @@ services:
       - CHROMA_URL=${CHROMA_URL:-http://chroma:8000}
       - CHAT_ASSISTANT_COLLECTION=ai-chat-workspace
     volumes:
-      - ../scripts:/app/scripts:ro
+      - ../dist/scripts:/app/scripts:ro
       - ./packages/mcp-assistant/src:/app/mcp-assistant/src:ro
     restart: always
     networks:

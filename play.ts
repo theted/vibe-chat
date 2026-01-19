@@ -2,7 +2,7 @@
  * Conversation Playback (Terminal)
  *
  * Usage:
- *   node play.js conversations/2025-09-10T17-44-19-366Z-we-re-stoned-bro-s.json
+ *   node dist/play.js conversations/2025-09-10T17-44-19-366Z-we-re-stoned-bro-s.json
  *
  * Plays a saved conversation JSON as a live chat with typing animation.
  * - Small delay between keystrokes (typing simulation)
@@ -16,6 +16,16 @@ import path from "path";
 // Typing and pacing configuration
 const TYPING_DELAY_MS = Number(process.env.PLAY_TYPING_DELAY_MS || 8); // per char
 const BETWEEN_MESSAGES_MS = Number(process.env.PLAY_BETWEEN_MESSAGES_MS || 500);
+
+type ConversationMessage = {
+  from: string;
+  content: string;
+};
+
+type ConversationFile = {
+  topic?: string;
+  messages: ConversationMessage[];
+};
 
 // ANSI color helpers
 const ANSI = {
@@ -36,37 +46,47 @@ const ANSI = {
   ],
 };
 
-function hashString(str) {
+function hashString(str: string): number {
   let h = 0;
   for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) | 0;
   return Math.abs(h);
 }
 
-function colorForName(name) {
+function colorForName(name: string): string {
   const idx = hashString(name) % ANSI.colors.length;
   return ANSI.colors[idx];
 }
 
-function sleep(ms) {
+function sleep(ms: number): Promise<void> {
   return new Promise((res) => setTimeout(res, ms));
 }
 
-async function typeOut(text) {
+async function typeOut(text: string): Promise<void> {
   for (let i = 0; i < text.length; i++) {
     process.stdout.write(text[i]);
     await sleep(TYPING_DELAY_MS);
   }
 }
 
-function fmtHeader(name, color) {
+function fmtHeader(name: string, color: string): string {
   // Only the bracketed name is colored
   return `${color}[${name}]${ANSI.reset} `;
 }
 
-async function playConversation(filePath) {
+function loadConversation(filePath: string): ConversationFile {
+  const data = JSON.parse(fs.readFileSync(filePath, "utf8")) as Partial<ConversationFile>;
+  if (!Array.isArray(data.messages)) {
+    throw new Error("Invalid conversation file: missing messages array.");
+  }
+  return {
+    topic: typeof data.topic === "string" ? data.topic : undefined,
+    messages: data.messages as ConversationMessage[],
+  };
+}
+
+async function playConversation(filePath: string) {
   // Load file
-  const data = JSON.parse(fs.readFileSync(filePath, "utf8"));
-  const { topic, messages } = data;
+  const { topic, messages } = loadConversation(filePath);
 
   // Print header
   const title = path.basename(filePath);
@@ -92,10 +112,10 @@ async function playConversation(filePath) {
   console.log("\nPlayback finished.\n");
 }
 
-async function main() {
+async function main(): Promise<void> {
   const fileArg = process.argv[2];
   if (!fileArg) {
-    console.error("Usage: node play.js <path-to-conversation.json>");
+    console.error("Usage: node dist/play.js <path-to-conversation.json>");
     process.exit(1);
   }
 
@@ -108,10 +128,10 @@ async function main() {
   try {
     await playConversation(resolved);
   } catch (err) {
-    console.error(`Playback error: ${err.message}`);
+    const message = err instanceof Error ? err.message : String(err);
+    console.error(`Playback error: ${message}`);
     process.exit(1);
   }
 }
 
 main();
-

@@ -33,7 +33,6 @@
     "node_modules",
     "dist",
     "**/*.test.ts",
-    "**/*.spec.ts",
-    "src/orchestrator/ChatOrchestrator.ts"
+    "**/*.spec.ts"
   ]
 }

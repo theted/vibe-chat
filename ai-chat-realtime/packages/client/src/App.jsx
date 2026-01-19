@@ -9,13 +9,13 @@ import LoginView from "./components/LoginView.jsx";
 import ChatView from "./components/ChatView.jsx";
 import LoadingOverlay from "./components/LoadingOverlay.jsx";
 import { ThemeContext } from "./context/ThemeContext.jsx";
-import { SERVER_URL } from "./constants/chat.js";
-import { LOCAL_STORAGE_MESSAGES_LIMIT } from "./constants/storage.js";
+import { SERVER_URL } from "./constants/chat.ts";
+import { LOCAL_STORAGE_MESSAGES_LIMIT } from "./constants/storage.ts";
 import {
   normalizeAlias,
   resolveEmoji,
   mapMentionsToAiNames,
-} from "./utils/ai.js";
+} from "./utils/ai.ts";
 
 function App() {
   // State

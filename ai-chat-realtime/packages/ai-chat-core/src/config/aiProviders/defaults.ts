@@ -19,10 +19,18 @@ import type { AIModel } from "../../types/index.js";
 
 /**
  * Default models for each provider
- * TODO: Update with actual model keys from converted provider files
  */
 export const DEFAULT_MODELS: Record<string, AIModel> = {
-  // TODO: These need to be updated with actual model references once providers are fully converted
+  [COHERE.name]: COHERE.models.COMMAND_A_03_2025,
+  [ZAI.name]: ZAI.models.ZAI_DEFAULT,
+  [GEMINI.name]: GEMINI.models.GEMINI_3,
+  [MISTRAL.name]: MISTRAL.models.MISTRAL_LARGE,
   [OPENAI.name]: OPENAI.models.GPT4O,
-  // Add other providers as they are fully converted
+  [ANTHROPIC.name]: ANTHROPIC.models.CLAUDE3_7_SONNET,
+  [DEEPSEEK.name]: DEEPSEEK.models.DEEPSEEK_CHAT,
+  [GROK.name]: GROK.models.GROK_3,
+  [QWEN.name]: QWEN.models.QWEN3_MAX,
+  [KIMI.name]: KIMI.models.KIMI_8K,
+  [LLAMA.name]: LLAMA.models.LLAMA_4_1_MAVERICK_11B,
+  [PERPLEXITY.name]: PERPLEXITY.models.PERPLEXITY_SONAR_LARGE,
 };

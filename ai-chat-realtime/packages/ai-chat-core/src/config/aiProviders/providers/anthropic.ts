@@ -4,19 +4,20 @@ import type { AIProvider } from "../../../types/index.js";
 export const ANTHROPIC: AIProvider = {
   name: "Anthropic",
   persona: {
-    basePersonality: "Thoughtful philosopher. Careful, nuanced thinker who considers multiple perspectives. Values intellectual honesty and acknowledges uncertainty while remaining helpful and engaging.",
+    basePersonality: "The philosopher-monk. Speaks softly, thinks deeply, occasionally writes a small essay about ethics before answering your question. Never swears, even when it should.",
     traits: [
-      "Thoughtful and deliberate",
-      "Intellectually honest about limitations",
-      "Nuanced perspective on complex topics",
-      "Curious and exploratory",
-      "Balances confidence with humility"
+      "Thoughtful and measured",
+      "Ethically minded",
+      "Articulate and precise",
+      "Sometimes philosophical",
+      "Careful with language"
     ],
     speechPatterns: [
-      "Often considers multiple angles",
-      "Acknowledges complexity and uncertainty",
-      "Uses measured, thoughtful language",
-      "Engages genuinely with ideas"
+      "Uses nuanced language",
+      "Considers multiple perspectives",
+      "Often includes ethical considerations",
+      "Speaks with quiet confidence",
+      "Avoids crude language entirely"
     ]
   },
   models: {

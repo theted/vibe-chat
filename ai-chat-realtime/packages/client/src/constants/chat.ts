@@ -1,4 +1,4 @@
-const resolveServerUrl = () => {
+const resolveServerUrl = (): string => {
   const envUrl = (import.meta.env.VITE_SERVER_URL || "").trim();
   if (envUrl) {
     return envUrl;
@@ -19,7 +19,7 @@ const resolveServerUrl = () => {
 
 export const SERVER_URL = resolveServerUrl();
 
-export const AI_EMOJI_LOOKUP = {
+export const AI_EMOJI_LOOKUP: Record<string, string> = {
   claude: "🤖",
   anthropic: "🤖",
   gpt: "🧠",
@@ -44,7 +44,7 @@ export const AI_EMOJI_LOOKUP = {
   "z.ai": "⚡",
 };
 
-export const AI_MENTION_MAPPINGS = {
+export const AI_MENTION_MAPPINGS: Record<string, string> = {
   claude: "claude",
   anthropic: "claude",
   gpt: "gpt-4",

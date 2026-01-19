@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { SERVER_URL, AI_EMOJI_LOOKUP, AI_MENTION_MAPPINGS } from './chat.js';
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { SERVER_URL, AI_EMOJI_LOOKUP, AI_MENTION_MAPPINGS } from "./chat.ts";
 
 describe('chat constants', () => {
   describe('SERVER_URL', () => {
