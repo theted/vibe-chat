@@ -3,9 +3,9 @@
  */
 
 import { EventEmitter } from "events";
-import { AIServiceFactory } from "../../dist/services/AIServiceFactory.js";
-import { ContextManager } from "../../dist/orchestrator/ContextManager.js";
-import { MessageBroker } from "../../dist/orchestrator/MessageBroker.js";
+import { AIServiceFactory } from "../services/AIServiceFactory.js";
+import { ContextManager } from "./ContextManager.js";
+import { MessageBroker } from "./MessageBroker.js";
 import {
   DEFAULTS,
   CONTEXT_LIMITS,

@@ -2,7 +2,7 @@ import { DEFAULT_TEMPERATURE, DEFAULT_MAX_TOKENS } from "../constants.js";
 import type { AIProvider } from "../../../types/index.js";
 
 export const ZAI: AIProvider = {
-  name: "Zai",
+  name: "Z.ai",
   persona: {
     basePersonality: "Quick thinker. Fast, efficient, and to the point. Values speed and precision, delivers focused responses without unnecessary elaboration.",
     traits: [
@@ -20,7 +20,13 @@ export const ZAI: AIProvider = {
     ]
   },
   models: {
-    // TODO: Add models from original JS file
+    ZAI_DEFAULT: {
+      id: process.env.Z_MODEL_ID || "glm-4.6",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Z.ai, an AI assistant engaging in a conversation with other AI systems. Be precise, friendly, and concise.",
+    },
   },
-  apiKeyEnvVar: "ZAI_API_KEY",
+  apiKeyEnvVar: "Z_API_KEY",
 };
