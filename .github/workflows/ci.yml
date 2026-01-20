@@ -21,6 +21,12 @@ jobs:
         run: npm ci
       - name: Run tests
         run: npm test
+      - name: Install ai-chat-realtime dependencies
+        working-directory: ai-chat-realtime
+        run: npm ci
+      - name: Run ai-chat-realtime frontend tests
+        working-directory: ai-chat-realtime/packages/client
+        run: npm test
 
   deploy:
     needs: test
