@@ -55,5 +55,6 @@ ai-chat-realtime/packages/client/dist/
 
 # Build output
 **/dist/**
+dist-tests/
 
 **/*.md

@@ -204,6 +204,12 @@ case $choice in
         npm install
         cd ../.. || exit 1
         
+        # Install MCP assistant dependencies
+        echo "Installing MCP assistant dependencies..."
+        cd packages/mcp-assistant || exit 1
+        npm install
+        cd ../.. || exit 1
+        
         # Install server dependencies
         echo "Installing server dependencies..."
         cd packages/server || exit 1
@@ -227,6 +233,9 @@ case $choice in
         echo "📦 Installing dependencies only..."
         
         cd packages/ai-chat-core || exit 1
+        npm install
+        cd ../.. || exit 1
+        cd packages/mcp-assistant || exit 1
         npm install
         cd ../.. || exit 1
         cd packages/server || exit 1

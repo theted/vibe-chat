@@ -2,7 +2,7 @@
  * Service-specific type definitions for AI Chat Core library
  */
 
-import { IAIService, ServiceResponse, AIServiceConfig, ServiceInitOptions, Message } from './index';
+import { IAIService, ServiceResponse, AIServiceConfig, ServiceInitOptions, Message } from './index.js';
 
 // Extended AI Service interface with complete contract
 export interface IAIServiceExtended extends IAIService {

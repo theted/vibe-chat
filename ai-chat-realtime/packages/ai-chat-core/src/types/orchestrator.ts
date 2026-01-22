@@ -2,7 +2,7 @@
  * Orchestrator-specific type definitions for AI Chat Core library
  */
 
-import { Message, IAIService, AIProvider, AIModel } from './index';
+import { Message, IAIService, AIProvider, AIModel } from './index.js';
 import EventEmitter from 'events';
 
 // Orchestrator configuration

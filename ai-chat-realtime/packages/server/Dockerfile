@@ -14,11 +14,12 @@ COPY packages/mcp-assistant ./mcp-assistant
 
 # Install MCP assistant dependencies (shared via workspace links)
 WORKDIR /app/mcp-assistant
-RUN npm install --omit=dev
+RUN npm install
 
 # Switch to server directory and copy package files
 WORKDIR /app/server
 COPY packages/server/package*.json ./
+COPY packages/server/tsconfig.json ./
 
 # Install server dependencies (this will link to the core package)
 RUN npm install
@@ -29,6 +30,9 @@ RUN ln -s /app/server/node_modules /app/node_modules
 # Copy server source
 COPY packages/server/src ./src
 
+# Build TypeScript output
+RUN npm run build
+
 # Expose port
 EXPOSE 3001
 
@@ -37,4 +41,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD node -e "require('http').get('http://localhost:3001/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })" || exit 1
 
 # Start the server
-CMD ["node", "src/app.js"]
+CMD ["node", "dist/app.js"]

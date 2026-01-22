@@ -14,11 +14,12 @@ COPY packages/mcp-assistant ./mcp-assistant
 
 # Install MCP assistant dependencies (shared via workspace links)
 WORKDIR /app/mcp-assistant
-RUN npm install --omit=dev
+RUN npm install
 
 # Switch to server directory and copy package files
 WORKDIR /app/server
 COPY packages/server/package*.json ./
+COPY packages/server/tsconfig.json ./
 
 # Install server dependencies including nodemon
 RUN npm install
@@ -32,5 +33,5 @@ COPY packages/server/src ./src
 # Expose port
 EXPOSE 3001
 
-# Use nodemon for live reloading in development
-CMD ["npx", "nodemon", "--watch", "/app/server/src", "--watch", "/app/ai-chat-core/src", "src/app.js"]
+# Use the dev script for live reloading in development
+CMD ["npm", "run", "dev"]
