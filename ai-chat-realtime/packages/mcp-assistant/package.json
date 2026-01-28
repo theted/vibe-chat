@@ -3,10 +3,24 @@
   "version": "0.1.0",
   "description": "Local code RAG helper powering the internal @Chat assistant.",
   "type": "module",
-  "main": "./src/index.js",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./src/index.js",
-    "./indexer": "./src/indexer.js"
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./indexer": {
+      "import": "./dist/indexer.js",
+      "types": "./dist/indexer.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "prepare": "npm run build"
   },
   "license": "MIT",
   "dependencies": {
@@ -14,5 +28,9 @@
     "@langchain/openai": "^0.2.7",
     "chromadb": "^1.8.1",
     "fast-glob": "^3.3.2"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "typescript": "^5.9.3"
   }
 }

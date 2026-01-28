@@ -1,4 +1,4 @@
-import('./src/orchestrator/ChatOrchestrator.js').then(m => {
+import('./dist/orchestrator/ChatOrchestrator.js').then(m => {
   const c = new m.ChatOrchestrator();
   console.log('Has addMentionToResponse:', 'addMentionToResponse' in c);
   console.log('Has determineInteractionStrategy:', 'determineInteractionStrategy' in c);

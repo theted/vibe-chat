@@ -56,7 +56,7 @@ export class ChatMCPAssistant {
         ? scriptPath
         : path.resolve(
             this.projectRoot,
-            scriptPath || path.join("scripts", "run-mcp-chat.js")
+            scriptPath || path.join("dist", "scripts", "run-mcp-chat.js")
           );
   }
 

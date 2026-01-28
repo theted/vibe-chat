@@ -17,7 +17,11 @@
   },
   "include": [
     "src/**/*",
-    "index.ts"
+    "index.ts",
+    "check_methods.ts",
+    "play.ts",
+    "play-screensaver.ts",
+    "scripts/*.ts"
   ],
   "exclude": [
     "node_modules",

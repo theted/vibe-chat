@@ -9,7 +9,7 @@
   ],
   "scripts": {
     "start": "./start.sh",
-    "install:all": "npm install && cd packages/ai-chat-core && npm install && cd ../server && npm install && cd ../client && npm install",
+    "install:all": "npm install && cd packages/ai-chat-core && npm install && cd ../mcp-assistant && npm install && cd ../server && npm install && cd ../client && npm install",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives",
     "lint:fix": "eslint . --ext js,jsx --fix",
     "lint:client": "cd packages/client && npm run lint",

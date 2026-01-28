@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./dist-tests"
+  },
+  "include": ["src/**/*", "tests/**/*.ts", "tests/**/*.d.ts"],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "dist-tests",
+    "ai-chat-realtime/**/*",
+    "**/*.js",
+    "**/dist/**/*"
+  ]
+}

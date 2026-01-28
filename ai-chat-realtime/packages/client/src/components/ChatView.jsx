@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { DEFAULT_AI_PARTICIPANTS } from "../config/aiParticipants.js";
+import { DEFAULT_AI_PARTICIPANTS } from "../config/aiParticipants.ts";
 import ChatMessage from "./ChatMessage.jsx";
 import MessageInput from "./MessageInput.jsx";
 import ParticipantsList from "./ParticipantsList.jsx";

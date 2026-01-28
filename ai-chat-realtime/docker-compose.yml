@@ -64,7 +64,8 @@ services:
     volumes:
       - ./packages/server/src:/app/server/src:ro
       - ./packages/ai-chat-core/src:/app/ai-chat-core/src:ro
-      - ../scripts:/app/scripts:ro
+      - ./packages/server/tsconfig.json:/app/server/tsconfig.json:ro
+      - ../dist/scripts:/app/scripts:ro
       - ./packages/mcp-assistant/src:/app/mcp-assistant/src:ro
     restart: unless-stopped
     networks:

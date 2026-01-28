@@ -2,11 +2,12 @@
   "name": "@ai-chat/server",
   "version": "1.0.0",
   "description": "Real-time AI chat server with WebSocket support",
-  "main": "src/app.js",
+  "main": "dist/app.js",
   "type": "module",
   "scripts": {
-    "start": "node src/app.js",
-    "dev": "nodemon --watch src --watch ../ai-chat-core/src src/app.js",
+    "build": "tsc",
+    "start": "npm run build && node dist/app.js",
+    "dev": "npm run build && (tsc --watch & nodemon --watch dist --watch ../ai-chat-core/src dist/app.js)",
     "test": "echo 'No tests specified'",
     "lint": "eslint . --ext js --report-unused-disable-directives --max-warnings 0",
     "lint:fix": "eslint . --ext js --fix"
@@ -23,7 +24,11 @@
     "socket.io": "^4.8.1"
   },
   "devDependencies": {
-    "eslint": "^8.56.0"
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.23",
+    "@types/node": "^24.10.1",
+    "eslint": "^8.56.0",
+    "typescript": "^5.9.3"
   },
   "keywords": [
     "websocket",

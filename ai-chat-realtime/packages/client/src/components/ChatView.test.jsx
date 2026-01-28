@@ -48,7 +48,7 @@ vi.mock("./ParticipantsList.jsx", () => ({
   ),
 }));
 
-vi.mock("../config/aiParticipants.js", () => ({
+vi.mock("../config/aiParticipants.ts", () => ({
   DEFAULT_AI_PARTICIPANTS: mockDefaultAiParticipants,
 }));
 
