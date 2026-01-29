@@ -179,6 +179,14 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     emoji: "🧬",
   },
   {
+    id: "DEEPSEEK_DEEPSEEK_R1",
+    name: "DeepSeek R1",
+    alias: "deepseek-r1",
+    provider: "DeepSeek",
+    status: "active",
+    emoji: "🧩",
+  },
+  {
     id: "KIMI_KIMI_8K",
     name: "Kimi",
     alias: "kimi",
