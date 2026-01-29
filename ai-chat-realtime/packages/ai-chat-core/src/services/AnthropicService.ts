@@ -8,6 +8,7 @@ import { BaseAIService } from "./BaseAIService.js";
 import Anthropic from "@anthropic-ai/sdk";
 import { Message, ServiceResponse, AnthropicServiceConfig, ServiceInitOptions } from "../types/index.js";
 import { ServiceError } from "../types/services.js";
+import { DEFAULT_MAX_TOKENS } from "../config/aiProviders/constants.js";
 
 interface AnthropicMessage {
   role: "user" | "assistant";
@@ -94,7 +95,7 @@ export class AnthropicService extends BaseAIService {
       const response = await this.client.messages.create({
         model: this.config.model.id,
         messages: formattedMessages,
-        max_tokens: this.config.model.maxTokens || 1000,
+        max_tokens: this.config.model.maxTokens || DEFAULT_MAX_TOKENS,
         temperature: this.config.model.temperature,
         system: systemPrompt,
       });
