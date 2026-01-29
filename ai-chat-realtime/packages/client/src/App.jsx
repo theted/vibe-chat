@@ -136,6 +136,7 @@ function App() {
   const [aiStatus, setAiStatus] = useState({ status: "active" });
   const [error, setError] = useState(null);
   const [participants, setParticipants] = useState([]);
+  const [aiParticipants, setAiParticipants] = useState([]);
   const [showScrollButton, setShowScrollButton] = useState(false);
 
   // Refs
@@ -146,6 +147,7 @@ function App() {
   const isJoinedRef = useRef(false);
   const previewMessagesRef = useRef([]);
   const previewParticipantsRef = useRef([]);
+  const previewAiParticipantsRef = useRef([]);
 
   useEffect(() => {
     usernameRef.current = username || "";
@@ -166,6 +168,10 @@ function App() {
   useEffect(() => {
     previewParticipantsRef.current = previewParticipants;
   }, [previewParticipants]);
+
+  useEffect(() => {
+    previewAiParticipantsRef.current = previewAiParticipants;
+  }, [previewAiParticipants]);
 
   const showToast = useCallback((message, type = "info") => {
     const id = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
@@ -208,6 +214,7 @@ function App() {
       setPreviewMessages(incomingMessages);
       setPreviewParticipants(incomingParticipants);
       setPreviewAiParticipants(incomingAiParticipants);
+      setAiParticipants(incomingAiParticipants);
 
       if (!isJoinedRef.current) {
         setMessages(incomingMessages);
@@ -228,6 +235,9 @@ function App() {
       }
       if (Array.isArray(payload.aiParticipants)) {
         setPreviewAiParticipants(payload.aiParticipants);
+        if (isJoinedRef.current) {
+          setAiParticipants(payload.aiParticipants);
+        }
       }
 
       if (!isJoinedRef.current) {
@@ -242,6 +252,7 @@ function App() {
       setIsJoined(true);
       setRoomInfo(data);
       setParticipants(data.participants || []);
+      setAiParticipants(data.aiParticipants || previewAiParticipantsRef.current || []);
       setError(null);
       setIsAuthLoading(false);
       setHasSavedUsername(true);
@@ -315,6 +326,9 @@ function App() {
     on("room-info", (data) => {
       setRoomInfo(data.room);
       setParticipants(data.participants || []);
+      if (Array.isArray(data.aiParticipants)) {
+        setAiParticipants(data.aiParticipants);
+      }
     });
 
     // Typing events
@@ -563,6 +577,7 @@ function App() {
             error={error}
             messagesEndRef={messagesEndRef}
             messagesContainerRef={messagesContainerRef}
+            aiParticipants={aiParticipants}
           />
         ) : (
           <LoginView

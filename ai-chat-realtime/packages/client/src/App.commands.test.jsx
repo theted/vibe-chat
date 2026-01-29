@@ -45,9 +45,10 @@ vi.mock("./components/LoadingOverlay.jsx", () => ({
 }));
 
 vi.mock("./components/ChatView.jsx", () => ({
-  default: ({ messages, onSendMessage }) => (
+  default: ({ messages, onSendMessage, aiParticipants }) => (
     <div data-testid="chat-view">
       <span data-testid="message-count">{messages.length}</span>
+      <span data-testid="ai-count">{aiParticipants.length}</span>
       <button
         type="button"
         data-testid="command-clear"
@@ -104,10 +105,11 @@ describe("App command handling", () => {
     });
   };
 
-  const joinRoomWithMessages = async (messages = []) => {
+  const joinRoomWithMessages = async (messages = [], aiParticipants = []) => {
     await triggerEvent("recent-messages", { messages, participants: [] });
     await triggerEvent("room-joined", {
       participants: [],
+      aiParticipants,
       topic: "General discussion",
     });
     await waitFor(() => {
@@ -148,5 +150,15 @@ describe("App command handling", () => {
     fireEvent.click(screen.getByTestId("send-message"));
 
     expect(sendMessageMock).toHaveBeenCalledWith("hello");
+  });
+
+  it("uses server AI participants for chat view", async () => {
+    render(<App />);
+
+    await joinRoomWithMessages([], [{ id: "OPENAI_GPT5", name: "GPT-5" }]);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("ai-count")).toHaveTextContent("1");
+    });
   });
 });
