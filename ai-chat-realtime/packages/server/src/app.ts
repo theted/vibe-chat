@@ -15,52 +15,21 @@ import dotenv from "dotenv";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { AI_DISPLAY_INFO, ChatOrchestrator } from "@ai-chat/core";
+import { ChatOrchestrator } from "@ai-chat/core";
 import { SocketController } from "./controllers/SocketController.js";
 import { MetricsService } from "./services/MetricsService.js";
 import { createRedisClient, type RedisClient } from "./services/RedisClient.js";
 import { ChatAssistantService } from "./services/ChatAssistantService.js";
+import {
+  type AIConfig,
+  PROVIDER_ENV_VARS,
+  getAvailableAIConfigs,
+  getProviderAIConfigs,
+} from "./config/aiModels.js";
 
 dotenv.config();
 
-type AIConfig = {
-  providerKey: string;
-  modelKey: string;
-  displayName?: string;
-  alias?: string;
-  emoji?: string;
-};
-
-const OPENAI_MODEL_KEYS = [
-  "GPT5",
-  "GPT5_1",
-  "GPT5_1_MINI",
-  "GPT5_2",
-  "GPT4_1",
-  "GPT4O",
-  "O3",
-  "O3_MINI",
-  "O4_MINI",
-  "GPT35_TURBO",
-];
-
 const allowedOrigins = "*";
-
-const parseModelAllowlist = (
-  envVarName: string,
-  validKeys: string[]
-): string[] => {
-  const rawList = process.env[envVarName];
-  if (!rawList) {
-    return [];
-  }
-  const normalized = rawList
-    .split(",")
-    .map((item) => item.trim())
-    .filter(Boolean)
-    .map((item) => item.replace(/-/g, "_").toUpperCase());
-  return normalized.filter((item) => validKeys.includes(item));
-};
 
 const app = express();
 const server = createServer(app);
@@ -196,94 +165,32 @@ async function initializeAISystem(): Promise<ChatOrchestrator> {
     maxDelayBetweenAI: 7000,
   });
 
-  // Define AI configurations - only initialize AIs with valid API keys
-  const aiConfigs: AIConfig[] = [];
-  const addConfig = (providerKey: string, modelKey: string): void => {
-    const config: AIConfig = { providerKey, modelKey };
-    const key = `${providerKey}_${modelKey}`;
-    if (AI_DISPLAY_INFO[key]) {
-      Object.assign(config, AI_DISPLAY_INFO[key]);
-    }
-    aiConfigs.push(config);
-  };
+  // Get all AI configs dynamically from AI_PROVIDERS based on available API keys
+  // OpenAI supports allowlist filtering via OPENAI_MODEL_ALLOWLIST env var
+  let aiConfigs: AIConfig[] = [];
 
   if (process.env.OPENAI_API_KEY) {
-    const defaultOpenAIModels = [
-      "GPT5",
-      "GPT5_1",
-      "GPT5_2",
-      "GPT4_1",
-      "GPT4O",
-      "GPT35_TURBO",
-    ];
-    const allowlist = parseModelAllowlist(
-      "OPENAI_MODEL_ALLOWLIST",
-      OPENAI_MODEL_KEYS
-    );
-    if (process.env.OPENAI_MODEL_ALLOWLIST && allowlist.length === 0) {
-      console.warn(
-        "⚠️  OPENAI_MODEL_ALLOWLIST did not match any supported OpenAI models; using defaults."
-      );
+    // OpenAI supports allowlist filtering for backwards compatibility
+    aiConfigs.push(...getProviderAIConfigs("OPENAI", "OPENAI_MODEL_ALLOWLIST"));
+  }
+
+  // All other providers - add all models with display info configured
+  const otherProviders = Object.keys(PROVIDER_ENV_VARS).filter(
+    (p) => p !== "OPENAI"
+  );
+  for (const providerKey of otherProviders) {
+    const envVar = PROVIDER_ENV_VARS[providerKey];
+    if (process.env[envVar]) {
+      aiConfigs.push(...getProviderAIConfigs(providerKey));
     }
-    const selectedModels =
-      allowlist.length > 0 ? allowlist : defaultOpenAIModels;
-    selectedModels.forEach((modelKey) => addConfig("OPENAI", modelKey));
-  }
-
-  if (process.env.ANTHROPIC_API_KEY) {
-    addConfig("ANTHROPIC", "CLAUDE_OPUS_4_5");
-    addConfig("ANTHROPIC", "CLAUDE_SONNET_4_5");
-    addConfig("ANTHROPIC", "CLAUDE_OPUS_4_1");
-    addConfig("ANTHROPIC", "CLAUDE_OPUS_4");
-    addConfig("ANTHROPIC", "CLAUDE_SONNET_4");
-    addConfig("ANTHROPIC", "CLAUDE3_7_SONNET");
-    addConfig("ANTHROPIC", "CLAUDE_HAIKU_4_5");
-    addConfig("ANTHROPIC", "CLAUDE3_5_HAIKU_20241022");
-  }
-
-  if (process.env.GROK_API_KEY) {
-    addConfig("GROK", "GROK_4_0709");
-    addConfig("GROK", "GROK_3");
-    addConfig("GROK", "GROK_3_MINI");
-    addConfig("GROK", "GROK_4_FAST_REASONING");
-    addConfig("GROK", "GROK_4_FAST_NON_REASONING");
-    addConfig("GROK", "GROK_CODE_FAST_1");
-  }
-
-  if (process.env.GOOGLE_AI_API_KEY) {
-    addConfig("GEMINI", "GEMINI_25");
-    addConfig("GEMINI", "GEMINI_PRO");
-  }
-
-  if (process.env.MISTRAL_API_KEY) {
-    addConfig("MISTRAL", "MISTRAL_LARGE");
-  }
-
-  if (process.env.COHERE_API_KEY) {
-    addConfig("COHERE", "COMMAND_A_03_2025");
-  }
-
-  if (process.env.DEEPSEEK_API_KEY) {
-    addConfig("DEEPSEEK", "DEEPSEEK_CHAT");
-    addConfig("DEEPSEEK", "DEEPSEEK_V3");
-    addConfig("DEEPSEEK", "DEEPSEEK_V3_2");
-  }
-
-  if (process.env.KIMI_API_KEY) {
-    addConfig("KIMI", "KIMI_8K");
-  }
-
-  if (process.env.Z_API_KEY) {
-    addConfig("ZAI", "ZAI_DEFAULT");
   }
 
   if (aiConfigs.length === 0) {
     console.warn(
       "⚠️  No AI API keys found! Please set API keys in environment variables."
     );
-    console.warn(
-      "Available keys: OPENAI_API_KEY, ANTHROPIC_API_KEY, GROK_API_KEY, GOOGLE_AI_API_KEY, MISTRAL_API_KEY, COHERE_API_KEY, DEEPSEEK_API_KEY, KIMI_API_KEY, Z_API_KEY"
-    );
+    const availableKeys = Object.values(PROVIDER_ENV_VARS).join(", ");
+    console.warn(`Available keys: ${availableKeys}`);
 
     // Add a mock AI for testing
     aiConfigs.push({ providerKey: "MOCK", modelKey: "MOCK_AI" });
@@ -295,7 +202,9 @@ async function initializeAISystem(): Promise<ChatOrchestrator> {
 
     // Get actually initialized models
     const initializedModels = Array.from(orchestrator.aiServices.values());
-    console.log(`✅ Initialized ${initializedModels.length}/${aiConfigs.length} AI services`);
+    console.log(
+      `✅ Initialized ${initializedModels.length}/${aiConfigs.length} AI services`
+    );
 
     // List successfully initialized models
     if (initializedModels.length > 0) {
@@ -309,7 +218,9 @@ async function initializeAISystem(): Promise<ChatOrchestrator> {
 
     // Warn about failed initializations
     if (initializedModels.length < aiConfigs.length) {
-      console.warn(`⚠️  ${aiConfigs.length - initializedModels.length} model(s) failed to initialize`);
+      console.warn(
+        `⚠️  ${aiConfigs.length - initializedModels.length} model(s) failed to initialize`
+      );
     }
   } catch (error) {
     console.error("❌ Failed to initialize some AI services:", error);
