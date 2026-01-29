@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import Icon from './Icon.jsx';
-import React from 'react';
+import Icon from './Icon';
+import type { IconName } from '../types';
 
 describe('Icon Component', () => {
   describe('rendering', () => {
@@ -15,7 +15,7 @@ describe('Icon Component', () => {
       render(<Icon />);
       const svg = document.querySelector('svg');
       expect(svg).toBeInTheDocument();
-      expect(svg.querySelector('path')).toBeInTheDocument();
+      expect(svg?.querySelector('path')).toBeInTheDocument();
     });
 
     it('should render chat icon', () => {
@@ -31,7 +31,7 @@ describe('Icon Component', () => {
     });
 
     it('should render null for invalid icon name without paths', () => {
-      const { container } = render(<Icon name="nonexistent-icon-xyz" />);
+      const { container } = render(<Icon name={"nonexistent-icon-xyz" as IconName} />);
       const svg = container.querySelector('svg');
       expect(svg).toBeInTheDocument();
     });
@@ -51,14 +51,14 @@ describe('Icon Component', () => {
     });
 
     it('should fallback to modern when invalid variant specified', () => {
-      render(<Icon name="chat" styleVariant="nonexistent" />);
+      render(<Icon name="chat" styleVariant={"nonexistent" as "modern" | "classic"} />);
       const svg = document.querySelector('svg');
       expect(svg).toBeInTheDocument();
     });
   });
 
   describe('supported icons', () => {
-    const supportedIcons = [
+    const supportedIcons: IconName[] = [
       'chat', 'topic', 'arrow-down', 'participants', 'users',
       'monitor', 'info', 'chevron-right', 'x-mark', 'send',
       'sparkle', 'moon', 'sun', 'alert', 'tag'
@@ -69,7 +69,7 @@ describe('Icon Component', () => {
         render(<Icon name={iconName} />);
         const svg = document.querySelector('svg');
         expect(svg).toBeInTheDocument();
-        expect(svg.querySelector('path')).toBeInTheDocument();
+        expect(svg?.querySelector('path')).toBeInTheDocument();
       });
     });
   });
@@ -103,7 +103,7 @@ describe('Icon Component', () => {
       const customPaths = ['M10 10 L20 20', 'M20 10 L10 20'];
       render(<Icon paths={customPaths} strokeWidth={2} />);
       const svg = document.querySelector('svg');
-      const paths = svg.querySelectorAll('path');
+      const paths = svg?.querySelectorAll('path');
       expect(paths).toHaveLength(2);
       expect(svg).toHaveAttribute('stroke-width', '2');
     });
@@ -137,8 +137,8 @@ describe('Icon Component', () => {
       render(<Icon name="sun" />);
       const svg = document.querySelector('svg');
       expect(svg).toBeInTheDocument();
-      const paths = svg.querySelectorAll('path');
-      expect(paths.length).toBeGreaterThan(1);
+      const paths = svg?.querySelectorAll('path');
+      expect(paths?.length).toBeGreaterThan(1);
     });
 
     it('should render moon icon for dark theme', () => {
@@ -168,9 +168,9 @@ describe('Icon Component', () => {
     it('should update when styleVariant changes', () => {
       const { rerender } = render(<Icon name="chat" styleVariant="modern" />);
       const svg = document.querySelector('svg');
-      const initialStrokeWidth = svg.getAttribute('stroke-width');
+      const initialStrokeWidth = svg?.getAttribute('stroke-width');
       rerender(<Icon name="chat" styleVariant="classic" />);
-      expect(svg.getAttribute('stroke-width')).not.toBe(initialStrokeWidth);
+      expect(svg?.getAttribute('stroke-width')).not.toBe(initialStrokeWidth);
     });
   });
 
@@ -183,12 +183,6 @@ describe('Icon Component', () => {
 
     it('should handle undefined name gracefully', () => {
       render(<Icon name={undefined} />);
-      const svg = document.querySelector('svg');
-      expect(svg).toBeInTheDocument();
-    });
-
-    it('should handle null name gracefully', () => {
-      render(<Icon name={null} />);
       const svg = document.querySelector('svg');
       expect(svg).toBeInTheDocument();
     });

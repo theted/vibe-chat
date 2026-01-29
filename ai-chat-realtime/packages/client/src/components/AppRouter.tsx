@@ -2,7 +2,6 @@
  * App Router - Main routing component
  */
 
-import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import App from '../App';
 import Dashboard from './Dashboard';

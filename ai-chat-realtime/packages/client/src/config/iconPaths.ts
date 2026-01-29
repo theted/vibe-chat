@@ -1,11 +1,11 @@
 /**
- * Icon Component
- * Renders SVG icons using the modern design system.
+ * Icon SVG path definitions
+ * Extracted from Icon component for cleaner separation of concerns
  */
 
-import React from 'react';
+import type { IconDefinition, IconName } from '../types';
 
-const ICON_PATHS = {
+export const ICON_PATHS: Record<IconName, IconDefinition> = {
   chat: {
     classic: {
       strokeWidth: 2,
@@ -274,41 +274,4 @@ const ICON_PATHS = {
   }
 };
 
-const DEFAULT_VARIANT = 'modern';
-
-const Icon = ({ name = 'sparkle', className = '', strokeWidth, styleVariant, paths, ...rest }) => {
-  const iconDefinition = ICON_PATHS[name] || ICON_PATHS.sparkle;
-
-  if (!iconDefinition) {
-    return null;
-  }
-
-  const resolved = paths
-    ? { paths, strokeWidth: strokeWidth || 1.5 }
-    : iconDefinition[styleVariant || DEFAULT_VARIANT] || iconDefinition.modern || iconDefinition.classic || null;
-
-  if (!resolved) {
-    return null;
-  }
-
-  const finalStrokeWidth = strokeWidth ?? resolved.strokeWidth ?? 1.5;
-
-  return (
-    <svg
-      className={className}
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-      strokeWidth={finalStrokeWidth}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      {...rest}
-    >
-      {resolved.paths.map((d, idx) => (
-        <path key={`${name}-${idx}`} d={d} />
-      ))}
-    </svg>
-  );
-};
-
-export default Icon;
+export const DEFAULT_ICON_VARIANT = 'modern' as const;

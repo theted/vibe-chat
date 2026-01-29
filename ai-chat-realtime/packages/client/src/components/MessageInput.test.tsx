@@ -1,16 +1,15 @@
-import React from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
-import MessageInput from "./MessageInput.jsx";
+import MessageInput from "./MessageInput";
 
-vi.mock("./AISelectionDialog.jsx", () => ({
-  default: ({ searchTerm }) => (
+vi.mock("./AISelectionDialog", () => ({
+  default: ({ searchTerm }: { searchTerm: string }) => (
     <div data-testid="ai-selection-dialog">search:{searchTerm}</div>
   ),
 }));
 
-vi.mock("./Icon.jsx", () => ({
-  default: ({ name }) => <span data-testid={`icon-${name}`}>icon-{name}</span>,
+vi.mock("./Icon", () => ({
+  default: ({ name }: { name: string }) => <span data-testid={`icon-${name}`}>icon-{name}</span>,
 }));
 
 describe("MessageInput", () => {

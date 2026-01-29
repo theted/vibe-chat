@@ -2,24 +2,24 @@
  * TypingIndicator Component - Shows when someone is typing
  */
 
-import React from 'react';
+import type { TypingIndicatorProps, TypingParticipant } from '../types';
 
-const TypingIndicator = ({ typingUsers = [], typingAIs = [] }) => {
+const TypingIndicator = ({ typingUsers = [], typingAIs = [] }: TypingIndicatorProps) => {
   const otherTypingUsers = typingUsers.filter((user) => !user.isLocal);
-  const allTyping = [...otherTypingUsers, ...typingAIs];
-  
+  const allTyping: TypingParticipant[] = [...otherTypingUsers, ...typingAIs];
+
   if (allTyping.length === 0) return null;
 
-  const getDisplayName = (participant) =>
+  const getDisplayName = (participant: TypingParticipant): string =>
     participant.displayName || participant.name || 'Participant';
 
-  const formatParticipant = (participant) => {
+  const formatParticipant = (participant: TypingParticipant): string => {
     const fallbackEmoji = participant.type === 'ai' ? '🤖' : '🧑';
-    const emoji = participant.emoji || fallbackEmoji;
+    const emoji = participant.type === 'ai' ? (participant.emoji || fallbackEmoji) : fallbackEmoji;
     return `${emoji} ${getDisplayName(participant)}`;
   };
 
-  const formatTypingText = () => {
+  const formatTypingText = (): string => {
     if (allTyping.length === 1) {
       return `${formatParticipant(allTyping[0])} is typing...`;
     }

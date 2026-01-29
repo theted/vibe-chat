@@ -1,4 +1,3 @@
-import React from "react";
 import {
   describe,
   it,
@@ -14,13 +13,16 @@ import {
   fireEvent,
 } from "@testing-library/react";
 import { act } from "react-dom/test-utils";
+import type { ReactNode } from 'react';
+import type { AiParticipant } from './config/aiParticipants';
+import type { Message } from './types';
 
-const listeners = {};
+const listeners: Record<string, (data: unknown) => void> = {};
 const sendMessageMock = vi.fn();
 
 vi.mock("./hooks/useSocket", () => ({
   useSocket: () => ({
-    on: (event, callback) => {
+    on: (event: string, callback: (data: unknown) => void) => {
       listeners[event] = callback;
     },
     joinRoom: vi.fn(),
@@ -31,21 +33,25 @@ vi.mock("./hooks/useSocket", () => ({
   }),
 }));
 
-vi.mock("./components/ToastContainer.jsx", () => ({
+vi.mock("./components/ToastContainer", () => ({
   default: () => <div data-testid="toast-container" />,
 }));
 
-vi.mock("./components/LoginView.jsx", () => ({
+vi.mock("./components/LoginView", () => ({
   default: () => <div data-testid="login-view" />,
 }));
 
-vi.mock("./components/LoadingOverlay.jsx", () => ({
-  default: ({ visible }) =>
+vi.mock("./components/LoadingOverlay", () => ({
+  default: ({ visible }: { visible: boolean }) =>
     visible ? <div data-testid="loading-overlay">Loading</div> : null,
 }));
 
-vi.mock("./components/ChatView.jsx", () => ({
-  default: ({ messages, onSendMessage, aiParticipants }) => (
+vi.mock("./components/ChatView", () => ({
+  default: ({ messages, onSendMessage, aiParticipants }: {
+    messages: Message[];
+    onSendMessage: (msg: string) => void;
+    aiParticipants: AiParticipant[]
+  }) => (
     <div data-testid="chat-view">
       <span data-testid="message-count">{messages.length}</span>
       <span data-testid="ai-count">{aiParticipants.length}</span>
@@ -67,14 +73,14 @@ vi.mock("./components/ChatView.jsx", () => ({
   ),
 }));
 
-import App from "./App.jsx";
+import App from "./App";
 
 describe("App command handling", () => {
   beforeAll(() => {
     if (!window.matchMedia) {
       Object.defineProperty(window, "matchMedia", {
         writable: true,
-        value: vi.fn().mockImplementation((query) => ({
+        value: vi.fn().mockImplementation((query: string) => ({
           matches: false,
           media: query,
           onchange: null,
@@ -96,7 +102,7 @@ describe("App command handling", () => {
     localStorage.clear();
   });
 
-  const triggerEvent = async (event, payload) => {
+  const triggerEvent = async (event: string, payload: unknown) => {
     await waitFor(() => {
       expect(typeof listeners[event]).toBe("function");
     });
@@ -105,7 +111,7 @@ describe("App command handling", () => {
     });
   };
 
-  const joinRoomWithMessages = async (messages = [], aiParticipants = []) => {
+  const joinRoomWithMessages = async (messages: Message[] = [], aiParticipants: AiParticipant[] = []) => {
     await triggerEvent("recent-messages", { messages, participants: [] });
     await triggerEvent("room-joined", {
       participants: [],
@@ -118,8 +124,8 @@ describe("App command handling", () => {
   };
 
   it("handles the /clear command locally", async () => {
-    const storedMessages = [
-      { id: "1", content: "Stored message" },
+    const storedMessages: Message[] = [
+      { id: "1", content: "Stored message", sender: "test", senderType: "user", timestamp: Date.now() },
     ];
     localStorage.setItem("ai-chat-messages", JSON.stringify(storedMessages));
 
@@ -155,7 +161,7 @@ describe("App command handling", () => {
   it("uses server AI participants for chat view", async () => {
     render(<App />);
 
-    await joinRoomWithMessages([], [{ id: "OPENAI_GPT5", name: "GPT-5" }]);
+    await joinRoomWithMessages([], [{ id: "OPENAI_GPT5", name: "GPT-5", alias: "gpt-5", provider: "OpenAI", status: "active", emoji: "🧠" }]);
 
     await waitFor(() => {
       expect(screen.getByTestId("ai-count")).toHaveTextContent("1");

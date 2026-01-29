@@ -1,6 +1,6 @@
-import React from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import Icon from "./Icon.jsx";
+import Icon from "./Icon";
+import type { ToastContainerProps, ToastType, IconName } from '../types';
 
 const variants = {
   initial: { opacity: 0, y: 20, scale: 0.95 },
@@ -18,7 +18,7 @@ const variants = {
   },
 };
 
-const typeStyles = {
+const typeStyles: Record<ToastType, string> = {
   success:
     "bg-emerald-500/95 text-white border-emerald-300/60 shadow-emerald-500/30",
   info:
@@ -27,15 +27,16 @@ const typeStyles = {
     "bg-amber-500/95 text-white border-amber-300/60 shadow-amber-500/30",
 };
 
-const typeIcon = {
+const typeIcon: Record<ToastType, IconName> = {
   success: "sparkle",
   info: "chat",
   warning: "alert",
 };
 
-const resolveType = (type) => typeStyles[type] ? type : "info";
+const resolveType = (type: string): ToastType =>
+  typeStyles[type as ToastType] ? type as ToastType : "info";
 
-const Overlay = ({ toasts }) => (
+const ToastContainer = ({ toasts }: ToastContainerProps) => (
   <div className="pointer-events-none fixed inset-x-0 bottom-6 flex justify-center px-4 sm:px-0 z-[9999]">
     <div className="flex w-full max-w-md flex-col gap-3">
       <AnimatePresence>
@@ -69,4 +70,4 @@ const Overlay = ({ toasts }) => (
   </div>
 );
 
-export default Overlay;
+export default ToastContainer;

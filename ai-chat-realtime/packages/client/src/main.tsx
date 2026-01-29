@@ -1,14 +1,11 @@
-import React from 'react'
 import ReactDOM from 'react-dom/client'
-import AppRouter from './components/AppRouter.jsx'
+import AppRouter from './components/AppRouter'
 import './index.css'
 
 const rootElement = document.getElementById('root')
 
-ReactDOM.createRoot(rootElement).render(
-  <React.StrictMode>
-    <AppRouter />
-  </React.StrictMode>,
+ReactDOM.createRoot(rootElement!).render(
+  <AppRouter />
 )
 
 if (document?.body?.classList.contains('preload')) {

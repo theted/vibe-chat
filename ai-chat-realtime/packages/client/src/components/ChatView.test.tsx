@@ -1,8 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { BrowserRouter } from "react-router-dom";
-import ChatView from "./ChatView.jsx";
-import React from "react";
+import ChatView from "./ChatView";
+import type { RefObject, ReactNode } from 'react';
+import type { AiParticipant } from '../config/aiParticipants';
 
 const { mockDefaultAiParticipants } = vi.hoisted(() => ({
   mockDefaultAiParticipants: Array.from({ length: 11 }, (_, index) => ({
@@ -10,28 +11,28 @@ const { mockDefaultAiParticipants } = vi.hoisted(() => ({
     name: `AI ${index}`,
     alias: `ai-${index}`,
     provider: "Test Provider",
-    status: "active",
+    status: "active" as const,
     emoji: "🤖",
   })),
 }));
 
 vi.mock("react-router-dom", () => ({
-  BrowserRouter: ({ children }) => <div data-testid="router">{children}</div>,
-  Link: ({ to, children, ...rest }) => (
+  BrowserRouter: ({ children }: { children: ReactNode }) => <div data-testid="router">{children}</div>,
+  Link: ({ to, children, ...rest }: { to: string; children: ReactNode }) => (
     <a href={to} {...rest}>
       {children}
     </a>
   ),
 }));
 
-vi.mock("./ChatMessage.jsx", () => ({
-  default: ({ message }) => (
+vi.mock("./ChatMessage", () => ({
+  default: ({ message }: { message: { text: string } }) => (
     <div data-testid="chat-message">{message.text}</div>
   ),
 }));
 
-vi.mock("./MessageInput.jsx", () => ({
-  default: ({ onSendMessage, disabled }) => (
+vi.mock("./MessageInput", () => ({
+  default: ({ onSendMessage, disabled }: { onSendMessage: (msg: string) => void; disabled: boolean }) => (
     <div data-testid="message-input">
       <button onClick={() => onSendMessage("test")} disabled={disabled}>
         Send
@@ -40,28 +41,28 @@ vi.mock("./MessageInput.jsx", () => ({
   ),
 }));
 
-vi.mock("./ParticipantsList.jsx", () => ({
-  default: ({ participants, aiParticipants = [] }) => (
+vi.mock("./ParticipantsList", () => ({
+  default: ({ participants, aiParticipants = [] }: { participants: unknown[]; aiParticipants?: unknown[] }) => (
     <div data-testid="participants-list">
       {participants.length} participants, {aiParticipants.length} AIs
     </div>
   ),
 }));
 
-vi.mock("../config/aiParticipants.ts", () => ({
+vi.mock("../config/aiParticipants", () => ({
   DEFAULT_AI_PARTICIPANTS: mockDefaultAiParticipants,
 }));
 
-vi.mock("./TypingIndicator.jsx", () => ({
-  default: ({ typingUsers, typingAIs }) => (
+vi.mock("./TypingIndicator", () => ({
+  default: ({ typingUsers, typingAIs }: { typingUsers: unknown[]; typingAIs: unknown[] }) => (
     <div data-testid="typing-indicator">
       {typingUsers.length} users, {typingAIs.length} AIs typing
     </div>
   ),
 }));
 
-vi.mock("./Icon.jsx", () => ({
-  default: ({ name, className }) => (
+vi.mock("./Icon", () => ({
+  default: ({ name, className }: { name: string; className?: string }) => (
     <span data-testid={`icon-${name}`} className={className}>
       Icon-{name}
     </span>
@@ -70,18 +71,18 @@ vi.mock("./Icon.jsx", () => ({
 
 describe("ChatView Component", () => {
   const defaultProps = {
-    theme: "light",
+    theme: "light" as const,
     toggleTheme: vi.fn(),
     connectionStatus: { connected: true },
     roomInfo: { topic: "General Chat" },
     username: "testuser",
     participants: [
-      { id: "1", username: "user1" },
-      { id: "2", username: "user2" },
+      { username: "user1" },
+      { username: "user2" },
     ],
     messages: [
-      { id: 1, text: "Hello", username: "user1" },
-      { id: 2, text: "Hi there", username: "user2" },
+      { id: "1", text: "Hello", sender: "user1", senderType: "user" as const, content: "Hello", timestamp: Date.now() },
+      { id: "2", text: "Hi there", sender: "user2", senderType: "user" as const, content: "Hi there", timestamp: Date.now() },
     ],
     typingUsers: [],
     typingAIs: [],
@@ -93,11 +94,11 @@ describe("ChatView Component", () => {
     onTypingStart: vi.fn(),
     onTypingStop: vi.fn(),
     error: null,
-    messagesEndRef: { current: null },
-    messagesContainerRef: { current: null },
+    messagesEndRef: { current: null } as RefObject<HTMLDivElement | null>,
+    messagesContainerRef: { current: null } as RefObject<HTMLDivElement | null>,
   };
 
-  const renderWithRouter = (component) =>
+  const renderWithRouter = (component: ReactNode) =>
     render(<BrowserRouter>{component}</BrowserRouter>);
 
   beforeEach(() => {
@@ -155,7 +156,7 @@ describe("ChatView Component", () => {
     });
 
     it("should show sun icon in dark mode", () => {
-      const props = { ...defaultProps, theme: "dark" };
+      const props = { ...defaultProps, theme: "dark" as const };
       renderWithRouter(<ChatView {...props} />);
       expect(screen.getByTestId("icon-sun")).toBeInTheDocument();
     });
@@ -192,7 +193,7 @@ describe("ChatView Component", () => {
       const scrollButton = screen
         .getByTestId("icon-arrow-down")
         .closest("button");
-      fireEvent.click(scrollButton);
+      fireEvent.click(scrollButton!);
       expect(defaultProps.onScrollToBottom).toHaveBeenCalledTimes(1);
     });
   });
@@ -214,7 +215,7 @@ describe("ChatView Component", () => {
     it("should display correct singular form for 1 user", () => {
       const props = {
         ...defaultProps,
-        participants: [{ id: "1", username: "user1" }],
+        participants: [{ username: "user1" }],
       };
       renderWithRouter(<ChatView {...props} />);
       expect(screen.getByText(/1 user \+ 11 AIs/)).toBeInTheDocument();

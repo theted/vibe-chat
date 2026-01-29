@@ -2,14 +2,17 @@
  * ParticipantsList Component - Shows connected users and AI participants
  */
 
-import React from "react";
 import { motion } from "framer-motion";
-import { DEFAULT_AI_PARTICIPANTS } from "../config/aiParticipants.ts";
+import { DEFAULT_AI_PARTICIPANTS, type AiParticipant } from "../config/aiParticipants";
+import Icon from "./Icon";
+import AnimatedListItem from "./AnimatedListItem";
+import SectionHeader from "./SectionHeader";
+import type { ParticipantsListProps, TypingUser, TypingAI } from '../types';
 
-import Icon from "./Icon.jsx";
-
-import AnimatedListItem from "./AnimatedListItem.jsx";
-import SectionHeader from "./SectionHeader.jsx";
+interface NormalizedAiParticipant extends AiParticipant {
+  displayName: string;
+  normalizedAlias: string;
+}
 
 const ParticipantsList = ({
   participants = [],
@@ -17,10 +20,10 @@ const ParticipantsList = ({
   typingUsers = [],
   typingAIs = [],
   isVisible = true,
-}) => {
+}: ParticipantsListProps) => {
   if (!isVisible) return null;
 
-  const normalize = (value) =>
+  const normalize = (value: string | undefined | null): string =>
     value
       ? value
           .toString()
@@ -28,15 +31,14 @@ const ParticipantsList = ({
           .replace(/[^a-z0-9]/g, "")
       : "";
 
-  const baseAIList =
-    aiParticipants.length > 0 ? aiParticipants : DEFAULT_AI_PARTICIPANTS;
-  const aiList = baseAIList.map((ai) => {
-    const alias = ai.alias || ai.name || ai.displayName;
+  const baseAIList = aiParticipants.length > 0 ? aiParticipants : DEFAULT_AI_PARTICIPANTS;
+  const aiList: NormalizedAiParticipant[] = baseAIList.map((ai) => {
+    const alias = ai.alias || ai.name;
     return {
       ...ai,
-      displayName: ai.displayName || ai.name,
+      displayName: ai.name,
       alias,
-      normalizedAlias: normalize(ai.normalizedAlias || alias),
+      normalizedAlias: normalize(alias),
       status: ai.status || "active",
     };
   });
@@ -46,18 +48,18 @@ const ParticipantsList = ({
     if (!groups.has(provider)) {
       groups.set(provider, []);
     }
-    groups.get(provider).push(ai);
+    groups.get(provider)!.push(ai);
     return groups;
-  }, new Map());
+  }, new Map<string, NormalizedAiParticipant[]>());
 
   const sortedProviders = Array.from(aiProviders.keys()).sort((a, b) =>
     a.localeCompare(b)
   );
 
-  const getModelSortKey = (ai) =>
+  const getModelSortKey = (ai: NormalizedAiParticipant): string =>
     (ai.displayName || ai.name || "").toLowerCase();
 
-  const isUserTyping = (username) => {
+  const isUserTyping = (username: string): boolean => {
     const normalizedUsername = username?.toLowerCase();
     return typingUsers.some((user) => {
       if (user.isLocal) return false;
@@ -65,7 +67,7 @@ const ParticipantsList = ({
     });
   };
 
-  const isAITyping = (aiEntry) => {
+  const isAITyping = (aiEntry: NormalizedAiParticipant): boolean => {
     const normalizedTarget = normalize(
       aiEntry.alias || aiEntry.name || aiEntry.displayName
     );
@@ -148,7 +150,7 @@ const ParticipantsList = ({
             {(() => {
               let aiIndex = 0;
               return sortedProviders.map((provider) => {
-                const providerParticipants = [...aiProviders.get(provider)].sort(
+                const providerParticipants = [...aiProviders.get(provider)!].sort(
                   (a, b) => getModelSortKey(a).localeCompare(getModelSortKey(b))
                 );
 
@@ -166,7 +168,7 @@ const ParticipantsList = ({
                       aiIndex += 1;
                       return (
                         <AnimatedListItem
-                          key={`ai-${provider}-${ai.id || ai.alias || aiIndex}`}
+                          key={`ai-${provider}-${ai.id || ai.alias || itemIndex}`}
                           index={itemIndex}
                           className="hover:bg-purple-50 dark:hover:bg-slate-800/60"
                         >
@@ -178,7 +180,7 @@ const ParticipantsList = ({
                           <div className="flex-1 min-w-0">
                             <div
                               className="font-medium text-slate-700 truncate dark:text-slate-200"
-                              data-testid={`ai-name-${ai.id || ai.alias || aiIndex}`}
+                              data-testid={`ai-name-${ai.id || ai.alias || itemIndex}`}
                             >
                               {ai.displayName || ai.name}
                             </div>

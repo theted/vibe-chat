@@ -2,33 +2,46 @@
  * Main App Component - Real-time AI Chat Application
  */
 
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, type FormEvent } from "react";
 import { useSocket } from "./hooks/useSocket";
-import ToastContainer from "./components/ToastContainer.jsx";
-import LoginView from "./components/LoginView.jsx";
-import ChatView from "./components/ChatView.jsx";
-import LoadingOverlay from "./components/LoadingOverlay.jsx";
-import { ThemeContext } from "./context/ThemeContext.jsx";
-import { SERVER_URL } from "./constants/chat.ts";
-import { LOCAL_STORAGE_MESSAGES_LIMIT } from "./constants/storage.ts";
+import ToastContainer from "./components/ToastContainer";
+import LoginView from "./components/LoginView";
+import ChatView from "./components/ChatView";
+import LoadingOverlay from "./components/LoadingOverlay";
+import { ThemeContext } from "./context/ThemeContext";
+import { SERVER_URL } from "./constants/chat";
+import { LOCAL_STORAGE_MESSAGES_LIMIT } from "./constants/storage";
 import {
   normalizeAlias,
   resolveEmoji,
   mapMentionsToAiNames,
-} from "./utils/ai.ts";
+} from "./utils/ai";
+import type {
+  Theme,
+  Message,
+  Toast,
+  ToastType,
+  ConnectionStatus,
+  RoomInfo,
+  AIStatus,
+  Participant,
+  TypingUser,
+  TypingAI,
+} from './types';
+import type { AiParticipant } from './config/aiParticipants';
 
 function App() {
   // State
   const [username, setUsername] = useState("");
   const [isJoined, setIsJoined] = useState(false);
-  const [messages, setMessages] = useState([]);
-  const [connectionStatus, setConnectionStatus] = useState({
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>({
     connected: false,
   });
-  const [typingUsers, setTypingUsers] = useState([]);
-  const [typingAIs, setTypingAIs] = useState([]);
-  const [toasts, setToasts] = useState([]);
-  const [theme, setTheme] = useState(() => {
+  const [typingUsers, setTypingUsers] = useState<TypingUser[]>([]);
+  const [typingAIs, setTypingAIs] = useState<TypingAI[]>([]);
+  const [toasts, setToasts] = useState<Toast[]>([]);
+  const [theme, setTheme] = useState<Theme>(() => {
     if (typeof window === "undefined") return "light";
     const stored = localStorage.getItem("ai-chat-theme");
     if (stored === "dark" || stored === "light") {
@@ -39,9 +52,9 @@ function App() {
   });
   const [hasSavedUsername, setHasSavedUsername] = useState(false);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
-  const [previewMessages, setPreviewMessages] = useState([]);
-  const [previewParticipants, setPreviewParticipants] = useState([]);
-  const [previewAiParticipants, setPreviewAiParticipants] = useState([]);
+  const [previewMessages, setPreviewMessages] = useState<Message[]>([]);
+  const [previewParticipants, setPreviewParticipants] = useState<Participant[]>([]);
+  const [previewAiParticipants, setPreviewAiParticipants] = useState<AiParticipant[]>([]);
 
   const { on, joinRoom, sendMessage, triggerAI, startTyping, stopTyping } =
     useSocket(SERVER_URL);
@@ -113,7 +126,7 @@ function App() {
 
   // Save messages to localStorage whenever messages change
   useEffect(() => {
-    const saveMessagesToStorage = (messagesToSave) => {
+    const saveMessagesToStorage = (messagesToSave: Message[]) => {
       try {
         // Limit to the most recent messages so storage usage stays predictable
         const limitedMessages = messagesToSave.slice(
@@ -132,22 +145,22 @@ function App() {
       saveMessagesToStorage(messages);
     }
   }, [messages, isJoined]);
-  const [roomInfo, setRoomInfo] = useState({ topic: "General discussion" });
-  const [aiStatus, setAiStatus] = useState({ status: "active" });
-  const [error, setError] = useState(null);
-  const [participants, setParticipants] = useState([]);
-  const [aiParticipants, setAiParticipants] = useState([]);
+  const [roomInfo, setRoomInfo] = useState<RoomInfo>({ topic: "General discussion" });
+  const [aiStatus, setAiStatus] = useState<AIStatus>({ status: "active" });
+  const [error, setError] = useState<string | null>(null);
+  const [participants, setParticipants] = useState<Participant[]>([]);
+  const [aiParticipants, setAiParticipants] = useState<AiParticipant[]>([]);
   const [showScrollButton, setShowScrollButton] = useState(false);
 
   // Refs
-  const messagesEndRef = useRef(null);
-  const messagesContainerRef = useRef(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const usernameRef = useRef("");
-  const toastTimeouts = useRef(new Map());
+  const toastTimeouts = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
   const isJoinedRef = useRef(false);
-  const previewMessagesRef = useRef([]);
-  const previewParticipantsRef = useRef([]);
-  const previewAiParticipantsRef = useRef([]);
+  const previewMessagesRef = useRef<Message[]>([]);
+  const previewParticipantsRef = useRef<Participant[]>([]);
+  const previewAiParticipantsRef = useRef<AiParticipant[]>([]);
 
   useEffect(() => {
     usernameRef.current = username || "";
@@ -173,7 +186,7 @@ function App() {
     previewAiParticipantsRef.current = previewAiParticipants;
   }, [previewAiParticipants]);
 
-  const showToast = useCallback((message, type = "info") => {
+  const showToast = useCallback((message: string, type: ToastType = "info") => {
     const id = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
     setToasts((prev) => [...prev, { id, message, type }]);
 
@@ -188,27 +201,28 @@ function App() {
   // Setup socket event listeners
   useEffect(() => {
     // Connection events
-    on("connection-status", (status) => {
+    on("connection-status", (status: unknown) => {
       console.log("🔌 Connection status update:", status);
-      setConnectionStatus(status);
-      if (!status.connected) {
+      setConnectionStatus(status as ConnectionStatus);
+      if (!(status as ConnectionStatus).connected) {
         setIsJoined(false);
       }
     });
 
-    on("connection-established", (data) => {
+    on("connection-established", (data: unknown) => {
       console.log("Connection established:", data);
     });
 
-    on("recent-messages", (payload = {}) => {
-      const incomingMessages = Array.isArray(payload.messages)
-        ? payload.messages
+    on("recent-messages", (payload: unknown = {}) => {
+      const typedPayload = payload as { messages?: Message[]; participants?: Participant[]; aiParticipants?: AiParticipant[] };
+      const incomingMessages = Array.isArray(typedPayload.messages)
+        ? typedPayload.messages
         : [];
-      const incomingParticipants = Array.isArray(payload.participants)
-        ? payload.participants
+      const incomingParticipants = Array.isArray(typedPayload.participants)
+        ? typedPayload.participants
         : [];
-      const incomingAiParticipants = Array.isArray(payload.aiParticipants)
-        ? payload.aiParticipants
+      const incomingAiParticipants = Array.isArray(typedPayload.aiParticipants)
+        ? typedPayload.aiParticipants
         : [];
 
       setPreviewMessages(incomingMessages);
@@ -221,8 +235,9 @@ function App() {
       }
     });
 
-    on("preview-message", (payload = {}) => {
-      const message = payload.message;
+    on("preview-message", (payload: unknown = {}) => {
+      const typedPayload = payload as { message?: Message; participants?: Participant[]; aiParticipants?: AiParticipant[] };
+      const message = typedPayload.message;
       if (!message) return;
 
       setPreviewMessages((prev) => {
@@ -230,13 +245,13 @@ function App() {
         return next.slice(-LOCAL_STORAGE_MESSAGES_LIMIT);
       });
 
-      if (Array.isArray(payload.participants)) {
-        setPreviewParticipants(payload.participants);
+      if (Array.isArray(typedPayload.participants)) {
+        setPreviewParticipants(typedPayload.participants);
       }
-      if (Array.isArray(payload.aiParticipants)) {
-        setPreviewAiParticipants(payload.aiParticipants);
+      if (Array.isArray(typedPayload.aiParticipants)) {
+        setPreviewAiParticipants(typedPayload.aiParticipants);
         if (isJoinedRef.current) {
-          setAiParticipants(payload.aiParticipants);
+          setAiParticipants(typedPayload.aiParticipants);
         }
       }
 
@@ -248,11 +263,12 @@ function App() {
     });
 
     // Room events
-    on("room-joined", (data) => {
+    on("room-joined", (data: unknown) => {
+      const typedData = data as RoomInfo & { participants?: Participant[]; aiParticipants?: AiParticipant[] };
       setIsJoined(true);
-      setRoomInfo(data);
-      setParticipants(data.participants || []);
-      setAiParticipants(data.aiParticipants || previewAiParticipantsRef.current || []);
+      setRoomInfo(typedData);
+      setParticipants(typedData.participants || []);
+      setAiParticipants(typedData.aiParticipants || previewAiParticipantsRef.current || []);
       setError(null);
       setIsAuthLoading(false);
       setHasSavedUsername(true);
@@ -261,41 +277,45 @@ function App() {
           ? [...previewMessagesRef.current]
           : []
       );
-      if ((data.participants || []).length === 0 && previewParticipantsRef.current.length > 0) {
+      if ((typedData.participants || []).length === 0 && previewParticipantsRef.current.length > 0) {
         setParticipants(previewParticipantsRef.current);
       }
       console.log("Joined room:", data);
     });
 
-    on("user-joined", (data) => {
-      showToast(`${data.username} joined the chat`, "success");
+    on("user-joined", (data: unknown) => {
+      const typedData = data as { username: string };
+      showToast(`${typedData.username} joined the chat`, "success");
     });
 
-    on("user-left", (data) => {
-      showToast(`${data.username} left the chat`, "warning");
+    on("user-left", (data: unknown) => {
+      const typedData = data as { username: string };
+      showToast(`${typedData.username} left the chat`, "warning");
       setTypingUsers((prev) =>
-        prev.filter((user) => user.normalized !== data.username?.toLowerCase())
+        prev.filter((user) => user.normalized !== typedData.username?.toLowerCase())
       );
     });
 
     // Message events
-    on("new-message", (message) => {
+    on("new-message", (message: unknown) => {
+      const typedMessage = message as Message;
       setMessages((prev) => [
         ...prev,
         {
-          ...message,
-          id: message.id || `msg-${Date.now()}-${Math.random()}`,
+          ...typedMessage,
+          id: typedMessage.id || `msg-${Date.now()}-${Math.random()}`,
         },
       ]);
     });
 
     // Topic events
-    on("topic-changed", (data) => {
-      setRoomInfo((prev) => ({ ...prev, topic: data.newTopic }));
-      const systemMessage = {
+    on("topic-changed", (data: unknown) => {
+      const typedData = data as { newTopic: string; changedBy: string };
+      setRoomInfo((prev) => ({ ...prev, topic: typedData.newTopic }));
+      const systemMessage: Message = {
         id: `topic-changed-${Date.now()}`,
         sender: "System",
-        content: `Topic changed to: "${data.newTopic}" by ${data.changedBy}`,
+        content: `Topic changed to: "${typedData.newTopic}" by ${typedData.changedBy}`,
         senderType: "system",
         timestamp: Date.now(),
       };
@@ -303,12 +323,13 @@ function App() {
     });
 
     // AI status events
-    on("ai-status-changed", (data) => {
-      setAiStatus(data);
+    on("ai-status-changed", (data: unknown) => {
+      setAiStatus(data as AIStatus);
     });
 
-    on("ais-sleeping", (data) => {
-      setAiStatus({ status: "sleeping", reason: data.reason });
+    on("ais-sleeping", (data: unknown) => {
+      const typedData = data as { reason?: string };
+      setAiStatus({ status: "sleeping", reason: typedData.reason });
     });
 
     on("ais-awakened", () => {
@@ -316,26 +337,29 @@ function App() {
     });
 
     // Error events
-    on("error", (data) => {
-      setError(data.message);
+    on("error", (data: unknown) => {
+      const typedData = data as { message: string };
+      setError(typedData.message);
       setIsAuthLoading(false);
       setTimeout(() => setError(null), 5000);
     });
 
     // Room info events
-    on("room-info", (data) => {
-      setRoomInfo(data.room);
-      setParticipants(data.participants || []);
-      if (Array.isArray(data.aiParticipants)) {
-        setAiParticipants(data.aiParticipants);
+    on("room-info", (data: unknown) => {
+      const typedData = data as { room: RoomInfo; participants?: Participant[]; aiParticipants?: AiParticipant[] };
+      setRoomInfo(typedData.room);
+      setParticipants(typedData.participants || []);
+      if (Array.isArray(typedData.aiParticipants)) {
+        setAiParticipants(typedData.aiParticipants);
       }
     });
 
     // Typing events
-    on("user-typing-start", (data) => {
+    on("user-typing-start", (data: unknown) => {
+      const typedData = data as { username?: string; name?: string; displayName?: string };
       console.log("👤 User started typing:", data);
       setTypingUsers((prev) => {
-        const name = data?.username || data?.name;
+        const name = typedData?.username || typedData?.name;
         if (!name) return prev;
         const normalized = name.toLowerCase();
         const isLocal =
@@ -349,9 +373,9 @@ function App() {
             {
               id: normalized,
               name,
-              displayName: data.displayName || name,
+              displayName: typedData.displayName || name,
               normalized,
-              type: "user",
+              type: "user" as const,
               isLocal,
             },
           ];
@@ -367,9 +391,10 @@ function App() {
       });
     });
 
-    on("user-typing-stop", (data) => {
+    on("user-typing-stop", (data: unknown) => {
+      const typedData = data as { username?: string; name?: string };
       console.log("👤 User stopped typing:", data);
-      const name = data?.username || data?.name;
+      const name = typedData?.username || typedData?.name;
       if (!name) return;
       const normalized = name.toLowerCase();
       const isLocal =
@@ -385,16 +410,17 @@ function App() {
       );
     });
 
-    on("ai-generating-start", (data) => {
+    on("ai-generating-start", (data: unknown) => {
+      const typedData = data as { aiId?: string; providerKey?: string; modelKey?: string; alias?: string; displayName?: string; aiName?: string; emoji?: string };
       console.log("🤖 AI started generating:", data);
       setTypingAIs((prev) => {
         const id =
-          data?.aiId ||
-          (data?.providerKey && data?.modelKey
-            ? `${data.providerKey}_${data.modelKey}`
+          typedData?.aiId ||
+          (typedData?.providerKey && typedData?.modelKey
+            ? `${typedData.providerKey}_${typedData.modelKey}`
             : undefined);
-        const alias = data?.alias || data?.displayName || data?.aiName;
-        const displayName = data?.displayName || alias || id || "AI";
+        const alias = typedData?.alias || typedData?.displayName || typedData?.aiName;
+        const displayName = typedData?.displayName || alias || id || "AI";
         const normalized = normalizeAlias(alias || displayName || id);
 
         const exists = prev.some(
@@ -414,22 +440,23 @@ function App() {
             displayName,
             alias: alias || displayName,
             normalizedAlias: normalized,
-            type: "ai",
-            emoji: data?.emoji || resolveEmoji(alias || displayName || ""),
+            type: "ai" as const,
+            emoji: typedData?.emoji || resolveEmoji(alias || displayName || ""),
           },
         ];
       });
     });
 
-    on("ai-generating-stop", (data) => {
+    on("ai-generating-stop", (data: unknown) => {
+      const typedData = data as { aiId?: string; providerKey?: string; modelKey?: string; alias?: string; displayName?: string; aiName?: string };
       console.log("🤖 AI stopped generating:", data);
       const id =
-        data?.aiId ||
-        (data?.providerKey && data?.modelKey
-          ? `${data.providerKey}_${data.modelKey}`
+        typedData?.aiId ||
+        (typedData?.providerKey && typedData?.modelKey
+          ? `${typedData.providerKey}_${typedData.modelKey}`
           : undefined);
       const normalized = normalizeAlias(
-        data?.alias || data?.displayName || data?.aiName
+        typedData?.alias || typedData?.displayName || typedData?.aiName
       );
       setTypingAIs((prev) =>
         prev.filter((ai) => {
@@ -482,7 +509,7 @@ function App() {
   }, []);
 
   // Handlers
-  const handleJoinRoom = (e) => {
+  const handleJoinRoom = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (username.trim()) {
       // Save username to localStorage
@@ -523,7 +550,7 @@ function App() {
     showToast("Chat history cleared", "info");
   }, [showToast]);
 
-  function handleSendMessage(content) {
+  function handleSendMessage(content: string) {
     if (content.startsWith("/")) {
       const [command] = content.slice(1).trim().split(/\s+/, 1);
       if (command?.toLowerCase() === "clear") {
@@ -542,13 +569,13 @@ function App() {
     }
   }
 
-  function handleAIMention(mentions, message) {
+  function handleAIMention(mentions: string[], message: string) {
     const aiNames = mapMentionsToAiNames(mentions);
 
     if (aiNames.length > 0) {
       // Send recent chat context along with the trigger
       const recentMessages = messages.slice(-10); // Last 10 messages for context
-      triggerAI(aiNames, message, recentMessages);
+      triggerAI(aiNames as string[], message, recentMessages);
     }
   }
 
