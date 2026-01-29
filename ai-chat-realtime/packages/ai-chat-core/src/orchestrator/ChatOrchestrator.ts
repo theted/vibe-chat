@@ -19,6 +19,10 @@ import {
   STRATEGY_INSTRUCTIONS,
   MENTION_FORMATS,
 } from "./constants.js";
+import {
+  enhanceSystemPromptWithPersona,
+  getPersonaFromProvider,
+} from "../utils/personaUtils.js";
 
 type ChatOrchestratorOptions = {
   maxMessages?: number;
@@ -892,6 +896,19 @@ export class ChatOrchestrator extends EventEmitter {
 Other AIs in this chat: ${otherAINames.join(", ")}
 
 ${SYSTEM_PROMPT.CLOSING}`;
+
+    const personasEnabled = parseBooleanEnvFlag(
+      getEnvFlag("AI_CHAT_ENABLE_PERSONAS")
+    );
+    const personaProvider =
+      aiService?.service?.config?.provider || aiService?.config?.provider;
+    const persona = personasEnabled
+      ? getPersonaFromProvider(personaProvider)
+      : null;
+
+    if (persona) {
+      prompt = enhanceSystemPromptWithPersona(prompt, persona);
+    }
 
     return prompt;
   }
