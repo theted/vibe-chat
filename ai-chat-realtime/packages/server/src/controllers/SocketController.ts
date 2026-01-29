@@ -293,11 +293,16 @@ export class SocketController {
       // Send current metrics immediately
       const metrics = this.metricsService.getDetailedMetrics();
       socket.emit("metrics-update", metrics);
+      socket.emit("ai-participants", this.getActiveAIParticipants());
     });
 
     socket.on("get-metrics", () => {
       const metrics = this.metricsService.getDetailedMetrics();
       socket.emit("metrics-update", metrics);
+    });
+
+    socket.on("get-ai-participants", () => {
+      socket.emit("ai-participants", this.getActiveAIParticipants());
     });
 
     socket.on("get-metrics-history", (data: MetricsHistoryPayload) => {
