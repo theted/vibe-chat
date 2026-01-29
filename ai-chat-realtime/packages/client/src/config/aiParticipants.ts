@@ -139,6 +139,22 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     emoji: "🔷",
   },
   {
+    id: "GEMINI_GEMINI_FLASH",
+    name: "Gemini Flash",
+    alias: "gemini-flash",
+    provider: "Google",
+    status: "active",
+    emoji: "⚡",
+  },
+  {
+    id: "GEMINI_GEMINI_25",
+    name: "Gemini 2.5 Pro",
+    alias: "gemini-2.5",
+    provider: "Google",
+    status: "active",
+    emoji: "✨",
+  },
+  {
     id: "COHERE_COMMAND_A_03_2025",
     name: "Command A",
     alias: "cohere",
