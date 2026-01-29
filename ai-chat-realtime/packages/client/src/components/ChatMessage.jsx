@@ -9,7 +9,8 @@ import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism/index.js";
 import { normalizeAlias, resolveEmoji } from "../utils/ai.ts";
 
-const MENTION_REGEX = /(@[a-zA-Z0-9_\-\.]+)/g;
+const MENTION_REGEX = /(@\[[^\]]+\])/g;
+const MENTION_TEST_REGEX = /@\[[^\]]+\]/;
 
 const ChatMessage = ({ message, aiParticipants = [] }) => {
   // Format @mentions as bold text in code blocks for markdown
@@ -39,7 +40,7 @@ const ChatMessage = ({ message, aiParticipants = [] }) => {
 
     return segments.map((segment) => {
       if (!segment) return null;
-      if (MENTION_REGEX.test(segment)) {
+      if (MENTION_TEST_REGEX.test(segment)) {
         return (
           <span key={`mention-${key++}`} className="mention-chip">
             {segment}
