@@ -70,6 +70,11 @@ export {
   DEFAULT_MAX_TOKENS as CONFIG_DEFAULT_MAX_TOKENS,
   SHORT_RESPONSE_MAX_TOKENS,
 } from "./config/aiProviders/index.js";
+export {
+  AI_DISPLAY_INFO,
+  type AiDisplayInfo,
+  type AiDisplayInfoMap,
+} from "./config/aiDisplayInfo.js";
 
 // Shared utilities
 export {
