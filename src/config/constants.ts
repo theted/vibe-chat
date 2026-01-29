@@ -20,9 +20,9 @@ export const USAGE_LINES: readonly string[] = [
   "",
   "Examples:",
   '  npm start openai anthropic "Discuss the future of AI"',
-  '  npm start mistral:MISTRAL_SMALL grok:GROK_2 "What is love? Be sarcastic!"',
-  '  npm start mistral:MISTRAL_SMALL grok:GROK_2 openai:GPT4 "What is love if sarcastic as possible"',
-  '  npm start grok:GROK_2 gemini "What is the nature of consciousness?" 8',
+  '  npm start mistral:MISTRAL_SMALL grok:GROK_3 "What is love? Be sarcastic!"',
+  '  npm start mistral:MISTRAL_SMALL grok:GROK_3 openai:GPT4 "What is love if sarcastic as possible"',
+  '  npm start grok:GROK_3 gemini "What is the nature of consciousness?" 8',
 ] as const;
 
 export const DEFAULT_MAX_TURNS = 10;
