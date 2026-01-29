@@ -3,7 +3,7 @@
  */
 
 import { useEffect, useCallback, useRef } from "react";
-import socketService from "../services/SocketService.ts";
+import socketService from "@/services/SocketService.ts";
 
 type EventCallback = (...args: unknown[]) => void;
 

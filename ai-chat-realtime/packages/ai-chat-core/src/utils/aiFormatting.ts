@@ -2,7 +2,7 @@
  * Common message formatting helpers for provider services
  */
 
-import type { Message, OpenAIMessage, GeminiMessage, ChatFormattingOptions } from "../types/index.js";
+import type { Message, OpenAIMessage, GeminiMessage, ChatFormattingOptions } from "@/types/index.js";
 
 /**
  * Map internal messages to OpenAI-compatible chat messages

@@ -3,7 +3,7 @@
  */
 
 import { EventEmitter } from "events";
-import { AIServiceFactory } from "../services/AIServiceFactory.js";
+import { AIServiceFactory } from "@/services/AIServiceFactory.js";
 import { ContextManager } from "./ContextManager.js";
 import { MessageBroker } from "./MessageBroker.js";
 import {
@@ -19,17 +19,17 @@ import {
   STRATEGY_INSTRUCTIONS,
   MENTION_FORMATS,
 } from "./constants.js";
-import { AI_PROVIDERS } from "../config/aiProviders/index.js";
+import { AI_PROVIDERS } from "@/config/aiProviders/index.js";
 import {
   enhanceSystemPromptWithPersona,
   getPersonaFromProvider,
-} from "../utils/personaUtils.js";
+} from "@/utils/personaUtils.js";
 import {
   normalizeAlias,
   toMentionAlias,
   parseBooleanEnvFlag,
   getEnvFlag,
-} from "../utils/stringUtils.js";
+} from "@/utils/stringUtils.js";
 
 type ChatOrchestratorOptions = {
   maxMessages?: number;

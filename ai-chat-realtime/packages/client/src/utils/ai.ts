@@ -1,4 +1,4 @@
-import { AI_EMOJI_LOOKUP, AI_MENTION_MAPPINGS } from "../constants/chat.ts";
+import { AI_EMOJI_LOOKUP, AI_MENTION_MAPPINGS } from "@/constants/chat.ts";
 
 export const normalizeAlias = (value?: string | number | null): string => {
   if (value === null || value === undefined) {

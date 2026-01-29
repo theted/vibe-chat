@@ -2,7 +2,7 @@
  * TypingIndicator Component - Shows when someone is typing
  */
 
-import type { TypingIndicatorProps, TypingParticipant } from '../types';
+import type { TypingIndicatorProps, TypingParticipant } from '@/types';
 
 const TypingIndicator = ({ typingUsers = [], typingAIs = [] }: TypingIndicatorProps) => {
   const otherTypingUsers = typingUsers.filter((user) => !user.isLocal);

@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import type { AnimatedListItemProps } from '../types';
+import type { AnimatedListItemProps } from '@/types';
 
 const AnimatedListItem = ({ children, index = 0, className = '' }: AnimatedListItemProps) => (
   <motion.div

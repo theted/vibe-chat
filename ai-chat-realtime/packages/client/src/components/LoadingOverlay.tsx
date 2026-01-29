@@ -1,4 +1,4 @@
-import type { LoadingOverlayProps } from '../types';
+import type { LoadingOverlayProps } from '@/types';
 
 const LoadingOverlay = ({ visible, message = "Checking your session..." }: LoadingOverlayProps) => {
   return (

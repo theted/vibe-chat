@@ -1,4 +1,4 @@
-import type { SectionHeaderProps, IconName } from '../types';
+import type { SectionHeaderProps, IconName } from '@/types';
 import Icon from './Icon';
 
 const SectionHeader = ({ icon, title, count }: SectionHeaderProps) => (

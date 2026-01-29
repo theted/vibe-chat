@@ -5,8 +5,8 @@
  */
 
 import { OpenAICompatibleService } from './base/OpenAICompatibleService.js';
-import { OpenAIClient, OpenAIServiceConfig } from '../types/services.js';
-import { AIServiceConfig, ServiceInitOptions, OpenAIMessage } from '../types/index.js';
+import { OpenAIClient, OpenAIServiceConfig } from '@/types/services.js';
+import { AIServiceConfig, ServiceInitOptions, OpenAIMessage } from '@/types/index.js';
 import OpenAI from 'openai';
 
 export class OpenAIService extends OpenAICompatibleService {

@@ -4,7 +4,7 @@
 
 import { useState, type FormEvent } from 'react';
 import Icon from './Icon';
-import type { TopicControlsProps } from '../types';
+import type { TopicControlsProps } from '@/types';
 
 const TopicControls = ({ currentTopic, onTopicChange, disabled = false }: TopicControlsProps) => {
   const [newTopic, setNewTopic] = useState('');

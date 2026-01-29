@@ -12,8 +12,8 @@ import {
   SystemPromptBuilderConfig,
   AIParticipant,
   InteractionStrategy
-} from '../../types/orchestrator.js';
-import { enhanceSystemPromptWithPersona } from '../../utils/personaUtils.js';
+} from '@/types/orchestrator.js';
+import { enhanceSystemPromptWithPersona } from '@/utils/personaUtils.js';
 
 export class SystemPromptBuilder implements ISystemPromptBuilder {
   private config: SystemPromptBuilderConfig;

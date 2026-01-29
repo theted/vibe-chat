@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import ParticipantsList from "./ParticipantsList";
 import type { ReactNode } from 'react';
-import type { AiParticipant } from '../config/aiParticipants';
+import type { AiParticipant } from '@/config/aiParticipants';
 
 vi.mock("framer-motion", () => ({
   motion: {

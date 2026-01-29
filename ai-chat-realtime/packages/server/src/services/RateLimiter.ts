@@ -1,4 +1,4 @@
-import type { RateLimitResult } from "../types.js";
+import type { RateLimitResult } from "@/types.js";
 import type { RedisClient } from "./RedisClient.js";
 
 const DEFAULT_KEY_PREFIX = "rate-limiter:";

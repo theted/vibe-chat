@@ -1,11 +1,11 @@
 import { Link } from "react-router-dom";
-import { DEFAULT_AI_PARTICIPANTS } from "../config/aiParticipants";
+import { DEFAULT_AI_PARTICIPANTS } from "@/config/aiParticipants";
 import ChatMessage from "./ChatMessage";
 import MessageInput from "./MessageInput";
 import ParticipantsList from "./ParticipantsList";
 import TypingIndicator from "./TypingIndicator";
 import Icon from "./Icon";
-import type { ChatViewProps } from '../types';
+import type { ChatViewProps } from '@/types';
 
 const ChatView = ({
   theme,

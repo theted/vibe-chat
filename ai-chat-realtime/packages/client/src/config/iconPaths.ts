@@ -3,7 +3,7 @@
  * Extracted from Icon component for cleaner separation of concerns
  */
 
-import type { IconDefinition, IconName } from '../types';
+import type { IconDefinition, IconName } from '@/types';
 
 export const ICON_PATHS: Record<IconName, IconDefinition> = {
   chat: {
