@@ -4,13 +4,13 @@ A Node.js project that lets different AI systems talk to each other, and also qu
 
 ## Overview
 
-This project creates a platform where different AI models (OpenAI, Anthropic, Mistral, Gemini, Deepseek, Grok, Cohere, Qwen, Kimi, Z.ai, Llama via Together AI) can engage in conversations with each other or respond to a single prompt. The system manages the conversation flow, handles API interactions, and logs the conversation history.
+This project creates a platform where different AI models (OpenAI, Anthropic, Mistral, Gemini, DeepSeek, Grok, Cohere, Kimi, Z.ai, plus Qwen/Llama/Perplexity once configured) can engage in conversations with each other or respond to a single prompt. The system manages the conversation flow, handles API interactions, and logs the conversation history.
 
 In addition to the Node.js CLI/orchestrator that powers model-to-model conversations, this repository now also ships with a full **`ai-realtime-chat`** implementation (located in [`./ai-chat-realtime`](./ai-chat-realtime)) that provides a Socket.IO-powered multi-AI web experience with a React frontend. You can choose whichever entry point best fits your use case.
 
 ## Features
 
-- Support for multiple AI providers (OpenAI, Anthropic, Mistral, Gemini, Deepseek, Grok, Cohere, Qwen, Kimi, Z.ai, Llama/Together)
+- Support for multiple AI providers (OpenAI, Anthropic, Mistral, Gemini, DeepSeek, Grok, Cohere, Kimi, Z.ai, plus Qwen/Llama/Perplexity once configured)
 - Extensible architecture for adding new AI providers
 - Automatic conversation management
 - Conversation logging and history
@@ -135,12 +135,15 @@ In the realtime Docker Compose setups we already mount the scripts plus `package
 
 ## Supported Providers and Models
 
-Current defaults and IDs (see `src/config/aiProviders.js`):
+Current defaults and IDs (see `ai-chat-realtime/packages/ai-chat-core/src/config/aiProviders/providers`):
 
 - OpenAI ([API keys](https://platform.openai.com/api-keys))
   - `GPT4O` → `gpt-4o`
   - `GPT4_1` → `gpt-4.1` (specialized for coding)
   - `GPT5` → `gpt-5` (most advanced with multimodal)
+  - `GPT5_1` → `gpt-5.1`
+  - `GPT5_1_MINI` → `gpt-5.1-mini`
+  - `GPT5_2` → `gpt-5.2`
   - `O3` → `o3-2025-04-16` (intelligent reasoning model)
   - `O3_MINI` → `o3-mini` (cost-efficient reasoning)
   - `O4_MINI` → `o4-mini` (fast reasoning for math/coding)
@@ -148,61 +151,62 @@ Current defaults and IDs (see `src/config/aiProviders.js`):
 - Anthropic ([API keys](https://console.anthropic.com/settings/keys))
   - `CLAUDE3_7_SONNET` → `claude-3-7-sonnet-20250219` (hybrid reasoning)
   - `CLAUDE3_5_HAIKU_20241022` → `claude-3-5-haiku-20241022`
+  - `CLAUDE_HAIKU_4_5` → `claude-haiku-4-5`
   - `CLAUDE_SONNET_4` → `claude-sonnet-4-20250514`
   - `CLAUDE_SONNET_4_5` (default) → `claude-sonnet-4-5` (best coding model)
+  - `CLAUDE_OPUS_4_5` → `claude-opus-4-5`
   - `CLAUDE_OPUS_4` → `claude-opus-4-20250514`
   - `CLAUDE_OPUS_4_1` → `claude-opus-4-1` (industry leader for coding/agents)
 - Mistral ([API keys](https://console.mistral.ai/api-keys))
   - `MISTRAL_LARGE` → `mistral-large-latest`
   - `MISTRAL_MEDIUM` → `mistral-medium-latest`
   - `MISTRAL_SMALL` → `mistral-small-latest`
-  - `MINISTRAL_8B_LATEST` → `ministral-8b-latest`
-  - `OPEN_MISTRAL_NEMO` → `open-mistral-nemo`
+  - `MAGISTRAL_SMALL` → `magistral-small-2506`
+  - `MAGISTRAL_MEDIUM` → `magistral-medium-2506`
+  - `CODESTRAL` → `codestral-latest`
+  - `MINISTRAL_8B` → `ministral-8b-latest`
 - Gemini ([API keys](https://aistudio.google.com/app/apikey))
-  - `GEMINI_PRO` → `gemini-2.0-pro`
+  - `GEMINI_PRO` → `gemini-2.0-flash-exp`
   - `GEMINI_FLASH` → `gemini-2.0-flash`
   - `GEMINI_25` (default) → `gemini-2.5-pro`
-- Deepseek ([API keys](https://platform.deepseek.com/api_keys))
+  - `GEMINI_3` → `gemini-3.0-pro`
+- DeepSeek ([API keys](https://platform.deepseek.com/api_keys))
   - `DEEPSEEK_CHAT` → `deepseek-chat`
-  - `DEEPSEEK_CODER` → `deepseek-coder`
-  - `DEEPSEEK_REASONER` → `deepseek-reasoner`
+  - `DEEPSEEK_V3` → `deepseek-v3`
+  - `DEEPSEEK_V3_2` → `deepseek-v3.2`
+  - `DEEPSEEK_R1` → `deepseek-reasoner`
 - Grok ([API keys](https://console.x.ai/keys))
   - `GROK_3` (default) → `grok-3`
   - `GROK_3_MINI` → `grok-3-mini`
-  - `GROK_2_1212` → `grok-2-1212`
-  - `GROK_2_VISION_1212` → `grok-2-vision-1212`
   - `GROK_4_0709` → `grok-4-0709`
   - `GROK_4_FAST_NON_REASONING` → `grok-4-fast-non-reasoning` (2M context)
   - `GROK_4_FAST_REASONING` → `grok-4-fast-reasoning` (2M context)
   - `GROK_4_HEAVY` → `grok-4-heavy` (enhanced capabilities)
   - `GROK_CODE_FAST_1` → `grok-code-fast-1` (agentic coding)
+  - `GROK_2_1212` → `grok-2-1212`
+  - `GROK_2_VISION_1212` → `grok-2-vision-1212`
   - `GROK_2_IMAGE_1212` → `grok-2-image-1212`
 - Cohere ([API keys](https://dashboard.cohere.com/api-keys))
   - `COMMAND_A_03_2025` (default) → `command-a-03-2025`
   - `COMMAND_A_REASONING_08_2025` → `command-a-reasoning-08-2025`
-  - `COMMAND_A_VISION_07_2025` → `command-a-vision-07-2025`
+  - `COMMAND_A_TRANSLATE_08_2025` → `command-a-translate-08-2025`
+  - `COMMAND_R_PLUS_08_2024` → `command-r-plus-08-2024`
   - `COMMAND_R_08_2024` → `command-r-08-2024`
-  - `COMMAND_R7B_12_2024` → `command-r7b-12-2024`
 - Z.ai ([API keys](https://z.ai/manage-apikey/apikey-list))
-  - `ZAI_DEFAULT` (default) → `z-1` (override with `Z_MODEL_ID`)
-- Qwen ([API keys](https://qwen.ai/apiplatform))
-  - `QWEN3_MAX` (default) → `qwen3-max` (flagship for complex tasks)
-  - `QWEN3_PLUS` → `qwen-plus` (balanced performance)
-  - `QWEN3_FLASH` → `qwen-flash` (fastest, most cost-effective)
-  - `QWEN3_CODER_PLUS` → `qwen3-coder-plus` (enhanced code generation)
-  - `QWEN3_VL_PLUS` → `qwen3-vl-plus` (vision-language model)
-  - `QWEN_MAX_2025` → `qwen-max-2025-01-25` (large-scale MoE)
+  - `ZAI_DEFAULT` (default) → `glm-4.6` (override with `Z_MODEL_ID`)
+  - `ZAI_GLM_4_5` → `glm-4.5`
+  - `ZAI_GLM_4_5_AIR` → `glm-4.5-air`
+  - `ZAI_GLM_4_6` → `glm-4.6`
+  - `ZAI_GLM_4_7` → `glm-4.7`
+  - `ZAI_GLM_4_7_FLASH` → `glm-4.7-flash`
 - Kimi (Moonshot) ([API keys](https://platform.moonshot.cn/console/api-keys))
   - `KIMI_8K` (default) → `moonshot-v1-8k`
-  - `KIMI_32K` → `moonshot-v1-32k`
-  - `KIMI_128K` → `moonshot-v1-128k`
-- Llama via Together AI ([API keys](https://api.together.xyz/))
-  - `LLAMA_4_1_MAVERICK_11B` (default) → `meta-llama/Llama-4.1-11B-Instruct-Maverick`
-  - `LLAMA_3_1_70B_INSTRUCT` → `meta-llama/Llama-3.1-70B-Instruct`
-  - `LLAMA_3_1_405B_INSTRUCT` → `meta-llama/Llama-3.1-405B-Instruct`
-  - `LLAMA_3_2_1B_INSTRUCT` → `meta-llama/Llama-3.2-1B-Instruct`
+  - `KIMI_K2` → `kimi-k2-0905-preview`
+  - `KIMI_K2_THINKING` → `kimi-k2-thinking`
+  - `KIMI_K1_5` → `moonshot-v1-128k`
+- Qwen, Llama, and Perplexity: provider shells are present but model mappings are not yet defined in `@ai-chat/core`.
 
-Note: Providers may change available model IDs over time. Update `aiProviders.js` accordingly.
+Note: Providers may change available model IDs over time. Update the provider configs in `@ai-chat/core` accordingly.
 
 ## Environment Variables
 
