@@ -513,13 +513,24 @@ export class MetricsService extends EventEmitter {
     return `${provider}::${model}`;
   }
 
-  private getProviderStatsSnapshot(includeTotals = false): ProviderModelStats[] | ProviderModelStatsInternal[] {
+  private getProviderStatsSnapshot(): ProviderModelStats[];
+  private getProviderStatsSnapshot(includeTotals: true): ProviderModelStatsInternal[];
+  private getProviderStatsSnapshot(
+    includeTotals = false
+  ): ProviderModelStats[] | ProviderModelStatsInternal[] {
+    if (includeTotals) {
+      const stats = Array.from(this.providerStats.values()).map((entry) => ({ ...entry }));
+      return stats.sort(
+        (a, b) =>
+          a.provider.localeCompare(b.provider) || a.model.localeCompare(b.model)
+      );
+    }
+
     const stats = Array.from(this.providerStats.values()).map((entry) => {
-      if (includeTotals) {
-        return { ...entry };
-      }
       const meanResponseTimeMs =
-        entry.requests > 0 ? Math.round(entry.totalResponseTimeMs / entry.requests) : 0;
+        entry.requests > 0
+          ? Math.round(entry.totalResponseTimeMs / entry.requests)
+          : 0;
       return {
         provider: entry.provider,
         model: entry.model,
@@ -529,7 +540,10 @@ export class MetricsService extends EventEmitter {
       };
     });
 
-    return stats.sort((a, b) => a.provider.localeCompare(b.provider) || a.model.localeCompare(b.model));
+    return stats.sort(
+      (a, b) =>
+        a.provider.localeCompare(b.provider) || a.model.localeCompare(b.model)
+    );
   }
 
   /**
