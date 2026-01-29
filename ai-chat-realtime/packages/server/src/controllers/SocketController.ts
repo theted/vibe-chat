@@ -374,6 +374,7 @@ export class SocketController {
         roomName: room.name,
         topic: room.topic,
         participants: this.roomManager.getRoomParticipants(roomId),
+        aiParticipants: this.getActiveAIParticipants(),
       });
 
       socket.leave(this.previewRoomId);
@@ -620,6 +621,7 @@ export class SocketController {
         room,
         participants,
         aiStatus,
+        aiParticipants: this.getActiveAIParticipants(),
       });
 
     } catch (error) {
