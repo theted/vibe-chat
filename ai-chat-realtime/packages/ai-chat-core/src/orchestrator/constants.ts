@@ -13,6 +13,9 @@ export const DEFAULTS = {
   MIN_DELAY_BETWEEN_AI: 1200,
   MAX_DELAY_BETWEEN_AI: 3200,
   TOPIC_CHANGE_CHANCE: 0.1, // 10% chance
+  // First AI responder gets minimal delay for snappy UX
+  MIN_FIRST_RESPONDER_DELAY: 100, // 100ms minimum
+  MAX_FIRST_RESPONDER_DELAY: 400, // 400ms maximum
 } as const;
 
 // Context and message limits

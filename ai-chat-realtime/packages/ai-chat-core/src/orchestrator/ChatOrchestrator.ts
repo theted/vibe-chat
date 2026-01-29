@@ -519,6 +519,14 @@ export class ChatOrchestrator extends EventEmitter {
    * @returns {number} Delay in milliseconds
    */
   calculateResponseDelay(index, isUserResponse = true, isMentioned = false, typingAICount = 0) {
+    // First responder to user messages gets minimal delay for snappy UX
+    if (index === 0 && isUserResponse) {
+      const firstResponderDelay =
+        DEFAULTS.MIN_FIRST_RESPONDER_DELAY +
+        Math.random() * (DEFAULTS.MAX_FIRST_RESPONDER_DELAY - DEFAULTS.MIN_FIRST_RESPONDER_DELAY);
+      return Math.floor(firstResponderDelay);
+    }
+
     let baseDelay;
 
     if (isUserResponse) {
