@@ -85,10 +85,12 @@ export class ChatMCPAssistant {
         content: answer,
         authorName: this.name,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       return {
         role: "assistant",
-        content: `@${this.name}: I could not retrieve code details right now (${error.message}).`,
+        content: `@${this.name}: I could not retrieve code details right now (${errorMessage}).`,
         authorName: this.name,
       };
     }

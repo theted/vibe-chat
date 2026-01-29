@@ -19,6 +19,7 @@ import {
   DEFAULT_MODELS,
   streamText,
 } from "@ai-chat/core";
+import type { AIModel, AIProvider, AIServiceConfig } from "@ai-chat/core";
 import {
   statsTracker,
 } from "./src/services/StatsTracker.js";
@@ -42,6 +43,26 @@ interface ParticipantConfig {
   model: string | null;
 }
 
+type ProviderKey = keyof typeof AI_PROVIDERS;
+type ResolvedParticipantConfig = AIServiceConfig & {
+  provider: AIProvider;
+  model: AIModel;
+};
+
+interface ConversationHistoryEntry {
+  from: string;
+  content: string;
+  timestamp: string;
+}
+
+interface ParticipantMetadata {
+  providerKey: ProviderKey | null;
+  providerAlias: string | null;
+  providerName: string;
+  modelKey: string | null;
+  modelId: string;
+}
+
 interface ParsedArgs {
   participants: ParticipantConfig[];
   topic: string;
@@ -57,8 +78,8 @@ interface ConversationOptions {
   topic: string;
   maxTurns: number;
   singlePromptMode?: boolean;
-  existingResponses?: Array<{ from: string; content: string; timestamp: string }>;
-  initialConversation?: Array<{ role: string; content: string }>;
+  existingResponses?: ConversationHistoryEntry[];
+  initialConversation?: Array<{ role: "user" | "assistant" | "system"; content: string }>;
   metadata?: Record<string, unknown>;
 }
 
@@ -70,6 +91,25 @@ interface ContinueOptions {
 
 const moduleDir = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = moduleDir;
+
+const getErrorMessage = (error: unknown): string =>
+  error instanceof Error ? error.message : String(error);
+
+const normalizeProviderInput = (providerName: string): string =>
+  CLI_ALIASES[providerName.toLowerCase()] || providerName.toLowerCase();
+
+const resolveProviderKey = (providerName: string): ProviderKey => {
+  const normalized = normalizeProviderInput(providerName);
+  const providerKey = (Object.keys(AI_PROVIDERS) as ProviderKey[]).find(
+    (key) => key.toLowerCase() === normalized
+  );
+
+  if (!providerKey) {
+    throw new Error(`Unsupported provider: ${providerName}`);
+  }
+
+  return providerKey;
+};
 
 const createConversationManager = async (config: Record<string, unknown> = {}): Promise<ConversationManager> => {
   const chatAssistant = new ChatMCPAssistant({
@@ -83,9 +123,8 @@ const createConversationManager = async (config: Record<string, unknown> = {}): 
     await chatAssistant.initialise();
     responders.push(chatAssistant);
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
     console.error(
-      `Warning: Chat assistant initialisation failed (${errorMessage}).`
+      `Warning: Chat assistant initialisation failed (${getErrorMessage(error)}).`
     );
   }
 
@@ -152,9 +191,7 @@ const parseArgs = (): ParsedArgs | null => {
     }
 
     for (let i = 2; i < endIndex; i++) {
-      const participant = {};
-      parseParticipant(args[i], participant);
-      result.participants.push(participant);
+      result.participants.push(parseParticipant(args[i]));
     }
 
     if (!result.additionalTurns) {
@@ -209,9 +246,7 @@ const parseArgs = (): ParsedArgs | null => {
 
     // Parse participants
     for (let i = 0; i < topicIndex; i++) {
-      const participant = {};
-      parseParticipant(args[i], participant);
-      result.participants.push(participant);
+      result.participants.push(parseParticipant(args[i]));
     }
 
     // If we have more than 2 participants, assume single prompt mode
@@ -241,9 +276,7 @@ const parseArgs = (): ParsedArgs | null => {
       const arg = args[i];
 
       if (arg === "--participant" && i + 1 < args.length) {
-        const participant = {};
-        parseParticipant(args[++i], participant);
-        result.participants.push(participant);
+        result.participants.push(parseParticipant(args[++i]));
       } else if (arg === "--topic" && i + 1 < args.length) {
         result.topic = args[++i];
       } else if (arg === "--maxTurns" && i + 1 < args.length) {
@@ -268,7 +301,7 @@ const parseArgs = (): ParsedArgs | null => {
 /**
  * Parse participant string which may include model specification
  */
-const parseParticipant = (participantStr: string, participant: ParticipantConfig): void => {
+const parseParticipant = (participantStr: string): ParticipantConfig => {
   const parts = participantStr.split(":");
   const rawProvider = parts[0].toLowerCase();
   
@@ -279,36 +312,46 @@ const parseParticipant = (participantStr: string, participant: ParticipantConfig
     // Search for this model across all providers
     for (const [providerKey, providerConfig] of Object.entries(AI_PROVIDERS)) {
       if (providerConfig.models[modelName]) {
-        participant.provider = providerKey.toLowerCase();
-        participant.model = modelName;
-        return;
+        return {
+          provider: providerKey.toLowerCase(),
+          model: modelName,
+        };
       }
     }
     
     // If not found as a model, treat as provider name
-    participant.provider = CLI_ALIASES[rawProvider] || rawProvider;
-    participant.model = null;
+    return {
+      provider: normalizeProviderInput(rawProvider),
+      model: null,
+    };
   } else {
-    participant.provider = CLI_ALIASES[rawProvider] || rawProvider;
-    participant.model = parts[1].toUpperCase();
+    return {
+      provider: normalizeProviderInput(rawProvider),
+      model: parts[1].toUpperCase(),
+    };
   }
 };
 
-const findProviderKey = (providerConfig: unknown): string | null => {
-  const entry = Object.entries(AI_PROVIDERS).find(
+const findProviderKey = (providerConfig: AIProvider): ProviderKey | null => {
+  const entry = (Object.entries(AI_PROVIDERS) as [ProviderKey, AIProvider][]).find(
     ([, provider]) => provider === providerConfig
   );
   return entry ? entry[0] : null;
 };
 
-const findModelKey = (providerConfig: any, modelConfig: unknown): string | null => {
+const findModelKey = (
+  providerConfig: AIProvider,
+  modelConfig: AIModel
+): string | null => {
   const entry = Object.entries(providerConfig.models).find(
     ([, model]) => model === modelConfig
   );
   return entry ? entry[0] : null;
 };
 
-const buildParticipantMetadata = (participantConfig: any): Record<string, unknown> => {
+const buildParticipantMetadata = (
+  participantConfig: ResolvedParticipantConfig
+): ParticipantMetadata => {
   const providerKey = findProviderKey(participantConfig.provider);
   const modelKey = findModelKey(
     participantConfig.provider,
@@ -324,7 +367,9 @@ const buildParticipantMetadata = (participantConfig: any): Record<string, unknow
   };
 };
 
-const participantsFromMetadata = (metadataParticipants: any[] = []): ParticipantConfig[] =>
+const participantsFromMetadata = (
+  metadataParticipants: ParticipantMetadata[] = []
+): ParticipantConfig[] =>
   metadataParticipants
     .filter((meta) => meta.providerKey && meta.modelKey)
     .map((meta) => ({
@@ -350,51 +395,14 @@ const resolveConversationPath = (filePath?: string): string | null => {
 /**
  * Get provider and model configuration based on provider name and optional model name
  */
-const getProviderConfig = (participantConfig: ParticipantConfig): any => {
+const getProviderConfig = (
+  participantConfig: ParticipantConfig
+): ResolvedParticipantConfig => {
   const providerName = participantConfig.provider;
   const modelName = participantConfig.model;
 
-  let provider;
-
-  switch (providerName.toLowerCase()) {
-    case "cohere":
-      provider = AI_PROVIDERS.COHERE;
-      break;
-    case "z":
-    case "zai":
-    case "z.ai":
-      provider = AI_PROVIDERS.ZAI;
-      break;
-    case "gemini":
-    case "gemeni": // common misspelling
-    case "google":
-      provider = AI_PROVIDERS.GEMINI;
-      break;
-    case "mistral":
-      provider = AI_PROVIDERS.MISTRAL;
-      break;
-    case "openai":
-      provider = AI_PROVIDERS.OPENAI;
-      break;
-    case "anthropic":
-      provider = AI_PROVIDERS.ANTHROPIC;
-      break;
-    case "deepseek":
-      provider = AI_PROVIDERS.DEEPSEEK;
-      break;
-    case "grok":
-      provider = AI_PROVIDERS.GROK;
-      break;
-    case "qwen":
-      provider = AI_PROVIDERS.QWEN;
-      break;
-    case "kimi":
-    case "moonshot":
-      provider = AI_PROVIDERS.KIMI;
-      break;
-    default:
-      throw new Error(`Unsupported provider: ${providerName}`);
-  }
+  const providerKey = resolveProviderKey(providerName);
+  const provider = AI_PROVIDERS[providerKey];
 
   // If a specific model was requested, use it
   if (modelName) {
@@ -436,7 +444,7 @@ const startAIConversation = async (options: ConversationOptions): Promise<void> 
 
   // Add participants
   try {
-    const participantMeta = [];
+    const participantMeta: ParticipantMetadata[] = [];
 
     // Add all participants
     for (let i = 0; i < options.participants.length; i++) {
@@ -465,8 +473,9 @@ const startAIConversation = async (options: ConversationOptions): Promise<void> 
       maxTurns: options.maxTurns,
     });
   } catch (error) {
-    console.error(`Error: ${error.message}`);
-    if (error.message.includes("API key")) {
+    const errorMessage = getErrorMessage(error);
+    console.error(`Error: ${errorMessage}`);
+    if (errorMessage.includes("API key")) {
       console.log(
         "\nMake sure you've set up your .env file with the required API keys."
       );
@@ -488,9 +497,11 @@ const getSinglePromptResponses = async (options: ConversationOptions): Promise<v
   console.log(`Models: ${participantStrings.join(", ")}`);
 
   try {
-    const responses = (options.existingResponses || []).map((entry) => ({
+    const responses: ConversationHistoryEntry[] = (options.existingResponses || []).map(
+      (entry) => ({
       ...entry,
-    }));
+      })
+    );
     const hasInitialConversation = !!options.initialConversation;
     const conversation = hasInitialConversation
       ? [...options.initialConversation]
@@ -520,7 +531,7 @@ const getSinglePromptResponses = async (options: ConversationOptions): Promise<v
       ...getProviderConfig(p),
       participantData: p,
     }));
-    const participantMeta = participantConfigs.map(({ provider, model }) =>
+    const participantMeta: ParticipantMetadata[] = participantConfigs.map(({ provider, model }) =>
       buildParticipantMetadata({ provider, model })
     );
     const metadataBase = options.metadata || {};
@@ -605,10 +616,11 @@ const getSinglePromptResponses = async (options: ConversationOptions): Promise<v
         lastParticipantIndex = nextParticipantIndex;
         
       } catch (error) {
-        console.error(`Error with ${config.provider.name}: ${error.message}`);
+        const errorMessage = getErrorMessage(error);
+        console.error(`Error with ${config.provider.name}: ${errorMessage}`);
         responses.push({
           from: `${config.provider.name} (${config.model.id})`,
-          content: `Error: ${error.message}`,
+          content: `Error: ${errorMessage}`,
           timestamp: new Date().toISOString(),
         });
       }
@@ -627,8 +639,9 @@ const getSinglePromptResponses = async (options: ConversationOptions): Promise<v
       turnsRecorded: responses.length,
     });
   } catch (error) {
-    console.error(`Error: ${error.message}`);
-    if (error.message.includes("API key")) {
+    const errorMessage = getErrorMessage(error);
+    console.error(`Error: ${errorMessage}`);
+    if (errorMessage.includes("API key")) {
       console.log(
         "\nMake sure you've set up your .env file with the required API keys."
       );
@@ -670,7 +683,7 @@ const continueConversationFromFile = async (options: ContinueOptions): Promise<v
 
     if (mode === "conversation") {
       const conversationManager = await createConversationManager();
-      const participantMeta = [];
+      const participantMeta: ParticipantMetadata[] = [];
 
       participantInputs.forEach((participantInput, index) => {
         const participantConfig = getProviderConfig(participantInput);
@@ -767,7 +780,7 @@ const continueConversationFromFile = async (options: ContinueOptions): Promise<v
         content: topic,
       },
     ];
-    const existingResponses = [];
+    const existingResponses: ConversationHistoryEntry[] = [];
     (conversationData.messages || []).forEach((msg) => {
       if (msg.from === "User") {
         // Already captured as initial prompt
@@ -797,7 +810,7 @@ const continueConversationFromFile = async (options: ContinueOptions): Promise<v
       metadata: metadataForSave,
     });
   } catch (error) {
-    console.error(`Error continuing conversation: ${error.message}`);
+    console.error(`Error continuing conversation: ${getErrorMessage(error)}`);
   }
 };
 
