@@ -10,25 +10,36 @@ import {
   DEFAULTS,
   CONTEXT_LIMITS,
   TIMING,
-  STRATEGY_WEIGHTS,
-  STRATEGY_ADJUSTMENTS,
-  MENTION_CONFIG,
   RESPONDER_CONFIG,
-  DELAY_CALC,
-  SYSTEM_PROMPT,
-  STRATEGY_INSTRUCTIONS,
-  MENTION_FORMATS,
 } from "./constants.js";
-import { AI_PROVIDERS } from "../config/aiProviders/index.js";
 import {
-  enhanceSystemPromptWithPersona,
-  getPersonaFromProvider,
-} from "../utils/personaUtils.js";
+  findAIFromContextMessage,
+  findAIByNormalizedAlias,
+  getAIDisplayName,
+  getMentionTokenForAI,
+  OrchestratorAIService,
+} from "../utils/orchestrator/aiLookup.js";
+import { logAIContext } from "../utils/orchestrator/logging.js";
+import { addMentionToResponse } from "../utils/orchestrator/mentionUtils.js";
 import {
-  normalizeAlias,
-  toMentionAlias,
+  enhanceContextForComment,
+  enhanceContextForTopicChange,
+} from "../utils/orchestrator/contextEnhancers.js";
+import { createEnhancedSystemPrompt } from "../utils/orchestrator/promptBuilder.js";
+import {
+  calculateResponseDelay,
+  selectRespondingAIs,
+} from "../utils/orchestrator/responseScheduling.js";
+import { truncateResponse } from "../utils/orchestrator/responseUtils.js";
+import {
+  applyInteractionStrategy,
+  determineInteractionStrategy,
+} from "../utils/orchestrator/strategyUtils.js";
+import {
   parseBooleanEnvFlag,
   getEnvFlag,
+  normalizeAlias,
+  toMentionAlias,
 } from "../utils/stringUtils.js";
 
 type ChatOrchestratorOptions = {
@@ -60,7 +71,7 @@ type StrategyOption = {
 export class ChatOrchestrator extends EventEmitter {
   contextManager: ContextManager;
   messageBroker: MessageBroker;
-  aiServices: Map<string, any>;
+  aiServices: Map<string, OrchestratorAIService>;
   activeAIs: string[];
   messageTracker: {
     aiMessageCount: number;
@@ -125,41 +136,6 @@ export class ChatOrchestrator extends EventEmitter {
 
     this.setupMessageBroker();
     this.startBackgroundConversation();
-  }
-
-  logAIContext(aiService, messages) {
-    if (!this.verboseContextLogging || !Array.isArray(messages)) {
-      return;
-    }
-
-    const provider = aiService.config?.providerKey || "unknown";
-    const model =
-      aiService.config?.modelKey || aiService.service?.getModel?.() || "unknown";
-    console.log(
-      `📝 [Verbose] Prompt for ${aiService.name} (${provider}:${model})`
-    );
-
-    messages.forEach((message, index) => {
-      const parts = [];
-      if (message.role) parts.push(message.role);
-      if (message.sender) parts.push(message.sender);
-      const label = parts.length ? parts.join(" · ") : `message-${index + 1}`;
-      const contentValue =
-        typeof message.content === "string"
-          ? message.content
-          : JSON.stringify(message.content, null, 2);
-      const lines = contentValue ? contentValue.split("\n") : ["<empty>"];
-      console.log(`   ${index + 1}. ${label}`);
-      lines.forEach((line) => {
-        if (line.length === 0) {
-          console.log("      ");
-        } else {
-          console.log(`      ${line}`);
-        }
-      });
-    });
-
-    console.log("📝 [Verbose] End prompt\n");
   }
 
   /**
@@ -364,7 +340,9 @@ export class ChatOrchestrator extends EventEmitter {
 
     const additionalResponders =
       maxAdditional > 0
-        ? this.selectRespondingAIs(
+        ? selectRespondingAIs(
+            this.aiServices,
+            this.activeAIs,
             minAdditional,
             maxAdditional,
             availableForRandom
@@ -375,12 +353,18 @@ export class ChatOrchestrator extends EventEmitter {
 
     responders.forEach((aiId, index) => {
       const isMentioned = uniqueMentioned.includes(aiId);
-      const delay = this.calculateResponseDelay(
+      const delay = calculateResponseDelay({
         index,
         isUserResponse,
         isMentioned,
-        typingAICount
-      );
+        typingAICount,
+        minUserResponseDelay: this.minUserResponseDelay,
+        maxUserResponseDelay: this.maxUserResponseDelay,
+        minBackgroundDelay: this.minBackgroundDelay,
+        maxBackgroundDelay: this.maxBackgroundDelay,
+        minDelayBetweenAI: this.minDelayBetweenAI,
+        maxDelayBetweenAI: this.maxDelayBetweenAI,
+      });
 
       setTimeout(() => {
         this.generateAIResponse(aiId, roomId, isUserResponse, {
@@ -389,165 +373,6 @@ export class ChatOrchestrator extends EventEmitter {
         });
       }, delay);
     });
-  }
-
-  /**
-   * Select which AIs should respond
-   * @param {number} minResponders - Minimum number of responders
-   * @param {number} maxResponders - Maximum number of responders
-   * @returns {Array} Array of AI IDs that should respond
-   */
-  selectRespondingAIs(
-    minResponders = 1,
-    maxResponders = 3,
-    candidateList = null
-  ) {
-    const pool = candidateList || this.activeAIs;
-    const availableAIs = pool.filter((aiId) => {
-      const ai = this.aiServices.get(aiId);
-      return ai && ai.isActive;
-    });
-
-    // Randomly select between min and max AIs
-    const numResponders = Math.min(
-      Math.floor(Math.random() * (maxResponders - minResponders + 1)) +
-        minResponders,
-      availableAIs.length
-    );
-    const shuffled = [...availableAIs].sort(() => Math.random() - 0.5);
-    return shuffled.slice(0, numResponders);
-  }
-
-  findAIByNormalizedAlias(normalizedAlias) {
-    if (!normalizedAlias) return null;
-    for (const ai of this.aiServices.values()) {
-      if (!ai) continue;
-      if (ai.normalizedAlias === normalizedAlias) return ai;
-      if (normalizeAlias(ai.displayName) === normalizedAlias) return ai;
-      if (normalizeAlias(ai.name) === normalizedAlias) return ai;
-      if (normalizeAlias(ai.config?.modelKey) === normalizedAlias) return ai;
-    }
-    return null;
-  }
-
-  findAIFromContextMessage(message) {
-    if (!message) return null;
-
-    if (message.aiId && this.aiServices.has(message.aiId)) {
-      return this.aiServices.get(message.aiId);
-    }
-
-    const candidates = [
-      message.alias,
-      message.normalizedAlias,
-      message.displayName,
-      message.sender,
-    ].filter(Boolean);
-
-    for (const candidate of candidates) {
-      const ai = this.findAIByNormalizedAlias(normalizeAlias(candidate));
-      if (ai) return ai;
-    }
-
-    return null;
-  }
-
-  getMentionTokenForAI(ai) {
-    if (!ai) return null;
-    if (ai.alias) return ai.alias;
-    if (ai.displayName) return toMentionAlias(ai.displayName);
-    return toMentionAlias(ai.name || ai.id || "");
-  }
-
-  getAIDisplayName(ai) {
-    if (!ai) return "";
-    const candidates = [
-      ai.displayName,
-      ai.config?.displayName,
-      ai.displayAlias,
-      ai.config?.alias,
-      ai.config?.modelKey,
-    ];
-
-    for (const candidate of candidates) {
-      if (typeof candidate === "string") {
-        const trimmed = candidate.trim();
-        if (trimmed) return trimmed;
-      }
-    }
-
-    if (typeof ai.service?.getModel === "function") {
-      const model = ai.service.getModel();
-      if (model) return model;
-    }
-
-    return ai.name || ai.id || "";
-  }
-
-  /**
-   * Calculate response delay for AI
-   * @param {number} index - AI response index
-   * @param {boolean} isUserResponse - Whether this is a response to user message
-   * @param {boolean} isMentioned - Whether this AI was mentioned
-   * @param {number} typingAICount - Number of AIs currently typing/generating
-   * @returns {number} Delay in milliseconds
-   */
-  calculateResponseDelay(index, isUserResponse = true, isMentioned = false, typingAICount = 0) {
-    // First responder to user messages gets minimal delay for snappy UX
-    if (index === 0 && isUserResponse) {
-      const firstResponderDelay =
-        DEFAULTS.MIN_FIRST_RESPONDER_DELAY +
-        Math.random() * (DEFAULTS.MAX_FIRST_RESPONDER_DELAY - DEFAULTS.MIN_FIRST_RESPONDER_DELAY);
-      return Math.floor(firstResponderDelay);
-    }
-
-    let baseDelay;
-
-    if (isUserResponse) {
-      // Fast responses to user messages (1-10 seconds)
-      baseDelay =
-        this.minUserResponseDelay +
-        Math.random() * (this.maxUserResponseDelay - this.minUserResponseDelay);
-    } else {
-      // Background conversation timing (10-30 seconds)
-      baseDelay =
-        this.minBackgroundDelay +
-        Math.random() * (this.maxBackgroundDelay - this.minBackgroundDelay);
-    }
-
-    if (isMentioned) {
-      baseDelay = Math.max(
-        TIMING.MIN_MENTIONED_DELAY,
-        baseDelay * TIMING.MENTIONED_DELAY_MULTIPLIER
-      );
-    }
-
-    const randomness = Math.random();
-    const staggerDelay =
-      index * this.minDelayBetweenAI +
-      randomness * (this.maxDelayBetweenAI - this.minDelayBetweenAI);
-
-    const catchUpDelay =
-      Math.pow(randomness, DELAY_CALC.CATCH_UP_POWER) *
-      DELAY_CALC.CATCH_UP_MULTIPLIER;
-
-    // Add typing awareness - increase delay if other AIs are typing
-    let typingAwarenessDelay = 0;
-    if (typingAICount > 0) {
-      // Add base delay per typing AI with randomness
-      typingAwarenessDelay = typingAICount * TIMING.TYPING_AWARENESS_DELAY * (0.8 + Math.random() * 0.4);
-
-      // Apply multiplier to base delay (but not to mentioned AIs - they should still respond relatively quickly)
-      if (!isMentioned) {
-        const multiplier = Math.min(
-          1 + (typingAICount * 0.5),
-          TIMING.TYPING_AWARENESS_MAX_MULTIPLIER
-        );
-        baseDelay *= multiplier;
-      }
-    }
-
-    return Math.floor(baseDelay + staggerDelay + catchUpDelay + typingAwarenessDelay);
   }
 
   /**
@@ -599,25 +424,29 @@ export class ChatOrchestrator extends EventEmitter {
         CONTEXT_LIMITS.AI_CONTEXT_SIZE
       );
       let responseType = "response";
-      let systemPrompt = this.createEnhancedSystemPrompt(
+      let systemPrompt = createEnhancedSystemPrompt(
         aiService,
         context,
-        isUserResponse
+        isUserResponse,
+        this.aiServices
       );
 
       // Determine AI interaction strategy based on context
-      const interactionStrategy = this.determineInteractionStrategy(
+      const interactionStrategy = determineInteractionStrategy(
         aiService,
         context,
-        isUserResponse
+        isUserResponse,
+        (message) => findAIFromContextMessage(this.aiServices, message),
+        (ai) => getMentionTokenForAI(ai)
       );
       responseType = interactionStrategy.type;
 
       // Apply interaction strategy to context
-      context = this.applyInteractionStrategy(
+      context = applyInteractionStrategy(
         context,
         interactionStrategy,
-        aiService
+        aiService,
+        context[context.length - 1]
       );
 
       // Add the enhanced system prompt
@@ -631,18 +460,19 @@ export class ChatOrchestrator extends EventEmitter {
         ...context,
       ];
 
-      this.logAIContext(aiService, messagesWithSystem);
+      logAIContext(aiService, messagesWithSystem, this.verboseContextLogging);
 
       const response = await aiService.service.generateResponse(
         messagesWithSystem
       );
       const responseTimeMs = Date.now() - responseStartTime;
-      let processedResponse = this.truncateResponse(response);
+      let processedResponse = truncateResponse(response);
       aiService.lastMessageTime = Date.now();
 
       // Add @mentions if strategy calls for it
       if (interactionStrategy.shouldMention && interactionStrategy.targetAI) {
-        processedResponse = this.addMentionToResponse(
+        processedResponse = addMentionToResponse(
+          this.aiServices,
           processedResponse,
           interactionStrategy.targetAI
         );
@@ -705,42 +535,98 @@ export class ChatOrchestrator extends EventEmitter {
     }
   }
 
-  /**
-   * Truncate AI response to keep it concise (2-3 sentences max)
-   * @param {string} response - Original AI response
-   * @returns {string} Truncated response
-   */
+  logAIContext(aiService, messages) {
+    logAIContext(aiService, messages, this.verboseContextLogging);
+  }
+
+  selectRespondingAIs(minResponders = 1, maxResponders = 3, candidateList = null) {
+    return selectRespondingAIs(
+      this.aiServices,
+      this.activeAIs,
+      minResponders,
+      maxResponders,
+      candidateList
+    );
+  }
+
+  findAIByNormalizedAlias(normalizedAlias) {
+    return findAIByNormalizedAlias(this.aiServices, normalizedAlias);
+  }
+
+  findAIFromContextMessage(message) {
+    return findAIFromContextMessage(this.aiServices, message);
+  }
+
+  getMentionTokenForAI(ai) {
+    return getMentionTokenForAI(ai);
+  }
+
+  getAIDisplayName(ai) {
+    return getAIDisplayName(ai);
+  }
+
+  calculateResponseDelay(
+    index,
+    isUserResponse = true,
+    isMentioned = false,
+    typingAICount = 0
+  ) {
+    return calculateResponseDelay({
+      index,
+      isUserResponse,
+      isMentioned,
+      typingAICount,
+      minUserResponseDelay: this.minUserResponseDelay,
+      maxUserResponseDelay: this.maxUserResponseDelay,
+      minBackgroundDelay: this.minBackgroundDelay,
+      maxBackgroundDelay: this.maxBackgroundDelay,
+      minDelayBetweenAI: this.minDelayBetweenAI,
+      maxDelayBetweenAI: this.maxDelayBetweenAI,
+    });
+  }
+
   truncateResponse(response) {
-    // Handle response object with content property
-    if (response && typeof response === "object" && "content" in response) {
-      response = response.content;
-    }
+    return truncateResponse(response);
+  }
 
-    if (!response || typeof response !== "string") {
-      return response;
-    }
+  enhanceContextForTopicChange(context) {
+    return enhanceContextForTopicChange(context);
+  }
 
-    // Split into sentences (looking for periods, exclamation marks, question marks)
-    const sentences = response
-      .split(/(?<=[.!?])\s+/)
-      .filter((s) => s.trim().length > 0);
+  enhanceContextForComment(context, lastMessage) {
+    return enhanceContextForComment(context, lastMessage);
+  }
 
-    if (sentences.length <= CONTEXT_LIMITS.MAX_SENTENCES) {
-      return response.trim();
-    }
+  createEnhancedSystemPrompt(aiService, context, isUserResponse) {
+    return createEnhancedSystemPrompt(
+      aiService,
+      context,
+      isUserResponse,
+      this.aiServices
+    );
+  }
 
-    // Truncate to max sentences
-    let truncated = sentences
-      .slice(0, CONTEXT_LIMITS.MAX_SENTENCES)
-      .join(" ")
-      .trim();
+  determineInteractionStrategy(aiService, context, isUserResponse) {
+    return determineInteractionStrategy(
+      aiService,
+      context,
+      isUserResponse,
+      (message) => findAIFromContextMessage(this.aiServices, message),
+      (ai) => getMentionTokenForAI(ai)
+    );
+  }
 
-    // Ensure it ends with proper punctuation
-    if (!truncated.match(/[.!?]$/)) {
-      truncated += ".";
-    }
+  applyInteractionStrategy(context, strategy, aiService) {
+    return applyInteractionStrategy(
+      context,
+      strategy,
+      aiService,
+      context[context.length - 1]
+    );
+  }
 
-    return truncated;
+  addMentionToResponse(response, targetAI) {
+    return addMentionToResponse(this.aiServices, response, targetAI);
   }
 
   /**
@@ -839,386 +725,6 @@ export class ChatOrchestrator extends EventEmitter {
     };
 
     scheduleNextMessage();
-  }
-
-  /**
-   * Enhance context for topic change
-   * @param {Array} context - Original context
-   * @returns {Array} Enhanced context
-   */
-  enhanceContextForTopicChange(context) {
-    const enhancedContext = [...context];
-    enhancedContext.push({
-      sender: "System",
-      content:
-        "Feel free to introduce a new interesting topic or shift the conversation in a different direction.",
-      senderType: "system",
-      role: "system",
-      isInternal: true,
-    });
-    return enhancedContext;
-  }
-
-  /**
-   * Create enhanced system prompt for AI interactions
-   * @param {Object} aiService - AI service object
-   * @param {Array} context - Message context
-   * @param {boolean} isUserResponse - Whether responding to user
-   * @returns {string} Enhanced system prompt
-   */
-  createEnhancedSystemPrompt(aiService, context, isUserResponse) {
-    let prompt = `You are ${aiService.name}, an AI participating in a dynamic group chat. `;
-
-    // Add context-specific intro
-    if (isUserResponse) {
-      prompt += `${SYSTEM_PROMPT.INTRO_USER_RESPONSE} `;
-    } else {
-      prompt += `${SYSTEM_PROMPT.INTRO_BACKGROUND} `;
-    }
-
-    // Add guidelines
-    prompt += SYSTEM_PROMPT.GUIDELINES;
-
-    const otherAINames = Array.from(this.aiServices.values())
-      .filter((ai) => ai !== aiService)
-      .map((ai) => this.getAIDisplayName(ai))
-      .filter(Boolean);
-
-    // Add other participants
-    prompt += `
-
-Other AIs in this chat: ${otherAINames.join(", ")}
-
-${SYSTEM_PROMPT.CLOSING}`;
-
-    const personasEnabled = parseBooleanEnvFlag(
-      getEnvFlag("AI_CHAT_ENABLE_PERSONAS")
-    );
-    const providerKey = aiService?.config?.providerKey;
-    const fallbackProvider = providerKey
-      ? AI_PROVIDERS[providerKey as keyof typeof AI_PROVIDERS]
-      : undefined;
-    const personaProvider =
-      aiService?.service?.config?.provider ||
-      aiService?.config?.provider ||
-      fallbackProvider;
-    const persona = personasEnabled
-      ? getPersonaFromProvider(personaProvider)
-      : null;
-
-    if (persona) {
-      prompt = enhanceSystemPromptWithPersona(prompt, persona);
-    }
-
-    return prompt;
-  }
-
-  /**
-   * Determine interaction strategy for AI response
-   * @param {Object} aiService - AI service object
-   * @param {Array} context - Message context
-   * @param {boolean} isUserResponse - Whether responding to user
-   * @returns {Object} Interaction strategy
-   */
-  determineInteractionStrategy(aiService, context, isUserResponse) {
-    const recentMessages = context.slice(
-      -CONTEXT_LIMITS.RECENT_MESSAGES_FOR_STRATEGY
-    );
-    const aiMessages = recentMessages.filter((msg) => msg.senderType === "ai");
-    const lastMessage = recentMessages[recentMessages.length - 1];
-
-    const strategies: Record<string, StrategyOption> = {
-      AGREE_AND_EXPAND: {
-        type: "agree-expand",
-        weight: STRATEGY_WEIGHTS.AGREE_AND_EXPAND,
-      },
-      CHALLENGE_AND_DEBATE: {
-        type: "challenge",
-        weight: STRATEGY_WEIGHTS.CHALLENGE_AND_DEBATE,
-      },
-      REDIRECT_TOPIC: {
-        type: "redirect",
-        weight: STRATEGY_WEIGHTS.REDIRECT_TOPIC,
-      },
-      ASK_QUESTION: { type: "question", weight: STRATEGY_WEIGHTS.ASK_QUESTION },
-      DIRECT_RESPONSE: {
-        type: "direct",
-        weight: STRATEGY_WEIGHTS.DIRECT_RESPONSE,
-      },
-    };
-
-    // Adjust weights based on context
-    if (lastMessage?.senderType === "ai" && !isUserResponse) {
-      strategies.CHALLENGE_AND_DEBATE.weight +=
-        STRATEGY_ADJUSTMENTS.AI_MESSAGE_BACKGROUND_CHALLENGE;
-      strategies.AGREE_AND_EXPAND.weight +=
-        STRATEGY_ADJUSTMENTS.AI_MESSAGE_BACKGROUND_AGREE;
-    }
-
-    if (aiMessages.length >= STRATEGY_ADJUSTMENTS.MANY_AI_MESSAGES_THRESHOLD) {
-      strategies.REDIRECT_TOPIC.weight +=
-        STRATEGY_ADJUSTMENTS.MANY_AI_MESSAGES_REDIRECT;
-      strategies.ASK_QUESTION.weight +=
-        STRATEGY_ADJUSTMENTS.MANY_AI_MESSAGES_QUESTION;
-    }
-
-    const selfNormalized =
-      aiService.normalizedAlias ||
-      normalizeAlias(
-        aiService.alias || aiService.displayName || aiService.name
-      );
-    const mentionTargets = new Set(lastMessage?.mentionsNormalized || []);
-    const mentionsCurrentAI = mentionTargets.has(selfNormalized);
-
-    // Select strategy based on weighted random
-    let selectedStrategy = strategies.DIRECT_RESPONSE;
-    if (mentionsCurrentAI) {
-      selectedStrategy = strategies.DIRECT_RESPONSE;
-    } else {
-      const randomValue = Math.random();
-      let cumulativeWeight = 0;
-      for (const strategy of Object.values(strategies)) {
-        cumulativeWeight += strategy.weight;
-        if (randomValue <= cumulativeWeight) {
-          selectedStrategy = strategy;
-          break;
-        }
-      }
-    }
-
-    let shouldMention = false;
-    let targetAI = null;
-
-    const mentionCandidateRaw =
-      lastMessage?.alias ||
-      lastMessage?.displayName ||
-      lastMessage?.sender ||
-      "";
-    const mentionCandidate = mentionCandidateRaw.trim();
-    const shouldMentionUser =
-      isUserResponse &&
-      lastMessage?.senderType === "user" &&
-      mentionCandidate.length > 0;
-
-    if (shouldMentionUser) {
-      const cleanedAlias = mentionCandidate.startsWith("@")
-        ? mentionCandidate.slice(1)
-        : mentionCandidate;
-
-      if (cleanedAlias.length > 0) {
-        shouldMention = true;
-        targetAI = {
-          type: "user",
-          alias: cleanedAlias,
-          displayName: lastMessage.displayName || cleanedAlias,
-        };
-      }
-    } else if (mentionsCurrentAI) {
-      if (lastMessage?.senderType === "ai") {
-        const sourceAI = this.findAIFromContextMessage(lastMessage);
-        if (sourceAI && sourceAI.id !== aiService.id) {
-          shouldMention = true;
-          targetAI = this.getMentionTokenForAI(sourceAI);
-        }
-      }
-    } else {
-      const potentialTargets = [];
-
-      if (lastMessage?.senderType === "ai") {
-        const lastAI = this.findAIFromContextMessage(lastMessage);
-        if (lastAI && lastAI.id !== aiService.id) {
-          potentialTargets.push(lastAI);
-        }
-      }
-
-      for (
-        let i = aiMessages.length - 1;
-        i >= 0 &&
-        potentialTargets.length < CONTEXT_LIMITS.POTENTIAL_MENTION_TARGETS;
-        i--
-      ) {
-        const msg = aiMessages[i];
-        const targetAIInfo = this.findAIFromContextMessage(msg);
-        if (
-          targetAIInfo &&
-          targetAIInfo.id !== aiService.id &&
-          !potentialTargets.some((existing) => existing.id === targetAIInfo.id)
-        ) {
-          potentialTargets.push(targetAIInfo);
-        }
-      }
-
-      if (potentialTargets.length > 0) {
-        shouldMention =
-          Math.random() < MENTION_CONFIG.RANDOM_MENTION_PROBABILITY;
-        if (shouldMention) {
-          const selected = potentialTargets[0];
-          targetAI = this.getMentionTokenForAI(selected);
-        }
-      }
-    }
-
-    if (!targetAI) {
-      shouldMention = false;
-    }
-
-    return {
-      ...selectedStrategy,
-      shouldMention,
-      targetAI,
-      mentionsCurrentAI,
-    };
-  }
-
-  /**
-   * Apply interaction strategy to context
-   * @param {Array} context - Original context
-   * @param {Object} strategy - Interaction strategy
-   * @param {Object} aiService - AI service
-   * @returns {Array} Enhanced context
-   */
-  applyInteractionStrategy(context, strategy, aiService) {
-    const enhancedContext = [...context];
-    const lastMessage = context[context.length - 1];
-
-    let instructionPrompt = "";
-
-    const aiNormalized =
-      aiService.normalizedAlias ||
-      normalizeAlias(
-        aiService.alias || aiService.displayName || aiService.name
-      );
-    const mentionsCurrentAI =
-      lastMessage?.mentionsNormalized?.includes(aiNormalized);
-    const mentionerName = lastMessage?.displayName || lastMessage?.sender;
-    const mentionerAlias = lastMessage?.alias || lastMessage?.normalizedAlias;
-    const mentionerToken = mentionerAlias
-      ? `@${mentionerAlias}`
-      : mentionerName;
-
-    if (mentionsCurrentAI) {
-      if (lastMessage?.senderType === "ai" && mentionerToken) {
-        instructionPrompt = STRATEGY_INSTRUCTIONS.MENTIONED_BY_AI(mentionerToken);
-      } else {
-        instructionPrompt = STRATEGY_INSTRUCTIONS.MENTIONED_BY_USER;
-      }
-    } else {
-      switch (strategy.type) {
-        case "agree-expand":
-          if (lastMessage?.senderType === "ai") {
-            instructionPrompt = STRATEGY_INSTRUCTIONS.AGREE_EXPAND(
-              lastMessage.sender
-            );
-          }
-          break;
-
-        case "challenge":
-          if (lastMessage?.senderType === "ai") {
-            instructionPrompt = STRATEGY_INSTRUCTIONS.CHALLENGE(
-              lastMessage.sender
-            );
-          }
-          break;
-
-        case "redirect":
-          instructionPrompt = STRATEGY_INSTRUCTIONS.REDIRECT;
-          break;
-
-        case "question":
-          instructionPrompt = STRATEGY_INSTRUCTIONS.QUESTION;
-          break;
-
-        case "direct":
-          instructionPrompt = STRATEGY_INSTRUCTIONS.DIRECT;
-          break;
-      }
-    }
-
-    if (instructionPrompt) {
-      enhancedContext.push({
-        sender: "System",
-        content: instructionPrompt,
-        senderType: "system",
-        role: "system",
-        isInternal: true,
-      });
-    }
-
-    return enhancedContext;
-  }
-
-  /**
-   * Add @mention to response if needed
-   * @param {string} response - Original response
-   * @param {string} targetAI - AI to mention
-   * @returns {string} Response with mention
-   */
-  addMentionToResponse(response, targetAI) {
-    if (!targetAI) {
-      return response;
-    }
-
-    let mentionHandle = "";
-
-    if (typeof targetAI === "object") {
-      const aliasSourceRaw =
-        (targetAI.displayName && targetAI.displayName.toString()) ||
-        (targetAI.alias && targetAI.alias.toString()) ||
-        "";
-      const aliasSource = aliasSourceRaw.trim();
-
-      if (!aliasSource) {
-        return response;
-      }
-
-      mentionHandle = aliasSource.startsWith("@")
-        ? aliasSource
-        : `@${aliasSource}`;
-    } else {
-      const normalizedTarget = normalizeAlias(targetAI);
-      const targetService = this.findAIByNormalizedAlias(normalizedTarget);
-      const mentionAlias =
-        this.getMentionTokenForAI(targetService) || toMentionAlias(targetAI);
-
-      if (!mentionAlias) {
-        return response;
-      }
-
-      mentionHandle = mentionAlias.startsWith("@")
-        ? mentionAlias
-        : `@${mentionAlias}`;
-    }
-
-    if (!mentionHandle.trim()) {
-      return response;
-    }
-
-    if (response.includes(mentionHandle)) {
-      return response;
-    }
-
-    // Use mention format from constants
-    const formatIndex = Math.floor(Math.random() * MENTION_FORMATS.length);
-    const formatFn = MENTION_FORMATS[formatIndex];
-    return formatFn(mentionHandle, response);
-  }
-
-  /**
-   * Enhance context for commenting on previous message
-   * @param {Array} context - Original context
-   * @param {Object} lastMessage - Last message to comment on
-   * @returns {Array} Enhanced context
-   */
-  enhanceContextForComment(context, lastMessage) {
-    const enhancedContext = [...context];
-    enhancedContext.push({
-      sender: "System",
-      content: `Consider commenting on or building upon ${lastMessage.sender}'s message: "${lastMessage.content}"`,
-      senderType: "system",
-      role: "system",
-      isInternal: true,
-    });
-    return enhancedContext;
   }
 
   /**
