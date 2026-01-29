@@ -1,57 +1,26 @@
 /**
- * PerplexityService Service - TypeScript conversion
+ * Perplexity Service
+ *
+ * This service handles interactions with the Perplexity AI API.
+ * Perplexity uses an OpenAI-compatible API format.
  */
 
-import { BaseAIService } from "./base/BaseAIService.js";
-import { mapToOpenAIChat } from "../utils/aiFormatting.js";
+import { OpenAICompatibleService } from "./base/OpenAICompatibleService.js";
+import { OpenAIClient } from "../types/services.js";
+import { AIServiceConfig, ServiceInitOptions } from "../types/index.js";
 import OpenAI from "openai";
-import dotenv from "dotenv";
-import type { AIServiceConfig, Message, ServiceResponse, ServiceInitOptions } from "../types/index.js";
 
-dotenv.config();
+const PERPLEXITY_BASE_URL = "https://api.perplexity.ai";
 
-export class PerplexityService extends BaseAIService {
-  private client: OpenAI | null = null;
-
+export class PerplexityService extends OpenAICompatibleService {
   constructor(config: AIServiceConfig) {
     super(config, "Perplexity");
   }
 
-  protected async performInitialization(_options?: ServiceInitOptions): Promise<void> {
-    this.client = new OpenAI({
-      apiKey: process.env[this.config.provider.apiKeyEnvVar],
-      baseURL: "https://api.perplexity.ai",
-    });
-  }
-
-  protected async performGenerateResponse(messages: Message[]): Promise<ServiceResponse> {
-    if (!this.client) {
-      await this.performInitialization();
-    }
-
-    const formattedMessages = mapToOpenAIChat(messages);
-
-    const response = await this.client!.chat.completions.create({
-      model: this.config.model.id,
-      messages: formattedMessages,
-      max_tokens: this.config.model.maxTokens,
-      temperature: this.config.model.temperature,
-    });
-
-    const content = response.choices[0]?.message?.content;
-    if (!content) {
-      throw new Error("No content in response");
-    }
-
-    return {
-      content,
-      usage: {
-        promptTokens: response.usage?.prompt_tokens,
-        completionTokens: response.usage?.completion_tokens,
-        totalTokens: response.usage?.total_tokens,
-      },
-      model: this.config.model.id,
-      finishReason: response.choices[0]?.finish_reason ?? undefined,
-    };
+  protected createClient(apiKey: string, options?: ServiceInitOptions): OpenAIClient {
+    return new OpenAI({
+      apiKey,
+      baseURL: options?.baseURL || PERPLEXITY_BASE_URL,
+    }) as OpenAIClient;
   }
 }

@@ -1,12 +1,14 @@
 /**
- * CohereService Service - TypeScript conversion
+ * Cohere Service
+ *
+ * This service handles interactions with the Cohere AI API.
+ * Cohere uses an OpenAI-compatible API format.
  */
-import { BaseAIService } from "./base/BaseAIService.js";
-import type { AIServiceConfig, Message, ServiceResponse, ServiceInitOptions } from "../types/index.js";
-export declare class CohereService extends BaseAIService {
-    private client;
+import { OpenAICompatibleService } from "./base/OpenAICompatibleService.js";
+import { OpenAIClient } from "../types/services.js";
+import { AIServiceConfig, ServiceInitOptions } from "../types/index.js";
+export declare class CohereService extends OpenAICompatibleService {
     constructor(config: AIServiceConfig);
-    protected performInitialization(_options?: ServiceInitOptions): Promise<void>;
-    protected performGenerateResponse(messages: Message[]): Promise<ServiceResponse>;
+    protected createClient(apiKey: string, options?: ServiceInitOptions): OpenAIClient;
 }
 //# sourceMappingURL=CohereService.d.ts.map

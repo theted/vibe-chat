@@ -8,7 +8,7 @@
 export type { Message, AIModel, PersonaTrait, AIProvider, AIServiceConfig, ChatFormattingOptions, OpenAIMessage, GeminiMessage, StreamTextOptions, LogLevel, Logger, ConversationContext, MessageBrokerEvent, MessageBrokerEventData, ChatOrchestratorConfig, IAIService, ServiceConstructor, ServiceRegistry, DeepPartial, RequiredKeys, } from "./types/index.js";
 export { AIServiceError, ConfigurationError, NetworkError, } from "./types/index.js";
 export { DEFAULT_TEMPERATURE, DEFAULT_MAX_TOKENS, } from "./types/index.js";
-export { BaseAIService } from "./services/BaseAIService.js";
+export { BaseAIService } from "./services/base/BaseAIService.js";
 export { AIServiceFactory } from "./services/AIServiceFactory.js";
 export { OpenAIService } from "./services/OpenAIService.js";
 export { AnthropicService } from "./services/AnthropicService.js";

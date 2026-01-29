@@ -8,30 +8,7 @@ import {
   ContextManagerConfig
 } from '../types/orchestrator.js';
 import { Message } from '../types/index.js';
-
-const normalizeAlias = (value?: string): string =>
-  value ? value.toString().toLowerCase().replace(/[^a-z0-9]/g, "") : "";
-
-const parseMentions = (content = ""): { mentions: string[]; normalized: string[] } => {
-  const mentionRegex = /@([^\s@]+)/g;
-  const mentions: string[] = [];
-  const normalized: string[] = [];
-  const seen = new Set<string>();
-
-  let match;
-  while ((match = mentionRegex.exec(content)) !== null) {
-    const token = match[1];
-    if (!token) continue;
-    const normalizedToken = normalizeAlias(token);
-    if (normalizedToken && !seen.has(normalizedToken)) {
-      mentions.push(token);
-      normalized.push(normalizedToken);
-      seen.add(normalizedToken);
-    }
-  }
-
-  return { mentions, normalized };
-};
+import { normalizeAlias, parseMentions } from '../utils/stringUtils.js';
 
 export class ContextManager implements IContextManager {
   private messages: ContextMessage[] = [];

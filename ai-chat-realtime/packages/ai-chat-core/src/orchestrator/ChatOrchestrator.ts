@@ -24,6 +24,12 @@ import {
   enhanceSystemPromptWithPersona,
   getPersonaFromProvider,
 } from "../utils/personaUtils.js";
+import {
+  normalizeAlias,
+  toMentionAlias,
+  parseBooleanEnvFlag,
+  getEnvFlag,
+} from "../utils/stringUtils.js";
 
 type ChatOrchestratorOptions = {
   maxMessages?: number;
@@ -46,39 +52,6 @@ type GenerateResponseOptions = {
 type StrategyOption = {
   type: string;
   weight: number;
-};
-
-const normalizeAlias = (value?: string | number | null): string =>
-  value
-    ? value
-        .toString()
-        .toLowerCase()
-        .replace(/[^a-z0-9]/g, "")
-    : "";
-
-const toMentionAlias = (value?: string | null, fallback = ""): string => {
-  const base = value && value.trim() ? value : fallback;
-  if (!base) return "";
-  return base
-    .toString()
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9\-]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-};
-
-const parseBooleanEnvFlag = (value?: string | null): boolean => {
-  if (typeof value !== "string") return false;
-  const normalized = value.trim().toLowerCase();
-  if (!normalized) return false;
-  return ["1", "true", "yes", "on"].includes(normalized);
-};
-
-const getEnvFlag = (name: string): string | undefined => {
-  if (typeof process === "undefined" || !process?.env) {
-    return undefined;
-  }
-  return process.env[name];
 };
 
 /**

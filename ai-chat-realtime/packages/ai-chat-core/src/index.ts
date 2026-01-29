@@ -44,7 +44,7 @@ export {
 } from "./types/index.js";
 
 // AI Service base & factory
-export { BaseAIService } from "./services/BaseAIService.js";
+export { BaseAIService } from "./services/base/BaseAIService.js";
 export { AIServiceFactory } from "./services/AIServiceFactory.js";
 
 // Individual provider services

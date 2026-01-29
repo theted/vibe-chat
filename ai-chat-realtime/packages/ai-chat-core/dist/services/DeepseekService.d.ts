@@ -2,28 +2,13 @@
  * Deepseek Service
  *
  * This service handles interactions with the Deepseek API.
+ * Deepseek uses an OpenAI-compatible API format.
  */
-import { BaseAIService } from "./BaseAIService.js";
-import type { AIServiceConfig, Message, ServiceResponse, ServiceInitOptions } from "../types/index.js";
-export declare class DeepseekService extends BaseAIService {
-    private client;
+import { OpenAICompatibleService } from "./base/OpenAICompatibleService.js";
+import { OpenAIClient } from "../types/services.js";
+import { AIServiceConfig, ServiceInitOptions } from "../types/index.js";
+export declare class DeepseekService extends OpenAICompatibleService {
     constructor(config: AIServiceConfig);
-    /**
-     * Initialize the Deepseek client
-     */
-    initialize(options?: ServiceInitOptions): Promise<void>;
-    /**
-     * Check if the Deepseek service is properly configured
-     * @returns True if the API key is available
-     */
-    isConfigured(): boolean;
-    /**
-     * Generate a response using Deepseek
-     * @param messages - Array of message objects with role and content
-     * @param context - Optional context for the request
-     * @returns The generated response
-     */
-    generateResponse(messages: Message[], context?: Record<string, unknown>): Promise<ServiceResponse>;
-    validateConfiguration(): Promise<boolean>;
+    protected createClient(apiKey: string, options?: ServiceInitOptions): OpenAIClient;
 }
 //# sourceMappingURL=DeepseekService.d.ts.map

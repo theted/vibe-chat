@@ -1,14 +1,14 @@
 /**
- * GrokService Service - TypeScript conversion
+ * Grok Service
+ *
+ * This service handles interactions with the Grok (xAI) API.
+ * Grok uses an OpenAI-compatible API format.
  */
-import { BaseAIService } from "./BaseAIService.js";
-import type { AIServiceConfig, Message, ServiceResponse, ServiceInitOptions } from "../types/index.js";
-export declare class GrokService extends BaseAIService {
-    private client;
+import { OpenAICompatibleService } from "./base/OpenAICompatibleService.js";
+import { OpenAIClient } from "../types/services.js";
+import { AIServiceConfig, ServiceInitOptions } from "../types/index.js";
+export declare class GrokService extends OpenAICompatibleService {
     constructor(config: AIServiceConfig);
-    initialize(options?: ServiceInitOptions): Promise<void>;
-    isConfigured(): boolean;
-    generateResponse(messages: Message[], context?: Record<string, unknown>): Promise<ServiceResponse>;
-    validateConfiguration(): Promise<boolean>;
+    protected createClient(apiKey: string, options?: ServiceInitOptions): OpenAIClient;
 }
 //# sourceMappingURL=GrokService.d.ts.map

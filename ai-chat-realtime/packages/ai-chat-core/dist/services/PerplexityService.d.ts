@@ -1,12 +1,14 @@
 /**
- * PerplexityService Service - TypeScript conversion
+ * Perplexity Service
+ *
+ * This service handles interactions with the Perplexity AI API.
+ * Perplexity uses an OpenAI-compatible API format.
  */
-import { BaseAIService } from "./base/BaseAIService.js";
-import type { AIServiceConfig, Message, ServiceResponse, ServiceInitOptions } from "../types/index.js";
-export declare class PerplexityService extends BaseAIService {
-    private client;
+import { OpenAICompatibleService } from "./base/OpenAICompatibleService.js";
+import { OpenAIClient } from "../types/services.js";
+import { AIServiceConfig, ServiceInitOptions } from "../types/index.js";
+export declare class PerplexityService extends OpenAICompatibleService {
     constructor(config: AIServiceConfig);
-    protected performInitialization(_options?: ServiceInitOptions): Promise<void>;
-    protected performGenerateResponse(messages: Message[]): Promise<ServiceResponse>;
+    protected createClient(apiKey: string, options?: ServiceInitOptions): OpenAIClient;
 }
 //# sourceMappingURL=PerplexityService.d.ts.map

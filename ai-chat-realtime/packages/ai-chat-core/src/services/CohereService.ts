@@ -1,57 +1,26 @@
 /**
- * CohereService Service - TypeScript conversion
+ * Cohere Service
+ *
+ * This service handles interactions with the Cohere AI API.
+ * Cohere uses an OpenAI-compatible API format.
  */
 
-import { BaseAIService } from "./base/BaseAIService.js";
-import { mapToOpenAIChat } from "../utils/aiFormatting.js";
+import { OpenAICompatibleService } from "./base/OpenAICompatibleService.js";
+import { OpenAIClient } from "../types/services.js";
+import { AIServiceConfig, ServiceInitOptions } from "../types/index.js";
 import OpenAI from "openai";
-import dotenv from "dotenv";
-import type { AIServiceConfig, Message, ServiceResponse, ServiceInitOptions } from "../types/index.js";
 
-dotenv.config();
+const COHERE_BASE_URL = "https://api.cohere.ai/v1";
 
-export class CohereService extends BaseAIService {
-  private client: OpenAI | null = null;
-
+export class CohereService extends OpenAICompatibleService {
   constructor(config: AIServiceConfig) {
     super(config, "Cohere");
   }
 
-  protected async performInitialization(_options?: ServiceInitOptions): Promise<void> {
-    this.client = new OpenAI({
-      apiKey: process.env[this.config.provider.apiKeyEnvVar],
-      baseURL: "https://api.cohere.ai/v1",
-    });
-  }
-
-  protected async performGenerateResponse(messages: Message[]): Promise<ServiceResponse> {
-    if (!this.client) {
-      await this.performInitialization();
-    }
-
-    const formattedMessages = mapToOpenAIChat(messages);
-
-    const response = await this.client!.chat.completions.create({
-      model: this.config.model.id,
-      messages: formattedMessages,
-      max_tokens: this.config.model.maxTokens,
-      temperature: this.config.model.temperature,
-    });
-
-    const content = response.choices[0]?.message?.content;
-    if (!content) {
-      throw new Error("No content in response");
-    }
-
-    return {
-      content,
-      usage: {
-        promptTokens: response.usage?.prompt_tokens,
-        completionTokens: response.usage?.completion_tokens,
-        totalTokens: response.usage?.total_tokens,
-      },
-      model: this.config.model.id,
-      finishReason: response.choices[0]?.finish_reason ?? undefined,
-    };
+  protected createClient(apiKey: string, options?: ServiceInitOptions): OpenAIClient {
+    return new OpenAI({
+      apiKey,
+      baseURL: options?.baseURL || COHERE_BASE_URL,
+    }) as OpenAIClient;
   }
 }
