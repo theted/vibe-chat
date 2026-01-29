@@ -68,7 +68,7 @@ export const DEFAULT_AI_PARTICIPANTS = [
     name: "ChatGPT 5.1 Mini",
     alias: "gpt-5.1-mini",
     provider: "OpenAI",
-    status: "active",
+    status: "inactive",
     emoji: "⚡",
   },
   {
@@ -76,7 +76,7 @@ export const DEFAULT_AI_PARTICIPANTS = [
     name: "OpenAI o3",
     alias: "o3",
     provider: "OpenAI",
-    status: "active",
+    status: "inactive",
     emoji: "🧪",
   },
   {
@@ -84,7 +84,7 @@ export const DEFAULT_AI_PARTICIPANTS = [
     name: "OpenAI o3-mini",
     alias: "o3-mini",
     provider: "OpenAI",
-    status: "active",
+    status: "inactive",
     emoji: "🧮",
   },
   {
@@ -92,7 +92,7 @@ export const DEFAULT_AI_PARTICIPANTS = [
     name: "OpenAI o4-mini",
     alias: "o4-mini",
     provider: "OpenAI",
-    status: "active",
+    status: "inactive",
     emoji: "🛰️",
   },
   {
