@@ -9,6 +9,8 @@ import type {
   MessageHistoryEntry,
   MetricsHistoryEntry,
   MetricsSnapshot,
+  ProviderErrorLogEntry,
+  ProviderModelStats,
 } from "../types.js";
 import type { RedisClient } from "./RedisClient.js";
 
@@ -24,15 +26,33 @@ type MetricsBucket = {
   totalMessages: number;
 };
 
+type ProviderModelStatsInternal = {
+  provider: string;
+  model: string;
+  requests: number;
+  errors: number;
+  totalResponseTimeMs: number;
+};
+
+const DEFAULT_MAX_ERROR_LOGS = 200;
+
 /**
  * Tracks chat metrics and emits updates to connected clients.
  */
 export class MetricsService extends EventEmitter {
   private io: Server;
   private redis: RedisClient | null;
-  private redisKeys: { metrics: string; history: string };
+  private redisKeys: {
+    metrics: string;
+    history: string;
+    providerStats: string;
+    errorLogs: string;
+  };
   private metrics: MetricsSnapshot;
   private messageHistory: MessageHistoryEntry[];
+  private providerStats: Map<string, ProviderModelStatsInternal>;
+  private errorLogs: ProviderErrorLogEntry[];
+  private maxErrorLogs: number;
   private lastBroadcast: number;
   private broadcastInterval: number;
   private persistenceThrottleMs: number;
@@ -51,6 +71,8 @@ export class MetricsService extends EventEmitter {
     this.redisKeys = {
       metrics: options.metricsKey || "metrics-service:metrics",
       history: options.historyKey || "metrics-service:history",
+      providerStats: "metrics-service:provider-stats",
+      errorLogs: "metrics-service:error-logs",
     };
     this.metrics = {
       totalAIMessages: 0,
@@ -62,6 +84,9 @@ export class MetricsService extends EventEmitter {
     };
 
     this.messageHistory = []; // Store last hour of message timestamps
+    this.providerStats = new Map();
+    this.errorLogs = [];
+    this.maxErrorLogs = DEFAULT_MAX_ERROR_LOGS;
     this.lastBroadcast = Date.now();
     this.broadcastInterval = 2000; // Broadcast every 2 seconds
     this.persistenceThrottleMs = 1000;
@@ -80,9 +105,11 @@ export class MetricsService extends EventEmitter {
     }
 
     try {
-      const [metricsJson, historyJson] = await Promise.all([
+      const [metricsJson, historyJson, providerStatsJson, errorLogsJson] = await Promise.all([
         this.redis.get(this.redisKeys.metrics),
-        this.redis.get(this.redisKeys.history)
+        this.redis.get(this.redisKeys.history),
+        this.redis.get(this.redisKeys.providerStats),
+        this.redis.get(this.redisKeys.errorLogs),
       ]);
 
       if (metricsJson) {
@@ -105,6 +132,44 @@ export class MetricsService extends EventEmitter {
               typeof entry.type === "string"
           );
           this.pruneMessageHistory();
+        }
+      }
+
+      if (providerStatsJson) {
+        const parsedProviderStats = JSON.parse(providerStatsJson);
+        if (Array.isArray(parsedProviderStats)) {
+          parsedProviderStats.forEach((entry) => {
+            if (
+              entry &&
+              typeof entry.provider === "string" &&
+              typeof entry.model === "string"
+            ) {
+              this.providerStats.set(this.buildProviderKey(entry.provider, entry.model), {
+                provider: entry.provider,
+                model: entry.model,
+                requests: Number(entry.requests) || 0,
+                errors: Number(entry.errors) || 0,
+                totalResponseTimeMs: Number(entry.totalResponseTimeMs) || 0,
+              });
+            }
+          });
+        }
+      }
+
+      if (errorLogsJson) {
+        const parsedErrorLogs = JSON.parse(errorLogsJson);
+        if (Array.isArray(parsedErrorLogs)) {
+          this.errorLogs = parsedErrorLogs.filter(
+            (entry) =>
+              entry &&
+              typeof entry.provider === "string" &&
+              typeof entry.model === "string" &&
+              typeof entry.message === "string" &&
+              typeof entry.timestamp === "number"
+          );
+          if (this.errorLogs.length > this.maxErrorLogs) {
+            this.errorLogs = this.errorLogs.slice(0, this.maxErrorLogs);
+          }
         }
       }
 
@@ -164,6 +229,14 @@ export class MetricsService extends EventEmitter {
         this.redisKeys.history,
         JSON.stringify(this.messageHistory)
       ),
+      this.redis.set(
+        this.redisKeys.providerStats,
+        JSON.stringify(this.getProviderStatsSnapshot(true))
+      ),
+      this.redis.set(
+        this.redisKeys.errorLogs,
+        JSON.stringify(this.errorLogs)
+      ),
     ])
       .then(() => undefined)
       .catch((error) => {
@@ -183,6 +256,70 @@ export class MetricsService extends EventEmitter {
     this.metrics.totalMessages++;
     this.addMessageToHistory("ai", Date.now());
     this.updateMessagesPerMinute();
+    this.markDirty();
+    this.broadcastMetrics();
+  }
+
+  recordAIResponse(params: {
+    providerKey?: string;
+    modelKey?: string;
+    responseTimeMs?: number;
+  }): void {
+    const provider = params.providerKey || "unknown";
+    const model = params.modelKey || "unknown";
+    const responseTimeMs = Number(params.responseTimeMs) || 0;
+    const key = this.buildProviderKey(provider, model);
+    const current = this.providerStats.get(key) || {
+      provider,
+      model,
+      requests: 0,
+      errors: 0,
+      totalResponseTimeMs: 0,
+    };
+
+    current.requests += 1;
+    current.totalResponseTimeMs += responseTimeMs;
+    this.providerStats.set(key, current);
+
+    this.markDirty();
+    this.broadcastMetrics();
+  }
+
+  recordAIError(params: {
+    providerKey?: string;
+    modelKey?: string;
+    responseTimeMs?: number;
+    errorMessage?: string;
+  }): void {
+    const provider = params.providerKey || "unknown";
+    const model = params.modelKey || "unknown";
+    const responseTimeMs = Number(params.responseTimeMs) || 0;
+    const key = this.buildProviderKey(provider, model);
+    const current = this.providerStats.get(key) || {
+      provider,
+      model,
+      requests: 0,
+      errors: 0,
+      totalResponseTimeMs: 0,
+    };
+
+    current.requests += 1;
+    current.errors += 1;
+    current.totalResponseTimeMs += responseTimeMs;
+    this.providerStats.set(key, current);
+
+    if (params.errorMessage) {
+      this.errorLogs.unshift({
+        provider,
+        model,
+        message: params.errorMessage,
+        timestamp: Date.now(),
+      });
+      if (this.errorLogs.length > this.maxErrorLogs) {
+        this.errorLogs.length = this.maxErrorLogs;
+      }
+    }
+
     this.markDirty();
     this.broadcastMetrics();
   }
@@ -268,6 +405,8 @@ export class MetricsService extends EventEmitter {
       ...this.metrics,
       timestamp: Date.now(),
       uptime: process.uptime(),
+      providerModelStats: this.getProviderStatsSnapshot(),
+      errorLogs: this.errorLogs,
     };
   }
 
@@ -318,6 +457,8 @@ export class MetricsService extends EventEmitter {
         userMessages: dailyUserMessages,
         totalMessages: dailyAIMessages + dailyUserMessages,
       },
+      providerModelStats: this.getProviderStatsSnapshot(),
+      errorLogs: this.errorLogs,
     };
   }
 
@@ -334,6 +475,8 @@ export class MetricsService extends EventEmitter {
       activeRooms: this.metrics.activeRooms,
     };
     this.messageHistory = [];
+    this.providerStats = new Map();
+    this.errorLogs = [];
     this.markDirty();
     this.broadcastMetrics();
   }
@@ -364,6 +507,29 @@ export class MetricsService extends EventEmitter {
     setInterval(() => {
       this.broadcastMetrics();
     }, 5000); // Broadcast every 5 seconds
+  }
+
+  private buildProviderKey(provider: string, model: string): string {
+    return `${provider}::${model}`;
+  }
+
+  private getProviderStatsSnapshot(includeTotals = false): ProviderModelStats[] | ProviderModelStatsInternal[] {
+    const stats = Array.from(this.providerStats.values()).map((entry) => {
+      if (includeTotals) {
+        return { ...entry };
+      }
+      const meanResponseTimeMs =
+        entry.requests > 0 ? Math.round(entry.totalResponseTimeMs / entry.requests) : 0;
+      return {
+        provider: entry.provider,
+        model: entry.model,
+        requests: entry.requests,
+        errors: entry.errors,
+        meanResponseTimeMs,
+      };
+    });
+
+    return stats.sort((a, b) => a.provider.localeCompare(b.provider) || a.model.localeCompare(b.model));
   }
 
   /**
