@@ -365,6 +365,8 @@ const Dashboard = () => {
               )}
             </div>
           </div>
+        </div>
+
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 mb-8">
           <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
             <h3 className="text-xl font-semibold text-gray-900">Enabled AI Participants</h3>
