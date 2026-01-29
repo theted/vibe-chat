@@ -1,22 +1,22 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import LoginView from "./LoginView.jsx";
-import React from "react";
+import LoginView from "./LoginView";
+import type { FormEvent } from 'react';
 
-vi.mock("./ParticipantsList.jsx", () => ({
+vi.mock("./ParticipantsList", () => ({
   default: () => <div data-testid="participants-list">Participants</div>,
 }));
 
-vi.mock("./Icon.jsx", () => ({
-  default: ({ name }) => <span data-testid={`icon-${name}`}>Icon-{name}</span>,
+vi.mock("./Icon", () => ({
+  default: ({ name }: { name: string }) => <span data-testid={`icon-${name}`}>Icon-{name}</span>,
 }));
 
 describe("LoginView Component", () => {
   const defaultProps = {
     connectionStatus: { connected: true },
     toggleTheme: vi.fn(),
-    theme: "light",
+    theme: "light" as const,
     username: "",
     onUsernameChange: vi.fn(),
     onJoin: vi.fn(),
@@ -83,7 +83,7 @@ describe("LoginView Component", () => {
     });
 
     it("should show sun icon in dark mode", () => {
-      const props = { ...defaultProps, theme: "dark" };
+      const props = { ...defaultProps, theme: "dark" as const };
       render(<LoginView {...props} />);
       expect(screen.getByTestId("icon-sun")).toBeInTheDocument();
     });

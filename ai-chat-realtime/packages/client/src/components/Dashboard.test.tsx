@@ -1,17 +1,17 @@
-import React from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, act } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import Dashboard from "./Dashboard.jsx";
+import Dashboard from "./Dashboard";
+import type { AiParticipant } from '../config/aiParticipants';
 
 const { mockHandlers, mockEmit } = vi.hoisted(() => ({
-  mockHandlers: {},
+  mockHandlers: {} as Record<string, (data: unknown) => void>,
   mockEmit: vi.fn(),
 }));
 
 vi.mock("../hooks/useSocket", () => ({
   useSocket: () => ({
-    on: (event, callback) => {
+    on: (event: string, callback: (data: unknown) => void) => {
       mockHandlers[event] = callback;
     },
     emit: mockEmit,
@@ -40,7 +40,6 @@ describe("Dashboard", () => {
         {
           id: "alpha",
           name: "Alpha",
-          displayName: "Alpha",
           alias: "alpha",
           provider: "OpenAI",
           status: "active",
@@ -49,7 +48,6 @@ describe("Dashboard", () => {
         {
           id: "beta",
           name: "Beta",
-          displayName: "Beta",
           alias: "beta",
           provider: "Anthropic",
           status: "inactive",

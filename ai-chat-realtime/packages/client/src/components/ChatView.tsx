@@ -1,12 +1,11 @@
-import React from "react";
 import { Link } from "react-router-dom";
-import { DEFAULT_AI_PARTICIPANTS } from "../config/aiParticipants.ts";
-import ChatMessage from "./ChatMessage.jsx";
-import MessageInput from "./MessageInput.jsx";
-import ParticipantsList from "./ParticipantsList.jsx";
-import TypingIndicator from "./TypingIndicator.jsx";
-import Icon from "./Icon.jsx";
-import CircuitIcon from "./CircuitIcon.jsx";
+import { DEFAULT_AI_PARTICIPANTS } from "../config/aiParticipants";
+import ChatMessage from "./ChatMessage";
+import MessageInput from "./MessageInput";
+import ParticipantsList from "./ParticipantsList";
+import TypingIndicator from "./TypingIndicator";
+import Icon from "./Icon";
+import type { ChatViewProps } from '../types';
 
 const ChatView = ({
   theme,
@@ -29,7 +28,7 @@ const ChatView = ({
   error,
   messagesEndRef,
   messagesContainerRef,
-}) => {
+}: ChatViewProps) => {
   const aiParticipantList =
     aiParticipants.length > 0 ? aiParticipants : DEFAULT_AI_PARTICIPANTS;
   const aiParticipantCount = aiParticipantList.length;

@@ -2,20 +2,21 @@
  * MessageInput Component - Input area for sending messages
  */
 
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, type ChangeEvent, type FormEvent, type KeyboardEvent } from 'react';
 import AISelectionDialog from './AISelectionDialog';
-import Icon from './Icon.jsx';
+import Icon from './Icon';
+import type { MessageInputProps, DialogPosition } from '../types';
 
-const MessageInput = ({ onSendMessage, disabled = false, onAIMention, onTypingStart, onTypingStop }) => {
+const MessageInput = ({ onSendMessage, disabled = false, onAIMention, onTypingStart, onTypingStop }: MessageInputProps) => {
   const [message, setMessage] = useState('');
   const [showAIDialog, setShowAIDialog] = useState(false);
-  const [mentionPosition, setMentionPosition] = useState({ x: 0, y: 0 });
+  const [mentionPosition, setMentionPosition] = useState<DialogPosition>({ x: 0, y: 0 });
   const [currentMention, setCurrentMention] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const textareaRef = useRef(null);
-  const typingTimeoutRef = useRef(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (message.trim() && !disabled) {
       // Check for @mentions and trigger AI if mentioned
@@ -25,21 +26,21 @@ const MessageInput = ({ onSendMessage, disabled = false, onAIMention, onTypingSt
       }
       onSendMessage(message.trim());
       setMessage('');
-      
+
       // Stop typing indicator when message is sent
       if (isTyping && onTypingStop) {
         console.log('📤 Stopping typing indicator (message sent)');
         onTypingStop();
         setIsTyping(false);
       }
-      
+
       textareaRef.current?.focus();
     }
   };
 
-  const extractMentions = (text) => {
+  const extractMentions = (text: string): string[] => {
     const mentionRegex = /@([a-zA-Z0-9_\-\.]+)/g;
-    const mentions = [];
+    const mentions: string[] = [];
     let match;
     while ((match = mentionRegex.exec(text)) !== null) {
       mentions.push(match[1].toLowerCase());
@@ -47,29 +48,29 @@ const MessageInput = ({ onSendMessage, disabled = false, onAIMention, onTypingSt
     return mentions;
   };
 
-  const handleKeyPress = (e) => {
+  const handleKeyPress = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSubmit(e);
     }
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
     setMessage(value);
-    
+
     // Handle typing indicators
     if (value.trim() && !isTyping && onTypingStart) {
       console.log('📝 Starting typing indicator');
       onTypingStart();
       setIsTyping(true);
     }
-    
+
     // Clear previous timeout and set new one
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
     }
-    
+
     if (value.trim()) {
       // Stop typing after 2 seconds of inactivity
       typingTimeoutRef.current = setTimeout(() => {
@@ -85,7 +86,7 @@ const MessageInput = ({ onSendMessage, disabled = false, onAIMention, onTypingSt
       onTypingStop();
       setIsTyping(false);
     }
-    
+
     // Check for @ trigger to show AI selection
     const cursorPosition =
       typeof e.target.selectionStart === 'number'
@@ -93,11 +94,11 @@ const MessageInput = ({ onSendMessage, disabled = false, onAIMention, onTypingSt
         : value.length;
     const textBeforeCursor = value.substring(0, cursorPosition);
     const mentionMatch = textBeforeCursor.match(/@([^\s@]*)$/);
-    
+
     if (mentionMatch) {
       setCurrentMention(mentionMatch[1] || '');
       setShowAIDialog(true);
-      
+
       // Calculate position for dialog
       const textarea = textareaRef.current;
       if (textarea) {
@@ -115,18 +116,18 @@ const MessageInput = ({ onSendMessage, disabled = false, onAIMention, onTypingSt
     }
   };
 
-  const handleAISelect = (aiName) => {
+  const handleAISelect = (aiName: string) => {
     const cursorPosition = textareaRef.current?.selectionStart || 0;
     const textBeforeCursor = message.substring(0, cursorPosition);
     const textAfterCursor = message.substring(cursorPosition);
-    
+
     // Replace the current @mention with the selected AI
     const mentionMatch = textBeforeCursor.match(/@([^\s@]*)$/);
     if (mentionMatch) {
       const beforeMention = textBeforeCursor.substring(0, mentionMatch.index);
       const newMessage = beforeMention + '@' + aiName + ' ' + textAfterCursor;
       setMessage(newMessage);
-      
+
       // Position cursor after the mention
       setTimeout(() => {
         const newCursorPos = beforeMention.length + aiName.length + 2;
@@ -134,7 +135,7 @@ const MessageInput = ({ onSendMessage, disabled = false, onAIMention, onTypingSt
         textareaRef.current?.focus();
       }, 0);
     }
-    
+
     setShowAIDialog(false);
     setCurrentMention('');
   };
@@ -196,7 +197,7 @@ const MessageInput = ({ onSendMessage, disabled = false, onAIMention, onTypingSt
           <span className="hidden sm:inline group-hover:animate-pulse">Send</span>
         </button>
       </form>
-      
+
       {showAIDialog && (
         <AISelectionDialog
           isOpen={showAIDialog}

@@ -1,4 +1,4 @@
-import React from 'react';
+import type { StatusCardProps } from '../types';
 
 /**
  * StatusCard Component - Displays a compact status summary with icon and label
@@ -12,7 +12,7 @@ const StatusCard = ({
   statusText,
   statusIndicatorClass = 'bg-green-500',
   statusTextClass = 'text-green-600',
-}) => (
+}: StatusCardProps) => (
   <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
     <div className="flex items-center gap-3">
       <div className={`w-10 h-10 rounded-full flex items-center justify-center ${iconBackgroundClass}`}>

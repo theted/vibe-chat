@@ -1,6 +1,7 @@
-import React, { useId } from "react";
+import { useId } from "react";
+import type { CircuitIconProps } from '../types';
 
-const CircuitIcon = ({ className = "", title = "Stylized AI circuit", ...rest }) => {
+const CircuitIcon = ({ className = "", title = "Stylized AI circuit", ...rest }: CircuitIconProps) => {
   const gradientId = useId();
 
   return (

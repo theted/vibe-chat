@@ -1,31 +1,32 @@
-import React from "react";
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
-import ParticipantsList from "./ParticipantsList.jsx";
+import ParticipantsList from "./ParticipantsList";
+import type { ReactNode } from 'react';
+import type { AiParticipant } from '../config/aiParticipants';
 
 vi.mock("framer-motion", () => ({
   motion: {
-    div: ({ children, ...props }) => <div {...props}>{children}</div>,
+    div: ({ children, ...props }: { children: ReactNode; [key: string]: unknown }) => <div {...props}>{children}</div>,
   },
 }));
 
-vi.mock("./AnimatedListItem.jsx", () => ({
-  default: ({ children, ...props }) => <div {...props}>{children}</div>,
+vi.mock("./AnimatedListItem", () => ({
+  default: ({ children, ...props }: { children: ReactNode; [key: string]: unknown }) => <div {...props}>{children}</div>,
 }));
 
-vi.mock("./SectionHeader.jsx", () => ({
-  default: ({ title, count }) => (
+vi.mock("./SectionHeader", () => ({
+  default: ({ title, count }: { title: string; count: number }) => (
     <div data-testid={`section-${title}`}>{`${title} (${count})`}</div>
   ),
 }));
 
-vi.mock("./Icon.jsx", () => ({
-  default: ({ name }) => <span data-testid={`icon-${name}`}>{name}</span>,
+vi.mock("./Icon", () => ({
+  default: ({ name }: { name: string }) => <span data-testid={`icon-${name}`}>{name}</span>,
 }));
 
 describe("ParticipantsList", () => {
   it("groups AI participants by provider and sorts by model name", () => {
-    const aiParticipants = [
+    const aiParticipants: AiParticipant[] = [
       {
         id: "OPENAI_BETA",
         name: "Beta",

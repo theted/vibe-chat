@@ -2,15 +2,32 @@
  * Dashboard Component - Real-time metrics display
  */
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { useSocket } from '../hooks/useSocket';
-import StatusCard from './StatusCard.jsx';
+import StatusCard from './StatusCard';
+import type { DashboardMetrics, ConnectionStatus } from '../types';
+import type { AiParticipant } from '../config/aiParticipants';
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL || "http://localhost:3001";
 
+interface MetricCardProps {
+  title: string;
+  value: number | string;
+  subtitle?: string;
+  icon: string;
+  color?: string;
+}
+
+interface ProgressBarProps {
+  value: number;
+  max: number;
+  label: string;
+  color?: string;
+}
+
 const Dashboard = () => {
-  const [metrics, setMetrics] = useState({
+  const [metrics, setMetrics] = useState<DashboardMetrics>({
     totalAIMessages: 0,
     totalUserMessages: 0,
     totalMessages: 0,
@@ -22,10 +39,10 @@ const Dashboard = () => {
     uptime: 0,
     timestamp: Date.now()
   });
-  
-  const [connectionStatus, setConnectionStatus] = useState({ connected: false });
-  const [history, setHistory] = useState([]);
-  const [aiParticipants, setAiParticipants] = useState([]);
+
+  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>({ connected: false });
+  const [history, setHistory] = useState<unknown[]>([]);
+  const [aiParticipants, setAiParticipants] = useState<AiParticipant[]>([]);
   const [isVisible, setIsVisible] = useState(true);
 
   // Socket connection
@@ -47,22 +64,22 @@ const Dashboard = () => {
     });
 
     // Metrics events
-    on("metrics-update", (data) => {
-      setMetrics(data);
+    on("metrics-update", (data: unknown) => {
+      setMetrics(data as DashboardMetrics);
     });
 
-    on("metrics-history", (data) => {
-      setHistory(data);
+    on("metrics-history", (data: unknown) => {
+      setHistory(data as unknown[]);
     });
 
-    on("ai-participants", (data) => {
+    on("ai-participants", (data: unknown) => {
       setAiParticipants(Array.isArray(data) ? data : []);
     });
 
     // Join dashboard immediately if connected
     emit("join-dashboard");
     emit("get-ai-participants");
-    
+
   }, [on, emit]);
 
   // Auto-refresh metrics every 30 seconds
@@ -77,7 +94,7 @@ const Dashboard = () => {
   }, [connectionStatus.connected, emit]);
 
   // Format uptime
-  const formatUptime = (seconds) => {
+  const formatUptime = (seconds: number): string => {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     const secs = Math.floor(seconds % 60);
@@ -85,32 +102,32 @@ const Dashboard = () => {
   };
 
   // Format timestamp
-  const formatTime = (timestamp) => {
+  const formatTime = (timestamp: number): string => {
     return new Date(timestamp).toLocaleTimeString();
   };
 
-  const formatDateTime = (timestamp) => {
+  const formatDateTime = (timestamp: number | undefined): string => {
     if (!timestamp) return "";
     return new Date(timestamp).toLocaleString();
   };
 
-  const formatResponseTime = (value) => {
+  const formatResponseTime = (value: number | undefined): string => {
     const normalized = Number(value) || 0;
     return `${Math.round(normalized)} ms`;
   };
 
   // Calculate percentage
-  const getPercentage = (value, total) => {
+  const getPercentage = (value: number, total: number): number => {
     if (total === 0) return 0;
     return Math.round((value / total) * 100);
   };
 
-  const MetricCard = ({ title, value, subtitle, icon, color = 'blue' }) => (
+  const MetricCard = ({ title, value, subtitle, icon, color = 'blue' }: MetricCardProps): ReactNode => (
     <div className={`bg-gradient-to-br from-${color}-50 to-${color}-100 border border-${color}-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-300`}>
       <div className="flex items-center justify-between">
         <div>
           <p className={`text-${color}-600 text-sm font-medium uppercase tracking-wide`}>{title}</p>
-          <p className="text-3xl font-bold text-gray-900 mt-2">{value.toLocaleString()}</p>
+          <p className="text-3xl font-bold text-gray-900 mt-2">{typeof value === 'number' ? value.toLocaleString() : value}</p>
           {subtitle && <p className="text-gray-600 text-sm mt-1">{subtitle}</p>}
         </div>
         <div className={`text-${color}-500 text-4xl`}>{icon}</div>
@@ -118,7 +135,7 @@ const Dashboard = () => {
     </div>
   );
 
-  const ProgressBar = ({ value, max, label, color = 'blue' }) => {
+  const ProgressBar = ({ value, max, label, color = 'blue' }: ProgressBarProps): ReactNode => {
     const percentage = max > 0 ? (value / max) * 100 : 0;
     return (
       <div className="mb-4">
@@ -127,7 +144,7 @@ const Dashboard = () => {
           <span className="text-sm text-gray-500">{value} / {max}</span>
         </div>
         <div className="w-full bg-gray-200 rounded-full h-3">
-          <div 
+          <div
             className={`bg-gradient-to-r from-${color}-400 to-${color}-600 h-3 rounded-full transition-all duration-500 ease-out`}
             style={{ width: `${Math.min(percentage, 100)}%` }}
           ></div>
@@ -142,8 +159,8 @@ const Dashboard = () => {
   const activeAiParticipants = aiParticipants
     .filter((participant) => participant.status === "active")
     .sort((first, second) =>
-      (first.displayName || first.name || "").localeCompare(
-        second.displayName || second.name || ""
+      (first.name || "").localeCompare(
+        second.name || ""
       )
     );
 
@@ -158,7 +175,7 @@ const Dashboard = () => {
             </h1>
             <p className="text-gray-600 mt-2">Real-time metrics and analytics</p>
           </div>
-          
+
           <div className="flex items-center gap-4">
             <Link
               to="/"
@@ -166,12 +183,12 @@ const Dashboard = () => {
             >
               ← Back to Chat
             </Link>
-            
+
             <div className="flex items-center gap-2 text-sm bg-white rounded-lg px-4 py-2 shadow-sm">
               <div className={`w-3 h-3 rounded-full ${connectionStatus.connected ? 'bg-green-500' : 'bg-red-500 animate-pulse'}`}></div>
               <span>{connectionStatus.connected ? 'Connected' : 'Disconnected'}</span>
             </div>
-            
+
             <div className="text-sm text-gray-500 bg-white rounded-lg px-4 py-2 shadow-sm">
               Last updated: {formatTime(metrics.timestamp)}
             </div>
@@ -180,48 +197,48 @@ const Dashboard = () => {
 
         {/* Main Metrics Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          <MetricCard 
-            title="Total Messages" 
+          <MetricCard
+            title="Total Messages"
             value={metrics.totalMessages}
             subtitle="All time"
             icon="💬"
             color="blue"
           />
-          
-          <MetricCard 
-            title="AI Messages" 
+
+          <MetricCard
+            title="AI Messages"
             value={metrics.totalAIMessages}
             subtitle={`${getPercentage(metrics.totalAIMessages, metrics.totalMessages)}% of total`}
             icon="🤖"
             color="purple"
           />
-          
-          <MetricCard 
-            title="User Messages" 
+
+          <MetricCard
+            title="User Messages"
             value={metrics.totalUserMessages}
             subtitle={`${getPercentage(metrics.totalUserMessages, metrics.totalMessages)}% of total`}
             icon="👤"
             color="green"
           />
-          
-          <MetricCard 
-            title="Messages/Minute" 
+
+          <MetricCard
+            title="Messages/Minute"
             value={metrics.messagesPerMinute}
             subtitle="Current rate"
             icon="⚡"
             color="orange"
           />
-          
-          <MetricCard 
-            title="Active Users" 
+
+          <MetricCard
+            title="Active Users"
             value={metrics.activeUsers}
             subtitle="Currently online"
             icon="👥"
             color="teal"
           />
-          
-          <MetricCard 
-            title="Server Uptime" 
+
+          <MetricCard
+            title="Server Uptime"
             value={formatUptime(metrics.uptime)}
             subtitle="Since last restart"
             icon="⏱️"
@@ -234,16 +251,16 @@ const Dashboard = () => {
           {/* Message Distribution */}
           <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
             <h3 className="text-xl font-semibold text-gray-900 mb-6">Message Distribution</h3>
-            
-            <ProgressBar 
-              value={metrics.totalAIMessages} 
+
+            <ProgressBar
+              value={metrics.totalAIMessages}
               max={metrics.totalMessages}
               label="AI Messages"
               color="purple"
             />
-            
-            <ProgressBar 
-              value={metrics.totalUserMessages} 
+
+            <ProgressBar
+              value={metrics.totalUserMessages}
               max={metrics.totalMessages}
               label="User Messages"
               color="green"
@@ -254,8 +271,8 @@ const Dashboard = () => {
                 <div className="flex justify-between mb-2">
                   <span>AI to User Ratio:</span>
                   <span className="font-medium">
-                    {metrics.totalUserMessages > 0 
-                      ? (metrics.totalAIMessages / metrics.totalUserMessages).toFixed(2) 
+                    {metrics.totalUserMessages > 0
+                      ? (metrics.totalAIMessages / metrics.totalUserMessages).toFixed(2)
                       : '0'} : 1
                   </span>
                 </div>
@@ -327,7 +344,7 @@ const Dashboard = () => {
                 <tbody>
                   {(metrics.providerModelStats || []).length === 0 ? (
                     <tr>
-                      <td colSpan="5" className="py-4 text-gray-500">
+                      <td colSpan={5} className="py-4 text-gray-500">
                         No provider activity yet.
                       </td>
                     </tr>
@@ -389,7 +406,7 @@ const Dashboard = () => {
                   </span>
                   <div className="flex-1">
                     <p className="text-sm font-semibold text-gray-900">
-                      {participant.displayName || participant.name}
+                      {participant.name}
                     </p>
                     <p className="text-xs text-gray-500">@{participant.alias}</p>
                     <p className="text-xs text-gray-400 mt-1">

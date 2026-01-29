@@ -1,11 +1,10 @@
-import React from "react";
-
-import { DEFAULT_AI_PARTICIPANTS } from "../config/aiParticipants.ts";
-import ParticipantsList from "./ParticipantsList.jsx";
-import Icon from "./Icon.jsx";
-import ChatMessage from "./ChatMessage.jsx";
-
-import CircuitIcon from "./CircuitIcon.jsx";
+import type { FormEvent } from "react";
+import { DEFAULT_AI_PARTICIPANTS } from "../config/aiParticipants";
+import ParticipantsList from "./ParticipantsList";
+import Icon from "./Icon";
+import ChatMessage from "./ChatMessage";
+import CircuitIcon from "./CircuitIcon";
+import type { LoginViewProps } from '../types';
 
 const LoginView = ({
   connectionStatus,
@@ -18,8 +17,8 @@ const LoginView = ({
   previewMessages = [],
   previewParticipants = [],
   previewAiParticipants = [],
-}) => {
-  const handleSubmit = (event) => {
+}: LoginViewProps) => {
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     onJoin?.(event);
   };
@@ -87,9 +86,6 @@ const LoginView = ({
               onSubmit={handleSubmit}
               className="flex w-full max-w-lg flex-col gap-4"
             >
-              {/*<label className="text-xs uppercase tracking-[0.4em] text-slate-200/70">
-              Username
-            </label>*/}
               <input
                 type="text"
                 value={username}

@@ -2,15 +2,26 @@
  * AISelectionDialog Component - Modal for selecting AI to mention
  */
 
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { DEFAULT_AI_PARTICIPANTS } from "../config/aiParticipants.ts";
-import Icon from "./Icon.jsx";
+import { DEFAULT_AI_PARTICIPANTS } from "../config/aiParticipants";
+import Icon from "./Icon";
+import type { AISelectionDialogProps, DialogPosition } from '../types';
 
-const normalize = (value) =>
+interface MentionOption {
+  id: string;
+  name: string;
+  displayName: string;
+  provider: string;
+  emoji: string;
+  keywords: string[];
+  score?: number;
+}
+
+const normalize = (value: string | undefined | null): string =>
   value?.toLowerCase?.().replace(/[^a-z0-9]/g, "") || "";
 
-const fuzzyMatch = (term, candidate) => {
+const fuzzyMatch = (term: string, candidate: string): boolean => {
   if (!term) return true;
   let termIndex = 0;
   const normalizedTerm = term.toLowerCase();
@@ -27,7 +38,7 @@ const fuzzyMatch = (term, candidate) => {
   return termIndex === normalizedTerm.length;
 };
 
-const computeScore = (term, option) => {
+const computeScore = (term: string, option: MentionOption): number => {
   if (!term) return 0;
   const alias = option.name.toLowerCase();
   const display = option.displayName.toLowerCase();
@@ -49,11 +60,11 @@ const AISelectionDialog = ({
   onSelect,
   searchTerm = "",
   position,
-}) => {
-  const dialogRef = useRef(null);
+}: AISelectionDialogProps) => {
+  const dialogRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
 
-  const mentionOptions = useMemo(() => {
+  const mentionOptions = useMemo<MentionOption[]>(() => {
     const extras = [
       {
         id: "OPENAI_GPT4",
@@ -74,8 +85,8 @@ const AISelectionDialog = ({
     const combined = [...DEFAULT_AI_PARTICIPANTS, ...extras];
 
     return combined.map((ai) => {
-      const alias = ai.alias || ai.name || ai.displayName;
-      const displayName = ai.displayName || ai.name || alias || ai.id;
+      const alias = ai.alias || ai.name;
+      const displayName = ai.name || alias || ai.id;
       const normalizedAlias = normalize(alias);
       const normalizedName = normalize(ai.name || displayName);
       const normalizedProvider = normalize(ai.provider || "");
@@ -128,7 +139,7 @@ const AISelectionDialog = ({
 
   // Handle keyboard navigation
   useEffect(() => {
-    const handleKeyDown = (e) => {
+    const handleKeyDown = (e: KeyboardEvent) => {
       if (!isOpen) return;
 
       if (e.key === "Escape") {
@@ -156,8 +167,8 @@ const AISelectionDialog = ({
 
   // Handle clicks outside
   useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (dialogRef.current && !dialogRef.current.contains(e.target)) {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dialogRef.current && !dialogRef.current.contains(e.target as Node)) {
         onClose();
       }
     };
@@ -169,7 +180,7 @@ const AISelectionDialog = ({
     }
   }, [isOpen, onClose]);
 
-  const safePosition = useMemo(() => {
+  const safePosition = useMemo<DialogPosition>(() => {
     if (
       position &&
       typeof position.x === "number" &&

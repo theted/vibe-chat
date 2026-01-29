@@ -1,6 +1,6 @@
-import React from "react";
+import type { LoadingOverlayProps } from '../types';
 
-function LoadingOverlay({ visible, message = "Checking your session..." }) {
+const LoadingOverlay = ({ visible, message = "Checking your session..." }: LoadingOverlayProps) => {
   return (
     <div
       className={`fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-primary-50 via-white to-primary-100 dark:from-slate-950 dark:via-slate-950/95 dark:to-slate-900 transition-opacity duration-[800ms] ease-out ${
@@ -33,6 +33,6 @@ function LoadingOverlay({ visible, message = "Checking your session..." }) {
       </div>
     </div>
   );
-}
+};
 
 export default LoadingOverlay;

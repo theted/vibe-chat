@@ -1,21 +1,21 @@
-import React from "react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent, cleanup } from "@testing-library/react";
-import AISelectionDialog from "./AISelectionDialog.jsx";
+import AISelectionDialog from "./AISelectionDialog";
+import type { ReactNode } from 'react';
 
 vi.mock("framer-motion", () => ({
   motion: {
-    div: ({ children, ...props }) => <div {...props}>{children}</div>,
-    button: ({ children, ...props }) => <button {...props}>{children}</button>,
+    div: ({ children, ...props }: { children: ReactNode; [key: string]: unknown }) => <div {...props}>{children}</div>,
+    button: ({ children, ...props }: { children: ReactNode; [key: string]: unknown }) => <button {...props}>{children}</button>,
   },
-  AnimatePresence: ({ children }) => <>{children}</>,
+  AnimatePresence: ({ children }: { children: ReactNode }) => <>{children}</>,
 }));
 
-vi.mock("./Icon.jsx", () => ({
-  default: ({ name }) => <span data-testid={`icon-${name}`}>{name}</span>,
+vi.mock("./Icon", () => ({
+  default: ({ name }: { name: string }) => <span data-testid={`icon-${name}`}>{name}</span>,
 }));
 
-vi.mock("../config/aiParticipants.ts", () => ({
+vi.mock("../config/aiParticipants", () => ({
   DEFAULT_AI_PARTICIPANTS: [
     { id: "ALPHA", name: "Alpha", alias: "alpha", provider: "Test", emoji: "🅰️" },
     { id: "BETA", name: "Beta", alias: "beta", provider: "Test", emoji: "🅱️" },
