@@ -19,6 +19,7 @@ import {
   STRATEGY_INSTRUCTIONS,
   MENTION_FORMATS,
 } from "./constants.js";
+import { AI_PROVIDERS } from "../config/aiProviders/index.js";
 import {
   enhanceSystemPromptWithPersona,
   getPersonaFromProvider,
@@ -908,8 +909,14 @@ ${SYSTEM_PROMPT.CLOSING}`;
     const personasEnabled = parseBooleanEnvFlag(
       getEnvFlag("AI_CHAT_ENABLE_PERSONAS")
     );
+    const providerKey = aiService?.config?.providerKey;
+    const fallbackProvider = providerKey
+      ? AI_PROVIDERS[providerKey as keyof typeof AI_PROVIDERS]
+      : undefined;
     const personaProvider =
-      aiService?.service?.config?.provider || aiService?.config?.provider;
+      aiService?.service?.config?.provider ||
+      aiService?.config?.provider ||
+      fallbackProvider;
     const persona = personasEnabled
       ? getPersonaFromProvider(personaProvider)
       : null;
