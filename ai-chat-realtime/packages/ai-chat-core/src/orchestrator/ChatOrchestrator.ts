@@ -612,6 +612,7 @@ export class ChatOrchestrator extends EventEmitter {
 
     this.emit("ai-generating-start", aiMeta);
     aiService.isGenerating = true;
+    const responseStartTime = Date.now();
 
     try {
       console.log(
@@ -661,6 +662,7 @@ export class ChatOrchestrator extends EventEmitter {
       const response = await aiService.service.generateResponse(
         messagesWithSystem
       );
+      const responseTimeMs = Date.now() - responseStartTime;
       let processedResponse = this.truncateResponse(response);
       aiService.lastMessageTime = Date.now();
 
@@ -707,12 +709,22 @@ export class ChatOrchestrator extends EventEmitter {
 
       // Queue the AI response
       this.messageBroker.enqueueMessage(aiMessage as any);
+      this.emit("ai-response", {
+        ...aiMeta,
+        responseTimeMs,
+      });
     } catch (error) {
+      const responseTimeMs = Date.now() - responseStartTime;
       console.error(
         `❌ AI ${aiId} failed to generate response:`,
         error.message
       );
-      this.emit("ai-error", { aiId, error });
+      this.emit("ai-error", {
+        ...aiMeta,
+        aiId,
+        error,
+        responseTimeMs,
+      });
     } finally {
       aiService.isGenerating = false;
       this.emit("ai-generating-stop", aiMeta);

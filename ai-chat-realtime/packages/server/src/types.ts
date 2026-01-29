@@ -113,6 +113,8 @@ export type MetricsSnapshot = {
   messagesPerMinute: number;
   activeUsers: number;
   activeRooms: number;
+  providerModelStats?: ProviderModelStats[];
+  errorLogs?: ProviderErrorLogEntry[];
 };
 
 export type MetricsHistoryEntry = {
@@ -120,6 +122,21 @@ export type MetricsHistoryEntry = {
   aiMessages: number;
   userMessages: number;
   totalMessages: number;
+};
+
+export type ProviderModelStats = {
+  provider: string;
+  model: string;
+  requests: number;
+  errors: number;
+  meanResponseTimeMs: number;
+};
+
+export type ProviderErrorLogEntry = {
+  provider: string;
+  model: string;
+  message: string;
+  timestamp: number;
 };
 
 export type ActiveAIParticipant = {

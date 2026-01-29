@@ -17,6 +17,8 @@ const Dashboard = () => {
     messagesPerMinute: 0,
     activeUsers: 0,
     activeRooms: 0,
+    providerModelStats: [],
+    errorLogs: [],
     uptime: 0,
     timestamp: Date.now()
   });
@@ -78,6 +80,16 @@ const Dashboard = () => {
   // Format timestamp
   const formatTime = (timestamp) => {
     return new Date(timestamp).toLocaleTimeString();
+  };
+
+  const formatDateTime = (timestamp) => {
+    if (!timestamp) return "";
+    return new Date(timestamp).toLocaleString();
+  };
+
+  const formatResponseTime = (value) => {
+    const normalized = Number(value) || 0;
+    return `${Math.round(normalized)} ms`;
   };
 
   // Calculate percentage
@@ -279,6 +291,63 @@ const Dashboard = () => {
                 subtitle="Real-time tracking"
                 statusText="Collecting"
               />
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+            <h3 className="text-xl font-semibold text-gray-900 mb-6">Provider Performance</h3>
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-left text-sm">
+                <thead>
+                  <tr className="border-b border-gray-200 text-gray-500 uppercase text-xs tracking-wide">
+                    <th className="py-2 pr-4 font-semibold">Provider</th>
+                    <th className="py-2 pr-4 font-semibold">Model</th>
+                    <th className="py-2 pr-4 font-semibold">Requests</th>
+                    <th className="py-2 pr-4 font-semibold">Errors</th>
+                    <th className="py-2 pr-4 font-semibold">Mean Response</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(metrics.providerModelStats || []).length === 0 ? (
+                    <tr>
+                      <td colSpan="5" className="py-4 text-gray-500">
+                        No provider activity yet.
+                      </td>
+                    </tr>
+                  ) : (
+                    metrics.providerModelStats.map((stat) => (
+                      <tr key={`${stat.provider}-${stat.model}`} className="border-b border-gray-100">
+                        <td className="py-2 pr-4 font-medium text-gray-900">{stat.provider}</td>
+                        <td className="py-2 pr-4 text-gray-700">{stat.model}</td>
+                        <td className="py-2 pr-4 text-gray-700">{stat.requests}</td>
+                        <td className="py-2 pr-4 text-gray-700">{stat.errors}</td>
+                        <td className="py-2 pr-4 text-gray-700">{formatResponseTime(stat.meanResponseTimeMs)}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+            <h3 className="text-xl font-semibold text-gray-900 mb-6">Recent AI Errors</h3>
+            <div className="space-y-4 max-h-96 overflow-y-auto">
+              {(metrics.errorLogs || []).length === 0 ? (
+                <p className="text-gray-500 text-sm">No recent AI errors.</p>
+              ) : (
+                metrics.errorLogs.map((entry, index) => (
+                  <div key={`${entry.provider}-${entry.model}-${entry.timestamp}-${index}`} className="border border-gray-100 rounded-xl p-4">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="text-sm font-medium text-gray-900">{entry.provider} · {entry.model}</div>
+                      <div className="text-xs text-gray-500">{formatDateTime(entry.timestamp)}</div>
+                    </div>
+                    <p className="text-sm text-gray-600 mt-2 whitespace-pre-wrap">{entry.message}</p>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </div>
