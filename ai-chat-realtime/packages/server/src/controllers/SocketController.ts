@@ -323,11 +323,16 @@ export class SocketController {
       // Send current metrics immediately
       const metrics = this.metricsService.getDetailedMetrics();
       socket.emit("metrics-update", metrics);
+      socket.emit("ai-participants", this.getActiveAIParticipants());
     });
 
     socket.on("get-metrics", () => {
       const metrics = this.metricsService.getDetailedMetrics();
       socket.emit("metrics-update", metrics);
+    });
+
+    socket.on("get-ai-participants", () => {
+      socket.emit("ai-participants", this.getActiveAIParticipants());
     });
 
     socket.on("get-metrics-history", (data: MetricsHistoryPayload) => {
@@ -399,6 +404,7 @@ export class SocketController {
         roomName: room.name,
         topic: room.topic,
         participants: this.roomManager.getRoomParticipants(roomId),
+        aiParticipants: this.getActiveAIParticipants(),
       });
 
       socket.leave(this.previewRoomId);
@@ -645,6 +651,7 @@ export class SocketController {
         room,
         participants,
         aiStatus,
+        aiParticipants: this.getActiveAIParticipants(),
       });
 
     } catch (error) {

@@ -69,4 +69,30 @@ describe("ChatOrchestrator persona prompt behavior", () => {
       "did not expect persona context header in prompt"
     );
   });
+
+  it("injects persona details when only providerKey is available", () => {
+    process.env.AI_CHAT_ENABLE_PERSONAS = "true";
+    orchestrator = new ChatOrchestrator({
+      minBackgroundDelay: 1_000_000,
+      maxBackgroundDelay: 1_000_000,
+    });
+
+    const aiService = {
+      name: "OpenAI",
+      config: {
+        providerKey: "OPENAI",
+      },
+    };
+
+    const prompt = orchestrator.createEnhancedSystemPrompt(aiService, [], true);
+
+    assert.ok(
+      prompt.includes("PERSONALITY CONTEXT"),
+      "expected persona context header in prompt"
+    );
+    assert.ok(
+      prompt.includes(AI_PROVIDERS.OPENAI.persona?.basePersonality || ""),
+      "expected persona base personality in prompt"
+    );
+  });
 });

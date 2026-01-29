@@ -25,6 +25,7 @@ const Dashboard = () => {
   
   const [connectionStatus, setConnectionStatus] = useState({ connected: false });
   const [history, setHistory] = useState([]);
+  const [aiParticipants, setAiParticipants] = useState([]);
   const [isVisible, setIsVisible] = useState(true);
 
   // Socket connection
@@ -33,28 +34,34 @@ const Dashboard = () => {
   // Setup socket listeners
   useEffect(() => {
     // Connection events
-    on('connect', () => {
+    on("connect", () => {
       setConnectionStatus({ connected: true });
-      emit('join-dashboard');
-      emit('get-metrics');
-      emit('get-metrics-history', { duration: 60 * 60 * 1000 }); // Last hour
+      emit("join-dashboard");
+      emit("get-metrics");
+      emit("get-metrics-history", { duration: 60 * 60 * 1000 }); // Last hour
+      emit("get-ai-participants");
     });
 
-    on('disconnect', () => {
+    on("disconnect", () => {
       setConnectionStatus({ connected: false });
     });
 
     // Metrics events
-    on('metrics-update', (data) => {
+    on("metrics-update", (data) => {
       setMetrics(data);
     });
 
-    on('metrics-history', (data) => {
+    on("metrics-history", (data) => {
       setHistory(data);
     });
 
+    on("ai-participants", (data) => {
+      setAiParticipants(Array.isArray(data) ? data : []);
+    });
+
     // Join dashboard immediately if connected
-    emit('join-dashboard');
+    emit("join-dashboard");
+    emit("get-ai-participants");
     
   }, [on, emit]);
 
@@ -131,6 +138,14 @@ const Dashboard = () => {
   };
 
   if (!isVisible) return null;
+
+  const activeAiParticipants = aiParticipants
+    .filter((participant) => participant.status === "active")
+    .sort((first, second) =>
+      (first.displayName || first.name || "").localeCompare(
+        second.displayName || second.name || ""
+      )
+    );
 
   return (
     <div className="min-h-screen p-6">
@@ -350,6 +365,42 @@ const Dashboard = () => {
               )}
             </div>
           </div>
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 mb-8">
+          <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+            <h3 className="text-xl font-semibold text-gray-900">Enabled AI Participants</h3>
+            <span className="text-sm text-gray-500">
+              {activeAiParticipants.length} enabled
+            </span>
+          </div>
+
+          {activeAiParticipants.length === 0 ? (
+            <p className="text-sm text-gray-500">No active AI participants are currently enabled.</p>
+          ) : (
+            <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {activeAiParticipants.map((participant) => (
+                <li
+                  key={participant.id}
+                  className="flex items-center gap-4 rounded-xl border border-gray-100 bg-gray-50 px-4 py-3"
+                >
+                  <span className="text-2xl" aria-hidden="true">
+                    {participant.emoji || "🤖"}
+                  </span>
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-gray-900">
+                      {participant.displayName || participant.name}
+                    </p>
+                    <p className="text-xs text-gray-500">@{participant.alias}</p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      Provider: {participant.provider || "Unknown"}
+                    </p>
+                  </div>
+                  <span className="text-xs font-semibold uppercase tracking-wide text-green-600">
+                    Active
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
 
         {/* Footer */}
