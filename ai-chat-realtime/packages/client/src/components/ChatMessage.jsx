@@ -9,8 +9,8 @@ import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism/index.js";
 import { normalizeAlias, resolveEmoji } from "../utils/ai.ts";
 
-const MENTION_REGEX = /(@[\w.-]+(?:\s+[\w.-]+)*)/g;
-const MENTION_TEST_REGEX = /@[\w.-]+(?:\s+[\w.-]+)*/;
+const MENTION_REGEX = /(@\[[^\]]+\])/g;
+const MENTION_TEST_REGEX = /@\[[^\]]+\]/;
 
 const ChatMessage = ({ message, aiParticipants = [] }) => {
   // Format @mentions as bold text in code blocks for markdown
