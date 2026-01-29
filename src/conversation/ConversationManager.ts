@@ -10,34 +10,46 @@ import {
   DEFAULT_CONVERSATION_CONFIG,
   streamText,
 } from "@ai-chat/core";
+import type {
+  AIServiceConfig,
+  IAIService,
+  Message as CoreMessage,
+} from "@ai-chat/core";
 import { statsTracker } from "../services/StatsTracker.js";
 import { STREAM_WORD_DELAY_MS } from "../config/constants.js";
 
 // Define interfaces
-interface Message {
-  role: string;
-  content: string;
+type ConversationMessage = Omit<CoreMessage, "timestamp"> & {
   participantId?: number | null;
   timestamp?: string;
   authorName?: string;
-}
+};
 
 interface Participant {
   id: number;
-  service: any;
+  service: IAIService;
   name: string;
-  config: any;
+  config: AIServiceConfig;
 }
 
 interface ConversationConfig {
   maxTurns: number;
   timeoutMs: number;
+  logLevel?: string;
 }
 
 interface InternalResponder {
   name?: string;
-  shouldHandle: (message: Message, conversation?: Message[]) => boolean;
-  handleMessage: (params: { message: Message; conversation: Message[] }) => Promise<{ role?: string; content: string; authorName?: string } | null>;
+  shouldHandle: (
+    message: ConversationMessage,
+    conversation?: ConversationMessage[]
+  ) => boolean;
+  handleMessage: (params: {
+    message: ConversationMessage;
+    conversation: ConversationMessage[];
+  }) => Promise<
+    { role?: CoreMessage["role"]; content: string; authorName?: string } | null
+  >;
 }
 
 interface Dependencies {
@@ -45,14 +57,17 @@ interface Dependencies {
   core?: {
     AIServiceFactory?: typeof AIServiceFactory;
     getRandomAIConfig?: typeof getRandomAIConfig;
-    DEFAULT_CONVERSATION_CONFIG?: any;
+    DEFAULT_CONVERSATION_CONFIG?: ConversationConfig;
     streamText?: typeof streamText;
   };
   internalResponders?: InternalResponder[];
 }
 
 // Helper builders extracted for readability
-const summarizeParticipantTopics = (messages: Message[], participants: Participant[]): Record<string, string> => {
+const summarizeParticipantTopics = (
+  messages: ConversationMessage[],
+  participants: Participant[]
+): Record<string, string> => {
   const topics: Record<string, string> = {};
   participants.forEach((p) => {
     const responses = messages
@@ -67,7 +82,10 @@ const summarizeParticipantTopics = (messages: Message[], participants: Participa
   return topics;
 };
 
-const buildSystemMessage = (cm: ConversationManager, participant: Participant): Message => {
+const buildSystemMessage = (
+  cm: ConversationManager,
+  participant: Participant
+): ConversationMessage => {
   const { messages, config, turnCount, participants } = cm;
   const otherParticipants = participants
     .filter((p) => p.id !== participant.id)
@@ -118,7 +136,7 @@ This is turn #${turnCount + 1} of ${config.maxTurns}${isLastTurn ? " (FINAL TURN
 export class ConversationManager {
   public config: ConversationConfig;
   public participants: Participant[] = [];
-  public messages: Message[] = [];
+  public messages: ConversationMessage[] = [];
   public isActive: boolean = false;
   public turnCount: number = 0;
   public startTime: number | null = null;
@@ -156,7 +174,7 @@ export class ConversationManager {
    * @param aiConfig - AI provider and model configuration
    * @returns The participant ID
    */
-  addParticipant(aiConfig: any): number {
+  addParticipant(aiConfig: AIServiceConfig): number {
     const service = this.aiServiceFactory.createService(aiConfig);
     const participant: Participant = {
       id: this.participants.length,
@@ -262,8 +280,10 @@ export class ConversationManager {
         this.turnCount++;
 
         // No delay between AI responses to keep the conversation flowing
-      } catch (error: any) {
-        console.error(`Error in conversation: ${error.message}`);
+      } catch (error: unknown) {
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
+        console.error(`Error in conversation: ${errorMessage}`);
         this.isActive = false;
         break;
       }
@@ -298,8 +318,8 @@ export class ConversationManager {
    * Add a message to the conversation
    * @param message - The message to add
    */
-  addMessage(message: Message): void {
-    const enrichedMessage: Message = {
+  addMessage(message: ConversationMessage): void {
+    const enrichedMessage: ConversationMessage = {
       ...message,
       timestamp: new Date().toISOString(),
     };
@@ -338,7 +358,11 @@ export class ConversationManager {
    * Get the conversation history
    * @returns The conversation history
    */
-  getConversationHistory(): Array<{ from: string; content: string; timestamp: string }> {
+  getConversationHistory(): Array<{
+    from: string;
+    content: string;
+    timestamp: string;
+  }> {
     return this.messages.map((msg) => {
       const participant =
         msg.participantId !== null
@@ -361,7 +385,9 @@ export class ConversationManager {
     console.log("Conversation stopped");
   }
 
-  async #handleInternalResponders(sourceMessage: Message): Promise<void> {
+  async #handleInternalResponders(
+    sourceMessage: ConversationMessage
+  ): Promise<void> {
     if (!sourceMessage || this.internalResponders.length === 0) {
       return;
     }
@@ -401,11 +427,13 @@ export class ConversationManager {
           `[${response.authorName || responder.name || "Internal"}]: `,
           STREAM_WORD_DELAY_MS
         );
-      } catch (error: any) {
+      } catch (error: unknown) {
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
         console.error(
           `Internal responder "${
             responder.name || "unknown"
-          }" failed: ${error.message}`
+          }" failed: ${errorMessage}`
         );
       }
     }
