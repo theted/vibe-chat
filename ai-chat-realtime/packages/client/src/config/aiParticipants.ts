@@ -119,7 +119,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     name: "ChatGPT 5.1 Mini",
     alias: "gpt-5.1-mini",
     provider: "OpenAI",
-    status: "active",
+    status: "inactive",
     emoji: "⚡",
   },
   {
@@ -127,7 +127,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     name: "OpenAI o3",
     alias: "o3",
     provider: "OpenAI",
-    status: "active",
+    status: "inactive",
     emoji: "🧪",
   },
   {
@@ -135,7 +135,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     name: "OpenAI o3-mini",
     alias: "o3-mini",
     provider: "OpenAI",
-    status: "active",
+    status: "inactive",
     emoji: "🧮",
   },
   {
@@ -143,7 +143,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     name: "OpenAI o4-mini",
     alias: "o4-mini",
     provider: "OpenAI",
-    status: "active",
+    status: "inactive",
     emoji: "🛰️",
   },
   {
@@ -209,30 +209,6 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     provider: "xAI",
     status: "active",
     emoji: "💻",
-  },
-  {
-    id: "GROK_GROK_2_1212",
-    name: "Grok 2",
-    alias: "grok-2",
-    provider: "xAI",
-    status: "active",
-    emoji: "✌️",
-  },
-  {
-    id: "GROK_GROK_2_VISION_1212",
-    name: "Grok 2 Vision",
-    alias: "grok-2-vision",
-    provider: "xAI",
-    status: "active",
-    emoji: "👁️",
-  },
-  {
-    id: "GROK_GROK_2_IMAGE_1212",
-    name: "Grok 2 Image",
-    alias: "grok-2-image",
-    provider: "xAI",
-    status: "active",
-    emoji: "🖼️",
   },
   {
     id: "GEMINI_GEMINI_PRO",

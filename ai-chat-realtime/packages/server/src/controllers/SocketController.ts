@@ -145,6 +145,36 @@ export class SocketController {
     );
 
     this.chatOrchestrator.on(
+      "ai-response",
+      (payload: {
+        providerKey?: string;
+        modelKey?: string;
+        responseTimeMs?: number;
+      }) => {
+        this.metricsService.recordAIResponse(payload);
+      }
+    );
+
+    this.chatOrchestrator.on(
+      "ai-error",
+      (payload: {
+        providerKey?: string;
+        modelKey?: string;
+        responseTimeMs?: number;
+        error?: Error;
+      }) => {
+        const errorMessage =
+          payload.error instanceof Error ? payload.error.message : undefined;
+        this.metricsService.recordAIError({
+          providerKey: payload.providerKey,
+          modelKey: payload.modelKey,
+          responseTimeMs: payload.responseTimeMs,
+          errorMessage,
+        });
+      }
+    );
+
+    this.chatOrchestrator.on(
       "topic-changed",
       ({
         newTopic,

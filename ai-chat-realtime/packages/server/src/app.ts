@@ -158,11 +158,6 @@ const AI_DISPLAY_INFO: Record<string, AiDisplayInfo> = {
     alias: "grok-code",
     emoji: "💻",
   },
-  GROK_GROK_2_1212: {
-    displayName: "Grok 2",
-    alias: "grok-2",
-    emoji: "🤖",
-  },
   GEMINI_GEMINI_PRO: {
     displayName: "Gemini Pro",
     alias: "gemini",
@@ -215,7 +210,36 @@ const AI_DISPLAY_INFO: Record<string, AiDisplayInfo> = {
   },
 };
 
+const OPENAI_MODEL_KEYS = [
+  "GPT5",
+  "GPT5_1",
+  "GPT5_1_MINI",
+  "GPT5_2",
+  "GPT4_1",
+  "GPT4O",
+  "O3",
+  "O3_MINI",
+  "O4_MINI",
+  "GPT35_TURBO",
+];
+
 const allowedOrigins = "*";
+
+const parseModelAllowlist = (
+  envVarName: string,
+  validKeys: string[]
+): string[] => {
+  const rawList = process.env[envVarName];
+  if (!rawList) {
+    return [];
+  }
+  const normalized = rawList
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .map((item) => item.replace(/-/g, "_").toUpperCase());
+  return normalized.filter((item) => validKeys.includes(item));
+};
 
 const app = express();
 const server = createServer(app);
@@ -363,16 +387,26 @@ async function initializeAISystem(): Promise<ChatOrchestrator> {
   };
 
   if (process.env.OPENAI_API_KEY) {
-    addConfig("OPENAI", "GPT5");
-    addConfig("OPENAI", "GPT5_1");
-    addConfig("OPENAI", "GPT5_1_MINI");
-    addConfig("OPENAI", "GPT5_2");
-    addConfig("OPENAI", "GPT4_1");
-    addConfig("OPENAI", "GPT4O");
-    addConfig("OPENAI", "O3");
-    addConfig("OPENAI", "O3_MINI");
-    addConfig("OPENAI", "O4_MINI");
-    addConfig("OPENAI", "GPT35_TURBO");
+    const defaultOpenAIModels = [
+      "GPT5",
+      "GPT5_1",
+      "GPT5_2",
+      "GPT4_1",
+      "GPT4O",
+      "GPT35_TURBO",
+    ];
+    const allowlist = parseModelAllowlist(
+      "OPENAI_MODEL_ALLOWLIST",
+      OPENAI_MODEL_KEYS
+    );
+    if (process.env.OPENAI_MODEL_ALLOWLIST && allowlist.length === 0) {
+      console.warn(
+        "⚠️  OPENAI_MODEL_ALLOWLIST did not match any supported OpenAI models; using defaults."
+      );
+    }
+    const selectedModels =
+      allowlist.length > 0 ? allowlist : defaultOpenAIModels;
+    selectedModels.forEach((modelKey) => addConfig("OPENAI", modelKey));
   }
 
   if (process.env.ANTHROPIC_API_KEY) {
@@ -393,7 +427,6 @@ async function initializeAISystem(): Promise<ChatOrchestrator> {
     addConfig("GROK", "GROK_4_FAST_REASONING");
     addConfig("GROK", "GROK_4_FAST_NON_REASONING");
     addConfig("GROK", "GROK_CODE_FAST_1");
-    addConfig("GROK", "GROK_2_1212");
   }
 
   if (process.env.GOOGLE_AI_API_KEY) {

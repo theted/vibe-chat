@@ -141,9 +141,7 @@ Current defaults and IDs (see `ai-chat-realtime/packages/ai-chat-core/src/config
   - `GPT4O` → `gpt-4o`
   - `GPT4_1` → `gpt-4.1` (specialized for coding)
   - `GPT5` → `gpt-5` (most advanced with multimodal)
-  - `GPT5_1` → `gpt-5.1`
-  - `GPT5_1_MINI` → `gpt-5.1-mini`
-  - `GPT5_2` → `gpt-5.2`
+  - Defaults initialize `GPT5`, `GPT5_1`, `GPT5_2`, `GPT4_1`, `GPT4O`, and `GPT35_TURBO`. To enable other OpenAI models (for example `GPT5_1_MINI`, `O3`, `O3_MINI`, `O4_MINI`), set `OPENAI_MODEL_ALLOWLIST` to a comma-separated list of OpenAI model keys.
   - `O3` → `o3-2025-04-16` (intelligent reasoning model)
   - `O3_MINI` → `o3-mini` (cost-efficient reasoning)
   - `O4_MINI` → `o4-mini` (fast reasoning for math/coding)
@@ -183,9 +181,6 @@ Current defaults and IDs (see `ai-chat-realtime/packages/ai-chat-core/src/config
   - `GROK_4_FAST_REASONING` → `grok-4-fast-reasoning` (2M context)
   - `GROK_4_HEAVY` → `grok-4-heavy` (enhanced capabilities)
   - `GROK_CODE_FAST_1` → `grok-code-fast-1` (agentic coding)
-  - `GROK_2_1212` → `grok-2-1212`
-  - `GROK_2_VISION_1212` → `grok-2-vision-1212`
-  - `GROK_2_IMAGE_1212` → `grok-2-image-1212`
 - Cohere ([API keys](https://dashboard.cohere.com/api-keys))
   - `COMMAND_A_03_2025` (default) → `command-a-03-2025`
   - `COMMAND_A_REASONING_08_2025` → `command-a-reasoning-08-2025`
