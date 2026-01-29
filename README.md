@@ -141,6 +141,7 @@ Current defaults and IDs (see `src/config/aiProviders.js`):
   - `GPT4O` → `gpt-4o`
   - `GPT4_1` → `gpt-4.1` (specialized for coding)
   - `GPT5` → `gpt-5` (most advanced with multimodal)
+  - Defaults initialize `GPT5`, `GPT5_1`, `GPT5_2`, `GPT4_1`, `GPT4O`, and `GPT35_TURBO`. To enable other OpenAI models (for example `GPT5_1_MINI`, `O3`, `O3_MINI`, `O4_MINI`), set `OPENAI_MODEL_ALLOWLIST` to a comma-separated list of OpenAI model keys.
   - `O3` → `o3-2025-04-16` (intelligent reasoning model)
   - `O3_MINI` → `o3-mini` (cost-efficient reasoning)
   - `O4_MINI` → `o4-mini` (fast reasoning for math/coding)
