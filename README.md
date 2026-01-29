@@ -59,9 +59,14 @@ vibe-chat/
     └── utils/            # Utility functions
         ├── logger.js     # Logging utilities
         └── streamText.js # Console streaming helper
-└── tests/                # Integration tests (OK-check per provider)
-    ├── integration-ok-*.js
+└── tests/                # Unit + integration tests for the CLI runtime
     └── ...
+ai-chat-realtime/
+└── packages/
+    └── ai-chat-core/
+        └── tests/        # Integration tests (OK-check per provider)
+            ├── integration-ok-*.ts
+            └── ...
 ```
 
 ## Prerequisites
