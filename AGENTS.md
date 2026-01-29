@@ -10,6 +10,7 @@ Welcome! This document gives automated agents and humans a quick reference for h
 - `/tests/` – Node test suites. `unit/` focuses on pure logic, while top-level `test-*.js` and `integration-ok-*.js` files exercise provider integrations and contract checks.
 - `/ai-chat-realtime/` – Git sub-package that exposes the `@ai-chat/core` dependency used by the app. Contains Docker tooling, deployment scripts, and additional packages.
 - `/ai-chat-realtime/packages/mcp-assistant/` – Local MCP server package that powers the internal @Chat assistant.
+- `/ai-chat-realtime/packages/ai-chat-core/src/utils/orchestrator/` – Shared utilities that support ChatOrchestrator behavior (prompting, scheduling, mentions).
 - `/scripts/` – Workspace scripts, including the MCP generation driver.
 - `/.mcp-data/` (legacy) – Previous on-disk embedding cache. The new LangChain/Chroma setup stores vectors in the `chroma` Docker volume; this folder can be ignored or deleted if present.
 - `/play.js` – Scratchpad for manual experiments; avoid shipping critical logic here.
