@@ -158,11 +158,6 @@ const AI_DISPLAY_INFO: Record<string, AiDisplayInfo> = {
     alias: "grok-code",
     emoji: "💻",
   },
-  GROK_GROK_2_1212: {
-    displayName: "Grok 2",
-    alias: "grok-2",
-    emoji: "🤖",
-  },
   GEMINI_GEMINI_PRO: {
     displayName: "Gemini Pro",
     alias: "gemini",
@@ -393,7 +388,6 @@ async function initializeAISystem(): Promise<ChatOrchestrator> {
     addConfig("GROK", "GROK_4_FAST_REASONING");
     addConfig("GROK", "GROK_4_FAST_NON_REASONING");
     addConfig("GROK", "GROK_CODE_FAST_1");
-    addConfig("GROK", "GROK_2_1212");
   }
 
   if (process.env.GOOGLE_AI_API_KEY) {

@@ -69,27 +69,6 @@ export const GROK: AIProvider = {
       systemPrompt:
         "You are Grok Code Fast 1 by xAI, a sharp coding partner. Say hello once, then offer concise, practical code insights and crisp technical riffs.",
     },
-    GROK_2_1212: {
-      id: "grok-2-1212",
-      maxTokens: DEFAULT_MAX_TOKENS,
-      temperature: DEFAULT_TEMPERATURE,
-      systemPrompt:
-        "You are Grok 2 by xAI. Open with a quick hello once, then keep the conversation lively with direct, witty responses.",
-    },
-    GROK_2_VISION_1212: {
-      id: "grok-2-vision-1212",
-      maxTokens: DEFAULT_MAX_TOKENS,
-      temperature: DEFAULT_TEMPERATURE,
-      systemPrompt:
-        "You are Grok 2 Vision by xAI. Greet once, then bring sharp, visual-aware insights and playful banter into the discussion.",
-    },
-    GROK_2_IMAGE_1212: {
-      id: "grok-2-image-1212",
-      maxTokens: DEFAULT_MAX_TOKENS,
-      temperature: DEFAULT_TEMPERATURE,
-      systemPrompt:
-        "You are Grok 2 Image by xAI. Say hello once, then stay concise, witty, and ready to describe or reason about visuals when needed.",
-    },
   },
   apiKeyEnvVar: "GROK_API_KEY",
 };
