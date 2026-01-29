@@ -30,22 +30,32 @@ const ParticipantsList = ({
 
   const baseAIList =
     aiParticipants.length > 0 ? aiParticipants : DEFAULT_AI_PARTICIPANTS;
-  const aiList = baseAIList
-    .map((ai) => {
-      const alias = ai.alias || ai.name || ai.displayName;
-      return {
-        ...ai,
-        displayName: ai.displayName || ai.name,
-        alias,
-        normalizedAlias: normalize(ai.normalizedAlias || alias),
-        status: ai.status || "active",
-      };
-    })
-    .sort((a, b) => {
-      const nameA = (a.displayName || a.name || "").toLowerCase();
-      const nameB = (b.displayName || b.name || "").toLowerCase();
-      return nameA.localeCompare(nameB);
-    });
+  const aiList = baseAIList.map((ai) => {
+    const alias = ai.alias || ai.name || ai.displayName;
+    return {
+      ...ai,
+      displayName: ai.displayName || ai.name,
+      alias,
+      normalizedAlias: normalize(ai.normalizedAlias || alias),
+      status: ai.status || "active",
+    };
+  });
+
+  const aiProviders = aiList.reduce((groups, ai) => {
+    const provider = ai.provider || "Other";
+    if (!groups.has(provider)) {
+      groups.set(provider, []);
+    }
+    groups.get(provider).push(ai);
+    return groups;
+  }, new Map());
+
+  const sortedProviders = Array.from(aiProviders.keys()).sort((a, b) =>
+    a.localeCompare(b)
+  );
+
+  const getModelSortKey = (ai) =>
+    (ai.displayName || ai.name || "").toLowerCase();
 
   const isUserTyping = (username) => {
     const normalizedUsername = username?.toLowerCase();
@@ -135,44 +145,70 @@ const ParticipantsList = ({
         <div>
           <SectionHeader icon="monitor" title="AI Assistants" count={aiList.length} />
           <div className="pb-2">
-            {aiList.map((ai, index) => {
-              const generating = isAITyping(ai);
-              return (
-                <AnimatedListItem
-                  key={`ai-${index}`}
-                  index={index}
-                  className="hover:bg-purple-50 dark:hover:bg-slate-800/60"
-                >
-                  <div
-                    className={`text-2xl ${generating ? "animate-pulse" : ""}`}
-                  >
-                    {ai.emoji || "🤖"}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium text-slate-700 truncate dark:text-slate-200">
-                      {ai.displayName || ai.name}
+            {(() => {
+              let aiIndex = 0;
+              return sortedProviders.map((provider) => {
+                const providerParticipants = [...aiProviders.get(provider)].sort(
+                  (a, b) => getModelSortKey(a).localeCompare(getModelSortKey(b))
+                );
+
+                return (
+                  <div key={provider} className="pb-2 last:pb-0">
+                    <div
+                      className="px-4 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500 bg-slate-50/70 dark:text-slate-300 dark:bg-slate-900/60"
+                      data-testid={`ai-provider-${provider}`}
+                    >
+                      {provider} ({providerParticipants.length})
                     </div>
-                    <div className="text-xs text-slate-500 truncate dark:text-slate-400">
-                      {ai.provider}
-                    </div>
+                    {providerParticipants.map((ai) => {
+                      const generating = isAITyping(ai);
+                      const itemIndex = aiIndex;
+                      aiIndex += 1;
+                      return (
+                        <AnimatedListItem
+                          key={`ai-${provider}-${ai.id || ai.alias || aiIndex}`}
+                          index={itemIndex}
+                          className="hover:bg-purple-50 dark:hover:bg-slate-800/60"
+                        >
+                          <div
+                            className={`text-2xl ${generating ? "animate-pulse" : ""}`}
+                          >
+                            {ai.emoji || "🤖"}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div
+                              className="font-medium text-slate-700 truncate dark:text-slate-200"
+                              data-testid={`ai-name-${ai.id || ai.alias || aiIndex}`}
+                            >
+                              {ai.displayName || ai.name}
+                            </div>
+                            <div className="text-xs text-slate-500 truncate dark:text-slate-400">
+                              {ai.provider}
+                            </div>
+                          </div>
+                          {generating ? (
+                            <span className="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full font-medium flex items-center gap-1 dark:bg-purple-500/20 dark:text-purple-200">
+                              <div className="w-1.5 h-1.5 bg-purple-600 rounded-full animate-bounce dark:bg-purple-300"></div>
+                              typing...
+                            </span>
+                          ) : (
+                            <span
+                              className={`text-xs px-2 py-1 rounded-full font-medium ${
+                                ai.status === "active"
+                                  ? "bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-200"
+                                  : "bg-orange-100 text-orange-800 dark:bg-orange-500/20 dark:text-orange-200"
+                              }`}
+                            >
+                              {ai.status}
+                            </span>
+                          )}
+                        </AnimatedListItem>
+                      );
+                    })}
                   </div>
-                  {generating ? (
-                    <span className="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full font-medium flex items-center gap-1 dark:bg-purple-500/20 dark:text-purple-200">
-                      <div className="w-1.5 h-1.5 bg-purple-600 rounded-full animate-bounce dark:bg-purple-300"></div>
-                      typing...
-                    </span>
-                  ) : (
-                    <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                      ai.status === 'active'
-                        ? 'bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-200'
-                        : 'bg-orange-100 text-orange-800 dark:bg-orange-500/20 dark:text-orange-200'
-                    }`}>
-                      {ai.status}
-                    </span>
-                  )}
-                </AnimatedListItem>
-              );
-            })}
+                );
+              });
+            })()}
           </div>
         </div>
       </div>
