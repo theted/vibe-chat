@@ -12,6 +12,9 @@
     "checkJs": false,
     "outDir": "./dist",
     "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    },
     "declaration": false,
     "noEmitOnError": false
   },

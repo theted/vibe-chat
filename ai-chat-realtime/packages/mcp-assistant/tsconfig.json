@@ -18,6 +18,10 @@
     "sourceMap": true,
     "outDir": "./dist",
     "rootDir": "./src",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    },
     "lib": ["ES2022", "DOM"],
     "allowJs": true,
     "checkJs": false,
