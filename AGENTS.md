@@ -13,6 +13,7 @@ This is a monorepo with multiple packages under `/packages/`:
 
 ### Application packages
 - `/packages/server/` – WebSocket-based chat server that hosts real-time AI conversations.
+- `/packages/server/src/utils/` – Server-only helpers for app startup, lifecycle, and shared state.
 - `/packages/client/` – React-based web client for the chat application.
 - `/packages/ai-chat-cli/` – CLI tool for running AI-to-AI conversations from the terminal.
 
