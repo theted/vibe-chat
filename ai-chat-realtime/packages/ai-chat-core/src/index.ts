@@ -64,6 +64,7 @@ export { PerplexityService } from "./services/PerplexityService.js";
 // AI provider configuration helpers
 export {
   AI_PROVIDERS,
+  DEFAULT_MODELS,
   getRandomAIConfig,
   DEFAULT_CONVERSATION_CONFIG,
   DEFAULT_TEMPERATURE as CONFIG_DEFAULT_TEMPERATURE,

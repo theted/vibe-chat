@@ -19,7 +19,7 @@ import {
   DEFAULT_MODELS,
   streamText,
 } from "@ai-chat/core";
-import type { AIModel, AIProvider, AIServiceConfig } from "@ai-chat/core";
+import type { AIModel, AIProvider, AIServiceConfig, Message } from "@ai-chat/core";
 import {
   statsTracker,
 } from "./src/services/StatsTracker.js";
@@ -53,6 +53,7 @@ interface ConversationHistoryEntry {
   from: string;
   content: string;
   timestamp: string;
+  role?: "user" | "assistant" | "system";
 }
 
 interface ParticipantMetadata {
@@ -89,6 +90,15 @@ interface ContinueOptions {
   additionalTurns: number;
 }
 
+/**
+ * Convert conversation history entries to Message format for core functions
+ */
+const toMessages = (entries: ConversationHistoryEntry[]): Message[] =>
+  entries.map((entry) => {
+    const role: Message["role"] = entry.role || (entry.from === "User" ? "user" : "assistant");
+    return { role, content: entry.content };
+  });
+
 const moduleDir = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = moduleDir;
 
@@ -117,7 +127,9 @@ const createConversationManager = async (config: Record<string, unknown> = {}): 
     projectRoot,
   });
 
-  const responders: unknown[] = [];
+  // Use 'any' to avoid type conflicts between different InternalResponder definitions
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const responders: any[] = [];
 
   try {
     await chatAssistant.initialise();
@@ -464,10 +476,10 @@ const startAIConversation = async (options: ConversationOptions): Promise<void> 
     // Get and display the conversation history
     const history = conversationManager.getConversationHistory();
     console.log("\nConversation Summary:");
-    console.log(formatConversation(history));
+    console.log(formatConversation(toMessages(history)));
 
     // Save the conversation to a file
-    saveConversationToFile(history, options.topic, {
+    saveConversationToFile(toMessages(history), options.topic, {
       mode: "conversation",
       participants: participantMeta,
       maxTurns: options.maxTurns,
@@ -503,11 +515,11 @@ const getSinglePromptResponses = async (options: ConversationOptions): Promise<v
       })
     );
     const hasInitialConversation = !!options.initialConversation;
-    const conversation = hasInitialConversation
-      ? [...options.initialConversation]
+    const conversation: Message[] = hasInitialConversation
+      ? [...(options.initialConversation || [])]
       : [
           {
-            role: "user",
+            role: "user" as const,
             content: options.topic,
           },
         ];
@@ -560,8 +572,8 @@ const getSinglePromptResponses = async (options: ConversationOptions): Promise<v
           (m) => m.role === "assistant"
         ).length;
         const earlyPhase = assistantTurns < participantConfigs.length;
-        const systemMessage = {
-          role: "system",
+        const systemMessage: Message = {
+          role: "system" as const,
           content: [
             `You are participating in a group chat about "${options.topic}".`,
             "Keep your response concise (1-3 sentences).",
@@ -574,16 +586,17 @@ const getSinglePromptResponses = async (options: ConversationOptions): Promise<v
         };
 
         // Build messages with system prompt and conversation history
-        const messages = [systemMessage, ...conversation];
+        const messages: Message[] = [systemMessage, ...conversation];
 
         // Generate response
-        const response = await service.generateResponse(messages);
+        const serviceResponse = await service.generateResponse(messages);
+        const responseText = serviceResponse.content;
 
         // Truncate if too long (safety net)
         const truncatedResponse =
-          response.length > MAX_STREAMED_RESPONSE_LENGTH
-            ? response.substring(0, MAX_STREAMED_RESPONSE_LENGTH) + "..."
-            : response;
+          responseText.length > MAX_STREAMED_RESPONSE_LENGTH
+            ? responseText.substring(0, MAX_STREAMED_RESPONSE_LENGTH) + "..."
+            : responseText;
 
         // Stream the response
         await streamText(
@@ -594,7 +607,7 @@ const getSinglePromptResponses = async (options: ConversationOptions): Promise<v
 
         // Add response to conversation history
         conversation.push({
-          role: "assistant",
+          role: "assistant" as const,
           content: truncatedResponse,
         });
         statsTracker
@@ -628,10 +641,10 @@ const getSinglePromptResponses = async (options: ConversationOptions): Promise<v
 
     // Display summary
     console.log("\nGroup Chat Summary:");
-    console.log(formatConversation(responses));
+    console.log(formatConversation(toMessages(responses)));
 
     // Save responses to file
-    saveConversationToFile(responses, options.topic, {
+    saveConversationToFile(toMessages(responses), options.topic, {
       ...metadataBase,
       mode: "singlePrompt",
       participants: participantMeta,
@@ -695,7 +708,9 @@ const continueConversationFromFile = async (options: ContinueOptions): Promise<v
       });
 
       // Rebuild conversation state
-      const savedMessages = conversationData.messages || [];
+      // Loaded messages may have extra properties like 'from' from saved files
+      type LoadedMessage = Message & { from?: string; participantId?: number | null };
+      const savedMessages = (conversationData.messages || []) as LoadedMessage[];
       if (!savedMessages.length) {
         throw new Error("Conversation file contains no messages to continue.");
       }
@@ -726,7 +741,9 @@ const continueConversationFromFile = async (options: ContinueOptions): Promise<v
           role: isUser ? "user" : "assistant",
           content: msg.content,
           participantId,
-          timestamp: msg.timestamp || new Date().toISOString(),
+          timestamp: typeof msg.timestamp === "number"
+            ? new Date(msg.timestamp).toISOString()
+            : (msg.timestamp || new Date().toISOString()),
         });
 
         if (participantId !== null) assistantTurns += 1;
@@ -757,7 +774,7 @@ const continueConversationFromFile = async (options: ContinueOptions): Promise<v
 
       const history = conversationManager.getConversationHistory();
       console.log("\nUpdated Conversation Summary:");
-      console.log(formatConversation(history));
+      console.log(formatConversation(toMessages(history)));
 
       const metadataForSave = {
         ...metadata,
@@ -769,27 +786,34 @@ const continueConversationFromFile = async (options: ContinueOptions): Promise<v
         totalTurns: history.filter((msg) => msg.from !== "User").length,
       };
 
-      saveConversationToFile(history, topic, metadataForSave);
+      saveConversationToFile(toMessages(history), topic, metadataForSave);
       return;
     }
 
     // Single prompt mode continuation
-    const initialConversation = [
+    type LoadedMessage = Message & { from?: string };
+    const loadedMessages = (conversationData.messages || []) as LoadedMessage[];
+    const initialConversation: Array<{ role: "user" | "assistant" | "system"; content: string }> = [
       {
-        role: "user",
+        role: "user" as const,
         content: topic,
       },
     ];
     const existingResponses: ConversationHistoryEntry[] = [];
-    (conversationData.messages || []).forEach((msg) => {
-      if (msg.from === "User") {
+    loadedMessages.forEach((msg) => {
+      if (msg.from === "User" || msg.role === "user") {
         // Already captured as initial prompt
         return;
       }
 
-      existingResponses.push({ ...msg });
+      existingResponses.push({
+        from: msg.from || "Assistant",
+        content: msg.content,
+        timestamp: String(msg.timestamp || new Date().toISOString()),
+        role: msg.role,
+      });
       initialConversation.push({
-        role: "assistant",
+        role: "assistant" as const,
         content: msg.content,
       });
     });
@@ -821,7 +845,15 @@ const main = async () => {
   const options = parseArgs();
   if (!options) return;
   if (options.command === "continue") {
-    await continueConversationFromFile(options);
+    if (!options.conversationFile) {
+      console.error("Error: conversationFile is required for continue command");
+      return;
+    }
+    await continueConversationFromFile({
+      conversationFile: options.conversationFile,
+      participants: options.participants,
+      additionalTurns: options.additionalTurns || DEFAULT_ADDITIONAL_TURNS,
+    });
     return;
   }
   if (options.singlePromptMode) await getSinglePromptResponses(options);
