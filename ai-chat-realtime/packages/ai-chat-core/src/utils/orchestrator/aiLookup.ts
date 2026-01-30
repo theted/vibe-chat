@@ -1,3 +1,4 @@
+import type { IAIService } from "../../types/index.js";
 import { normalizeAlias, toMentionAlias } from "../stringUtils.js";
 
 export type OrchestratorAIService = {
@@ -11,18 +12,14 @@ export type OrchestratorAIService = {
   isActive?: boolean;
   isGenerating?: boolean;
   justResponded?: boolean;
+  lastMessageTime?: number;
   config?: {
     providerKey?: string;
     modelKey?: string;
     displayName?: string;
     alias?: string;
   };
-  service?: {
-    getModel?: () => string;
-    config?: {
-      provider?: string;
-    };
-  };
+  service?: IAIService;
 };
 
 export const findAIByNormalizedAlias = (
