@@ -3,7 +3,7 @@
  */
 
 import { EventEmitter } from "events";
-import { AIServiceFactory } from "@/services/AIServiceFactory.js";
+import { AIServiceFactory } from "../services/AIServiceFactory.js";
 import { ContextManager } from "./ContextManager.js";
 import { MessageBroker } from "./MessageBroker.js";
 import {
@@ -18,29 +18,29 @@ import {
   getAIDisplayName,
   getMentionTokenForAI,
   OrchestratorAIService,
-} from "@/utils/orchestrator/aiLookup.js";
+} from "../utils/orchestrator/aiLookup.js";
 import {
   enhanceContextForComment,
   enhanceContextForTopicChange,
-} from "@/utils/orchestrator/contextEnhancers.js";
-import { logAIContext } from "@/utils/orchestrator/logging.js";
-import { addMentionToResponse } from "@/utils/orchestrator/mentionUtils.js";
-import { createEnhancedSystemPrompt } from "@/utils/orchestrator/promptBuilder.js";
+} from "../utils/orchestrator/contextEnhancers.js";
+import { logAIContext } from "../utils/orchestrator/logging.js";
+import { addMentionToResponse } from "../utils/orchestrator/mentionUtils.js";
+import { createEnhancedSystemPrompt } from "../utils/orchestrator/promptBuilder.js";
 import {
   calculateResponseDelay,
   selectRespondingAIs,
-} from "@/utils/orchestrator/responseScheduling.js";
-import { truncateResponse } from "@/utils/orchestrator/responseUtils.js";
+} from "../utils/orchestrator/responseScheduling.js";
+import { truncateResponse } from "../utils/orchestrator/responseUtils.js";
 import {
   applyInteractionStrategy,
   determineInteractionStrategy,
-} from "@/utils/orchestrator/strategyUtils.js";
+} from "../utils/orchestrator/strategyUtils.js";
 import {
   getEnvFlag,
   normalizeAlias,
   parseBooleanEnvFlag,
   toMentionAlias,
-} from "@/utils/stringUtils.js";
+} from "../utils/stringUtils.js";
 
 type ChatOrchestratorOptions = {
   maxMessages?: number;

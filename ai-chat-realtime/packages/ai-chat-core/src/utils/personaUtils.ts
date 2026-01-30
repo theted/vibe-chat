@@ -4,7 +4,7 @@
  * Helper functions for enhancing AI providers with personality traits
  */
 
-import type { PersonaTrait } from "@/types/index.js";
+import type { PersonaTrait } from "../types/index.js";
 
 /**
  * Enhances a system prompt with persona information

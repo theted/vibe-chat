@@ -11,8 +11,8 @@ import {
   MentionContext,
   AIParticipant,
   ParticipantError
-} from '@/types/orchestrator.js';
-import { Message } from '@/types/index.js';
+} from '../../types/orchestrator.js';
+import { Message } from '../../types/index.js';
 
 export class MentionHandler implements IMentionHandler {
   private mentionRegex = /@([a-zA-Z0-9\-_]+)/g;

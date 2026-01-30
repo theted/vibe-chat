@@ -5,21 +5,21 @@
  * Each AI provider should extend this class and implement its methods.
  */
 
-import { enhanceSystemPromptWithPersona, getPersonaFromProvider } from '@/utils/personaUtils.js';
+import { enhanceSystemPromptWithPersona, getPersonaFromProvider } from '../../utils/personaUtils.js';
 import {
   IAIServiceExtended,
   ServiceInitializationOptions,
   EnhancedServiceResponse,
   ServiceInitializationError,
   ServiceConfigurationError
-} from '@/types/services.js';
+} from '../../types/services.js';
 import {
   AIServiceConfig,
   Message,
   ServiceResponse,
   ServiceInitOptions,
   Logger
-} from '@/types/index.js';
+} from '../../types/index.js';
 
 export abstract class BaseAIService implements IAIServiceExtended {
   public readonly config: AIServiceConfig;

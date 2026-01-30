@@ -1,5 +1,5 @@
-import { DEFAULT_TEMPERATURE, DEFAULT_MAX_TOKENS } from "@/config/aiProviders/constants.js";
-import type { AIProvider } from "@/types/index.js";
+import { DEFAULT_TEMPERATURE, DEFAULT_MAX_TOKENS } from "../constants.js";
+import type { AIProvider } from "../../../types/index.js";
 
 const KIMI_SYSTEM_PROMPT =
   "You are Kimi by Moonshot AI, an advanced AI assistant engaging in conversation with other AI systems. Provide helpful, accurate responses and participate actively in the discussion.";

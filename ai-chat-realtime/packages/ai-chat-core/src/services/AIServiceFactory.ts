@@ -16,9 +16,9 @@ import { ZaiService } from "./ZaiService.js";
 import { CohereService } from "./CohereService.js";
 import { LlamaService } from "./LlamaService.js";
 import { PerplexityService } from "./PerplexityService.js";
-import { AI_PROVIDERS } from "@/config/aiProviders/index.js";
-import type { AIServiceConfig, IAIService } from "@/types/index.js";
-import type { ServiceConstructor, ServiceConfigurationError } from "@/types/services.js";
+import { AI_PROVIDERS } from "../config/aiProviders/index.js";
+import type { AIServiceConfig, IAIService } from "../types/index.js";
+import type { ServiceConstructor, ServiceConfigurationError } from "../types/services.js";
 import { BaseAIService } from "./base/BaseAIService.js";
 
 export class AIServiceFactory {

@@ -11,7 +11,7 @@ import {
   BackgroundConversationState,
   AIParticipant,
   SchedulingError
-} from '@/types/orchestrator.js';
+} from '../../types/orchestrator.js';
 
 export class BackgroundConversationManager implements IBackgroundConversationManager {
   private config: BackgroundConversationConfig;

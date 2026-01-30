@@ -1,5 +1,5 @@
-import { DEFAULT_TEMPERATURE, DEFAULT_MAX_TOKENS } from "@/config/aiProviders/constants.js";
-import type { AIProvider } from "@/types/index.js";
+import { DEFAULT_TEMPERATURE, DEFAULT_MAX_TOKENS } from "../constants.js";
+import type { AIProvider } from "../../../types/index.js";
 
 export const OPENAI: AIProvider = {
   name: "OpenAI",
