@@ -22,7 +22,7 @@
     "prepublishOnly": "npm run clean && npm run build",
     "test": "npm run -s test:integration:mocked",
     "test:integration:prepare": "npm run -s build && tsc -p tsconfig.tests.json",
-    "test:integration:mocked": "npm run -s test:integration:prepare && node --test dist-tests/tests/integration-mocked.test.js",
+    "test:integration:mocked": "npm run -s test:integration:prepare && node --test dist-tests/tests/**/*.test.js",
     "test:grok": "npm run -s test:integration:prepare && node dist-tests/tests/integration-ok-grok.js",
     "test:openai": "npm run -s test:integration:prepare && node dist-tests/tests/integration-ok-openai.js",
     "test:mistral": "npm run -s test:integration:prepare && node dist-tests/tests/integration-ok-mistral.js",
