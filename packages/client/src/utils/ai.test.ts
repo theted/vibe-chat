@@ -162,7 +162,15 @@ describe("mapMentionsToAiNames", () => {
       "zai",
     ];
     const result = mapMentionsToAiNames(mentions);
-    expect(result).toEqual(["gpt-4o", "gpt-5.1", "grok", "gemini", "cohere", "z.ai"]);
+    expect(result).toEqual([
+      "gpt-4o",
+      "gpt-5.1",
+      "grok",
+      "gemini",
+      "cohere",
+      "command-r",
+      "z.ai",
+    ]);
   });
 
   it("should handle mixed valid and invalid mentions", () => {
