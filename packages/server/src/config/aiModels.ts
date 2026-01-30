@@ -18,6 +18,92 @@ export type AIConfig = {
 };
 
 /**
+ * Enabled AI models for server startup.
+ *
+ * Comment out any entries to disable those models without changing logic.
+ */
+export const ENABLED_AI_MODELS: string[] = [
+  // OpenAI Models
+  "OPENAI_GPT4O",
+  "OPENAI_GPT4_1",
+  "OPENAI_GPT5_2",
+  "OPENAI_GPT5",
+  "OPENAI_GPT5_1",
+  "OPENAI_GPT5_1_MINI",
+  "OPENAI_O3",
+  "OPENAI_O3_MINI",
+  "OPENAI_O4_MINI",
+  "OPENAI_GPT35_TURBO",
+
+  // Anthropic Models
+  "ANTHROPIC_CLAUDE3_7_SONNET",
+  "ANTHROPIC_CLAUDE3_5_HAIKU",
+  "ANTHROPIC_CLAUDE3_5_HAIKU_20241022",
+  "ANTHROPIC_CLAUDE_HAIKU_4_5",
+  "ANTHROPIC_CLAUDE_SONNET_4",
+  "ANTHROPIC_CLAUDE_SONNET_4_5",
+  "ANTHROPIC_CLAUDE_OPUS_4_5",
+  "ANTHROPIC_CLAUDE_OPUS_4",
+  "ANTHROPIC_CLAUDE_OPUS_4_1",
+
+  // xAI/Grok Models
+  "GROK_GROK_3",
+  "GROK_GROK_3_MINI",
+  "GROK_GROK_4_0709",
+  "GROK_GROK_4_FAST_NON_REASONING",
+  "GROK_GROK_4_FAST_REASONING",
+  "GROK_GROK_4_HEAVY",
+  "GROK_GROK_CODE_FAST_1",
+
+  // Google/Gemini Models
+  "GEMINI_GEMINI_PRO",
+  "GEMINI_GEMINI_3",
+  "GEMINI_GEMINI_FLASH",
+  "GEMINI_GEMINI_25",
+
+  // Cohere Models
+  "COHERE_COMMAND_A_03_2025",
+  "COHERE_COMMAND_A_REASONING_08_2025",
+  "COHERE_COMMAND_A_TRANSLATE_08_2025",
+  "COHERE_COMMAND_R_PLUS_08_2024",
+  "COHERE_COMMAND_R_08_2024",
+
+  // Mistral AI Models
+  "MISTRAL_MISTRAL_LARGE",
+  "MISTRAL_MISTRAL_MEDIUM",
+  "MISTRAL_MISTRAL_SMALL",
+  "MISTRAL_MAGISTRAL_SMALL",
+  "MISTRAL_MAGISTRAL_MEDIUM",
+  "MISTRAL_CODESTRAL",
+  "MISTRAL_MINISTRAL_8B",
+
+  // DeepSeek Models
+  "DEEPSEEK_DEEPSEEK_CHAT",
+  "DEEPSEEK_DEEPSEEK_V3",
+  "DEEPSEEK_DEEPSEEK_V3_2",
+  "DEEPSEEK_DEEPSEEK_R1",
+
+  // Moonshot/Kimi Models
+  "KIMI_KIMI_8K",
+  "KIMI_KIMI_K2",
+  "KIMI_KIMI_K2_THINKING",
+  "KIMI_KIMI_K1_5",
+
+  // Z.ai Models
+  "ZAI_ZAI_DEFAULT",
+  "ZAI_ZAI_GLM_4_5",
+  "ZAI_ZAI_GLM_4_5_AIR",
+  "ZAI_ZAI_GLM_4_6",
+  "ZAI_ZAI_GLM_4_7",
+  "ZAI_ZAI_GLM_4_7_FLASH",
+];
+
+const ENABLED_AI_MODEL_SET = new Set(ENABLED_AI_MODELS);
+
+const isModelEnabled = (providerKey: string, modelKey: string): boolean =>
+  ENABLED_AI_MODEL_SET.has(`${providerKey}_${modelKey}`);
+
+/**
  * Maps provider keys to their environment variable names
  */
 export const PROVIDER_ENV_VARS: Record<string, string> = {
@@ -71,6 +157,7 @@ export const getAvailableAIConfigs = (): AIConfig[] => {
 
     const models = getProviderModels(providerKey);
     models.forEach((modelKey) => {
+      if (!isModelEnabled(providerKey, modelKey)) return;
       // Only add models that have display info configured
       const displayKey = `${providerKey}_${modelKey}`;
       if (AI_DISPLAY_INFO[displayKey]) {
@@ -126,6 +213,7 @@ export const getProviderAIConfigs = (
   }
 
   return selectedModels
+    .filter((modelKey) => isModelEnabled(providerKey, modelKey))
     .filter((modelKey) => {
       const displayKey = `${providerKey}_${modelKey}`;
       return AI_DISPLAY_INFO[displayKey] !== undefined;
