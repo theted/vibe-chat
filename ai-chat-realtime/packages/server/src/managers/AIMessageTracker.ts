@@ -2,7 +2,7 @@
  * AI Message Tracker - Tracks AI message limits per room
  */
 
-import type { AITrackerStats, AITrackerStatus } from "@/types.js";
+import type { AITrackerStats, AITrackerStatus } from "../types.js";
 
 type RoomTracker = {
   messageCount: number;

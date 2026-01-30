@@ -8,7 +8,7 @@ import {
 import { createWorkspaceIndexer } from "@ai-chat/mcp-assistant/indexer";
 import type { Server } from "socket.io";
 
-import type { ChatAssistantMetadata, ChatMessage } from "@/types.js";
+import type { ChatAssistantMetadata, ChatMessage } from "../types.js";
 
 type ChatAssistantOptions = {
   mentionName?: string;
