@@ -15,6 +15,9 @@ export {
   DEFAULT_CONVERSATION_CONFIG,
 } from "./constants.js";
 
+// Export default models
+export { DEFAULT_MODELS } from "./defaults.js";
+
 // Export all providers
 export { ANTHROPIC } from "./providers/anthropic.js";
 export { OPENAI } from "./providers/openai.js";
