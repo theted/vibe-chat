@@ -22,7 +22,7 @@ import type { ServiceConstructor, ServiceConfigurationError } from "../types/ser
 import { BaseAIService } from "./base/BaseAIService.js";
 
 export class AIServiceFactory {
-  private static readonly serviceRegistry: Record<string, any> = {
+  private static serviceRegistry: Record<string, ServiceConstructor> = {
     [AI_PROVIDERS.GEMINI.name]: GeminiService,
     [AI_PROVIDERS.MISTRAL.name]: MistralService,
     [AI_PROVIDERS.OPENAI.name]: OpenAIService,
@@ -95,5 +95,25 @@ export class AIServiceFactory {
    */
   static isProviderSupported(providerName: string): boolean {
     return providerName in this.serviceRegistry;
+  }
+
+  /**
+   * Override the service registry for testing purposes.
+   * @param registry - Registry to use for subsequent service creation.
+   * @returns The previous registry for restoration.
+   */
+  static __setServiceRegistryForTesting(
+    registry: Record<string, ServiceConstructor>
+  ): Record<string, ServiceConstructor> {
+    const previous = this.serviceRegistry;
+    this.serviceRegistry = registry;
+    return previous;
+  }
+
+  /**
+   * Read the current service registry for testing purposes.
+   */
+  static __getServiceRegistryForTesting(): Record<string, ServiceConstructor> {
+    return { ...this.serviceRegistry };
   }
 }
