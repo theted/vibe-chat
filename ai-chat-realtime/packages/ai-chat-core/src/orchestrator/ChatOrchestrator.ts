@@ -6,6 +6,7 @@ import { EventEmitter } from "events";
 import { AIServiceFactory } from "../services/AIServiceFactory.js";
 import { ContextManager } from "./ContextManager.js";
 import { MessageBroker } from "./MessageBroker.js";
+import type { ContextMessage } from "../types/orchestrator.js";
 import {
   DEFAULTS,
   CONTEXT_LIMITS,
@@ -433,15 +434,13 @@ export class ChatOrchestrator extends EventEmitter {
       );
 
       // Add the enhanced system prompt
-      const messagesWithSystem = [
-        {
-          role: "system",
-          content: systemPrompt,
-          senderType: "system",
-          isInternal: true,
-        },
-        ...context,
-      ];
+      const systemMessage: ContextMessage = {
+        role: "system",
+        content: systemPrompt,
+        senderType: "system",
+        isInternal: true,
+      };
+      const messagesWithSystem = [systemMessage, ...context];
 
       this.logAIContext(aiService, messagesWithSystem);
 
