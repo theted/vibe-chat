@@ -2,14 +2,6 @@ import { describe, it, expect } from "vitest";
 import { extractMentionsFromText, findMentionMatches } from "./mentions";
 
 describe("mentions utilities", () => {
-  it("matches bracketed @mentions with spaces", () => {
-    const text = "Hello @[Grok Code Fast 1]!";
-    const matches = findMentionMatches(text);
-
-    expect(matches).toHaveLength(1);
-    expect(matches[0]?.text).toBe("@[Grok Code Fast 1]");
-  });
-
   it("matches @mentions with spaces from known AI names", () => {
     const text = "Hello @Claude 3.5 Haiku!";
     const matches = findMentionMatches(text);

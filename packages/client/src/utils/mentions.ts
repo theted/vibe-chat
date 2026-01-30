@@ -62,22 +62,6 @@ export const findMentionMatches = (
   for (let index = 0; index < text.length; index += 1) {
     if (text[index] !== "@") continue;
 
-    if (text[index + 1] === "[") {
-      const closingIndex = text.indexOf("]", index + 2);
-      if (closingIndex > index + 1) {
-        const textSlice = text.slice(index, closingIndex + 1);
-        const mention = text.slice(index + 2, closingIndex).trim();
-        matches.push({
-          start: index,
-          end: closingIndex + 1,
-          text: textSlice,
-          mention,
-        });
-        index = closingIndex;
-        continue;
-      }
-    }
-
     const remaining = text.slice(index + 1);
     const remainingLower = remaining.toLowerCase();
     const candidate = candidates.find((option) => {
