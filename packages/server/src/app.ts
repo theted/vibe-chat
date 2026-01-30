@@ -3,48 +3,31 @@
  * Express + Socket.IO server for real-time AI chat
  */
 
-import express, {
-  type NextFunction,
-  type Request,
-  type Response,
-} from "express";
+import express from "express";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import cors from "cors";
 import dotenv from "dotenv";
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
 import { ChatOrchestrator } from "@ai-chat/core";
 import { SocketController } from "./controllers/SocketController.js";
 import { MetricsService } from "./services/MetricsService.js";
 import { createRedisClient, type RedisClient } from "./services/RedisClient.js";
 import { ChatAssistantService } from "./services/ChatAssistantService.js";
 import {
-  type AIConfig,
-  PROVIDER_ENV_VARS,
-  getAvailableAIConfigs,
-  getProviderAIConfigs,
-} from "./config/aiModels.js";
+  createHealthRouter,
+  createMetricsRouter,
+  createRoomsRouter,
+  createStatsRouter,
+  registerStaticAssets,
+} from "./routes/index.js";
+import { initializeAISystem } from "./services/aiOrchestrator.js";
+import {
+  allowedOrigins,
+  clientUrl,
+  port,
+} from "./config/serverConfig.js";
 
 dotenv.config();
-
-const allowedOrigins = "*";
-
-type OrchestratorAIServiceInfo = {
-  emoji?: string;
-  displayName?: string;
-  name?: string;
-};
-
-const toOrchestratorAIServiceInfo = (
-  value: unknown
-): OrchestratorAIServiceInfo | null => {
-  if (!value || typeof value !== "object") {
-    return null;
-  }
-  return value as OrchestratorAIServiceInfo;
-};
 
 const app = express();
 const server = createServer(app);
@@ -62,191 +45,21 @@ const io = new Server(server, {
   },
 });
 
-const PORT = Number(process.env.PORT || 3001);
-
 // Middleware
 app.use(cors());
 app.use(express.json());
 
-// Determine client build directory for serving static assets in production
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const defaultClientBuildDir = path.resolve(__dirname, "../../client/dist");
-const clientBuildDir = process.env.CLIENT_BUILD_DIR
-  ? path.resolve(process.env.CLIENT_BUILD_DIR)
-  : defaultClientBuildDir;
+registerStaticAssets(app);
 
-if (fs.existsSync(clientBuildDir)) {
-  console.info(`📦 Serving static client assets from ${clientBuildDir}`);
-  app.use(express.static(clientBuildDir));
+const getSocketController = (): SocketController | undefined =>
+  globalState.socketController;
+const getMetricsService = (): MetricsService | undefined =>
+  globalState.metricsService;
 
-  app.get("*", (req: Request, res: Response, next: NextFunction) => {
-    if (
-      req.path.startsWith("/api") ||
-      req.path === "/health" ||
-      req.path.startsWith("/socket.io")
-    ) {
-      return next();
-    }
-
-    res.sendFile(path.join(clientBuildDir, "index.html"));
-  });
-} else {
-  console.warn(
-    "⚠️  CLIENT_BUILD_DIR not found. Static assets will not be served by the API server."
-  );
-}
-
-// Health check endpoint
-app.get("/health", (req: Request, res: Response) => {
-  res.json({
-    status: "ok",
-    timestamp: Date.now(),
-    uptime: process.uptime(),
-  });
-});
-
-// API endpoints
-app.get("/api/stats", (req: Request, res: Response) => {
-  try {
-    if (!globalState.socketController) {
-      res.status(503).json({ error: "Socket controller not ready" });
-      return;
-    }
-    const stats = globalState.socketController.getStats();
-    res.json(stats);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to get stats" });
-  }
-});
-
-app.get("/api/metrics", (req: Request, res: Response) => {
-  try {
-    if (!globalState.metricsService) {
-      res.status(503).json({ error: "Metrics service not ready" });
-      return;
-    }
-    const metrics = globalState.metricsService.getDetailedMetrics();
-    res.json(metrics);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to get metrics" });
-  }
-});
-
-app.get("/api/metrics/history", (req: Request, res: Response) => {
-  try {
-    if (!globalState.metricsService) {
-      res.status(503).json({ error: "Metrics service not ready" });
-      return;
-    }
-    const durationParam = req.query.duration;
-    const duration =
-      typeof durationParam === "string"
-        ? parseInt(durationParam, 10)
-        : undefined;
-    const history = globalState.metricsService.getMetricsHistory(duration);
-    res.json(history);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to get metrics history" });
-  }
-});
-
-app.get("/api/rooms", (req: Request, res: Response) => {
-  try {
-    if (!globalState.socketController) {
-      res.status(503).json({ error: "Socket controller not ready" });
-      return;
-    }
-    const rooms = globalState.socketController.roomManager.getRoomList();
-    res.json(rooms);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to get rooms" });
-  }
-});
-
-// Initialize AI Chat System
-async function initializeAISystem(): Promise<ChatOrchestrator> {
-  console.log("🤖 Initializing AI Chat System...");
-
-  // Create chat orchestrator
-  const orchestrator = new ChatOrchestrator({
-    maxMessages: 100,
-    maxAIMessages: 10,
-    minUserResponseDelay: 2000,
-    maxUserResponseDelay: 14000,
-    minBackgroundDelay: 15000,
-    maxBackgroundDelay: 45000,
-    minDelayBetweenAI: 1500,
-    maxDelayBetweenAI: 7000,
-  });
-
-  // Get all AI configs dynamically from AI_PROVIDERS based on available API keys
-  // OpenAI supports allowlist filtering via OPENAI_MODEL_ALLOWLIST env var
-  let aiConfigs: AIConfig[] = [];
-
-  if (process.env.OPENAI_API_KEY) {
-    // OpenAI supports allowlist filtering for backwards compatibility
-    aiConfigs.push(...getProviderAIConfigs("OPENAI", "OPENAI_MODEL_ALLOWLIST"));
-  }
-
-  // All other providers - add all models with display info configured
-  const otherProviders = Object.keys(PROVIDER_ENV_VARS).filter(
-    (p) => p !== "OPENAI"
-  );
-  for (const providerKey of otherProviders) {
-    const envVar = PROVIDER_ENV_VARS[providerKey];
-    if (process.env[envVar]) {
-      aiConfigs.push(...getProviderAIConfigs(providerKey));
-    }
-  }
-
-  if (aiConfigs.length === 0) {
-    console.warn(
-      "⚠️  No AI API keys found! Please set API keys in environment variables."
-    );
-    const availableKeys = Object.values(PROVIDER_ENV_VARS).join(", ");
-    console.warn(`Available keys: ${availableKeys}`);
-
-    // Add a mock AI for testing
-    aiConfigs.push({ providerKey: "MOCK", modelKey: "MOCK_AI" });
-  }
-
-  // Initialize AIs
-  try {
-    await orchestrator.initializeAIs(aiConfigs);
-
-    // Get actually initialized models
-    const initializedModels = Array.from(orchestrator.aiServices.values())
-      .map(toOrchestratorAIServiceInfo)
-      .filter(
-        (ai): ai is OrchestratorAIServiceInfo => ai !== null
-      );
-    console.log(
-      `✅ Initialized ${initializedModels.length}/${aiConfigs.length} AI services`
-    );
-
-    // List successfully initialized models
-    if (initializedModels.length > 0) {
-      console.log("📋 Active AI models:");
-      initializedModels.forEach((ai) => {
-        const emoji = ai.emoji || "🤖";
-        const name = ai.displayName || ai.name;
-        console.log(`   ${emoji} ${name}`);
-      });
-    }
-
-    // Warn about failed initializations
-    if (initializedModels.length < aiConfigs.length) {
-      console.warn(
-        `⚠️  ${aiConfigs.length - initializedModels.length} model(s) failed to initialize`
-      );
-    }
-  } catch (error) {
-    console.error("❌ Failed to initialize some AI services:", error);
-  }
-
-  return orchestrator;
-}
+app.use(createHealthRouter());
+app.use(createStatsRouter({ getSocketController }));
+app.use(createMetricsRouter({ getMetricsService }));
+app.use(createRoomsRouter({ getSocketController }));
 
 // Initialize and start server
 async function startServer(): Promise<void> {
@@ -319,14 +132,12 @@ async function startServer(): Promise<void> {
     });
 
     // Start server
-    server.listen(PORT, () => {
-      console.log(`🚀 AI Chat Server running on port ${PORT}`);
-      console.log(
-        `📱 Client URL: ${process.env.CLIENT_URL || "http://localhost:3000"}`
-      );
-      console.log(`🔗 Socket.IO endpoint: http://localhost:${PORT}`);
-      console.log(`📊 Health check: http://localhost:${PORT}/health`);
-      console.log(`📈 Stats API: http://localhost:${PORT}/api/stats`);
+    server.listen(port, () => {
+      console.log(`🚀 AI Chat Server running on port ${port}`);
+      console.log(`📱 Client URL: ${clientUrl}`);
+      console.log(`🔗 Socket.IO endpoint: http://localhost:${port}`);
+      console.log(`📊 Health check: http://localhost:${port}/health`);
+      console.log(`📈 Stats API: http://localhost:${port}/api/stats`);
     });
 
     // Graceful shutdown
