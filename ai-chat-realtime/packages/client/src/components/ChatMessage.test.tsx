@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import ChatMessage from "./ChatMessage";
-import type { Message } from '../types';
+import type { Message } from '@/types';
 
 describe("ChatMessage", () => {
   it("highlights bracketed @mentions with spaces as a single chip", () => {

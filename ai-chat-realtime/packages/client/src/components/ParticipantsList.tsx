@@ -3,11 +3,11 @@
  */
 
 import { motion } from "framer-motion";
-import { DEFAULT_AI_PARTICIPANTS, type AiParticipant } from "../config/aiParticipants";
+import { DEFAULT_AI_PARTICIPANTS, type AiParticipant } from "@/config/aiParticipants";
 import Icon from "./Icon";
 import AnimatedListItem from "./AnimatedListItem";
 import SectionHeader from "./SectionHeader";
-import type { ParticipantsListProps, TypingUser, TypingAI } from '../types';
+import type { ParticipantsListProps, TypingUser, TypingAI } from '@/types';
 
 interface NormalizedAiParticipant extends AiParticipant {
   displayName: string;

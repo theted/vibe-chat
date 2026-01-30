@@ -14,8 +14,8 @@ import {
   StrategyDecision,
   StrategyError,
   AIParticipant
-} from '../../types/orchestrator.js';
-import { Message } from '../../types/index.js';
+} from '@/types/orchestrator.js';
+import { Message } from '@/types/index.js';
 
 export class InteractionStrategyManager implements IInteractionStrategyManager {
   private strategies: Map<InteractionStrategy, InteractionStrategyConfig> = new Map();

@@ -7,9 +7,9 @@ import ReactMarkdown from 'react-markdown';
 import { motion, type Variants } from 'framer-motion';
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism/index.js";
-import { normalizeAlias, resolveEmoji } from "../utils/ai";
-import type { ChatMessageProps, Message, SenderType } from '../types';
-import type { AiParticipant } from '../config/aiParticipants';
+import { normalizeAlias, resolveEmoji } from "@/utils/ai";
+import type { ChatMessageProps, Message, SenderType } from '@/types';
+import type { AiParticipant } from '@/config/aiParticipants';
 
 const MENTION_REGEX = /(@\[[^\]]+\])/g;
 const MENTION_TEST_REGEX = /@\[[^\]]+\]/;

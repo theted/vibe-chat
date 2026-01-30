@@ -6,9 +6,9 @@ import {
   IContextManager,
   ContextMessage,
   ContextManagerConfig
-} from '../types/orchestrator.js';
-import { Message } from '../types/index.js';
-import { normalizeAlias, parseMentions } from '../utils/stringUtils.js';
+} from '@/types/orchestrator.js';
+import { Message } from '@/types/index.js';
+import { normalizeAlias, parseMentions } from '@/utils/stringUtils.js';
 
 export class ContextManager implements IContextManager {
   private messages: ContextMessage[] = [];

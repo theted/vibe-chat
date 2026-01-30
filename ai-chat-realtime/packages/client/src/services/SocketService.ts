@@ -3,7 +3,7 @@
  */
 
 import { io, type Socket } from "socket.io-client";
-import { SERVER_URL } from "../constants/chat.ts";
+import { SERVER_URL } from "@/constants/chat.ts";
 
 type EventCallback = (...args: unknown[]) => void;
 

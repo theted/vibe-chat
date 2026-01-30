@@ -3,7 +3,7 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { BrowserRouter } from "react-router-dom";
 import ChatView from "./ChatView";
 import type { RefObject, ReactNode } from 'react';
-import type { AiParticipant } from '../config/aiParticipants';
+import type { AiParticipant } from '@/config/aiParticipants';
 
 const { mockDefaultAiParticipants } = vi.hoisted(() => ({
   mockDefaultAiParticipants: Array.from({ length: 11 }, (_, index) => ({

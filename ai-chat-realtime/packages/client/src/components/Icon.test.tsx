@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import Icon from './Icon';
-import type { IconName } from '../types';
+import type { IconName } from '@/types';
 
 describe('Icon Component', () => {
   describe('rendering', () => {

@@ -4,9 +4,9 @@
 
 import { useState, useEffect, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { DEFAULT_AI_PARTICIPANTS } from "../config/aiParticipants";
+import { DEFAULT_AI_PARTICIPANTS } from "@/config/aiParticipants";
 import Icon from "./Icon";
-import type { AISelectionDialogProps, DialogPosition } from '../types';
+import type { AISelectionDialogProps, DialogPosition } from '@/types';
 
 interface MentionOption {
   id: string;

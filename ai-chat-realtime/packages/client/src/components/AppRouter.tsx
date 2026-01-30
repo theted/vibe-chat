@@ -3,7 +3,7 @@
  */
 
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import App from '../App';
+import App from '@/App';
 import Dashboard from './Dashboard';
 
 const AppRouter = () => {

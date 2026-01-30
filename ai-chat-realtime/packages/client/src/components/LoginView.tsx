@@ -1,10 +1,10 @@
 import type { FormEvent } from "react";
-import { DEFAULT_AI_PARTICIPANTS } from "../config/aiParticipants";
+import { DEFAULT_AI_PARTICIPANTS } from "@/config/aiParticipants";
 import ParticipantsList from "./ParticipantsList";
 import Icon from "./Icon";
 import ChatMessage from "./ChatMessage";
 import CircuitIcon from "./CircuitIcon";
-import type { LoginViewProps } from '../types';
+import type { LoginViewProps } from '@/types';
 
 const LoginView = ({
   connectionStatus,

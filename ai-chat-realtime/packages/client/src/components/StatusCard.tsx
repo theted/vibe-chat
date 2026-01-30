@@ -1,4 +1,4 @@
-import type { StatusCardProps } from '../types';
+import type { StatusCardProps } from '@/types';
 
 /**
  * StatusCard Component - Displays a compact status summary with icon and label

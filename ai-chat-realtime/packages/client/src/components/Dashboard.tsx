@@ -4,10 +4,10 @@
 
 import { useState, useEffect, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import { useSocket } from '../hooks/useSocket';
+import { useSocket } from '@/hooks/useSocket';
 import StatusCard from './StatusCard';
-import type { DashboardMetrics, ConnectionStatus } from '../types';
-import type { AiParticipant } from '../config/aiParticipants';
+import type { DashboardMetrics, ConnectionStatus } from '@/types';
+import type { AiParticipant } from '@/config/aiParticipants';
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL || "http://localhost:3001";
 

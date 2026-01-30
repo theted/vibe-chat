@@ -5,7 +5,7 @@
 import type { RefObject, ReactNode, FormEvent } from 'react';
 
 // Re-export AI participant types from config
-export type { AiParticipant, AiParticipantStatus } from '../config/aiParticipants';
+export type { AiParticipant, AiParticipantStatus } from '@/config/aiParticipants';
 
 // Message types
 export type SenderType = 'user' | 'ai' | 'system';
@@ -130,7 +130,7 @@ export interface DashboardMetrics {
 }
 
 // Import for AiParticipant type
-import type { AiParticipant } from '../config/aiParticipants';
+import type { AiParticipant } from '@/config/aiParticipants';
 
 // Component prop types - ChatView
 export interface ChatViewProps {

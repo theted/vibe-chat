@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, act } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import Dashboard from "./Dashboard";
-import type { AiParticipant } from '../config/aiParticipants';
+import type { AiParticipant } from '@/config/aiParticipants';
 
 const { mockHandlers, mockEmit } = vi.hoisted(() => ({
   mockHandlers: {} as Record<string, (data: unknown) => void>,

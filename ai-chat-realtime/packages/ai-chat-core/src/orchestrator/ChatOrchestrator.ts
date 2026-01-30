@@ -3,7 +3,7 @@
  */
 
 import { EventEmitter } from "events";
-import { AIServiceFactory } from "../services/AIServiceFactory.js";
+import { AIServiceFactory } from "@/services/AIServiceFactory.js";
 import { ContextManager } from "./ContextManager.js";
 import { MessageBroker } from "./MessageBroker.js";
 import {
@@ -12,35 +12,15 @@ import {
   TIMING,
   RESPONDER_CONFIG,
 } from "./constants.js";
+import { AI_PROVIDERS } from "@/config/aiProviders/index.js";
 import {
-  findAIFromContextMessage,
-  findAIByNormalizedAlias,
-  getAIDisplayName,
-  getMentionTokenForAI,
-  OrchestratorAIService,
-} from "../utils/orchestrator/aiLookup.js";
-import { logAIContext } from "../utils/orchestrator/logging.js";
-import { addMentionToResponse } from "../utils/orchestrator/mentionUtils.js";
-import {
-  enhanceContextForComment,
-  enhanceContextForTopicChange,
-} from "../utils/orchestrator/contextEnhancers.js";
-import { createEnhancedSystemPrompt } from "../utils/orchestrator/promptBuilder.js";
-import {
-  calculateResponseDelay,
-  selectRespondingAIs,
-} from "../utils/orchestrator/responseScheduling.js";
-import { truncateResponse } from "../utils/orchestrator/responseUtils.js";
-import {
-  applyInteractionStrategy,
-  determineInteractionStrategy,
-} from "../utils/orchestrator/strategyUtils.js";
+  enhanceSystemPromptWithPersona,
+  getPersonaFromProvider,
+} from "@/utils/personaUtils.js";
 import {
   parseBooleanEnvFlag,
   getEnvFlag,
-  normalizeAlias,
-  toMentionAlias,
-} from "../utils/stringUtils.js";
+} from "@/utils/stringUtils.js";
 
 type ChatOrchestratorOptions = {
   maxMessages?: number;

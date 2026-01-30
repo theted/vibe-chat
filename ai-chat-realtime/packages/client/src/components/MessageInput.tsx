@@ -5,7 +5,7 @@
 import { useState, useRef, useEffect, type ChangeEvent, type FormEvent, type KeyboardEvent } from 'react';
 import AISelectionDialog from './AISelectionDialog';
 import Icon from './Icon';
-import type { MessageInputProps, DialogPosition } from '../types';
+import type { MessageInputProps, DialogPosition } from '@/types';
 
 const MessageInput = ({ onSendMessage, disabled = false, onAIMention, onTypingStart, onTypingStop }: MessageInputProps) => {
   const [message, setMessage] = useState('');

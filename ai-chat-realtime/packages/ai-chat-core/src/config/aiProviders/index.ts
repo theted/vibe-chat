@@ -5,7 +5,7 @@
  * Provider definitions are now split into separate files for better organization.
  */
 
-import type { AIProvider, AIServiceConfig } from "../../types/index.js";
+import type { AIProvider, AIServiceConfig } from "@/types/index.js";
 
 // Export constants
 export {
