@@ -31,6 +31,21 @@ dotenv.config();
 
 const allowedOrigins = "*";
 
+type OrchestratorAIServiceInfo = {
+  emoji?: string;
+  displayName?: string;
+  name?: string;
+};
+
+const toOrchestratorAIServiceInfo = (
+  value: unknown
+): OrchestratorAIServiceInfo | null => {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+  return value as OrchestratorAIServiceInfo;
+};
+
 const app = express();
 const server = createServer(app);
 const globalState = globalThis as typeof globalThis & {
@@ -201,7 +216,11 @@ async function initializeAISystem(): Promise<ChatOrchestrator> {
     await orchestrator.initializeAIs(aiConfigs);
 
     // Get actually initialized models
-    const initializedModels = Array.from(orchestrator.aiServices.values());
+    const initializedModels = Array.from(orchestrator.aiServices.values())
+      .map(toOrchestratorAIServiceInfo)
+      .filter(
+        (ai): ai is OrchestratorAIServiceInfo => ai !== null
+      );
     console.log(
       `✅ Initialized ${initializedModels.length}/${aiConfigs.length} AI services`
     );
