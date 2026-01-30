@@ -13,6 +13,7 @@
     "lint:fix": "eslint . --ext js --fix"
   },
   "dependencies": {
+    "@ai-chat/ai-configs": "file:../ai-configs",
     "@ai-chat/core": "file:../ai-chat-core",
     "@ai-chat/mcp-assistant": "file:../mcp-assistant",
     "cors": "^2.8.5",

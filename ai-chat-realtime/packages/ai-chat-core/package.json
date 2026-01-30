@@ -39,6 +39,7 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@ai-chat/ai-configs": "file:../ai-configs",
     "@anthropic-ai/sdk": "^0.39.0",
     "@google/generative-ai": "^0.24.0",
     "@mistralai/mistralai": "^1.5.2",

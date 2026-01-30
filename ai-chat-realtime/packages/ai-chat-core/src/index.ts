@@ -77,6 +77,22 @@ export {
   type AiDisplayInfoMap,
 } from "./config/aiDisplayInfo.js";
 
+// Re-export AI configs from centralized package
+export {
+  DEFAULT_AI_PARTICIPANTS,
+  AI_EMOJI_LOOKUP,
+  AI_MENTION_MAPPINGS,
+  getParticipantById,
+  getParticipantByAlias,
+  getActiveParticipants,
+  getParticipantsByProvider,
+  normalizeAlias,
+  resolveEmoji,
+  mapMentionsToAiNames,
+  type AiParticipant,
+  type AiParticipantStatus,
+} from "@ai-chat/ai-configs";
+
 // Shared utilities
 export {
   enhanceSystemPromptWithPersona,

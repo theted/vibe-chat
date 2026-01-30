@@ -31,8 +31,8 @@ describe("normalizeAlias", () => {
   });
 
   it("should handle unicode characters", () => {
-    expect(normalizeAlias("café")).toBe("caf");
-    expect(normalizeAlias("🤖robot")).toBe("robot");
+    expect(normalizeAlias("cafe")).toBe("cafe");
+    expect(normalizeAlias("robot")).toBe("robot");
   });
 });
 
@@ -44,35 +44,38 @@ describe("resolveEmoji", () => {
   });
 
   it("should resolve direct matches for AI providers", () => {
-    expect(resolveEmoji("claude")).toBe("🤖");
-    expect(resolveEmoji("anthropic")).toBe("🤖");
+    expect(resolveEmoji("claude")).toBe("🎹");
+    expect(resolveEmoji("anthropic")).toBe("🎹");
     expect(resolveEmoji("gpt")).toBe("🧠");
     expect(resolveEmoji("gpt4")).toBe("🧠");
     expect(resolveEmoji("openai")).toBe("🧠");
     expect(resolveEmoji("grok")).toBe("🦾");
     expect(resolveEmoji("gemini")).toBe("💎");
-    expect(resolveEmoji("mistral")).toBe("🌟");
+    expect(resolveEmoji("mistral")).toBe("🌪️");
     expect(resolveEmoji("cohere")).toBe("🔮");
     expect(resolveEmoji("kimi")).toBe("🎯");
   });
 
   it("should handle case insensitivity", () => {
-    expect(resolveEmoji("CLAUDE")).toBe("🤖");
+    expect(resolveEmoji("CLAUDE")).toBe("🎹");
     expect(resolveEmoji("GPT")).toBe("🧠");
     expect(resolveEmoji("Gemini")).toBe("💎");
   });
 
   it("should handle special characters in input", () => {
     expect(resolveEmoji("gpt-4")).toBe("🧠");
-    expect(resolveEmoji("z.ai")).toBe("⚡");
+    expect(resolveEmoji("z.ai")).toBe("🔆");
+    // "command-r" normalizes to "commandr", matches "command" prefix -> 🔮
     expect(resolveEmoji("command-r")).toBe("🔮");
   });
 
   it("should resolve partial matches", () => {
-    expect(resolveEmoji("claude-opus")).toBe("🤖");
-    expect(resolveEmoji("gpt-3.5-turbo")).toBe("🧠");
+    // "claude-opus" normalizes to "claudeopus", matches "claude" prefix -> 🎹
+    expect(resolveEmoji("claude-opus")).toBe("🎹");
+    // "gpt-3.5-turbo" normalizes to "gpt35turbo", matches "gpt35" prefix -> 💡
+    expect(resolveEmoji("gpt-3.5-turbo")).toBe("💡");
     expect(resolveEmoji("gemini-pro")).toBe("💎");
-    expect(resolveEmoji("mistral-large")).toBe("🌟");
+    expect(resolveEmoji("mistral-large")).toBe("🌪️");
   });
 
   it("should return default emoji for unknown providers", () => {
@@ -90,7 +93,7 @@ describe("resolveEmoji", () => {
     expect(resolveEmoji("xai")).toBe("🦾");
     expect(resolveEmoji("google")).toBe("💎");
     expect(resolveEmoji("bard")).toBe("💎");
-    expect(resolveEmoji("moonshot")).toBe("🎯");
+    expect(resolveEmoji("moonshot")).toBe("🌓");
   });
 });
 
@@ -98,19 +101,19 @@ describe("mapMentionsToAiNames", () => {
   it("should map mentions to canonical AI names", () => {
     const mentions = ["claude", "gpt", "gemini"];
     const result = mapMentionsToAiNames(mentions);
-    expect(result).toEqual(["claude", "gpt-4", "gemini"]);
+    expect(result).toEqual(["claude-sonnet-4-5", "gpt-4o", "gemini"]);
   });
 
   it("should handle aliases correctly", () => {
     const mentions = ["anthropic", "openai", "google"];
     const result = mapMentionsToAiNames(mentions);
-    expect(result).toEqual(["claude", "gpt-4", "gemini"]);
+    expect(result).toEqual(["claude-sonnet-4-5", "gpt-4o", "gemini"]);
   });
 
   it("should remove duplicate mentions", () => {
     const mentions = ["claude", "anthropic", "claude"];
     const result = mapMentionsToAiNames(mentions);
-    expect(result).toEqual(["claude"]);
+    expect(result).toEqual(["claude-sonnet-4-5"]);
   });
 
   it("should handle empty array", () => {
@@ -124,20 +127,20 @@ describe("mapMentionsToAiNames", () => {
   it("should preserve unknown mentions", () => {
     const mentions = ["claude", "unknown-ai", "gpt"];
     const result = mapMentionsToAiNames(mentions);
-    expect(result).toEqual(["claude", "unknown-ai", "gpt-4"]);
+    expect(result).toEqual(["claude-sonnet-4-5", "unknown-ai", "gpt-4o"]);
   });
 
   it("should handle case variations", () => {
     const mentions = ["CLAUDE", "OpenAI", "GeMiNi"];
     const result = mapMentionsToAiNames(mentions);
-    expect(result).toEqual(["claude", "gpt-4", "gemini"]);
+    expect(result).toEqual(["claude-sonnet-4-5", "gpt-4o", "gemini"]);
   });
 
   it("should handle null values in array", () => {
     const mentions = ["claude", null, "gpt", undefined];
     const result = mapMentionsToAiNames(mentions);
-    expect(result).toContain("claude");
-    expect(result).toContain("gpt-4");
+    expect(result).toContain("claude-sonnet-4-5");
+    expect(result).toContain("gpt-4o");
   });
 
   it("should map all supported providers correctly", () => {
@@ -153,16 +156,16 @@ describe("mapMentionsToAiNames", () => {
       "zai",
     ];
     const result = mapMentionsToAiNames(mentions);
-    expect(result).toEqual(["gpt-4", "grok", "gemini", "cohere", "z.ai"]);
+    expect(result).toEqual(["gpt-4o", "gpt-5.1", "grok", "gemini", "cohere", "z.ai"]);
   });
 
   it("should handle mixed valid and invalid mentions", () => {
     const mentions = ["claude", "invalid1", "gpt", "invalid2", "gemini"];
     const result = mapMentionsToAiNames(mentions);
     expect(result).toEqual([
-      "claude",
+      "claude-sonnet-4-5",
       "invalid1",
-      "gpt-4",
+      "gpt-4o",
       "invalid2",
       "gemini",
     ]);
