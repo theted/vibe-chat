@@ -29,7 +29,8 @@ describe("ConversationManager integration", () => {
       getModel: () => aiConfig.model.id,
       generateResponse: mock.fn(async () => {
         const queue = responsesByModel[aiConfig.model.id] || [];
-        return queue.shift() || "No response";
+        const content = queue.shift() || "No response";
+        return { content };
       }),
     }));
 

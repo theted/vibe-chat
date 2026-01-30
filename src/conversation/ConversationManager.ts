@@ -311,7 +311,8 @@ export class ConversationManager {
       systemMessage,
       ...this.messages.map((msg) => ({ role: msg.role, content: msg.content })),
     ];
-    return participant.service.generateResponse(formattedMessages);
+    const response = await participant.service.generateResponse(formattedMessages);
+    return response.content;
   }
 
   /**

@@ -11,7 +11,7 @@
     "dev": "npm run -s build:core && tsc --watch & node --watch dist/index.js",
     "index": "npm run build && node dist/scripts/index-mcp-chat.js",
     "index:docker": "npm run build && docker exec ai-chat-server-dev node /app/scripts/index-mcp-chat.js",
-    "test": "npm run -s build:core && tsc -p tsconfig.tests.json && node --test dist-tests/tests/unit/*.test.js dist-tests/tests/integration/*.test.js",
+    "test": "npm run -s build:core && npx tsx --test tests/unit/*.test.ts tests/integration/*.test.ts",
     "test:integration:prepare": "npm --prefix ai-chat-realtime/packages/ai-chat-core run -s test:integration:prepare",
     "test:grok": "npm --prefix ai-chat-realtime/packages/ai-chat-core run -s test:grok",
     "test:openai": "npm --prefix ai-chat-realtime/packages/ai-chat-core run -s test:openai",
@@ -53,6 +53,7 @@
   },
   "devDependencies": {
     "@types/node": "^24.10.1",
+    "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   }
 }
