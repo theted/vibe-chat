@@ -136,6 +136,12 @@ describe("mapMentionsToAiNames", () => {
     expect(result).toEqual(["claude-sonnet-4-5", "gpt-4o", "gemini"]);
   });
 
+  it("should map display names with spaces", () => {
+    const mentions = ["Claude 3.5 Haiku", "ChatGPT 5.1 Mini"];
+    const result = mapMentionsToAiNames(mentions);
+    expect(result).toEqual(["claude-3-5-haiku", "gpt-5.1-mini"]);
+  });
+
   it("should handle null values in array", () => {
     const mentions = ["claude", null, "gpt", undefined];
     const result = mapMentionsToAiNames(mentions);

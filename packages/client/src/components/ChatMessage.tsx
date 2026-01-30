@@ -8,11 +8,9 @@ import { motion, type Variants } from 'framer-motion';
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism/index.js";
 import { normalizeAlias, resolveEmoji } from "@/utils/ai";
+import { findMentionMatches } from "@/utils/mentions";
 import type { ChatMessageProps, Message, SenderType } from '@/types';
 import type { AiParticipant } from '@/config/aiParticipants';
-
-const MENTION_REGEX = /(@\[[^\]]+\])/g;
-const MENTION_TEST_REGEX = /@\[[^\]]+\]/;
 
 const ChatMessage = ({ message, aiParticipants = [] }: ChatMessageProps) => {
   // Format @mentions as bold text in code blocks for markdown
@@ -20,9 +18,21 @@ const ChatMessage = ({ message, aiParticipants = [] }: ChatMessageProps) => {
     if (typeof content !== 'string') return content;
     if (!content.includes('@')) return content;
 
-    // Replace @mentions with `**@mention**` format
-    return content.replace(MENTION_REGEX, "**`$1`**");
-  }, []);
+    const matches = findMentionMatches(content, aiParticipants);
+    if (matches.length === 0) return content;
+
+    let formatted = '';
+    let lastIndex = 0;
+
+    matches.forEach((match) => {
+      formatted += content.slice(lastIndex, match.start);
+      formatted += `**\`${match.text}\`**`;
+      lastIndex = match.end;
+    });
+
+    formatted += content.slice(lastIndex);
+    return formatted;
+  }, [aiParticipants]);
 
   const highlightMentions = useCallback((value: unknown): ReactNode => {
     let stringValue: string;
@@ -40,25 +50,41 @@ const ChatMessage = ({ message, aiParticipants = [] }: ChatMessageProps) => {
 
     if (!stringValue.includes('@')) return stringValue;
 
-    const segments = stringValue.split(MENTION_REGEX);
+    const matches = findMentionMatches(stringValue, aiParticipants);
+    if (matches.length === 0) return stringValue;
+
+    const nodes: ReactNode[] = [];
+    let lastIndex = 0;
     let key = 0;
 
-    return segments.map((segment) => {
-      if (!segment) return null;
-      if (MENTION_TEST_REGEX.test(segment)) {
-        return (
-          <span key={`mention-${key++}`} className="mention-chip">
-            {segment}
-          </span>
+    matches.forEach((match) => {
+      if (match.start > lastIndex) {
+        nodes.push(
+          <Fragment key={`text-${key++}`}>
+            {stringValue.slice(lastIndex, match.start)}
+          </Fragment>
         );
       }
-      return (
+
+      nodes.push(
+        <span key={`mention-${key++}`} className="mention-chip">
+          {match.text}
+        </span>
+      );
+
+      lastIndex = match.end;
+    });
+
+    if (lastIndex < stringValue.length) {
+      nodes.push(
         <Fragment key={`text-${key++}`}>
-          {segment}
+          {stringValue.slice(lastIndex)}
         </Fragment>
       );
-    }).filter(Boolean);
-  }, []);
+    }
+
+    return nodes;
+  }, [aiParticipants]);
 
   const renderPlainContent = useCallback(
     (content: string): ReactNode => highlightMentions(content),

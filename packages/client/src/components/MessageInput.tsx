@@ -5,6 +5,7 @@
 import { useState, useRef, useEffect, type ChangeEvent, type FormEvent, type KeyboardEvent } from 'react';
 import AISelectionDialog from './AISelectionDialog';
 import Icon from './Icon';
+import { extractMentionsFromText } from '@/utils/mentions';
 import type { MessageInputProps, DialogPosition } from '@/types';
 
 const MessageInput = ({ onSendMessage, disabled = false, onAIMention, onTypingStart, onTypingStop }: MessageInputProps) => {
@@ -20,7 +21,7 @@ const MessageInput = ({ onSendMessage, disabled = false, onAIMention, onTypingSt
     e.preventDefault();
     if (message.trim() && !disabled) {
       // Check for @mentions and trigger AI if mentioned
-      const mentions = extractMentions(message);
+      const mentions = extractMentionsFromText(message);
       if (mentions.length > 0 && onAIMention) {
         onAIMention(mentions, message.trim());
       }
@@ -36,16 +37,6 @@ const MessageInput = ({ onSendMessage, disabled = false, onAIMention, onTypingSt
 
       textareaRef.current?.focus();
     }
-  };
-
-  const extractMentions = (text: string): string[] => {
-    const mentionRegex = /@([a-zA-Z0-9_\-\.]+)/g;
-    const mentions: string[] = [];
-    let match;
-    while ((match = mentionRegex.exec(text)) !== null) {
-      mentions.push(match[1].toLowerCase());
-    }
-    return mentions;
   };
 
   const handleKeyPress = (e: KeyboardEvent<HTMLTextAreaElement>) => {
