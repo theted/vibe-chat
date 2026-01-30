@@ -15,6 +15,7 @@
     "dist"
   ],
   "scripts": {
+    "prebuild": "npm --prefix ../ai-configs run build",
     "build": "tsc",
     "build:watch": "tsc --watch --preserveWatchOutput",
     "clean": "rm -rf dist",
