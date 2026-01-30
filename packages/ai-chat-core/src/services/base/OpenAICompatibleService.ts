@@ -6,8 +6,13 @@
  * shared across multiple providers (OpenAI, Mistral, Deepseek, Grok, etc.).
  */
 
-import { BaseAIService } from './BaseAIService.js';
-import { mapToOpenAIChat } from '../../utils/aiFormatting.js';
+import { BaseAIService } from "./BaseAIService.js";
+import { mapToOpenAIChat } from "../../utils/aiFormatting.js";
+import {
+  buildResponsesPayload,
+  ensureResponsesClient,
+  extractTextFromResponses,
+} from "./openaiResponses.js";
 import {
   OpenAICompatibleServiceConfig,
   OpenAIClient,
@@ -15,14 +20,14 @@ import {
   OpenAICompletionResponse,
   ServiceAPIError,
   ServiceTimeoutError
-} from '../../types/services.js';
+} from "../../types/services.js";
 import {
   Message,
   ServiceResponse,
   ServiceInitOptions,
   AIServiceConfig,
   OpenAIMessage
-} from '../../types/index.js';
+} from "../../types/index.js";
 
 export abstract class OpenAICompatibleService extends BaseAIService {
   protected client: OpenAIClient | null = null;
@@ -130,75 +135,35 @@ export abstract class OpenAICompatibleService extends BaseAIService {
     return Boolean((this.config.model as { useResponsesApi?: boolean }).useResponsesApi);
   }
 
-  protected formatResponsesInput(messages: OpenAIMessage[]) {
-    return messages.map((message) => ({
-      role: message.role,
-      content: message.content,
-    }));
-  }
-
-  protected extractTextFromResponses(response: any): string {
-    if (typeof response?.output_text === "string" && response.output_text.trim().length > 0) {
-      return response.output_text.trim();
-    }
-
-    if (Array.isArray(response?.output)) {
-      const parts: string[] = [];
-      for (const item of response.output) {
-        if (Array.isArray(item?.content)) {
-          for (const block of item.content) {
-            const text = block?.text || block?.content?.text;
-            if (typeof text === "string" && text.trim().length > 0) {
-              parts.push(text.trim());
-            }
-          }
-        }
-      }
-      if (parts.length > 0) {
-        return parts.join("\n").trim();
-      }
-    }
-
-    throw new ServiceAPIError(
-      "Invalid API response: missing content",
-      this.name,
-      undefined,
-      response
-    );
-  }
-
   protected async makeResponsesAPIRequest(
     messages: OpenAIMessage[],
     context?: Record<string, unknown>
   ): Promise<ServiceResponse> {
-    if (!this.client || !(this.client as any).responses?.create) {
-      throw new ServiceAPIError(
-        "Responses API is not available on this OpenAI client",
-        this.name
-      );
-    }
+    const client = ensureResponsesClient(this.client, this.name);
 
-    const temperature =
+    const temperatureRaw =
       context?.temperature ?? this.config.model.temperature ?? 0.7;
-    const maxTokens = context?.maxTokens ?? this.config.model.maxTokens;
-    const payload: Record<string, unknown> = {
-      model: this.getModel(),
-      input: this.formatResponsesInput(messages),
-      temperature,
-    };
-
+    const temperature =
+      typeof temperatureRaw === "number" ? temperatureRaw : Number(temperatureRaw);
+    const maxTokensRaw = context?.maxTokens ?? this.config.model.maxTokens;
+    const maxTokens =
+      typeof maxTokensRaw === "number"
+        ? maxTokensRaw
+        : typeof maxTokensRaw === "string"
+          ? Number(maxTokensRaw)
+          : undefined;
     const reasoningEffort = (context as { reasoningEffort?: string } | undefined)
       ?.reasoningEffort;
-    if (reasoningEffort) {
-      payload.reasoning = { effort: reasoningEffort };
-    }
+    const payload = buildResponsesPayload({
+      model: this.getModel(),
+      messages,
+      temperature,
+      maxTokens,
+      reasoningEffort,
+    });
 
-    if (maxTokens) {
-      payload.max_output_tokens = maxTokens;
-    }
-
-    const response = await (this.client as any).responses.create(payload);
-    const content = this.extractTextFromResponses(response);
+    const response = await (client as any).responses.create(payload);
+    const content = extractTextFromResponses(response, this.name);
 
     return {
       content,
@@ -340,22 +305,20 @@ export abstract class OpenAICompatibleService extends BaseAIService {
       const processedMessages = this.processMessages(formattedMessages);
 
       if (this.usesResponsesAPI()) {
-        const payload: Record<string, unknown> = {
+        const payload = buildResponsesPayload({
           model: this.getModel(),
-          input: this.formatResponsesInput(processedMessages),
+          messages: processedMessages,
           temperature: this.config.model.temperature ?? 0.7,
-        };
-
-        if (this.config.model.maxTokens) {
-          payload.max_output_tokens = this.config.model.maxTokens;
-        }
+          maxTokens: this.config.model.maxTokens,
+        });
 
         const url = this.getHealthCheckURL("/responses");
         this.logHealthCheckDetails("request", { url, payload });
-        const response = await (this.client as any).responses.create(payload);
+        const client = ensureResponsesClient(this.client, this.name);
+        const response = await (client as any).responses.create(payload);
         this.logHealthCheckDetails("response", { url, response });
 
-        const content = this.extractTextFromResponses(response);
+        const content = extractTextFromResponses(response, this.name);
         return content.length > 0;
       }
 
