@@ -8,7 +8,7 @@ import type {
   RoomStats,
   RoomSummary,
   RoomUserData,
-} from "../types.js";
+} from "@/types.js";
 
 type RoomOptions = {
   name?: string;

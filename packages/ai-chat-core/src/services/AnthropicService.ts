@@ -6,9 +6,9 @@
 
 import { BaseAIService } from "./base/BaseAIService.js";
 import Anthropic from "@anthropic-ai/sdk";
-import { Message, ServiceResponse, AnthropicServiceConfig, ServiceInitOptions } from "../types/index.js";
-import { ServiceError } from "../types/services.js";
-import { DEFAULT_MAX_TOKENS } from "../config/aiProviders/constants.js";
+import { Message, ServiceResponse, AnthropicServiceConfig, ServiceInitOptions } from "@/types/index.js";
+import { ServiceError } from "@/types/services.js";
+import { DEFAULT_MAX_TOKENS } from "@/config/aiProviders/constants.js";
 
 interface AnthropicMessage {
   role: "user" | "assistant";

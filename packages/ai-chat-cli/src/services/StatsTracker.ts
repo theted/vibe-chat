@@ -16,7 +16,7 @@ import {
   STATS_TOTAL_AI_MESSAGES_KEY,
   STATS_TOTAL_MESSAGES_KEY,
   STATS_TOTAL_USER_MESSAGES_KEY,
-} from "../config/statsConstants.js";
+} from "@/config/statsConstants.js";
 
 dotenv.config();
 

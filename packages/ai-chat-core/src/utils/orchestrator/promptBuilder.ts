@@ -1,10 +1,10 @@
-import { AI_PROVIDERS } from "../../config/aiProviders/index.js";
+import { AI_PROVIDERS } from "@/config/aiProviders/index.js";
 import {
   enhanceSystemPromptWithPersona,
   getPersonaFromProvider,
-} from "../personaUtils.js";
-import { getEnvFlag, parseBooleanEnvFlag } from "../stringUtils.js";
-import { SYSTEM_PROMPT } from "../../orchestrator/constants.js";
+} from "@/utils/personaUtils.js";
+import { getEnvFlag, parseBooleanEnvFlag } from "@/utils/stringUtils.js";
+import { SYSTEM_PROMPT } from "@/orchestrator/constants.js";
 import { getAIDisplayName } from "./aiLookup.js";
 
 export const createEnhancedSystemPrompt = (

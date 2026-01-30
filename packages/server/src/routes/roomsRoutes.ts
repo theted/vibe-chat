@@ -1,5 +1,5 @@
 import { Router, type Request, type Response } from "express";
-import type { SocketController } from "../controllers/SocketController.js";
+import type { SocketController } from "@/controllers/SocketController.js";
 
 type RoomsRouteDeps = {
   getSocketController: () => SocketController | undefined;

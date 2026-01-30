@@ -7,7 +7,7 @@
  */
 
 import { BaseAIService } from "./BaseAIService.js";
-import { mapToOpenAIChat } from "../../utils/aiFormatting.js";
+import { mapToOpenAIChat } from "@/utils/aiFormatting.js";
 import {
   buildResponsesPayload,
   ensureResponsesClient,
@@ -20,14 +20,14 @@ import {
   OpenAICompletionResponse,
   ServiceAPIError,
   ServiceTimeoutError
-} from "../../types/services.js";
+} from "@/types/services.js";
 import {
   Message,
   ServiceResponse,
   ServiceInitOptions,
   AIServiceConfig,
   OpenAIMessage
-} from "../../types/index.js";
+} from "@/types/index.js";
 
 export abstract class OpenAICompatibleService extends BaseAIService {
   protected client: OpenAIClient | null = null;

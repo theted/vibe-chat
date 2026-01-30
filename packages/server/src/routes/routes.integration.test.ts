@@ -8,8 +8,8 @@ import {
   createRoomsRouter,
   createStatsRouter,
 } from "./index.js";
-import type { SocketController } from "../controllers/SocketController.js";
-import type { MetricsService } from "../services/MetricsService.js";
+import type { SocketController } from "@/controllers/SocketController.js";
+import type { MetricsService } from "@/services/MetricsService.js";
 
 const createTestApp = () => {
   const app = express();

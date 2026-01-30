@@ -9,7 +9,7 @@ const { mockHandlers, mockEmit } = vi.hoisted(() => ({
   mockEmit: vi.fn(),
 }));
 
-vi.mock("../hooks/useSocket", () => ({
+vi.mock("@/hooks/useSocket", () => ({
   useSocket: () => ({
     on: (event: string, callback: (data: unknown) => void) => {
       mockHandlers[event] = callback;

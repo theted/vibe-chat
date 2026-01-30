@@ -16,7 +16,7 @@
   ],
   "scripts": {
     "prebuild": "npm --prefix ../ai-configs run build",
-    "build": "tsc",
+    "build": "tsc && node ../../scripts/resolve-path-aliases.mjs .",
     "build:watch": "tsc --watch --preserveWatchOutput",
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run clean && npm run build",

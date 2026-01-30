@@ -2,7 +2,7 @@ import type { Express, NextFunction, Request, Response } from "express";
 import express from "express";
 import fs from "fs";
 import path from "path";
-import { clientBuildDir } from "../config/serverConfig.js";
+import { clientBuildDir } from "@/config/serverConfig.js";
 
 export const registerStaticAssets = (app: Express): void => {
   if (!fs.existsSync(clientBuildDir)) {

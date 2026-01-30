@@ -1,5 +1,5 @@
 import { Router, type Request, type Response } from "express";
-import type { MetricsService } from "../services/MetricsService.js";
+import type { MetricsService } from "@/services/MetricsService.js";
 
 type MetricsRouteDeps = {
   getMetricsService: () => MetricsService | undefined;

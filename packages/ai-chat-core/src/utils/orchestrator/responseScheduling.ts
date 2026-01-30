@@ -1,4 +1,4 @@
-import { DEFAULTS, DELAY_CALC, TIMING } from "../../orchestrator/constants.js";
+import { DEFAULTS, DELAY_CALC, TIMING } from "@/orchestrator/constants.js";
 
 export const selectRespondingAIs = (
   aiServices,

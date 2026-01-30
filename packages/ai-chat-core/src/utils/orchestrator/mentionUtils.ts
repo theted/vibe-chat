@@ -1,5 +1,5 @@
-import { MENTION_FORMATS } from "../../orchestrator/constants.js";
-import { normalizeAlias, toMentionAlias } from "../stringUtils.js";
+import { MENTION_FORMATS } from "@/orchestrator/constants.js";
+import { normalizeAlias, toMentionAlias } from "@/utils/stringUtils.js";
 import {
   findAIByNormalizedAlias,
   getMentionTokenForAI,

@@ -6,8 +6,8 @@
  */
 
 import { OpenAICompatibleService } from "./base/OpenAICompatibleService.js";
-import { OpenAIClient } from "../types/services.js";
-import { AIServiceConfig, ServiceInitOptions } from "../types/index.js";
+import { OpenAIClient } from "@/types/services.js";
+import { AIServiceConfig, ServiceInitOptions } from "@/types/index.js";
 import OpenAI from "openai";
 
 const DEEPSEEK_BASE_URL = "https://api.deepseek.com/v1";
