@@ -3,7 +3,13 @@ FROM node:18-alpine
 
 WORKDIR /app
 
+# Copy and build AI configs package
+COPY packages/ai-configs ./ai-configs
+WORKDIR /app/ai-configs
+RUN npm install && npm run build
+
 # Copy and install core package first
+WORKDIR /app
 COPY packages/ai-chat-core ./ai-chat-core
 WORKDIR /app/ai-chat-core
 RUN npm install

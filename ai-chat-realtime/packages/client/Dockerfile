@@ -3,7 +3,16 @@ FROM node:18-alpine as builder
 
 WORKDIR /app
 
+# Copy and build AI configs package
+COPY packages/ai-configs ./ai-configs
+WORKDIR /app/ai-configs
+RUN npm install && npm run build
+
+# Ensure workspace-relative file dependency can resolve from /app
+RUN ln -s /app/ai-configs /ai-configs
+
 # Copy package files and install dependencies
+WORKDIR /app
 COPY packages/client/package.json ./
 RUN npm install react-markdown@^9.1.0 && npm install
 

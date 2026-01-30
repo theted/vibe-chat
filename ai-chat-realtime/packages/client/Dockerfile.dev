@@ -3,7 +3,16 @@ FROM node:18-alpine
 
 WORKDIR /app
 
+# Copy and build AI configs package
+COPY packages/ai-configs ./ai-configs
+WORKDIR /app/ai-configs
+RUN npm install && npm run build
+
+# Ensure workspace-relative file dependency can resolve from /app
+RUN ln -s /app/ai-configs /ai-configs
+
 # Copy package files
+WORKDIR /app
 COPY packages/client/package*.json ./
 RUN npm install
 
