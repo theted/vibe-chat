@@ -7,7 +7,7 @@
   "scripts": {
     "build": "npm --prefix ../ai-chat-core run build && tsc",
     "start": "npm run build && node dist/app.js",
-    "dev": "npm --prefix ../ai-chat-core run build && (tsc --watch & nodemon --watch dist --watch ../ai-chat-core/src dist/app.js)",
+    "dev": "npm --prefix ../ai-chat-core run build && mkdir -p dist && (tsc --watch & nodemon --watch dist --watch ../ai-chat-core/src dist/app.js)",
     "test": "echo 'No tests specified'",
     "lint": "eslint . --ext js --report-unused-disable-directives --max-warnings 0",
     "lint:fix": "eslint . --ext js --fix"

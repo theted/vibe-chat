@@ -15,7 +15,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc && tsc-alias -p tsconfig.json",
+    "build": "tsc",
     "build:watch": "tsc --watch --preserveWatchOutput",
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run clean && npm run build",
@@ -49,7 +49,6 @@
   "devDependencies": {
     "@types/node": "^24.10.1",
     "eslint": "^8.56.0",
-    "tsc-alias": "^1.8.10",
     "typescript": "^5.9.3"
   },
   "keywords": [
