@@ -15,7 +15,7 @@ import { QWEN } from "./providers/qwen.js";
 import { KIMI } from "./providers/kimi.js";
 import { LLAMA } from "./providers/llama.js";
 import { PERPLEXITY } from "./providers/perplexity.js";
-import type { AIModel } from "@/types/index.js";
+import type { AIModel } from "../../types/index.js";
 
 /**
  * Default models for each provider

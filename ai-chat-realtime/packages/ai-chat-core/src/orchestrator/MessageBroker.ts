@@ -9,8 +9,8 @@ import {
   QueuedMessage,
   QueueStatus,
   BrokerEvent
-} from '@/types/orchestrator.js';
-import { Message } from '@/types/index.js';
+} from '../types/orchestrator.js';
+import { Message } from '../types/index.js';
 
 export class MessageBroker extends EventEmitter implements IMessageBroker {
   private messageQueue: QueuedMessage[] = [];

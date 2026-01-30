@@ -6,8 +6,8 @@
  */
 
 import { OpenAICompatibleService } from "./base/OpenAICompatibleService.js";
-import { OpenAIClient } from "@/types/services.js";
-import { AIServiceConfig, ServiceInitOptions } from "@/types/index.js";
+import { OpenAIClient } from "../types/services.js";
+import { AIServiceConfig, ServiceInitOptions } from "../types/index.js";
 import OpenAI from "openai";
 
 const LLAMA_BASE_URL = "https://api.llama-api.com/v1";

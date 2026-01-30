@@ -5,10 +5,10 @@
  */
 
 import { BaseAIService } from "./base/BaseAIService.js";
-import { toGeminiHistory } from "@/utils/aiFormatting.js";
+import { toGeminiHistory } from "../utils/aiFormatting.js";
 import { GoogleGenerativeAI, GenerativeModel } from "@google/generative-ai";
-import { Message, ServiceResponse, GeminiServiceConfig, ServiceInitOptions } from "@/types/index.js";
-import { ServiceError } from "@/types/services.js";
+import { Message, ServiceResponse, GeminiServiceConfig, ServiceInitOptions } from "../types/index.js";
+import { ServiceError } from "../types/services.js";
 
 export class GeminiService extends BaseAIService {
   private client: GoogleGenerativeAI | null = null;

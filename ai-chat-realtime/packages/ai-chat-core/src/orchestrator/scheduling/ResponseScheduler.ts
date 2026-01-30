@@ -14,8 +14,8 @@ import {
   AIParticipant,
   InteractionStrategy,
   MentionContext
-} from '@/types/orchestrator.js';
-import { Message } from '@/types/index.js';
+} from '../../types/orchestrator.js';
+import { Message } from '../../types/index.js';
 
 export class ResponseScheduler implements IResponseScheduler {
   private config: SchedulingConfig;
