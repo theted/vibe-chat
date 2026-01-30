@@ -21,9 +21,9 @@
     "rootDir": "./src",
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"],
-      "@ai-chat/ai-configs": ["../ai-configs/src/index.ts"]
+      "@/*": ["src/*"]
     },
+    "types": ["node"],
     "lib": ["ES2022", "DOM"],
     "allowJs": true,
     "checkJs": false,
