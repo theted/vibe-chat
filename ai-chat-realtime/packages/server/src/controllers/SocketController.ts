@@ -46,10 +46,43 @@ type MetricsHistoryPayload = {
   duration?: number;
 };
 
+type OrchestratorAIServiceInfo = {
+  id?: string;
+  name?: string;
+  displayName?: string;
+  displayAlias?: string;
+  alias?: string;
+  normalizedAlias?: string;
+  emoji?: string;
+  config?: {
+    providerKey?: string;
+  };
+  isActive?: boolean;
+};
+
 const RECENT_MESSAGE_LIMIT = 20;
 const MESSAGE_TTL_SECONDS = 60 * 60 * 24 * 7; // 7 days
 const USER_MESSAGE_LIMIT = 10;
 const USER_MESSAGE_WINDOW_MS = 10 * 60 * 1000;
+
+const toOrchestratorAIServiceInfo = (
+  value: unknown
+): OrchestratorAIServiceInfo | null => {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+  return value as OrchestratorAIServiceInfo;
+};
+
+const resolveText = (value: unknown, fallback: string): string => {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (trimmed) {
+      return trimmed;
+    }
+  }
+  return fallback;
+};
 
 /**
  * Handles Socket.IO events and chat state for each room.
@@ -756,17 +789,32 @@ export class SocketController {
   }
 
   getActiveAIParticipants(): ActiveAIParticipant[] {
-    return Array.from(this.chatOrchestrator.aiServices.values()).map((ai) => ({
-      id: ai.id,
-      name: ai.displayName || ai.name,
-      displayName: ai.displayName || ai.name,
-      alias: ai.displayAlias || ai.alias,
-      mentionAlias: ai.alias,
-      normalizedAlias: ai.normalizedAlias,
-      emoji: ai.emoji,
-      provider: ai.config?.providerKey?.toUpperCase?.() || ai.name,
-      status: ai.isActive ? "active" : "inactive",
-    }));
+    return Array.from(this.chatOrchestrator.aiServices.values())
+      .map(toOrchestratorAIServiceInfo)
+      .filter((ai): ai is OrchestratorAIServiceInfo => ai !== null)
+      .map((ai) => {
+        const name = resolveText(ai.name, "AI");
+        const displayName = resolveText(ai.displayName, name);
+        const alias = resolveText(
+          ai.displayAlias,
+          resolveText(ai.alias, displayName)
+        );
+        const normalizedAlias = resolveText(ai.normalizedAlias, alias);
+
+        return {
+          id: resolveText(ai.id, alias),
+          name: displayName,
+          displayName,
+          alias,
+          mentionAlias: resolveText(ai.alias, alias),
+          normalizedAlias,
+          emoji: ai.emoji,
+          provider:
+            ai.config?.providerKey?.toUpperCase?.() ||
+            resolveText(ai.name, "AI"),
+          status: ai.isActive ? "active" : "inactive",
+        };
+      });
   }
 
   async sendRecentMessages(
