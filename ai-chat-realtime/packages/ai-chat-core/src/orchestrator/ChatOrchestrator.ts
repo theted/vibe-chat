@@ -12,14 +12,34 @@ import {
   TIMING,
   RESPONDER_CONFIG,
 } from "./constants.js";
-import { AI_PROVIDERS } from "@/config/aiProviders/index.js";
 import {
-  enhanceSystemPromptWithPersona,
-  getPersonaFromProvider,
-} from "@/utils/personaUtils.js";
+  findAIByNormalizedAlias,
+  findAIFromContextMessage,
+  getAIDisplayName,
+  getMentionTokenForAI,
+  OrchestratorAIService,
+} from "@/utils/orchestrator/aiLookup.js";
 import {
-  parseBooleanEnvFlag,
+  enhanceContextForComment,
+  enhanceContextForTopicChange,
+} from "@/utils/orchestrator/contextEnhancers.js";
+import { logAIContext } from "@/utils/orchestrator/logging.js";
+import { addMentionToResponse } from "@/utils/orchestrator/mentionUtils.js";
+import { createEnhancedSystemPrompt } from "@/utils/orchestrator/promptBuilder.js";
+import {
+  calculateResponseDelay,
+  selectRespondingAIs,
+} from "@/utils/orchestrator/responseScheduling.js";
+import { truncateResponse } from "@/utils/orchestrator/responseUtils.js";
+import {
+  applyInteractionStrategy,
+  determineInteractionStrategy,
+} from "@/utils/orchestrator/strategyUtils.js";
+import {
   getEnvFlag,
+  normalizeAlias,
+  parseBooleanEnvFlag,
+  toMentionAlias,
 } from "@/utils/stringUtils.js";
 
 type ChatOrchestratorOptions = {
@@ -38,11 +58,6 @@ type ChatOrchestratorOptions = {
 type GenerateResponseOptions = {
   isMentioned?: boolean;
   triggerMessage?: { id?: string; sender?: string };
-};
-
-type StrategyOption = {
-  type: string;
-  weight: number;
 };
 
 /**
@@ -320,9 +335,7 @@ export class ChatOrchestrator extends EventEmitter {
 
     const additionalResponders =
       maxAdditional > 0
-        ? selectRespondingAIs(
-            this.aiServices,
-            this.activeAIs,
+        ? this.selectRespondingAIs(
             minAdditional,
             maxAdditional,
             availableForRandom
@@ -333,18 +346,12 @@ export class ChatOrchestrator extends EventEmitter {
 
     responders.forEach((aiId, index) => {
       const isMentioned = uniqueMentioned.includes(aiId);
-      const delay = calculateResponseDelay({
+      const delay = this.calculateResponseDelay(
         index,
         isUserResponse,
         isMentioned,
-        typingAICount,
-        minUserResponseDelay: this.minUserResponseDelay,
-        maxUserResponseDelay: this.maxUserResponseDelay,
-        minBackgroundDelay: this.minBackgroundDelay,
-        maxBackgroundDelay: this.maxBackgroundDelay,
-        minDelayBetweenAI: this.minDelayBetweenAI,
-        maxDelayBetweenAI: this.maxDelayBetweenAI,
-      });
+        typingAICount
+      );
 
       setTimeout(() => {
         this.generateAIResponse(aiId, roomId, isUserResponse, {
@@ -404,29 +411,25 @@ export class ChatOrchestrator extends EventEmitter {
         CONTEXT_LIMITS.AI_CONTEXT_SIZE
       );
       let responseType = "response";
-      let systemPrompt = createEnhancedSystemPrompt(
+      let systemPrompt = this.createEnhancedSystemPrompt(
         aiService,
         context,
-        isUserResponse,
-        this.aiServices
+        isUserResponse
       );
 
       // Determine AI interaction strategy based on context
-      const interactionStrategy = determineInteractionStrategy(
+      const interactionStrategy = this.determineInteractionStrategy(
         aiService,
         context,
-        isUserResponse,
-        (message) => findAIFromContextMessage(this.aiServices, message),
-        (ai) => getMentionTokenForAI(ai)
+        isUserResponse
       );
       responseType = interactionStrategy.type;
 
       // Apply interaction strategy to context
-      context = applyInteractionStrategy(
+      context = this.applyInteractionStrategy(
         context,
         interactionStrategy,
-        aiService,
-        context[context.length - 1]
+        aiService
       );
 
       // Add the enhanced system prompt
@@ -440,19 +443,18 @@ export class ChatOrchestrator extends EventEmitter {
         ...context,
       ];
 
-      logAIContext(aiService, messagesWithSystem, this.verboseContextLogging);
+      this.logAIContext(aiService, messagesWithSystem);
 
       const response = await aiService.service.generateResponse(
         messagesWithSystem
       );
       const responseTimeMs = Date.now() - responseStartTime;
-      let processedResponse = truncateResponse(response);
+      let processedResponse = this.truncateResponse(response);
       aiService.lastMessageTime = Date.now();
 
       // Add @mentions if strategy calls for it
       if (interactionStrategy.shouldMention && interactionStrategy.targetAI) {
-        processedResponse = addMentionToResponse(
-          this.aiServices,
+        processedResponse = this.addMentionToResponse(
           processedResponse,
           interactionStrategy.targetAI
         );

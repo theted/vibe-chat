@@ -7,6 +7,11 @@ import {
 } from "../../orchestrator/constants.js";
 import { normalizeAlias } from "../stringUtils.js";
 
+type StrategyOption = {
+  type: string;
+  weight: number;
+};
+
 export const determineInteractionStrategy = (
   aiService,
   context,
@@ -20,7 +25,7 @@ export const determineInteractionStrategy = (
   const aiMessages = recentMessages.filter((msg) => msg.senderType === "ai");
   const lastMessage = recentMessages[recentMessages.length - 1];
 
-  const strategies = {
+  const strategies: Record<string, StrategyOption> = {
     AGREE_AND_EXPAND: {
       type: "agree-expand",
       weight: STRATEGY_WEIGHTS.AGREE_AND_EXPAND,
@@ -60,7 +65,7 @@ export const determineInteractionStrategy = (
   const mentionTargets = new Set(lastMessage?.mentionsNormalized || []);
   const mentionsCurrentAI = mentionTargets.has(selfNormalized);
 
-  let selectedStrategy = strategies.DIRECT_RESPONSE;
+  let selectedStrategy: StrategyOption = strategies.DIRECT_RESPONSE;
   if (mentionsCurrentAI) {
     selectedStrategy = strategies.DIRECT_RESPONSE;
   } else {
