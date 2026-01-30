@@ -1,0 +1,38 @@
+{
+  "name": "@ai-chat/ai-configs",
+  "version": "1.0.0",
+  "description": "Centralized AI model configurations, emojis, and metadata for AI Chat",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "build:watch": "tsc --watch --preserveWatchOutput",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run clean && npm run build",
+    "type-check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  },
+  "keywords": [
+    "ai",
+    "config",
+    "models",
+    "emoji"
+  ],
+  "author": "AI Chat Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  }
+}

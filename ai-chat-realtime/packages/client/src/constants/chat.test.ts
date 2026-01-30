@@ -51,15 +51,15 @@ describe("chat constants", () => {
       });
     });
 
-    it("should map Claude variants to robot emoji", () => {
-      expect(AI_EMOJI_LOOKUP.claude).toBe("🤖");
-      expect(AI_EMOJI_LOOKUP.anthropic).toBe("🤖");
+    it("should map Claude variants to music emoji", () => {
+      expect(AI_EMOJI_LOOKUP.claude).toBe("🎹");
+      expect(AI_EMOJI_LOOKUP.anthropic).toBe("🎹");
     });
 
     it("should map GPT variants to brain emoji", () => {
       expect(AI_EMOJI_LOOKUP.gpt).toBe("🧠");
       expect(AI_EMOJI_LOOKUP.gpt4).toBe("🧠");
-      expect(AI_EMOJI_LOOKUP.gpt35).toBe("🧠");
+      expect(AI_EMOJI_LOOKUP.gpt35).toBe("💡");
       expect(AI_EMOJI_LOOKUP.openai).toBe("🧠");
     });
 
@@ -80,19 +80,19 @@ describe("chat constants", () => {
       expect(AI_EMOJI_LOOKUP.commandr).toBe("🔮");
     });
 
-    it("should map Mistral to star emoji", () => {
-      expect(AI_EMOJI_LOOKUP.mistral).toBe("🌟");
+    it("should map Mistral to tornado emoji", () => {
+      expect(AI_EMOJI_LOOKUP.mistral).toBe("🌪️");
     });
 
-    it("should map Kimi/Moonshot to target emoji", () => {
+    it("should map Kimi/Moonshot to moon emojis", () => {
       expect(AI_EMOJI_LOOKUP.kimi).toBe("🎯");
-      expect(AI_EMOJI_LOOKUP.moonshot).toBe("🎯");
+      expect(AI_EMOJI_LOOKUP.moonshot).toBe("🌓");
     });
 
-    it("should map Z.AI variants to lightning emoji", () => {
-      expect(AI_EMOJI_LOOKUP.zai).toBe("⚡");
-      expect(AI_EMOJI_LOOKUP.z).toBe("⚡");
-      expect(AI_EMOJI_LOOKUP["z.ai"]).toBe("⚡");
+    it("should map Z.AI variants to brightness emoji", () => {
+      expect(AI_EMOJI_LOOKUP.zai).toBe("🔆");
+      expect(AI_EMOJI_LOOKUP.z).toBe("🔆");
+      expect(AI_EMOJI_LOOKUP["z.ai"]).toBe("🔆");
     });
 
     it("should only contain emoji values", () => {
@@ -117,8 +117,8 @@ describe("chat constants", () => {
 
     it("should contain mappings for major AI providers", () => {
       const requiredProviders = [
-        "claude",
-        "gpt-4",
+        "claude-sonnet-4-5",
+        "gpt-4o",
         "grok",
         "gemini",
         "cohere",
@@ -130,17 +130,17 @@ describe("chat constants", () => {
       });
     });
 
-    it("should map Claude aliases to \"claude\"", () => {
-      expect(AI_MENTION_MAPPINGS.claude).toBe("claude");
-      expect(AI_MENTION_MAPPINGS.anthropic).toBe("claude");
+    it("should map Claude aliases to claude-sonnet-4-5", () => {
+      expect(AI_MENTION_MAPPINGS.claude).toBe("claude-sonnet-4-5");
+      expect(AI_MENTION_MAPPINGS.anthropic).toBe("claude-sonnet-4-5");
     });
 
-    it("should map GPT aliases to \"gpt-4\"", () => {
-      expect(AI_MENTION_MAPPINGS.gpt).toBe("gpt-4");
-      expect(AI_MENTION_MAPPINGS.gpt4).toBe("gpt-4");
-      expect(AI_MENTION_MAPPINGS["gpt-4"]).toBe("gpt-4");
-      expect(AI_MENTION_MAPPINGS.openai).toBe("gpt-4");
-      expect(AI_MENTION_MAPPINGS.chatgpt).toBe("gpt-4");
+    it("should map GPT aliases to gpt-4o", () => {
+      expect(AI_MENTION_MAPPINGS.gpt).toBe("gpt-4o");
+      expect(AI_MENTION_MAPPINGS.gpt4).toBe("gpt-4o");
+      expect(AI_MENTION_MAPPINGS["gpt-4"]).toBe("gpt-4o");
+      expect(AI_MENTION_MAPPINGS.openai).toBe("gpt-4o");
+      expect(AI_MENTION_MAPPINGS.chatgpt).toBe("gpt-5.1");
     });
 
     it("should map Grok aliases correctly", () => {
@@ -154,7 +154,7 @@ describe("chat constants", () => {
       expect(AI_MENTION_MAPPINGS.bard).toBe("gemini");
     });
 
-    it("should map Cohere aliases to \"cohere\"", () => {
+    it("should map Cohere aliases to cohere", () => {
       expect(AI_MENTION_MAPPINGS.command).toBe("cohere");
       expect(AI_MENTION_MAPPINGS.commandr).toBe("cohere");
       expect(AI_MENTION_MAPPINGS.cohere).toBe("cohere");
@@ -164,7 +164,7 @@ describe("chat constants", () => {
       expect(AI_MENTION_MAPPINGS.mistral).toBe("mistral");
     });
 
-    it("should map Z.AI aliases to \"z.ai\"", () => {
+    it("should map Z.AI aliases to z.ai", () => {
       expect(AI_MENTION_MAPPINGS["z.ai"]).toBe("z.ai");
       expect(AI_MENTION_MAPPINGS.z).toBe("z.ai");
       expect(AI_MENTION_MAPPINGS.zai).toBe("z.ai");
@@ -177,7 +177,7 @@ describe("chat constants", () => {
     });
 
     it("should map aliases to canonical names", () => {
-      Object.entries(AI_MENTION_MAPPINGS).forEach(([alias, canonical]) => {
+      Object.entries(AI_MENTION_MAPPINGS).forEach(([, canonical]) => {
         expect(typeof canonical).toBe("string");
         expect(canonical.length).toBeGreaterThan(0);
       });
@@ -186,9 +186,14 @@ describe("chat constants", () => {
     it("should have consistent mappings with emoji lookup", () => {
       const canonicalNames = [...new Set(Object.values(AI_MENTION_MAPPINGS))];
       canonicalNames.forEach((name) => {
-        const hasEmoji = Object.keys(AI_EMOJI_LOOKUP).some((key) => 
-          name.toLowerCase().includes(key) || key.includes(name.toLowerCase())
-        );
+        const normalizedName = name.toLowerCase().replace(/[^a-z0-9]/g, "");
+        const hasEmoji = Object.keys(AI_EMOJI_LOOKUP).some((key) => {
+          const normalizedKey = key.toLowerCase().replace(/[^a-z0-9]/g, "");
+          return (
+            normalizedName.includes(normalizedKey) ||
+            normalizedKey.includes(normalizedName)
+          );
+        });
         expect(hasEmoji).toBe(true);
       });
     });
@@ -199,9 +204,15 @@ describe("chat constants", () => {
       const uniqueMappings = [...new Set(Object.values(AI_MENTION_MAPPINGS))];
       uniqueMappings.forEach((mapping) => {
         const normalized = mapping.toLowerCase().replace(/[^a-z0-9]/g, "");
-        const hasCorrespondingEmoji = Object.keys(AI_EMOJI_LOOKUP).some((emojiKey) => {
-          return normalized.includes(emojiKey) || emojiKey.includes(normalized);
-        });
+        const hasCorrespondingEmoji = Object.keys(AI_EMOJI_LOOKUP).some(
+          (emojiKey) => {
+            const normalizedKey = emojiKey.toLowerCase().replace(/[^a-z0-9]/g, "");
+            return (
+              normalized.includes(normalizedKey) ||
+              normalizedKey.includes(normalized)
+            );
+          }
+        );
         expect(hasCorrespondingEmoji).toBe(true);
       });
     });
