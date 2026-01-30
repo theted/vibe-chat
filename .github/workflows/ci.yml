@@ -12,6 +12,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -20,19 +21,25 @@ jobs:
           cache-dependency-path: |
             package-lock.json
             ai-chat-realtime/package-lock.json
-      - name: Install dependencies
+
+      - name: Install root dependencies
         run: npm ci
-      - name: Build @ai-chat/core
-        working-directory: ai-chat-realtime/packages/ai-chat-core
-        run: npm ci && npm run build
-      - name: Build root package
-        run: npm run build
-      - name: Run tests
-        run: npm test
+
       - name: Install ai-chat-realtime dependencies
         working-directory: ai-chat-realtime
         run: npm ci
-      - name: Run client UI tests
+
+      - name: Build @ai-chat/core
+        working-directory: ai-chat-realtime/packages/ai-chat-core
+        run: npm run build
+
+      - name: Build root package
+        run: npm run build
+
+      - name: Run root tests
+        run: npm test
+
+      - name: Run client tests
         working-directory: ai-chat-realtime
         env:
           CI: true
