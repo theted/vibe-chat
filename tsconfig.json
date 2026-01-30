@@ -15,6 +15,7 @@
     "paths": {
       "@/*": ["src/*"]
     },
+    "types": ["node"],
     "declaration": false,
     "noEmitOnError": false
   },

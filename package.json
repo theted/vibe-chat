@@ -5,7 +5,8 @@
   "main": "dist/index.js",
   "type": "module",
   "scripts": {
-    "build:core": "npm --prefix ai-chat-realtime/packages/ai-chat-core run build",
+    "build:configs": "npm --prefix ai-chat-realtime/packages/ai-configs run build",
+    "build:core": "npm run -s build:configs && npm --prefix ai-chat-realtime/packages/ai-chat-core run build",
     "build": "npm run -s build:core && tsc",
     "start": "npm run build && node dist/index.js",
     "dev": "npm run -s build:core && tsc --watch & node --watch dist/index.js",

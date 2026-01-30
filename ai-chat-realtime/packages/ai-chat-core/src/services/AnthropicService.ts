@@ -138,7 +138,7 @@ export class AnthropicService extends BaseAIService {
     const payload = {
       model: this.config.model.id,
       messages: testMessages.map((message) => ({
-        role: message.role === "user" ? "user" : "assistant",
+        role: (message.role === "user" ? "user" : "assistant") as "user" | "assistant",
         content: message.content.trim(),
       })),
       max_tokens: this.config.model.maxTokens || DEFAULT_MAX_TOKENS,
