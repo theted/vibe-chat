@@ -432,7 +432,7 @@ export interface ContextMessage extends Message {
   importance?: number;
   tokens?: number;
   sender?: string;
-  senderType?: 'user' | 'ai';
+  senderType?: 'user' | 'ai' | 'system';
   displayName?: string;
   alias?: string;
   normalizedAlias?: string;
@@ -440,6 +440,7 @@ export interface ContextMessage extends Message {
   modelKey?: string;
   mentions?: string[];
   mentionsNormalized?: string[];
+  isInternal?: boolean;
 }
 
 export interface ContextManagerConfig {
