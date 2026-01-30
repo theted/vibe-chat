@@ -114,7 +114,28 @@ export class GeminiService extends BaseAIService {
 
       // Simple test call with minimal tokens
       const testMessages: Message[] = [{ role: "user", content: "Hi" }];
-      await this.performGenerateResponse(testMessages);
+      const history = toGeminiHistory([]);
+      const lastUserMessage = testMessages[0].content;
+      const generationConfig = {
+        maxOutputTokens: this.config.model.maxTokens,
+        temperature: this.config.model.temperature,
+      };
+      const payload = {
+        model: this.config.model.id,
+        message: lastUserMessage,
+        history,
+        generationConfig,
+      };
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${this.config.model.id}:streamGenerateContent`;
+      this.logHealthCheckDetails("request", { url, payload });
+
+      const chat = this.geminiModel?.startChat({
+        generationConfig,
+        history,
+      });
+      const result = await chat?.sendMessageStream(lastUserMessage);
+      const response = await result?.response;
+      this.logHealthCheckDetails("response", { url, response });
       return true;
     } catch (error) {
       console.warn(`Gemini health check failed: ${error}`);

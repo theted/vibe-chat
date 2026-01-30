@@ -292,6 +292,14 @@ export abstract class OpenAICompatibleService extends BaseAIService {
   }
 
   /**
+   * Resolve the API URL for health check logging.
+   */
+  protected getHealthCheckURL(path: string): string {
+    const baseURL = this.baseURL || "https://api.openai.com/v1";
+    return `${baseURL.replace(/\/$/, "")}${path}`;
+  }
+
+  /**
    * Generate response implementation for OpenAI-compatible services
    */
   protected async performGenerateResponse(
@@ -324,17 +332,45 @@ export abstract class OpenAICompatibleService extends BaseAIService {
 
       // Make a minimal API call to test connectivity
       const testMessage: Message = {
-        role: 'user',
-        content: 'ping'
+        role: "user",
+        content: "ping",
       };
 
-      const response = await this.performGenerateResponse([testMessage]);
+      const formattedMessages = this.formatMessages([testMessage]);
+      const processedMessages = this.processMessages(formattedMessages);
+
+      if (this.usesResponsesAPI()) {
+        const payload: Record<string, unknown> = {
+          model: this.getModel(),
+          input: this.formatResponsesInput(processedMessages),
+          temperature: this.config.model.temperature ?? 0.7,
+        };
+
+        if (this.config.model.maxTokens) {
+          payload.max_output_tokens = this.config.model.maxTokens;
+        }
+
+        const url = this.getHealthCheckURL("/responses");
+        this.logHealthCheckDetails("request", { url, payload });
+        const response = await (this.client as any).responses.create(payload);
+        this.logHealthCheckDetails("response", { url, response });
+
+        const content = this.extractTextFromResponses(response);
+        return content.length > 0;
+      }
+
+      const requestParams = this.prepareRequestParams(processedMessages);
+      const url = this.getHealthCheckURL("/chat/completions");
+      this.logHealthCheckDetails("request", { url, payload: requestParams });
+      const apiResponse = await this.makeAPIRequest(requestParams);
+      this.logHealthCheckDetails("response", { url, response: apiResponse });
+      const response = this.parseResponse(apiResponse);
       return response.content.length > 0;
 
     } catch (error) {
-      this.logger?.debug('Health check failed', {
+      this.logger?.debug("Health check failed", {
         service: this.name,
-        error: error instanceof Error ? error.message : String(error)
+        error: error instanceof Error ? error.message : String(error),
       });
       return false;
     }

@@ -2,18 +2,22 @@
 
 VERBOSE_MODE=false
 PERSONAS_MODE=false
+SKIP_HEALTHCHECK_MODE=false
 VERBOSE_CONTEXT_FLAG="AI_CHAT_VERBOSE_CONTEXT"
 PERSONAS_FLAG="AI_CHAT_ENABLE_PERSONAS"
+SKIP_HEALTHCHECK_FLAG="AI_CHAT_SKIP_HEALTHCHECK"
 
 print_usage() {
     cat <<'USAGE'
-Usage: ./start.sh [--verbose] [--personas]
+Usage: ./start.sh [--verbose] [--personas] [--skip-healthcheck]
 
 Options:
   --verbose, -v   Output the full AI context that will be forwarded to the models.
                   This is noisy and intended for debugging only.
   --personas      Enable AI persona injection into system prompts.
                   Each AI participant will express their configured personality.
+  --skip-healthcheck
+                  Skip AI provider health checks during initialization.
   --help, -h      Show this message.
 USAGE
 }
@@ -26,6 +30,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --personas)
             PERSONAS_MODE=true
+            shift
+            ;;
+        --skip-healthcheck)
+            SKIP_HEALTHCHECK_MODE=true
             shift
             ;;
         --help|-h)
@@ -54,6 +62,12 @@ enable_persona_injection() {
     export "${PERSONAS_FLAG}"=true
     echo "🎭 AI persona injection enabled"
     echo "   Each AI participant will express their configured personality traits."
+}
+
+enable_skip_healthcheck() {
+    export "${SKIP_HEALTHCHECK_FLAG}"=true
+    echo "🩺 AI provider health checks skipped"
+    echo "   AI services will initialize without connectivity validation."
 }
 
 # Check if .env exists
@@ -100,6 +114,10 @@ fi
 
 if [ "$PERSONAS_MODE" = true ]; then
     enable_persona_injection
+fi
+
+if [ "$SKIP_HEALTHCHECK_MODE" = true ]; then
+    enable_skip_healthcheck
 fi
 
 echo ""

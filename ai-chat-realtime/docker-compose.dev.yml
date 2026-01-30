@@ -58,6 +58,7 @@ services:
       - Z_API_KEY=${Z_API_KEY}
       - AI_CHAT_VERBOSE_CONTEXT=${AI_CHAT_VERBOSE_CONTEXT:-false}
       - AI_CHAT_ENABLE_PERSONAS=${AI_CHAT_ENABLE_PERSONAS:-false}
+      - AI_CHAT_SKIP_HEALTHCHECK=${AI_CHAT_SKIP_HEALTHCHECK:-false}
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
       - CHAT_ASSISTANT_SCRIPT=/app/scripts/run-mcp-chat.js
       - CHAT_ASSISTANT_AUTO_INDEX=true
