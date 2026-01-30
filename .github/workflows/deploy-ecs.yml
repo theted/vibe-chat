@@ -13,7 +13,7 @@ jobs:
       CLOUDFRONT_DISTRIBUTION_ID: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}
     defaults:
       run:
-        working-directory: ai-chat-realtime/packages/client
+        working-directory: packages/client
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -21,7 +21,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Install frontend dependencies
         run: npm install
@@ -71,9 +71,6 @@ jobs:
       ECS_EXECUTION_ROLE_ARN: ${{ secrets.ECS_EXECUTION_ROLE_ARN }}
       ECS_TASK_ROLE_ARN: ${{ secrets.ECS_TASK_ROLE_ARN }}
       CLIENT_URL: ${{ secrets.CLIENT_URL }}
-    defaults:
-      run:
-        working-directory: ai-chat-realtime
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -125,7 +122,7 @@ jobs:
       - name: Deploy Amazon ECS task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
-          task-definition: ai-chat-realtime/taskdef.json
+          task-definition: taskdef.json
           service: vibe-chat-service
           cluster: vibe-chat-cluster
           wait-for-service-stability: true

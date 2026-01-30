@@ -71,7 +71,7 @@ services:
       - ./packages/client/src:/app/client/src:ro
       - ./packages/server/package.json:/app/server/package.json
       - ./packages/server/tsconfig.json:/app/server/tsconfig.json
-      - ../dist/scripts:/app/scripts:ro
+      - ./packages/ai-chat-cli/dist/scripts:/app/scripts:ro
       - ./packages/mcp-assistant/src:/app/mcp-assistant/src:ro
     restart: unless-stopped
     networks:

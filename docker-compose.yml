@@ -1,8 +1,10 @@
-# Production Docker Compose
+# Development Docker Compose
+version: '3.8'
+
 services:
   redis:
     image: redis:7.4-alpine
-    container_name: ai-chat-redis-prod
+    container_name: ai-chat-redis
     command: redis-server --save 60 1 --appendonly yes --loglevel warning
     profiles:
       - internal-redis
@@ -10,23 +12,20 @@ services:
       - redis-data:/data
     ports:
       - "6379:6379"
-    restart: always
+    restart: unless-stopped
     networks:
       - ai-chat-network
 
   chroma:
-    image: chromadb/chroma:latest
-    container_name: ai-chat-chroma-prod
+    image: ghcr.io/chroma-core/chroma:latest
+    container_name: ai-chat-chroma
     profiles:
       - internal-chroma
-    restart: always
+    restart: unless-stopped
     networks:
       - ai-chat-network
     volumes:
-      - chroma-data:/chroma/chroma
-    environment:
-      - IS_PERSISTENT=TRUE
-      - ANONYMIZED_TELEMETRY=FALSE
+      - chroma-data:/chroma
     ports:
       - "8000:8000"
     healthcheck:
@@ -40,12 +39,12 @@ services:
     build:
       context: .
       dockerfile: packages/server/Dockerfile
-    container_name: ai-chat-server-prod
-    expose:
-      - "3001"
+    container_name: ai-chat-server-dev
+    ports:
+      - "3001:3001"
     environment:
-      - NODE_ENV=production
-      - CLIENT_URL=${CLIENT_URL:-*}
+      - NODE_ENV=development
+      - CLIENT_URL=*
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
       - GROK_API_KEY=${GROK_API_KEY}
@@ -56,9 +55,6 @@ services:
       - QWEN_API_KEY=${QWEN_API_KEY}
       - KIMI_API_KEY=${KIMI_API_KEY}
       - Z_API_KEY=${Z_API_KEY}
-      - AI_CHAT_VERBOSE_CONTEXT=${AI_CHAT_VERBOSE_CONTEXT:-false}
-      - AI_CHAT_ENABLE_PERSONAS=${AI_CHAT_ENABLE_PERSONAS:-false}
-      - AI_CHAT_SKIP_HEALTHCHECK=${AI_CHAT_SKIP_HEALTHCHECK:-false}
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
       - CHAT_ASSISTANT_SCRIPT=/app/scripts/run-mcp-chat.js
       - CHAT_ASSISTANT_AUTO_INDEX=true
@@ -66,38 +62,34 @@ services:
       - CHROMA_URL=${CHROMA_URL:-http://chroma:8000}
       - CHAT_ASSISTANT_COLLECTION=ai-chat-workspace
     volumes:
-      - ../dist/scripts:/app/scripts:ro
+      - ./packages/server/src:/app/server/src:ro
+      - ./packages/ai-chat-core/src:/app/ai-chat-core/src:ro
+      - ./packages/server/tsconfig.json:/app/server/tsconfig.json:ro
+      - ./packages/ai-chat-cli/dist/scripts:/app/scripts:ro
       - ./packages/mcp-assistant/src:/app/mcp-assistant/src:ro
-    restart: always
+    restart: unless-stopped
     networks:
       - ai-chat-network
-    # Note: depends_on removed - handled by network + health checks in code
-    # When using external redis/chroma via profiles, they won't be in this compose file
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
+    depends_on:
+      redis:
+        condition: service_started
+      chroma:
+        condition: service_healthy
 
   ai-chat-client:
     build:
       context: .
       dockerfile: packages/client/Dockerfile
       args:
-        - VITE_SERVER_URL=${SERVER_URL:-http://localhost:3001}
-    container_name: ai-chat-client-prod
-    expose:
-      - "80"
+        VITE_SERVER_URL: http://localhost:3001
+    container_name: ai-chat-client-dev
+    ports:
+      - "3000:80"
     depends_on:
       - ai-chat-server
-    restart: always
+    restart: unless-stopped
     networks:
       - ai-chat-network
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
 
 networks:
   ai-chat-network:
