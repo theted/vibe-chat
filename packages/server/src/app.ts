@@ -14,6 +14,12 @@ import { MetricsService } from "./services/MetricsService.js";
 import { createRedisClient, type RedisClient } from "./services/RedisClient.js";
 import { ChatAssistantService } from "./services/ChatAssistantService.js";
 import {
+  getMetricsService,
+  getSocketController,
+  setMetricsService,
+  setSocketController,
+} from "./utils/globalState.js";
+import {
   createHealthRouter,
   createMetricsRouter,
   createRoomsRouter,
@@ -21,6 +27,10 @@ import {
   registerStaticAssets,
 } from "./routes/index.js";
 import { initializeAISystem } from "./services/aiOrchestrator.js";
+import {
+  createGracefulShutdownHandler,
+  createServerCleanup,
+} from "./utils/serverLifecycle.js";
 import {
   allowedOrigins,
   clientUrl,
@@ -31,10 +41,6 @@ dotenv.config();
 
 const app = express();
 const server = createServer(app);
-const globalState = globalThis as typeof globalThis & {
-  socketController?: SocketController;
-  metricsService?: MetricsService;
-};
 
 app.set("trust proxy", true);
 const io = new Server(server, {
@@ -50,11 +56,6 @@ app.use(cors());
 app.use(express.json());
 
 registerStaticAssets(app);
-
-const getSocketController = (): SocketController | undefined =>
-  globalState.socketController;
-const getMetricsService = (): MetricsService | undefined =>
-  globalState.metricsService;
 
 app.use(createHealthRouter());
 app.use(createStatsRouter({ getSocketController }));
@@ -74,7 +75,7 @@ async function startServer(): Promise<void> {
     // Create metrics service
     metricsService = new MetricsService(io, { redisClient });
     await metricsService.initialize();
-    globalState.metricsService = metricsService;
+    setMetricsService(metricsService);
 
     let chatAssistantService: ChatAssistantService | null = null;
     try {
@@ -92,9 +93,10 @@ async function startServer(): Promise<void> {
             }`
           );
           chatAssistantService = null;
-          if (globalState.socketController) {
-            globalState.socketController.chatAssistantService = null;
-            globalState.socketController.chatAssistantMetadata = null;
+          const socketController = getSocketController();
+          if (socketController) {
+            socketController.chatAssistantService = null;
+            socketController.chatAssistantMetadata = null;
           }
           return false;
         });
@@ -112,18 +114,20 @@ async function startServer(): Promise<void> {
     }
 
     // Create socket controller
-    globalState.socketController = new SocketController(
-      io,
-      chatOrchestrator,
-      metricsService,
-      redisClient,
-      { chatAssistantService }
+    setSocketController(
+      new SocketController(
+        io,
+        chatOrchestrator,
+        metricsService,
+        redisClient,
+        { chatAssistantService }
+      )
     );
 
     // Handle Socket.IO connections
     io.on("connection", (socket) => {
       console.log(`📱 New WebSocket connection: ${socket.id}`);
-      globalState.socketController?.handleConnection(socket);
+      getSocketController()?.handleConnection(socket);
     });
 
     // Debug Socket.IO events
@@ -141,35 +145,16 @@ async function startServer(): Promise<void> {
     });
 
     // Graceful shutdown
-    const cleanup = async (): Promise<void> => {
-      if (chatOrchestrator) {
-        chatOrchestrator.cleanup();
-      }
-      if (metricsService) {
-        await metricsService.flushPersistence();
-      }
-      if (redisClient) {
-        try {
-          await redisClient.quit();
-          console.log("✅ Redis connection closed");
-        } catch (error) {
-          console.error("⚠️  Failed to close Redis connection:", error);
-        }
-      }
-    };
+    const cleanup = createServerCleanup({
+      chatOrchestrator,
+      metricsService,
+      redisClient,
+    });
 
-    let isShuttingDown = false;
-    const handleShutdown = (signal: string) => {
-      if (isShuttingDown) {
-        return;
-      }
-      isShuttingDown = true;
-      console.log(`🛑 Received ${signal}, shutting down gracefully...`);
-      server.close(() => {
-        console.log("✅ Server closed");
-        cleanup().finally(() => process.exit(0));
-      });
-    };
+    const handleShutdown = createGracefulShutdownHandler({
+      server,
+      cleanup,
+    });
 
     process.on("SIGTERM", () => handleShutdown("SIGTERM"));
     process.on("SIGINT", () => handleShutdown("SIGINT"));
