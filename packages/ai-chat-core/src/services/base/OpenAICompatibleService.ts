@@ -141,9 +141,17 @@ export abstract class OpenAICompatibleService extends BaseAIService {
   ): Promise<ServiceResponse> {
     const client = ensureResponsesClient(this.client, this.name);
 
-    const temperature =
+    const temperatureRaw =
       context?.temperature ?? this.config.model.temperature ?? 0.7;
-    const maxTokens = context?.maxTokens ?? this.config.model.maxTokens;
+    const temperature =
+      typeof temperatureRaw === "number" ? temperatureRaw : Number(temperatureRaw);
+    const maxTokensRaw = context?.maxTokens ?? this.config.model.maxTokens;
+    const maxTokens =
+      typeof maxTokensRaw === "number"
+        ? maxTokensRaw
+        : typeof maxTokensRaw === "string"
+          ? Number(maxTokensRaw)
+          : undefined;
     const reasoningEffort = (context as { reasoningEffort?: string } | undefined)
       ?.reasoningEffort;
     const payload = buildResponsesPayload({
