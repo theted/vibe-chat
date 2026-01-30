@@ -18,9 +18,21 @@ export class KimiService extends OpenAICompatibleService {
   }
 
   protected createClient(apiKey: string, options?: ServiceInitOptions): OpenAIClient {
-    return new OpenAI({
+    const baseURL = options?.baseURL || this.getBaseURL() || KIMI_BASE_URL;
+    const defaultHeaders = this.getDefaultHeaders();
+    const clientConfig: ConstructorParameters<typeof OpenAI>[0] = {
       apiKey,
-      baseURL: options?.baseURL || KIMI_BASE_URL,
-    }) as OpenAIClient;
+      baseURL,
+    };
+
+    if (Object.keys(defaultHeaders).length > 0) {
+      clientConfig.defaultHeaders = defaultHeaders;
+    }
+
+    if (options?.timeout || this.config.timeout) {
+      clientConfig.timeout = options?.timeout || this.config.timeout;
+    }
+
+    return new OpenAI(clientConfig) as OpenAIClient;
   }
 }
