@@ -6,6 +6,7 @@
  */
 
 import { enhanceSystemPromptWithPersona, getPersonaFromProvider } from '../../utils/personaUtils.js';
+import { getEnvFlag, parseBooleanEnvFlag } from '../../utils/stringUtils.js';
 import {
   IAIServiceExtended,
   ServiceInitializationOptions,
@@ -265,6 +266,34 @@ export abstract class BaseAIService implements IAIServiceExtended {
   protected async performHealthCheck(): Promise<boolean> {
     // Default implementation just checks configuration
     return this.isConfigured();
+  }
+
+  /**
+   * Check if verbose health check logging is enabled.
+   */
+  protected isVerboseHealthCheckLoggingEnabled(): boolean {
+    return parseBooleanEnvFlag(getEnvFlag("AI_CHAT_VERBOSE_CONTEXT"));
+  }
+
+  /**
+   * Log health check request/response details when verbose logging is enabled.
+   */
+  protected logHealthCheckDetails(
+    stage: "request" | "response",
+    details: Record<string, unknown>
+  ): void {
+    if (!this.isVerboseHealthCheckLoggingEnabled()) {
+      return;
+    }
+
+    const prefix =
+      stage === "request"
+        ? "🩺 Health check request"
+        : "🩺 Health check response";
+    console.info(prefix, {
+      service: this.name,
+      ...details,
+    });
   }
 
   /**

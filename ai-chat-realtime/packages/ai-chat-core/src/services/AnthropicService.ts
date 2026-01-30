@@ -135,8 +135,21 @@ export class AnthropicService extends BaseAIService {
     }
     // Simple test call with minimal tokens
     const testMessages: Message[] = [{ role: "user", content: "Hi" }];
-    await this.performGenerateResponse(testMessages);
-    return true;
+    const payload = {
+      model: this.config.model.id,
+      messages: testMessages.map((message) => ({
+        role: message.role === "user" ? "user" : "assistant",
+        content: message.content.trim(),
+      })),
+      max_tokens: this.config.model.maxTokens || DEFAULT_MAX_TOKENS,
+      temperature: this.config.model.temperature,
+      system: this.getEnhancedSystemPrompt(),
+    };
+    const url = "https://api.anthropic.com/v1/messages";
+    this.logHealthCheckDetails("request", { url, payload });
+    const response = await this.client?.messages.create(payload);
+    this.logHealthCheckDetails("response", { url, response });
+    return Array.isArray(response?.content);
   }
 
   /**

@@ -157,13 +157,16 @@ export class ChatOrchestrator extends EventEmitter {
    */
   async initializeAIs(aiConfigs) {
     const failedConfigs = [];
+    const skipHealthCheck = parseBooleanEnvFlag(
+      getEnvFlag("AI_CHAT_SKIP_HEALTHCHECK")
+    );
     for (const config of aiConfigs) {
       try {
         const service = AIServiceFactory.createServiceByName(
           config.providerKey,
           config.modelKey
         );
-        await service.initialize();
+        await service.initialize({ validateOnInit: !skipHealthCheck });
 
         const aiId = `${config.providerKey}_${config.modelKey}`;
         const displayName =
