@@ -6,7 +6,7 @@ import { fileURLToPath } from "url";
 import {
   createLocalCodeMcpServer,
   MCP_ERROR_CODES,
-} from "../ai-chat-realtime/packages/mcp-assistant/src/index.js";
+} from "@ai-chat/mcp-assistant";
 
 type RunArgs = {
   question: string;

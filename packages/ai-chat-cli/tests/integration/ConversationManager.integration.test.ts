@@ -6,6 +6,46 @@ import { ConversationManager } from "../../src/conversation/ConversationManager.
 type ParticipantConfig = Pick<AIServiceConfig, "provider" | "model">;
 type StreamCall = { text: string; prefix: string; delay: number };
 
+/**
+ * Mock ContextManager that mirrors the orchestrator's ContextManager interface
+ * Used to isolate CLI tests from the core orchestrator implementation
+ */
+class MockContextManager {
+  private messages: Array<{ role: string; content: string }> = [];
+
+  addMessage(message: { role: string; content: string }) {
+    this.messages.push(message);
+  }
+
+  getContext(limit?: number) {
+    return this.messages.slice(-(limit ?? 50));
+  }
+
+  getContextForAI(limit = 50) {
+    return this.getContext(limit);
+  }
+
+  getAllMessages() {
+    return [...this.messages];
+  }
+
+  clear() {
+    this.messages = [];
+  }
+
+  size() {
+    return this.messages.length;
+  }
+
+  hasMessages() {
+    return this.messages.length > 0;
+  }
+
+  getLastMessage() {
+    return this.messages.length > 0 ? this.messages[this.messages.length - 1] : null;
+  }
+}
+
 describe("ConversationManager integration", () => {
   let recordMessageMock;
   let statsTracker;
@@ -50,6 +90,8 @@ describe("ConversationManager integration", () => {
         streamText: async (text: string, prefix: string, delay: number) => {
           streamCalls.push({ text, prefix, delay });
         },
+        // Mock ContextManager from orchestrator - used for message history management
+        ContextManager: MockContextManager,
       },
     };
   });

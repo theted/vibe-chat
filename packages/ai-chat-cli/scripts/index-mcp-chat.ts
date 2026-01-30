@@ -5,10 +5,10 @@ import process from "process";
 import { fileURLToPath } from "url";
 import {
   createWorkspaceIndexer,
-} from "../ai-chat-realtime/packages/mcp-assistant/src/indexer.js";
+} from "@ai-chat/mcp-assistant/indexer";
 import {
   MCP_ERROR_CODES,
-} from "../ai-chat-realtime/packages/mcp-assistant/src/index.js";
+} from "@ai-chat/mcp-assistant";
 
 const DEFAULT_COLLECTION_NAME =
   process.env.CHAT_ASSISTANT_COLLECTION || "ai-chat-workspace";

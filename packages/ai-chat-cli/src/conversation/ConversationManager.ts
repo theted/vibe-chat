@@ -1,7 +1,12 @@
 /**
- * Conversation Manager
+ * Conversation Manager - CLI adapter for ChatOrchestrator
  *
- * This class manages conversations between different AI services.
+ * This class provides a thin CLI-specific wrapper around the ChatOrchestrator
+ * from @ai-chat/core. It handles:
+ * - CLI I/O (streaming/printing)
+ * - Synchronous conversation loop (round-robin turns)
+ *
+ * Participant management and context are delegated to the orchestrator.
  */
 
 import {
@@ -9,6 +14,7 @@ import {
   getRandomAIConfig,
   DEFAULT_CONVERSATION_CONFIG,
   streamText,
+  ContextManager,
 } from "@ai-chat/core";
 import type {
   AIServiceConfig,
@@ -30,6 +36,7 @@ interface Participant {
   service: IAIService;
   name: string;
   config: AIServiceConfig;
+  aiId: string;
 }
 
 interface ConversationConfig {
@@ -59,6 +66,8 @@ interface Dependencies {
     getRandomAIConfig?: typeof getRandomAIConfig;
     DEFAULT_CONVERSATION_CONFIG?: ConversationConfig;
     streamText?: typeof streamText;
+    ChatOrchestrator?: typeof ChatOrchestrator;
+    ContextManager?: typeof ContextManager;
   };
   internalResponders?: InternalResponder[];
 }
@@ -86,7 +95,8 @@ const buildSystemMessage = (
   cm: ConversationManager,
   participant: Participant
 ): ConversationMessage => {
-  const { messages, config, turnCount, participants } = cm;
+  const messages = cm.getMessages();
+  const { config, turnCount, participants } = cm;
   const otherParticipants = participants
     .filter((p) => p.id !== participant.id)
     .map((p) => `- ${p.name}`)
@@ -133,14 +143,24 @@ This is turn #${turnCount + 1} of ${config.maxTurns}${isLastTurn ? " (FINAL TURN
   };
 };
 
+/**
+ * CLI adapter for ChatOrchestrator.
+ * Handles CLI-specific I/O while delegating core functionality to the orchestrator.
+ */
 export class ConversationManager {
   public config: ConversationConfig;
   public participants: Participant[] = [];
-  public messages: ConversationMessage[] = [];
   public isActive: boolean = false;
   public turnCount: number = 0;
   public startTime: number | null = null;
 
+  // Internal message storage (mirrors contextManager for CLI compatibility)
+  private _messages: ConversationMessage[] = [];
+
+  // Orchestrator components
+  private contextManager: ContextManager;
+
+  // Dependencies
   private statsTracker: typeof statsTracker;
   private aiServiceFactory: typeof AIServiceFactory;
   private getRandomAIConfig: typeof getRandomAIConfig;
@@ -159,6 +179,7 @@ export class ConversationManager {
       getRandomAIConfig: injectedRandomConfig = getRandomAIConfig,
       DEFAULT_CONVERSATION_CONFIG: injectedDefaultConfig = DEFAULT_CONVERSATION_CONFIG,
       streamText: injectedStreamText = streamText,
+      ContextManager: InjectedContextManager = ContextManager,
     } = core;
 
     this.config = { ...injectedDefaultConfig, ...config };
@@ -167,6 +188,41 @@ export class ConversationManager {
     this.getRandomAIConfig = injectedRandomConfig;
     this.streamText = injectedStreamText;
     this.internalResponders = internalResponders;
+
+    // Initialize context manager from core
+    this.contextManager = new InjectedContextManager(100);
+  }
+
+  /**
+   * Get messages (for backward compatibility)
+   */
+  get messages(): ConversationMessage[] {
+    return this._messages;
+  }
+
+  /**
+   * Set messages (for continue from file functionality)
+   */
+  set messages(value: ConversationMessage[]) {
+    this._messages = value;
+    // Sync to context manager
+    this.contextManager.clear();
+    value.forEach((msg) => {
+      this.contextManager.addMessage({
+        role: msg.role,
+        content: msg.content,
+        timestamp: msg.timestamp ? new Date(msg.timestamp).getTime() : Date.now(),
+        sender: msg.authorName,
+        senderType: msg.participantId === null ? "user" : "ai",
+      } as CoreMessage);
+    });
+  }
+
+  /**
+   * Get messages array
+   */
+  getMessages(): ConversationMessage[] {
+    return this._messages;
   }
 
   /**
@@ -176,11 +232,15 @@ export class ConversationManager {
    */
   addParticipant(aiConfig: AIServiceConfig): number {
     const service = this.aiServiceFactory.createService(aiConfig);
+    const participantId = this.participants.length;
+    const aiId = `cli_${participantId}_${service.getName()}_${service.getModel()}`;
+
     const participant: Participant = {
-      id: this.participants.length,
+      id: participantId,
       service,
       name: `${service.getName()} (${service.getModel()})`,
       config: aiConfig,
+      aiId,
     };
 
     this.participants.push(participant);
@@ -210,7 +270,8 @@ export class ConversationManager {
     this.isActive = true;
     this.startTime = Date.now();
     this.turnCount = 0;
-    this.messages = [];
+    this._messages = [];
+    this.contextManager.clear();
 
     // Add the initial message
     this.addMessage({
@@ -226,7 +287,7 @@ export class ConversationManager {
 
     // Stream the initial message
     await this.streamText(initialMessage, "[User]: ", STREAM_WORD_DELAY_MS);
-    await this.#handleInternalResponders(this.messages[this.messages.length - 1]);
+    await this.#handleInternalResponders(this._messages[this._messages.length - 1]);
 
     // Start the conversation loop immediately without delay
     await this.continueConversation();
@@ -244,12 +305,12 @@ export class ConversationManager {
         break;
       }
 
-      // Get the next participant (round-robin)
+      // Get the next participant (round-robin scheduling via orchestrator pattern)
       const participantIndex = this.turnCount % this.participants.length;
       const participant = this.participants[participantIndex];
 
       try {
-        // Generate a response from the current participant
+        // Generate a response using the orchestrator's AI service
         const response = await this.generateResponse(participant);
 
         // Skip empty or whitespace-only responses
@@ -259,21 +320,21 @@ export class ConversationManager {
           continue;
         }
 
-        // Add the response to the conversation
+        // Add the response to the conversation (both local and context manager)
         this.addMessage({
           role: "assistant",
           content: response,
           participantId: participant.id,
         });
 
-        // Stream the response with a delay between words
+        // Stream the response with a delay between words (CLI-specific I/O)
         await this.streamText(
           response,
           `[${participant.name}]: `,
           STREAM_WORD_DELAY_MS
         );
         await this.#handleInternalResponders(
-          this.messages[this.messages.length - 1]
+          this._messages[this._messages.length - 1]
         );
 
         // Increment the turn count
@@ -298,25 +359,28 @@ export class ConversationManager {
   }
 
   /**
-   * Generate a response from a participant
+   * Generate a response from a participant using the orchestrator's AI service
    * @param participant - The participant to generate a response from
    * @returns The generated response
    */
   async generateResponse(participant: Participant): Promise<string> {
     // Optionally summarize prior topics (reserved for future prompts)
-    summarizeParticipantTopics(this.messages, this.participants);
+    summarizeParticipantTopics(this._messages, this.participants);
 
     const systemMessage = buildSystemMessage(this, participant);
     const formattedMessages = [
       systemMessage,
-      ...this.messages.map((msg) => ({ role: msg.role, content: msg.content })),
+      ...this._messages.map((msg) => ({ role: msg.role, content: msg.content })),
     ];
+
+    // Use the participant's AI service (from orchestrator pattern)
     const response = await participant.service.generateResponse(formattedMessages);
     return response.content;
   }
 
   /**
    * Add a message to the conversation
+   * Updates both local storage and context manager
    * @param message - The message to add
    */
   addMessage(message: ConversationMessage): void {
@@ -337,7 +401,18 @@ export class ConversationManager {
 
     enrichedMessage.authorName = authorName || undefined;
 
-    this.messages.push(enrichedMessage);
+    // Add to local messages
+    this._messages.push(enrichedMessage);
+
+    // Add to context manager (orchestrator component)
+    this.contextManager.addMessage({
+      role: enrichedMessage.role,
+      content: enrichedMessage.content,
+      timestamp: Date.now(),
+      sender: authorName,
+      senderType: enrichedMessage.participantId === null ? "user" : "ai",
+      aiId: participant?.aiId,
+    } as CoreMessage);
 
     const providerName =
       participant?.config?.provider?.name ||
@@ -364,7 +439,7 @@ export class ConversationManager {
     content: string;
     timestamp: string;
   }> {
-    return this.messages.map((msg) => {
+    return this._messages.map((msg) => {
       const participant =
         msg.participantId !== null
           ? this.participants[msg.participantId!]
@@ -386,6 +461,13 @@ export class ConversationManager {
     console.log("Conversation stopped");
   }
 
+  /**
+   * Get context manager (for advanced use cases)
+   */
+  getContextManager(): ContextManager {
+    return this.contextManager;
+  }
+
   async #handleInternalResponders(
     sourceMessage: ConversationMessage
   ): Promise<void> {
@@ -403,13 +485,13 @@ export class ConversationManager {
       }
 
       try {
-        if (!responder.shouldHandle(sourceMessage, this.messages)) {
+        if (!responder.shouldHandle(sourceMessage, this._messages)) {
           continue;
         }
 
         const response = await responder.handleMessage({
           message: sourceMessage,
-          conversation: this.messages,
+          conversation: this._messages,
         });
 
         if (!response || !response.content) {

@@ -3,31 +3,39 @@
 Welcome! This document gives automated agents and humans a quick reference for how the repository is organized and how to make consistent changes. Treat the notes below as the default rules for every file in this project.
 
 ## Repository structure
-- `/index.js` – Entry point that wires environment config, conversation management, and service startup.
-- `/src/config/` – Configuration helpers and constants that describe available AI providers and default conversation settings.
-- `/src/conversation/ConversationManager.js` – Core orchestration class that manages participants, message flow, and streaming responses.
-- `/src/services/StatsTracker.js` – Lightweight metrics helper used to track conversation statistics.
-- `/tests/` – Node test suites. `unit/` focuses on pure logic, while top-level `test-*.js` and `integration-ok-*.js` files exercise provider integrations and contract checks.
-- `/ai-chat-realtime/` – Git sub-package that exposes the `@ai-chat/core` dependency used by the app. Contains Docker tooling, deployment scripts, and additional packages.
-- `/ai-chat-realtime/packages/mcp-assistant/` – Local MCP server package that powers the internal @Chat assistant.
-- `/ai-chat-realtime/packages/ai-chat-core/src/utils/orchestrator/` – Shared utilities that support ChatOrchestrator behavior (prompting, scheduling, mentions).
-- `/scripts/` – Workspace scripts, including the MCP generation driver.
-- `/.mcp-data/` (legacy) – Previous on-disk embedding cache. The new LangChain/Chroma setup stores vectors in the `chroma` Docker volume; this folder can be ignored or deleted if present.
-- `/play.js` – Scratchpad for manual experiments; avoid shipping critical logic here.
+
+This is a monorepo with multiple packages under `/packages/`:
+
+### Core packages
+- `/packages/ai-configs/` – Shared AI participant configurations and emoji/mention mappings.
+- `/packages/ai-chat-core/` – Reusable AI service wrappers, configuration helpers, and orchestration utilities. The `@ai-chat/core` package is consumed by all other packages.
+- `/packages/mcp-assistant/` – Local MCP server package that powers the internal @Chat assistant.
+
+### Application packages
+- `/packages/server/` – WebSocket-based chat server that hosts real-time AI conversations.
+- `/packages/client/` – React-based web client for the chat application.
+- `/packages/ai-chat-cli/` – CLI tool for running AI-to-AI conversations from the terminal.
+
+### Root-level files
+- `/package.json` – Workspace root with npm workspace configuration and unified scripts.
+- `/docker-compose*.yml` – Docker Compose files for development, production, and debugging.
+- `/tests/e2e/` – End-to-end tests that span multiple packages.
+- `/deploy/` – Deployment-related scripts and configurations.
+- `/.github/workflows/` – CI/CD pipelines for testing and deployment.
 
 If you add new folders, extend this list so future contributors (and agents) stay oriented.
 
 ## Coding standards
-- **Language**: Modern JavaScript with native ES Modules (`type: "module"`). Use `import`/`export` syntax exclusively.
+- **Language**: Modern TypeScript with native ES Modules (`type: "module"`). Use `import`/`export` syntax exclusively.
 - **Immutability first**: Default to `const`. Use `let` only when reassignment is required. Never use `var`.
 - **Async discipline**: Prefer `async`/`await`. Always handle promise rejection paths. Bubble errors with meaningful context; do not silently swallow them.
 - **Logging**: Use `console` sparingly and favor structured messages (`console.info`, `console.error`). Wrap noisy debug output behind environment flags when possible.
 - **Function design**: Keep functions small and focused. Extract helpers when logic exceeds ~20 lines or mixes multiple responsibilities.
 - **Validation**: Validate inputs to public functions and throw `Error` with actionable messages when expectations are violated.
-- **Configuration**: Pull runtime configuration from environment variables or `src/config`. Avoid hard-coded provider keys in code or tests.
+- **Configuration**: Pull runtime configuration from environment variables or package config directories. Avoid hard-coded provider keys in code or tests.
 - **Documentation**: Use concise JSDoc blocks for exported functions/classes. Document parameters, return values, and side effects.
 - **Styling**: Follow Prettier defaults (2 spaces, double quotes, trailing commas where valid). Use template literals for complex strings.
-- **Testing**: Every behavior change should include or update a test in `tests/` whenever feasible. Prefer unit tests for pure logic; use integration scripts only when external APIs are mandatory.
+- **Testing**: Every behavior change should include or update a test whenever feasible. Each package owns its tests.
 
 ## Git & review workflow
 - Keep commits scoped and descriptive. Explain the intent and mention affected modules.
@@ -36,13 +44,15 @@ If you add new folders, extend this list so future contributors (and agents) sta
 - Update relevant documentation (including this file) whenever you add or move major components.
 
 ## Environment notes
-- Requires Node 20+ to match the tooling in `ai-chat-realtime`.
-- Run `npm install` at the repository root to hydrate dependencies. The `@ai-chat/core` package is vendored inside `ai-chat-realtime/packages`.
-- Integration tests may rely on third-party API keys. Use the `integration-ok-*.js` scripts as smoke checks when credentials are available.
+- Requires Node 22+ for all packages.
+- Run `npm install` at the repository root to hydrate all workspace dependencies.
+- Use `npm run build` to build all packages in the correct order.
+- Use `npm run docker:dev` to start the development environment with Docker.
+- Integration tests may rely on third-party API keys. Use `npm run test:<provider>` scripts when credentials are available.
 
 ## Quality checklist (before committing)
-1. Format code (Prettier or `npm run lint` if configured in future).
-2. Run `npm test` (or the targeted `npm run test:<provider>` script when working on integrations).
+1. Format code (Prettier or `npm run lint` if configured).
+2. Run `npm test` or the targeted test script for the package you're working on.
 3. Confirm log noise is minimal and error messages are actionable.
 4. Re-read new documentation or comments to ensure clarity for future automated agents.
 

@@ -9,7 +9,7 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
-import { ConversationManager } from "./src/conversation/ConversationManager.js";
+import { ConversationManager } from "./conversation/ConversationManager.js";
 import {
   AIServiceFactory,
   saveConversationToFile,
@@ -22,8 +22,8 @@ import {
 import type { AIModel, AIProvider, AIServiceConfig, Message } from "@ai-chat/core";
 import {
   statsTracker,
-} from "./src/services/StatsTracker.js";
-import { ChatMCPAssistant } from "./src/services/ChatMCPAssistant.js";
+} from "./services/StatsTracker.js";
+import { ChatMCPAssistant } from "./services/ChatMCPAssistant.js";
 import {
   DEFAULT_TOPIC,
   CLI_ALIASES,
@@ -32,7 +32,7 @@ import {
   DEFAULT_ADDITIONAL_TURNS,
   STREAM_WORD_DELAY_MS,
   MAX_STREAMED_RESPONSE_LENGTH,
-} from "./src/config/constants.js";
+} from "./config/constants.js";
 
 // Load environment variables
 dotenv.config();

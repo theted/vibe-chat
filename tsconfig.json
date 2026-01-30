@@ -1,38 +1,24 @@
 {
+  "extends": "./tsconfig.base.json",
   "compilerOptions": {
-    "target": "ES2020",
-    "module": "ESNext",
-    "moduleResolution": "node",
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "strict": false,
-    "noImplicitAny": false,
-    "skipLibCheck": true,
-    "allowJs": true,
-    "checkJs": false,
-    "outDir": "./dist",
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["src/*"]
-    },
-    "types": ["node"],
-    "declaration": false,
-    "noEmitOnError": false
+    "noEmit": true,
+    "baseUrl": "."
   },
   "include": [
-    "src/**/*",
-    "index.ts",
-    "check_methods.ts",
-    "play.ts",
-    "play-screensaver.ts",
-    "scripts/*.ts"
+    "packages/*/src/**/*",
+    "tests/**/*"
   ],
   "exclude": [
     "node_modules",
-    "dist",
-    "tests/**/*",
-    "ai-chat-realtime/**/*",
-    "**/*.js",
-    "**/dist/**/*"
+    "**/dist/**/*",
+    "packages/*/node_modules/**/*"
+  ],
+  "references": [
+    { "path": "packages/ai-configs" },
+    { "path": "packages/ai-chat-core" },
+    { "path": "packages/server" },
+    { "path": "packages/client" },
+    { "path": "packages/mcp-assistant" },
+    { "path": "packages/ai-chat-cli" }
   ]
 }
