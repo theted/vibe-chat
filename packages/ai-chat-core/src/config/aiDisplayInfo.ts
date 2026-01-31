@@ -8,7 +8,4 @@ export {
   getEmojiByModelId,
 } from "@ai-chat/ai-configs";
 
-export type {
-  AiDisplayInfo,
-  AiDisplayInfoMap,
-} from "@ai-chat/ai-configs";
+export type { AiDisplayInfo, AiDisplayInfoMap } from "@ai-chat/ai-configs";

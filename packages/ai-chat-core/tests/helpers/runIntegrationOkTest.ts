@@ -58,7 +58,7 @@ export async function runIntegrationOkTest({
 
   if (!process.env[apiKeyEnvVar]) {
     console.error(
-      `Missing ${apiKeyEnvVar}. Skipping ${displayName} integration tests.`
+      `Missing ${apiKeyEnvVar}. Skipping ${displayName} integration tests.`,
     );
     process.exit(0);
   }
@@ -75,7 +75,7 @@ export async function runIntegrationOkTest({
       process.stdout.write(`${displayName} ${modelKey}: `);
       const service = AIServiceFactory.createServiceByName(
         providerKey,
-        modelKey
+        modelKey,
       );
       await service.initialize();
 

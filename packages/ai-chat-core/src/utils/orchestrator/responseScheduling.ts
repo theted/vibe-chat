@@ -5,7 +5,7 @@ export const selectRespondingAIs = (
   activeAIs,
   minResponders = 1,
   maxResponders = 3,
-  candidateList = null
+  candidateList = null,
 ) => {
   const pool = candidateList || activeAIs;
   const availableAIs = pool.filter((aiId) => {
@@ -16,7 +16,7 @@ export const selectRespondingAIs = (
   const numResponders = Math.min(
     Math.floor(Math.random() * (maxResponders - minResponders + 1)) +
       minResponders,
-    availableAIs.length
+    availableAIs.length,
   );
   const shuffled = [...availableAIs].sort(() => Math.random() - 0.5);
   return shuffled.slice(0, numResponders);
@@ -58,7 +58,7 @@ export const calculateResponseDelay = ({
   if (isMentioned) {
     baseDelay = Math.max(
       TIMING.MIN_MENTIONED_DELAY,
-      baseDelay * TIMING.MENTIONED_DELAY_MULTIPLIER
+      baseDelay * TIMING.MENTIONED_DELAY_MULTIPLIER,
     );
   }
 
@@ -81,13 +81,13 @@ export const calculateResponseDelay = ({
     if (!isMentioned) {
       const multiplier = Math.min(
         1 + typingAICount * 0.5,
-        TIMING.TYPING_AWARENESS_MAX_MULTIPLIER
+        TIMING.TYPING_AWARENESS_MAX_MULTIPLIER,
       );
       baseDelay *= multiplier;
     }
   }
 
   return Math.floor(
-    baseDelay + staggerDelay + catchUpDelay + typingAwarenessDelay
+    baseDelay + staggerDelay + catchUpDelay + typingAwarenessDelay,
   );
 };

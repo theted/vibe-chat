@@ -92,7 +92,7 @@ export class ChatOrchestrator extends EventEmitter {
   constructor(options: ChatOrchestratorOptions = {}) {
     super();
     this.contextManager = new ContextManager(
-      options.maxMessages || DEFAULTS.MAX_MESSAGES
+      options.maxMessages || DEFAULTS.MAX_MESSAGES,
     );
     this.messageBroker = new MessageBroker();
     this.aiServices = new Map();
@@ -123,7 +123,7 @@ export class ChatOrchestrator extends EventEmitter {
       options.topicChangeChance || DEFAULTS.TOPIC_CHANGE_CHANCE;
 
     const envVerboseFlag = parseBooleanEnvFlag(
-      getEnvFlag("AI_CHAT_VERBOSE_CONTEXT")
+      getEnvFlag("AI_CHAT_VERBOSE_CONTEXT"),
     );
     this.verboseContextLogging =
       typeof options.verboseContextLogging === "boolean"
@@ -158,13 +158,13 @@ export class ChatOrchestrator extends EventEmitter {
   async initializeAIs(aiConfigs) {
     const failedConfigs = [];
     const skipHealthCheck = parseBooleanEnvFlag(
-      getEnvFlag("AI_CHAT_SKIP_HEALTHCHECK")
+      getEnvFlag("AI_CHAT_SKIP_HEALTHCHECK"),
     );
     for (const config of aiConfigs) {
       try {
         const service = AIServiceFactory.createServiceByName(
           config.providerKey,
-          config.modelKey
+          config.modelKey,
         );
         await service.initialize({ validateOnInit: !skipHealthCheck });
 
@@ -193,7 +193,7 @@ export class ChatOrchestrator extends EventEmitter {
       } catch (error) {
         console.error(
           `Failed to initialize AI ${config.providerKey}_${config.modelKey}:`,
-          error
+          error,
         );
         failedConfigs.push({
           providerKey: config.providerKey,
@@ -208,14 +208,16 @@ export class ChatOrchestrator extends EventEmitter {
 
     if (failedConfigs.length > 0) {
       console.warn(
-        `⚠️  ${failedConfigs.length} AI model(s) failed to initialize:`
+        `⚠️  ${failedConfigs.length} AI model(s) failed to initialize:`,
       );
       failedConfigs.forEach((failed) => {
         const label =
           failed.displayName ||
           failed.alias ||
           `${failed.providerKey}_${failed.modelKey}`;
-        console.warn(`   • ${label} (${failed.providerKey}_${failed.modelKey})`);
+        console.warn(
+          `   • ${label} (${failed.providerKey}_${failed.modelKey})`,
+        );
       });
     }
   }
@@ -248,7 +250,7 @@ export class ChatOrchestrator extends EventEmitter {
 
     if (message?.suppressAIResponses) {
       console.info(
-        "[ChatAssistant] Suppressing AI responses for this message (handled by @Chat)."
+        "[ChatAssistant] Suppressing AI responses for this message (handled by @Chat).",
       );
       return;
     }
@@ -304,11 +306,13 @@ export class ChatOrchestrator extends EventEmitter {
     const baseMaxResponders = isUserResponse
       ? Math.max(
           RESPONDER_CONFIG.USER_RESPONSE_MIN_COUNT,
-          Math.ceil(activeCount * RESPONDER_CONFIG.USER_RESPONSE_MAX_MULTIPLIER)
+          Math.ceil(
+            activeCount * RESPONDER_CONFIG.USER_RESPONSE_MAX_MULTIPLIER,
+          ),
         )
       : Math.max(
           RESPONDER_CONFIG.BACKGROUND_MIN_COUNT,
-          Math.ceil(activeCount * RESPONDER_CONFIG.BACKGROUND_MAX_MULTIPLIER)
+          Math.ceil(activeCount * RESPONDER_CONFIG.BACKGROUND_MAX_MULTIPLIER),
         );
     const baseMinResponders = isUserResponse
       ? RESPONDER_CONFIG.USER_RESPONSE_MIN_BASE
@@ -326,12 +330,12 @@ export class ChatOrchestrator extends EventEmitter {
 
     const finalMin = Math.max(
       baseMinResponders,
-      uniqueMentioned.length || baseMinResponders
+      uniqueMentioned.length || baseMinResponders,
     );
     const finalMax = Math.max(baseMaxResponders, finalMin);
 
     const availableForRandom = eligibleAIs.filter(
-      (aiId) => !uniqueMentioned.includes(aiId)
+      (aiId) => !uniqueMentioned.includes(aiId),
     );
 
     const minAdditional = Math.max(finalMin - uniqueMentioned.length, 0);
@@ -342,7 +346,7 @@ export class ChatOrchestrator extends EventEmitter {
         ? this.selectRespondingAIs(
             minAdditional,
             maxAdditional,
-            availableForRandom
+            availableForRandom,
           )
         : [];
 
@@ -354,7 +358,7 @@ export class ChatOrchestrator extends EventEmitter {
         index,
         isUserResponse,
         isMentioned,
-        typingAICount
+        typingAICount,
       );
 
       setTimeout(() => {
@@ -376,7 +380,7 @@ export class ChatOrchestrator extends EventEmitter {
     aiId,
     roomId,
     isUserResponse = true,
-    options: GenerateResponseOptions = {}
+    options: GenerateResponseOptions = {},
   ) {
     if (this.messageTracker.isAsleep) {
       return;
@@ -408,24 +412,24 @@ export class ChatOrchestrator extends EventEmitter {
       console.log(
         `🤖 ${aiService.name} is generating ${
           isUserResponse ? "user response" : "background message"
-        }...`
+        }...`,
       );
 
       let context = this.contextManager.getContextForAI(
-        CONTEXT_LIMITS.AI_CONTEXT_SIZE
+        CONTEXT_LIMITS.AI_CONTEXT_SIZE,
       );
       let responseType = "response";
       let systemPrompt = this.createEnhancedSystemPrompt(
         aiService,
         context,
-        isUserResponse
+        isUserResponse,
       );
 
       // Determine AI interaction strategy based on context
       const interactionStrategy = this.determineInteractionStrategy(
         aiService,
         context,
-        isUserResponse
+        isUserResponse,
       );
       responseType = interactionStrategy.type;
 
@@ -433,7 +437,7 @@ export class ChatOrchestrator extends EventEmitter {
       context = this.applyInteractionStrategy(
         context,
         interactionStrategy,
-        aiService
+        aiService,
       );
 
       // Add the enhanced system prompt
@@ -447,9 +451,8 @@ export class ChatOrchestrator extends EventEmitter {
 
       this.logAIContext(aiService, messagesWithSystem);
 
-      const response = await aiService.service.generateResponse(
-        messagesWithSystem
-      );
+      const response =
+        await aiService.service.generateResponse(messagesWithSystem);
       const responseTimeMs = Date.now() - responseStartTime;
       let processedResponse = this.truncateResponse(response);
       aiService.lastMessageTime = Date.now();
@@ -458,15 +461,15 @@ export class ChatOrchestrator extends EventEmitter {
       if (interactionStrategy.shouldMention && interactionStrategy.targetAI) {
         processedResponse = this.addMentionToResponse(
           processedResponse,
-          interactionStrategy.targetAI
+          interactionStrategy.targetAI,
         );
       }
 
       console.log(
         `✨ ${aiService.name} ${responseType}: ${processedResponse.substring(
           0,
-          100
-        )}${processedResponse.length > 100 ? "..." : ""}`
+          100,
+        )}${processedResponse.length > 100 ? "..." : ""}`,
       );
 
       const aiMessage = {
@@ -505,7 +508,7 @@ export class ChatOrchestrator extends EventEmitter {
       const responseTimeMs = Date.now() - responseStartTime;
       console.error(
         `❌ AI ${aiId} failed to generate response:`,
-        error.message
+        error.message,
       );
       this.emit("ai-error", {
         ...aiMeta,
@@ -523,13 +526,17 @@ export class ChatOrchestrator extends EventEmitter {
     logAIContext(aiService, messages, this.verboseContextLogging);
   }
 
-  selectRespondingAIs(minResponders = 1, maxResponders = 3, candidateList = null) {
+  selectRespondingAIs(
+    minResponders = 1,
+    maxResponders = 3,
+    candidateList = null,
+  ) {
     return selectRespondingAIs(
       this.aiServices,
       this.activeAIs,
       minResponders,
       maxResponders,
-      candidateList
+      candidateList,
     );
   }
 
@@ -553,7 +560,7 @@ export class ChatOrchestrator extends EventEmitter {
     index,
     isUserResponse = true,
     isMentioned = false,
-    typingAICount = 0
+    typingAICount = 0,
   ) {
     return calculateResponseDelay({
       index,
@@ -586,7 +593,7 @@ export class ChatOrchestrator extends EventEmitter {
       aiService,
       context,
       isUserResponse,
-      this.aiServices
+      this.aiServices,
     );
   }
 
@@ -596,7 +603,7 @@ export class ChatOrchestrator extends EventEmitter {
       context,
       isUserResponse,
       (message) => findAIFromContextMessage(this.aiServices, message),
-      (ai) => getMentionTokenForAI(ai)
+      (ai) => getMentionTokenForAI(ai),
     );
   }
 
@@ -605,7 +612,7 @@ export class ChatOrchestrator extends EventEmitter {
       context,
       strategy,
       aiService,
-      context[context.length - 1]
+      context[context.length - 1],
     );
   }
 
@@ -685,7 +692,7 @@ export class ChatOrchestrator extends EventEmitter {
         // Retry after interval if AIs are asleep
         this.backgroundConversationTimer = setTimeout(
           scheduleNextMessage,
-          TIMING.SLEEP_RETRY_INTERVAL
+          TIMING.SLEEP_RETRY_INTERVAL,
         );
         return;
       }

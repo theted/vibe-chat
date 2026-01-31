@@ -6,18 +6,25 @@
 
 import { OpenAICompatibleService } from "./base/OpenAICompatibleService.js";
 import { OpenAIClient } from "@/types/services.js";
-import { AIServiceConfig, ServiceInitOptions, OpenAIMessage } from "@/types/index.js";
+import {
+  AIServiceConfig,
+  ServiceInitOptions,
+  OpenAIMessage,
+} from "@/types/index.js";
 import OpenAI from "openai";
 
 export class MistralService extends OpenAICompatibleService {
   constructor(config: AIServiceConfig) {
-    super(config, 'Mistral');
+    super(config, "Mistral");
   }
 
   /**
    * Create the Mistral client (which is OpenAI-compatible)
    */
-  protected createClient(apiKey: string, options?: ServiceInitOptions): OpenAIClient {
+  protected createClient(
+    apiKey: string,
+    options?: ServiceInitOptions,
+  ): OpenAIClient {
     const baseURL = options?.baseURL || "https://api.mistral.ai/v1";
 
     return new OpenAI({
@@ -33,8 +40,8 @@ export class MistralService extends OpenAICompatibleService {
    */
   protected processMessages(messages: OpenAIMessage[]): OpenAIMessage[] {
     // Ensure system messages are at the beginning
-    const systemMessages = messages.filter(m => m.role === 'system');
-    const nonSystemMessages = messages.filter(m => m.role !== 'system');
+    const systemMessages = messages.filter((m) => m.role === "system");
+    const nonSystemMessages = messages.filter((m) => m.role !== "system");
     const orderedMessages = [...systemMessages, ...nonSystemMessages];
 
     const lastMessage = orderedMessages[orderedMessages.length - 1];

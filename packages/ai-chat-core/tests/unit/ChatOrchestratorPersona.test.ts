@@ -38,11 +38,11 @@ describe("ChatOrchestrator persona prompt behavior", () => {
 
     assert.ok(
       prompt.includes("PERSONALITY CONTEXT"),
-      "expected persona context header in prompt"
+      "expected persona context header in prompt",
     );
     assert.ok(
       prompt.includes(AI_PROVIDERS.OPENAI.persona?.basePersonality || ""),
-      "expected persona base personality in prompt"
+      "expected persona base personality in prompt",
     );
   });
 
@@ -66,7 +66,7 @@ describe("ChatOrchestrator persona prompt behavior", () => {
 
     assert.ok(
       !prompt.includes("PERSONALITY CONTEXT"),
-      "did not expect persona context header in prompt"
+      "did not expect persona context header in prompt",
     );
   });
 
@@ -88,11 +88,11 @@ describe("ChatOrchestrator persona prompt behavior", () => {
 
     assert.ok(
       prompt.includes("PERSONALITY CONTEXT"),
-      "expected persona context header in prompt"
+      "expected persona context header in prompt",
     );
     assert.ok(
       prompt.includes(AI_PROVIDERS.OPENAI.persona?.basePersonality || ""),
-      "expected persona base personality in prompt"
+      "expected persona base personality in prompt",
     );
   });
 });

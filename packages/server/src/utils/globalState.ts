@@ -18,7 +18,7 @@ export const getSocketController = (): SocketController | undefined =>
  * Updates the global SocketController instance.
  */
 export const setSocketController = (
-  socketController: SocketController | undefined
+  socketController: SocketController | undefined,
 ): void => {
   globalState.socketController = socketController;
 };
@@ -33,7 +33,7 @@ export const getMetricsService = (): MetricsService | undefined =>
  * Updates the global MetricsService instance.
  */
 export const setMetricsService = (
-  metricsService: MetricsService | undefined
+  metricsService: MetricsService | undefined,
 ): void => {
   globalState.metricsService = metricsService;
 };

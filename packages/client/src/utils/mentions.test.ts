@@ -12,7 +12,7 @@ describe("mentions utilities", () => {
 
   it("extracts normalized mentions from text", () => {
     const mentions = extractMentionsFromText(
-      "Ping @Claude 3.5 Haiku and @gpt-4o."
+      "Ping @Claude 3.5 Haiku and @gpt-4o.",
     );
 
     expect(mentions).toEqual(["claude 3.5 haiku", "gpt-4o"]);

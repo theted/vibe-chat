@@ -5,7 +5,7 @@ import MessageInput from "./MessageInput";
 import ParticipantsList from "./ParticipantsList";
 import TypingIndicator from "./TypingIndicator";
 import Icon from "./Icon";
-import type { ChatViewProps } from '@/types';
+import type { ChatViewProps } from "@/types";
 
 const ChatView = ({
   theme,

@@ -4,15 +4,8 @@
     "noEmit": true,
     "baseUrl": "."
   },
-  "include": [
-    "packages/*/src/**/*",
-    "tests/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "**/dist/**/*",
-    "packages/*/node_modules/**/*"
-  ],
+  "include": ["packages/*/src/**/*", "tests/**/*"],
+  "exclude": ["node_modules", "**/dist/**/*", "packages/*/node_modules/**/*"],
   "references": [
     { "path": "packages/ai-configs" },
     { "path": "packages/ai-chat-core" },

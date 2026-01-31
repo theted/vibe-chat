@@ -20,7 +20,10 @@ export const normalizeAlias = (value?: string | number | null): string =>
  * Convert a value to a mention-friendly alias format
  * Preserves hyphens but removes other special characters
  */
-export const toMentionAlias = (value?: string | null, fallback = ""): string => {
+export const toMentionAlias = (
+  value?: string | null,
+  fallback = "",
+): string => {
   const base = value && value.trim() ? value : fallback;
   if (!base) return "";
   return base
@@ -56,7 +59,9 @@ export const getEnvFlag = (name: string): string | undefined => {
  * Parse @mentions from message content
  * Returns both raw mentions and normalized versions
  */
-export const parseMentions = (content = ""): { mentions: string[]; normalized: string[] } => {
+export const parseMentions = (
+  content = "",
+): { mentions: string[]; normalized: string[] } => {
   const mentionRegex = /@([^\s@]+)/g;
   const mentions: string[] = [];
   const normalized: string[] = [];

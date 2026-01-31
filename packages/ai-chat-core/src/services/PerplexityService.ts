@@ -17,7 +17,10 @@ export class PerplexityService extends OpenAICompatibleService {
     super(config, "Perplexity");
   }
 
-  protected createClient(apiKey: string, options?: ServiceInitOptions): OpenAIClient {
+  protected createClient(
+    apiKey: string,
+    options?: ServiceInitOptions,
+  ): OpenAIClient {
     return new OpenAI({
       apiKey,
       baseURL: options?.baseURL || PERPLEXITY_BASE_URL,

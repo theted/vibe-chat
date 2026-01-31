@@ -2,12 +2,12 @@
  * Dashboard Component - Real-time metrics display
  */
 
-import { useState, useEffect, type ReactNode } from 'react';
-import { Link } from 'react-router-dom';
-import { useSocket } from '@/hooks/useSocket';
-import StatusCard from './StatusCard';
-import type { DashboardMetrics, ConnectionStatus } from '@/types';
-import type { AiParticipant } from '@/config/aiParticipants';
+import { useState, useEffect, type ReactNode } from "react";
+import { Link } from "react-router-dom";
+import { useSocket } from "@/hooks/useSocket";
+import StatusCard from "./StatusCard";
+import type { DashboardMetrics, ConnectionStatus } from "@/types";
+import type { AiParticipant } from "@/config/aiParticipants";
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL || "http://localhost:3001";
 
@@ -37,10 +37,12 @@ const Dashboard = () => {
     providerModelStats: [],
     errorLogs: [],
     uptime: 0,
-    timestamp: Date.now()
+    timestamp: Date.now(),
   });
 
-  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>({ connected: false });
+  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>({
+    connected: false,
+  });
   const [history, setHistory] = useState<unknown[]>([]);
   const [aiParticipants, setAiParticipants] = useState<AiParticipant[]>([]);
   const [isVisible, setIsVisible] = useState(true);
@@ -79,14 +81,13 @@ const Dashboard = () => {
     // Join dashboard immediately if connected
     emit("join-dashboard");
     emit("get-ai-participants");
-
   }, [on, emit]);
 
   // Auto-refresh metrics every 30 seconds
   useEffect(() => {
     const interval = setInterval(() => {
       if (connectionStatus.connected) {
-        emit('get-metrics');
+        emit("get-metrics");
       }
     }, 30000);
 
@@ -122,12 +123,26 @@ const Dashboard = () => {
     return Math.round((value / total) * 100);
   };
 
-  const MetricCard = ({ title, value, subtitle, icon, color = 'blue' }: MetricCardProps): ReactNode => (
-    <div className={`bg-gradient-to-br from-${color}-50 to-${color}-100 border border-${color}-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-300`}>
+  const MetricCard = ({
+    title,
+    value,
+    subtitle,
+    icon,
+    color = "blue",
+  }: MetricCardProps): ReactNode => (
+    <div
+      className={`bg-gradient-to-br from-${color}-50 to-${color}-100 border border-${color}-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-300`}
+    >
       <div className="flex items-center justify-between">
         <div>
-          <p className={`text-${color}-600 text-sm font-medium uppercase tracking-wide`}>{title}</p>
-          <p className="text-3xl font-bold text-gray-900 mt-2">{typeof value === 'number' ? value.toLocaleString() : value}</p>
+          <p
+            className={`text-${color}-600 text-sm font-medium uppercase tracking-wide`}
+          >
+            {title}
+          </p>
+          <p className="text-3xl font-bold text-gray-900 mt-2">
+            {typeof value === "number" ? value.toLocaleString() : value}
+          </p>
           {subtitle && <p className="text-gray-600 text-sm mt-1">{subtitle}</p>}
         </div>
         <div className={`text-${color}-500 text-4xl`}>{icon}</div>
@@ -135,13 +150,20 @@ const Dashboard = () => {
     </div>
   );
 
-  const ProgressBar = ({ value, max, label, color = 'blue' }: ProgressBarProps): ReactNode => {
+  const ProgressBar = ({
+    value,
+    max,
+    label,
+    color = "blue",
+  }: ProgressBarProps): ReactNode => {
     const percentage = max > 0 ? (value / max) * 100 : 0;
     return (
       <div className="mb-4">
         <div className="flex justify-between items-center mb-2">
           <span className="text-sm font-medium text-gray-700">{label}</span>
-          <span className="text-sm text-gray-500">{value} / {max}</span>
+          <span className="text-sm text-gray-500">
+            {value} / {max}
+          </span>
         </div>
         <div className="w-full bg-gray-200 rounded-full h-3">
           <div
@@ -149,7 +171,9 @@ const Dashboard = () => {
             style={{ width: `${Math.min(percentage, 100)}%` }}
           ></div>
         </div>
-        <div className="text-xs text-gray-500 mt-1">{percentage.toFixed(1)}%</div>
+        <div className="text-xs text-gray-500 mt-1">
+          {percentage.toFixed(1)}%
+        </div>
       </div>
     );
   };
@@ -159,9 +183,7 @@ const Dashboard = () => {
   const activeAiParticipants = aiParticipants
     .filter((participant) => participant.status === "active")
     .sort((first, second) =>
-      (first.name || "").localeCompare(
-        second.name || ""
-      )
+      (first.name || "").localeCompare(second.name || ""),
     );
 
   return (
@@ -173,7 +195,9 @@ const Dashboard = () => {
             <h1 className="text-4xl font-bold bg-gradient-to-r from-primary-600 to-indigo-600 bg-clip-text text-transparent">
               AI Chat Dashboard
             </h1>
-            <p className="text-gray-600 mt-2">Real-time metrics and analytics</p>
+            <p className="text-gray-600 mt-2">
+              Real-time metrics and analytics
+            </p>
           </div>
 
           <div className="flex items-center gap-4">
@@ -185,8 +209,12 @@ const Dashboard = () => {
             </Link>
 
             <div className="flex items-center gap-2 text-sm bg-white rounded-lg px-4 py-2 shadow-sm">
-              <div className={`w-3 h-3 rounded-full ${connectionStatus.connected ? 'bg-green-500' : 'bg-red-500 animate-pulse'}`}></div>
-              <span>{connectionStatus.connected ? 'Connected' : 'Disconnected'}</span>
+              <div
+                className={`w-3 h-3 rounded-full ${connectionStatus.connected ? "bg-green-500" : "bg-red-500 animate-pulse"}`}
+              ></div>
+              <span>
+                {connectionStatus.connected ? "Connected" : "Disconnected"}
+              </span>
             </div>
 
             <div className="text-sm text-gray-500 bg-white rounded-lg px-4 py-2 shadow-sm">
@@ -250,7 +278,9 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           {/* Message Distribution */}
           <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
-            <h3 className="text-xl font-semibold text-gray-900 mb-6">Message Distribution</h3>
+            <h3 className="text-xl font-semibold text-gray-900 mb-6">
+              Message Distribution
+            </h3>
 
             <ProgressBar
               value={metrics.totalAIMessages}
@@ -272,20 +302,33 @@ const Dashboard = () => {
                   <span>AI to User Ratio:</span>
                   <span className="font-medium">
                     {metrics.totalUserMessages > 0
-                      ? (metrics.totalAIMessages / metrics.totalUserMessages).toFixed(2)
-                      : '0'} : 1
+                      ? (
+                          metrics.totalAIMessages / metrics.totalUserMessages
+                        ).toFixed(2)
+                      : "0"}{" "}
+                    : 1
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span>Activity Level:</span>
-                  <span className={`font-medium ${
-                    metrics.messagesPerMinute > 10 ? 'text-red-600' :
-                    metrics.messagesPerMinute > 5 ? 'text-orange-600' :
-                    metrics.messagesPerMinute > 1 ? 'text-green-600' : 'text-gray-600'
-                  }`}>
-                    {metrics.messagesPerMinute > 10 ? 'Very High' :
-                     metrics.messagesPerMinute > 5 ? 'High' :
-                     metrics.messagesPerMinute > 1 ? 'Moderate' : 'Low'}
+                  <span
+                    className={`font-medium ${
+                      metrics.messagesPerMinute > 10
+                        ? "text-red-600"
+                        : metrics.messagesPerMinute > 5
+                          ? "text-orange-600"
+                          : metrics.messagesPerMinute > 1
+                            ? "text-green-600"
+                            : "text-gray-600"
+                    }`}
+                  >
+                    {metrics.messagesPerMinute > 10
+                      ? "Very High"
+                      : metrics.messagesPerMinute > 5
+                        ? "High"
+                        : metrics.messagesPerMinute > 1
+                          ? "Moderate"
+                          : "Low"}
                   </span>
                 </div>
               </div>
@@ -294,7 +337,9 @@ const Dashboard = () => {
 
           {/* Recent Activity */}
           <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
-            <h3 className="text-xl font-semibold text-gray-900 mb-6">System Status</h3>
+            <h3 className="text-xl font-semibold text-gray-900 mb-6">
+              System Status
+            </h3>
 
             <div className="space-y-4">
               <StatusCard
@@ -329,7 +374,9 @@ const Dashboard = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
-            <h3 className="text-xl font-semibold text-gray-900 mb-6">Provider Performance</h3>
+            <h3 className="text-xl font-semibold text-gray-900 mb-6">
+              Provider Performance
+            </h3>
             <div className="overflow-x-auto">
               <table className="min-w-full text-left text-sm">
                 <thead>
@@ -350,12 +397,25 @@ const Dashboard = () => {
                     </tr>
                   ) : (
                     metrics.providerModelStats.map((stat) => (
-                      <tr key={`${stat.provider}-${stat.model}`} className="border-b border-gray-100">
-                        <td className="py-2 pr-4 font-medium text-gray-900">{stat.provider}</td>
-                        <td className="py-2 pr-4 text-gray-700">{stat.model}</td>
-                        <td className="py-2 pr-4 text-gray-700">{stat.requests}</td>
-                        <td className="py-2 pr-4 text-gray-700">{stat.errors}</td>
-                        <td className="py-2 pr-4 text-gray-700">{formatResponseTime(stat.meanResponseTimeMs)}</td>
+                      <tr
+                        key={`${stat.provider}-${stat.model}`}
+                        className="border-b border-gray-100"
+                      >
+                        <td className="py-2 pr-4 font-medium text-gray-900">
+                          {stat.provider}
+                        </td>
+                        <td className="py-2 pr-4 text-gray-700">
+                          {stat.model}
+                        </td>
+                        <td className="py-2 pr-4 text-gray-700">
+                          {stat.requests}
+                        </td>
+                        <td className="py-2 pr-4 text-gray-700">
+                          {stat.errors}
+                        </td>
+                        <td className="py-2 pr-4 text-gray-700">
+                          {formatResponseTime(stat.meanResponseTimeMs)}
+                        </td>
                       </tr>
                     ))
                   )}
@@ -365,18 +425,29 @@ const Dashboard = () => {
           </div>
 
           <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
-            <h3 className="text-xl font-semibold text-gray-900 mb-6">Recent AI Errors</h3>
+            <h3 className="text-xl font-semibold text-gray-900 mb-6">
+              Recent AI Errors
+            </h3>
             <div className="space-y-4 max-h-96 overflow-y-auto">
               {(metrics.errorLogs || []).length === 0 ? (
                 <p className="text-gray-500 text-sm">No recent AI errors.</p>
               ) : (
                 metrics.errorLogs.map((entry, index) => (
-                  <div key={`${entry.provider}-${entry.model}-${entry.timestamp}-${index}`} className="border border-gray-100 rounded-xl p-4">
+                  <div
+                    key={`${entry.provider}-${entry.model}-${entry.timestamp}-${index}`}
+                    className="border border-gray-100 rounded-xl p-4"
+                  >
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div className="text-sm font-medium text-gray-900">{entry.provider} · {entry.model}</div>
-                      <div className="text-xs text-gray-500">{formatDateTime(entry.timestamp)}</div>
+                      <div className="text-sm font-medium text-gray-900">
+                        {entry.provider} · {entry.model}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {formatDateTime(entry.timestamp)}
+                      </div>
                     </div>
-                    <p className="text-sm text-gray-600 mt-2 whitespace-pre-wrap">{entry.message}</p>
+                    <p className="text-sm text-gray-600 mt-2 whitespace-pre-wrap">
+                      {entry.message}
+                    </p>
                   </div>
                 ))
               )}
@@ -386,14 +457,18 @@ const Dashboard = () => {
 
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 mb-8">
           <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-            <h3 className="text-xl font-semibold text-gray-900">Enabled AI Participants</h3>
+            <h3 className="text-xl font-semibold text-gray-900">
+              Enabled AI Participants
+            </h3>
             <span className="text-sm text-gray-500">
               {activeAiParticipants.length} enabled
             </span>
           </div>
 
           {activeAiParticipants.length === 0 ? (
-            <p className="text-sm text-gray-500">No active AI participants are currently enabled.</p>
+            <p className="text-sm text-gray-500">
+              No active AI participants are currently enabled.
+            </p>
           ) : (
             <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {activeAiParticipants.map((participant) => (
@@ -408,7 +483,9 @@ const Dashboard = () => {
                     <p className="text-sm font-semibold text-gray-900">
                       {participant.name}
                     </p>
-                    <p className="text-xs text-gray-500">@{participant.alias}</p>
+                    <p className="text-xs text-gray-500">
+                      @{participant.alias}
+                    </p>
                     <p className="text-xs text-gray-400 mt-1">
                       Provider: {participant.provider || "Unknown"}
                     </p>
@@ -425,7 +502,9 @@ const Dashboard = () => {
         {/* Footer */}
         <div className="text-center text-gray-500 text-sm">
           <p>Dashboard updates automatically every 2-5 seconds</p>
-          <p className="mt-1">Server running for {formatUptime(metrics.uptime)}</p>
+          <p className="mt-1">
+            Server running for {formatUptime(metrics.uptime)}
+          </p>
         </div>
       </div>
     </div>

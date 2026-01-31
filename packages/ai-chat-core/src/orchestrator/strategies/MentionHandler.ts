@@ -10,9 +10,9 @@ import {
   MentionData,
   MentionContext,
   AIParticipant,
-  ParticipantError
-} from '@/types/orchestrator.js';
-import { Message } from '@/types/index.js';
+  ParticipantError,
+} from "@/types/orchestrator.js";
+import { Message } from "@/types/index.js";
 
 export class MentionHandler implements IMentionHandler {
   private mentionRegex = /@([a-zA-Z0-9\-_]+)/g;
@@ -21,7 +21,10 @@ export class MentionHandler implements IMentionHandler {
   /**
    * Detect mentions in a message and return context
    */
-  detectMentions(message: Message, participants: AIParticipant[]): MentionContext {
+  detectMentions(
+    message: Message,
+    participants: AIParticipant[],
+  ): MentionContext {
     const mentions: MentionData[] = [];
     const explicitTargets: AIParticipant[] = [];
     const implicitTargets: AIParticipant[] = [];
@@ -32,11 +35,11 @@ export class MentionHandler implements IMentionHandler {
       const targetAI = this.findAIByAlias(mention.alias, participants);
       if (targetAI) {
         const mentionData: MentionData = {
-          type: 'direct',
+          type: "direct",
           targetAI,
           originalText: mention.originalText,
           normalizedTarget: mention.normalizedAlias,
-          confidence: 0.9
+          confidence: 0.9,
         };
         mentions.push(mentionData);
         explicitTargets.push(targetAI);
@@ -44,7 +47,10 @@ export class MentionHandler implements IMentionHandler {
     }
 
     // Find implicit mentions (name references without @)
-    const implicitMentions = this.findImplicitMentions(message.content, participants);
+    const implicitMentions = this.findImplicitMentions(
+      message.content,
+      participants,
+    );
     for (const mention of implicitMentions) {
       if (!explicitTargets.includes(mention.targetAI)) {
         mentions.push(mention);
@@ -53,9 +59,15 @@ export class MentionHandler implements IMentionHandler {
     }
 
     // Detect contextual mentions (references to previous messages)
-    const contextualMentions = this.findContextualMentions(message, participants);
+    const contextualMentions = this.findContextualMentions(
+      message,
+      participants,
+    );
     for (const mention of contextualMentions) {
-      if (!explicitTargets.includes(mention.targetAI) && !implicitTargets.includes(mention.targetAI)) {
+      if (
+        !explicitTargets.includes(mention.targetAI) &&
+        !implicitTargets.includes(mention.targetAI)
+      ) {
         mentions.push(mention);
       }
     }
@@ -64,25 +76,29 @@ export class MentionHandler implements IMentionHandler {
       message,
       mentions,
       explicitTargets,
-      implicitTargets
+      implicitTargets,
     };
   }
 
   /**
    * Find AI participant by alias (normalized matching)
    */
-  findAIByAlias(alias: string, participants: AIParticipant[]): AIParticipant | undefined {
+  findAIByAlias(
+    alias: string,
+    participants: AIParticipant[],
+  ): AIParticipant | undefined {
     const normalizedAlias = this.normalizeAlias(alias);
 
-    return participants.find(participant => {
+    return participants.find((participant) => {
       const participantAliases = [
         participant.alias,
         participant.id,
-        participant.provider?.name
+        participant.provider?.name,
       ].filter(Boolean);
 
-      return participantAliases.some(candidateAlias =>
-        this.normalizeAlias(candidateAlias!) === normalizedAlias
+      return participantAliases.some(
+        (candidateAlias) =>
+          this.normalizeAlias(candidateAlias!) === normalizedAlias,
       );
     });
   }
@@ -97,7 +113,7 @@ export class MentionHandler implements IMentionHandler {
 
     const normalized = alias
       .toLowerCase()
-      .replace(/[^a-z0-9]/g, '')
+      .replace(/[^a-z0-9]/g, "")
       .trim();
 
     this.aliasNormalizationCache.set(alias, normalized);
@@ -151,7 +167,7 @@ export class MentionHandler implements IMentionHandler {
       mentions.push({
         originalText,
         alias,
-        normalizedAlias
+        normalizedAlias,
       });
     }
 
@@ -161,7 +177,10 @@ export class MentionHandler implements IMentionHandler {
   /**
    * Find implicit mentions (name references without @)
    */
-  private findImplicitMentions(content: string, participants: AIParticipant[]): MentionData[] {
+  private findImplicitMentions(
+    content: string,
+    participants: AIParticipant[],
+  ): MentionData[] {
     const mentions: MentionData[] = [];
     const contentLower = content.toLowerCase();
 
@@ -169,7 +188,7 @@ export class MentionHandler implements IMentionHandler {
       const aliases = [
         participant.alias,
         participant.id,
-        participant.provider?.name
+        participant.provider?.name,
       ].filter(Boolean);
 
       for (const alias of aliases) {
@@ -180,18 +199,22 @@ export class MentionHandler implements IMentionHandler {
 
         if (index !== -1) {
           // Check if it's a whole word match
-          const beforeChar = index > 0 ? contentLower[index - 1] : ' ';
-          const afterChar = index + aliasLower.length < contentLower.length
-            ? contentLower[index + aliasLower.length]
-            : ' ';
+          const beforeChar = index > 0 ? contentLower[index - 1] : " ";
+          const afterChar =
+            index + aliasLower.length < contentLower.length
+              ? contentLower[index + aliasLower.length]
+              : " ";
 
-          if (this.isWordBoundary(beforeChar) && this.isWordBoundary(afterChar)) {
+          if (
+            this.isWordBoundary(beforeChar) &&
+            this.isWordBoundary(afterChar)
+          ) {
             mentions.push({
-              type: 'indirect',
+              type: "indirect",
               targetAI: participant,
               originalText: alias,
               normalizedTarget: this.normalizeAlias(alias),
-              confidence: 0.7
+              confidence: 0.7,
             });
             break; // Only count once per participant
           }
@@ -205,20 +228,23 @@ export class MentionHandler implements IMentionHandler {
   /**
    * Find contextual mentions (references to previous messages or context)
    */
-  private findContextualMentions(message: Message, participants: AIParticipant[]): MentionData[] {
+  private findContextualMentions(
+    message: Message,
+    participants: AIParticipant[],
+  ): MentionData[] {
     const mentions: MentionData[] = [];
     const content = message.content.toLowerCase();
 
     // Look for contextual phrases that might indicate references
     const contextualPhrases = [
-      'what you said',
-      'your point',
-      'your opinion',
-      'you mentioned',
-      'as you said',
-      'i agree with you',
-      'you\'re right',
-      'you think'
+      "what you said",
+      "your point",
+      "your opinion",
+      "you mentioned",
+      "as you said",
+      "i agree with you",
+      "you're right",
+      "you think",
     ];
 
     for (const phrase of contextualPhrases) {
@@ -227,11 +253,11 @@ export class MentionHandler implements IMentionHandler {
         // This is a simple heuristic - in practice, you'd want more sophisticated analysis
         if (participants.length > 0) {
           mentions.push({
-            type: 'context',
+            type: "context",
             targetAI: participants[0], // Simplified - would need better logic
             originalText: phrase,
             normalizedTarget: phrase,
-            confidence: 0.4
+            confidence: 0.4,
           });
         }
       }
@@ -250,16 +276,16 @@ export class MentionHandler implements IMentionHandler {
   /**
    * Convert alias to mention format
    */
-  private toMentionAlias(value: string, fallback: string = ''): string {
+  private toMentionAlias(value: string, fallback: string = ""): string {
     const base = value && value.trim() ? value : fallback;
-    if (!base) return '';
+    if (!base) return "";
 
     return base
       .toString()
       .trim()
       .toLowerCase()
-      .replace(/[^a-z0-9\-]+/g, '-')
-      .replace(/^-+|-+$/g, '');
+      .replace(/[^a-z0-9\-]+/g, "-")
+      .replace(/^-+|-+$/g, "");
   }
 
   /**
@@ -268,13 +294,16 @@ export class MentionHandler implements IMentionHandler {
   extractMentionMetadata(mentions: MentionData[]): Record<string, unknown> {
     const metadata = {
       totalMentions: mentions.length,
-      directMentions: mentions.filter(m => m.type === 'direct').length,
-      indirectMentions: mentions.filter(m => m.type === 'indirect').length,
-      contextualMentions: mentions.filter(m => m.type === 'context').length,
-      averageConfidence: mentions.length > 0
-        ? mentions.reduce((sum, m) => sum + m.confidence, 0) / mentions.length
-        : 0,
-      mentionedParticipants: [...new Set(mentions.map(m => m.targetAI?.id).filter(Boolean))]
+      directMentions: mentions.filter((m) => m.type === "direct").length,
+      indirectMentions: mentions.filter((m) => m.type === "indirect").length,
+      contextualMentions: mentions.filter((m) => m.type === "context").length,
+      averageConfidence:
+        mentions.length > 0
+          ? mentions.reduce((sum, m) => sum + m.confidence, 0) / mentions.length
+          : 0,
+      mentionedParticipants: [
+        ...new Set(mentions.map((m) => m.targetAI?.id).filter(Boolean)),
+      ],
     };
 
     return metadata;
@@ -292,7 +321,7 @@ export class MentionHandler implements IMentionHandler {
       return false;
     }
 
-    if (!['direct', 'indirect', 'context'].includes(mention.type)) {
+    if (!["direct", "indirect", "context"].includes(mention.type)) {
       return false;
     }
 
@@ -312,7 +341,7 @@ export class MentionHandler implements IMentionHandler {
   getCacheStats(): { size: number; maxSize: number } {
     return {
       size: this.aliasNormalizationCache.size,
-      maxSize: 1000 // Could be configurable
+      maxSize: 1000, // Could be configurable
     };
   }
 

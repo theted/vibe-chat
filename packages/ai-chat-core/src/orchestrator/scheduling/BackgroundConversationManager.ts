@@ -10,8 +10,8 @@ import {
   BackgroundConversationConfig,
   BackgroundConversationState,
   AIParticipant,
-  SchedulingError
-} from '@/types/orchestrator.js';
+  SchedulingError,
+} from "@/types/orchestrator.js";
 
 export class BackgroundConversationManager implements IBackgroundConversationManager {
   private config: BackgroundConversationConfig;
@@ -26,13 +26,13 @@ export class BackgroundConversationManager implements IBackgroundConversationMan
       maxBackgroundMessages: 10,
       sleepAfterMessages: 5,
       wakeUpProbability: 0.3,
-      ...config
+      ...config,
     };
 
     this.state = {
       isActive: false,
       sleepingParticipants: new Set(),
-      messagesSinceUserInput: 0
+      messagesSinceUserInput: 0,
     };
   }
 
@@ -44,7 +44,7 @@ export class BackgroundConversationManager implements IBackgroundConversationMan
       return;
     }
 
-    this.participants = participants.filter(p => p.isActive);
+    this.participants = participants.filter((p) => p.isActive);
 
     if (this.participants.length < 2) {
       // Need at least 2 participants for meaningful conversation
@@ -89,7 +89,7 @@ export class BackgroundConversationManager implements IBackgroundConversationMan
    * Put participants to sleep after too much activity
    */
   putParticipantsToSleep(participants: AIParticipant[]): void {
-    participants.forEach(participant => {
+    participants.forEach((participant) => {
       if (participant.messageCount >= this.config.sleepAfterMessages) {
         this.state.sleepingParticipants.add(participant.id);
         participant.isSleeping = true;
@@ -106,7 +106,7 @@ export class BackgroundConversationManager implements IBackgroundConversationMan
   wakeUpParticipants(participants?: AIParticipant[]): void {
     const toWakeUp = participants || this.participants;
 
-    toWakeUp.forEach(participant => {
+    toWakeUp.forEach((participant) => {
       if (this.state.sleepingParticipants.has(participant.id)) {
         // Random chance to wake up, or force wake up if specified
         if (!participants || Math.random() < this.config.wakeUpProbability) {
@@ -132,7 +132,9 @@ export class BackgroundConversationManager implements IBackgroundConversationMan
     }
 
     // Check if we haven't exceeded max background messages
-    if (this.state.messagesSinceUserInput >= this.config.maxBackgroundMessages) {
+    if (
+      this.state.messagesSinceUserInput >= this.config.maxBackgroundMessages
+    ) {
       return false;
     }
 
@@ -153,7 +155,7 @@ export class BackgroundConversationManager implements IBackgroundConversationMan
   getState(): BackgroundConversationState {
     return {
       ...this.state,
-      sleepingParticipants: new Set(this.state.sleepingParticipants)
+      sleepingParticipants: new Set(this.state.sleepingParticipants),
     };
   }
 
@@ -181,7 +183,7 @@ export class BackgroundConversationManager implements IBackgroundConversationMan
       timeSinceLastTrigger: this.state.lastTriggerTime
         ? Date.now() - this.state.lastTriggerTime
         : null,
-      config: this.config
+      config: this.config,
     };
   }
 
@@ -208,7 +210,8 @@ export class BackgroundConversationManager implements IBackgroundConversationMan
       }
 
       // Select participants for background conversation
-      const selectedParticipants = this.selectBackgroundParticipants(awakeParticipants);
+      const selectedParticipants =
+        this.selectBackgroundParticipants(awakeParticipants);
 
       if (selectedParticipants.length > 0) {
         this.state.messagesSinceUserInput++;
@@ -222,7 +225,7 @@ export class BackgroundConversationManager implements IBackgroundConversationMan
       }
     } catch (error) {
       throw new SchedulingError(
-        `Failed to trigger background activity: ${error instanceof Error ? error.message : String(error)}`
+        `Failed to trigger background activity: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
   }
@@ -230,7 +233,9 @@ export class BackgroundConversationManager implements IBackgroundConversationMan
   /**
    * Select which participants should engage in background conversation
    */
-  private selectBackgroundParticipants(awakeParticipants: AIParticipant[]): AIParticipant[] {
+  private selectBackgroundParticipants(
+    awakeParticipants: AIParticipant[],
+  ): AIParticipant[] {
     // Simple selection: pick 1-2 participants with least recent activity
     const sortedByActivity = awakeParticipants.sort((a, b) => {
       const aLastResponse = a.lastResponseTime || 0;
@@ -246,10 +251,11 @@ export class BackgroundConversationManager implements IBackgroundConversationMan
    * Get participants that are awake and available
    */
   private getAwakeParticipants(): AIParticipant[] {
-    return this.participants.filter(p =>
-      p.isActive &&
-      !p.isSleeping &&
-      !this.state.sleepingParticipants.has(p.id)
+    return this.participants.filter(
+      (p) =>
+        p.isActive &&
+        !p.isSleeping &&
+        !this.state.sleepingParticipants.has(p.id),
     );
   }
 
@@ -261,7 +267,7 @@ export class BackgroundConversationManager implements IBackgroundConversationMan
       clearTimeout(this.state.activeTimer);
     }
 
-    const delay = this.config.participantRotationMs + (Math.random() * 10000); // Add some randomness
+    const delay = this.config.participantRotationMs + Math.random() * 10000; // Add some randomness
 
     this.state.activeTimer = setTimeout(() => {
       if (this.state.isActive) {
@@ -292,7 +298,7 @@ export class BackgroundConversationManager implements IBackgroundConversationMan
    * Schedule wake up for a sleeping participant
    */
   private scheduleWakeUp(participant: AIParticipant): void {
-    const wakeUpDelay = 60000 + (Math.random() * 120000); // 1-3 minutes
+    const wakeUpDelay = 60000 + Math.random() * 120000; // 1-3 minutes
 
     setTimeout(() => {
       if (this.state.sleepingParticipants.has(participant.id)) {
@@ -312,13 +318,15 @@ export class BackgroundConversationManager implements IBackgroundConversationMan
    * Handle background conversation trigger event
    * This would be implemented by the orchestrator to actually generate responses
    */
-  private onBackgroundConversationTriggered(participants: AIParticipant[]): void {
+  private onBackgroundConversationTriggered(
+    participants: AIParticipant[],
+  ): void {
     // Emit event or call callback
     // In the actual implementation, this would trigger the orchestrator
     // to generate background responses from the selected participants
 
     // For now, just update participant activity
-    participants.forEach(participant => {
+    participants.forEach((participant) => {
       participant.lastResponseTime = Date.now();
       participant.messageCount = (participant.messageCount || 0) + 1;
     });
@@ -328,9 +336,8 @@ export class BackgroundConversationManager implements IBackgroundConversationMan
    * Get participants eligible for wake up
    */
   getEligibleForWakeUp(): AIParticipant[] {
-    return this.participants.filter(p =>
-      p.isActive &&
-      this.state.sleepingParticipants.has(p.id)
+    return this.participants.filter(
+      (p) => p.isActive && this.state.sleepingParticipants.has(p.id),
     );
   }
 
@@ -338,7 +345,7 @@ export class BackgroundConversationManager implements IBackgroundConversationMan
    * Force wake up specific participant
    */
   forceWakeUp(participantId: string): boolean {
-    const participant = this.participants.find(p => p.id === participantId);
+    const participant = this.participants.find((p) => p.id === participantId);
     if (!participant || !this.state.sleepingParticipants.has(participantId)) {
       return false;
     }
@@ -353,7 +360,7 @@ export class BackgroundConversationManager implements IBackgroundConversationMan
    * Force sleep specific participant
    */
   forceSleep(participantId: string): boolean {
-    const participant = this.participants.find(p => p.id === participantId);
+    const participant = this.participants.find((p) => p.id === participantId);
     if (!participant || this.state.sleepingParticipants.has(participantId)) {
       return false;
     }

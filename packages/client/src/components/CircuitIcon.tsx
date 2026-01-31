@@ -1,7 +1,11 @@
 import { useId } from "react";
-import type { CircuitIconProps } from '@/types';
+import type { CircuitIconProps } from "@/types";
 
-const CircuitIcon = ({ className = "", title = "Stylized AI circuit", ...rest }: CircuitIconProps) => {
+const CircuitIcon = ({
+  className = "",
+  title = "Stylized AI circuit",
+  ...rest
+}: CircuitIconProps) => {
   const gradientId = useId();
 
   return (
@@ -18,9 +22,33 @@ const CircuitIcon = ({ className = "", title = "Stylized AI circuit", ...rest }:
           <stop offset="100%" stopColor="currentColor" stopOpacity="0.65" />
         </linearGradient>
       </defs>
-      <rect x="50" y="50" width="240" height="240" rx="48" fill="none" stroke={`url(#${gradientId})`} strokeWidth="8" />
-      <rect x="105" y="105" width="130" height="130" rx="26" fill="none" stroke={`url(#${gradientId})`} strokeWidth="6" />
-      <circle cx="170" cy="170" r="46" fill={`url(#${gradientId})`} opacity="0.95" />
+      <rect
+        x="50"
+        y="50"
+        width="240"
+        height="240"
+        rx="48"
+        fill="none"
+        stroke={`url(#${gradientId})`}
+        strokeWidth="8"
+      />
+      <rect
+        x="105"
+        y="105"
+        width="130"
+        height="130"
+        rx="26"
+        fill="none"
+        stroke={`url(#${gradientId})`}
+        strokeWidth="6"
+      />
+      <circle
+        cx="170"
+        cy="170"
+        r="46"
+        fill={`url(#${gradientId})`}
+        opacity="0.95"
+      />
       <g stroke={`url(#${gradientId})`} strokeWidth="10" strokeLinecap="round">
         <line x1="170" y1="20" x2="170" y2="60" />
         <line x1="170" y1="280" x2="170" y2="320" />

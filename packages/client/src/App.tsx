@@ -2,7 +2,13 @@
  * Main App Component - Real-time AI Chat Application
  */
 
-import { useState, useEffect, useRef, useCallback, type FormEvent } from "react";
+import {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  type FormEvent,
+} from "react";
 import { useSocket } from "./hooks/useSocket";
 import ToastContainer from "./components/ToastContainer";
 import LoginView from "./components/LoginView";
@@ -11,11 +17,7 @@ import LoadingOverlay from "./components/LoadingOverlay";
 import { ThemeContext } from "./context/ThemeContext";
 import { SERVER_URL } from "./constants/chat";
 import { LOCAL_STORAGE_MESSAGES_LIMIT } from "./constants/storage";
-import {
-  normalizeAlias,
-  resolveEmoji,
-  mapMentionsToAiNames,
-} from "./utils/ai";
+import { normalizeAlias, resolveEmoji, mapMentionsToAiNames } from "./utils/ai";
 import type {
   Theme,
   Message,
@@ -27,8 +29,8 @@ import type {
   Participant,
   TypingUser,
   TypingAI,
-} from './types';
-import type { AiParticipant } from './config/aiParticipants';
+} from "./types";
+import type { AiParticipant } from "./config/aiParticipants";
 
 function App() {
   // State
@@ -47,14 +49,20 @@ function App() {
     if (stored === "dark" || stored === "light") {
       return stored;
     }
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const prefersDark = window.matchMedia(
+      "(prefers-color-scheme: dark)",
+    ).matches;
     return prefersDark ? "dark" : "light";
   });
   const [hasSavedUsername, setHasSavedUsername] = useState(false);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [previewMessages, setPreviewMessages] = useState<Message[]>([]);
-  const [previewParticipants, setPreviewParticipants] = useState<Participant[]>([]);
-  const [previewAiParticipants, setPreviewAiParticipants] = useState<AiParticipant[]>([]);
+  const [previewParticipants, setPreviewParticipants] = useState<Participant[]>(
+    [],
+  );
+  const [previewAiParticipants, setPreviewAiParticipants] = useState<
+    AiParticipant[]
+  >([]);
 
   const { on, joinRoom, sendMessage, triggerAI, startTyping, stopTyping } =
     useSocket(SERVER_URL);
@@ -80,7 +88,13 @@ function App() {
       joinRoom(username, "default");
       setIsAuthLoading(true);
     }
-  }, [connectionStatus.connected, hasSavedUsername, isJoined, joinRoom, username]);
+  }, [
+    connectionStatus.connected,
+    hasSavedUsername,
+    isJoined,
+    joinRoom,
+    username,
+  ]);
 
   useEffect(() => {
     if (isJoined) {
@@ -98,12 +112,10 @@ function App() {
     localStorage.setItem("ai-chat-theme", theme);
   }, [theme]);
 
-
   // Debug connection status changes
   useEffect(() => {
     console.log("🔌 Connection status changed:", connectionStatus);
   }, [connectionStatus]);
-
 
   // Load messages from localStorage on component mount
   useEffect(() => {
@@ -130,11 +142,11 @@ function App() {
       try {
         // Limit to the most recent messages so storage usage stays predictable
         const limitedMessages = messagesToSave.slice(
-          -LOCAL_STORAGE_MESSAGES_LIMIT
+          -LOCAL_STORAGE_MESSAGES_LIMIT,
         );
         localStorage.setItem(
           "ai-chat-messages",
-          JSON.stringify(limitedMessages)
+          JSON.stringify(limitedMessages),
         );
       } catch (error) {
         console.warn("Failed to save messages to localStorage:", error);
@@ -145,7 +157,9 @@ function App() {
       saveMessagesToStorage(messages);
     }
   }, [messages, isJoined]);
-  const [roomInfo, setRoomInfo] = useState<RoomInfo>({ topic: "General discussion" });
+  const [roomInfo, setRoomInfo] = useState<RoomInfo>({
+    topic: "General discussion",
+  });
   const [aiStatus, setAiStatus] = useState<AIStatus>({ status: "active" });
   const [error, setError] = useState<string | null>(null);
   const [participants, setParticipants] = useState<Participant[]>([]);
@@ -156,7 +170,9 @@ function App() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const usernameRef = useRef("");
-  const toastTimeouts = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+  const toastTimeouts = useRef<Map<string, ReturnType<typeof setTimeout>>>(
+    new Map(),
+  );
   const isJoinedRef = useRef(false);
   const previewMessagesRef = useRef<Message[]>([]);
   const previewParticipantsRef = useRef<Participant[]>([]);
@@ -166,10 +182,13 @@ function App() {
     usernameRef.current = username || "";
   }, [username]);
 
-  useEffect(() => () => {
-    toastTimeouts.current.forEach((timeoutId) => clearTimeout(timeoutId));
-    toastTimeouts.current.clear();
-  }, []);
+  useEffect(
+    () => () => {
+      toastTimeouts.current.forEach((timeoutId) => clearTimeout(timeoutId));
+      toastTimeouts.current.clear();
+    },
+    [],
+  );
   useEffect(() => {
     isJoinedRef.current = isJoined;
   }, [isJoined]);
@@ -214,7 +233,11 @@ function App() {
     });
 
     on("recent-messages", (payload: unknown = {}) => {
-      const typedPayload = payload as { messages?: Message[]; participants?: Participant[]; aiParticipants?: AiParticipant[] };
+      const typedPayload = payload as {
+        messages?: Message[];
+        participants?: Participant[];
+        aiParticipants?: AiParticipant[];
+      };
       const incomingMessages = Array.isArray(typedPayload.messages)
         ? typedPayload.messages
         : [];
@@ -236,7 +259,11 @@ function App() {
     });
 
     on("preview-message", (payload: unknown = {}) => {
-      const typedPayload = payload as { message?: Message; participants?: Participant[]; aiParticipants?: AiParticipant[] };
+      const typedPayload = payload as {
+        message?: Message;
+        participants?: Participant[];
+        aiParticipants?: AiParticipant[];
+      };
       const message = typedPayload.message;
       if (!message) return;
 
@@ -257,27 +284,35 @@ function App() {
 
       if (!isJoinedRef.current) {
         setMessages((prev) =>
-          [...prev, message].slice(-LOCAL_STORAGE_MESSAGES_LIMIT)
+          [...prev, message].slice(-LOCAL_STORAGE_MESSAGES_LIMIT),
         );
       }
     });
 
     // Room events
     on("room-joined", (data: unknown) => {
-      const typedData = data as RoomInfo & { participants?: Participant[]; aiParticipants?: AiParticipant[] };
+      const typedData = data as RoomInfo & {
+        participants?: Participant[];
+        aiParticipants?: AiParticipant[];
+      };
       setIsJoined(true);
       setRoomInfo(typedData);
       setParticipants(typedData.participants || []);
-      setAiParticipants(typedData.aiParticipants || previewAiParticipantsRef.current || []);
+      setAiParticipants(
+        typedData.aiParticipants || previewAiParticipantsRef.current || [],
+      );
       setError(null);
       setIsAuthLoading(false);
       setHasSavedUsername(true);
       setMessages(() =>
         previewMessagesRef.current.length > 0
           ? [...previewMessagesRef.current]
-          : []
+          : [],
       );
-      if ((typedData.participants || []).length === 0 && previewParticipantsRef.current.length > 0) {
+      if (
+        (typedData.participants || []).length === 0 &&
+        previewParticipantsRef.current.length > 0
+      ) {
         setParticipants(previewParticipantsRef.current);
       }
       console.log("Joined room:", data);
@@ -292,7 +327,9 @@ function App() {
       const typedData = data as { username: string };
       showToast(`${typedData.username} left the chat`, "warning");
       setTypingUsers((prev) =>
-        prev.filter((user) => user.normalized !== typedData.username?.toLowerCase())
+        prev.filter(
+          (user) => user.normalized !== typedData.username?.toLowerCase(),
+        ),
       );
     });
 
@@ -346,7 +383,11 @@ function App() {
 
     // Room info events
     on("room-info", (data: unknown) => {
-      const typedData = data as { room: RoomInfo; participants?: Participant[]; aiParticipants?: AiParticipant[] };
+      const typedData = data as {
+        room: RoomInfo;
+        participants?: Participant[];
+        aiParticipants?: AiParticipant[];
+      };
       setRoomInfo(typedData.room);
       setParticipants(typedData.participants || []);
       if (Array.isArray(typedData.aiParticipants)) {
@@ -356,7 +397,11 @@ function App() {
 
     // Typing events
     on("user-typing-start", (data: unknown) => {
-      const typedData = data as { username?: string; name?: string; displayName?: string };
+      const typedData = data as {
+        username?: string;
+        name?: string;
+        displayName?: string;
+      };
       console.log("👤 User started typing:", data);
       setTypingUsers((prev) => {
         const name = typedData?.username || typedData?.name;
@@ -383,7 +428,7 @@ function App() {
 
         if (isLocal) {
           return prev.map((user) =>
-            user.normalized === normalized ? { ...user, isLocal: true } : user
+            user.normalized === normalized ? { ...user, isLocal: true } : user,
           );
         }
 
@@ -398,20 +443,25 @@ function App() {
       if (!name) return;
       const normalized = name.toLowerCase();
       const isLocal =
-        usernameRef.current &&
-        normalized === usernameRef.current.toLowerCase();
+        usernameRef.current && normalized === usernameRef.current.toLowerCase();
 
       setTypingUsers((prev) =>
         prev
           .filter((user) => user.normalized !== normalized)
-          .filter((user) =>
-            isLocal ? user.normalized !== normalized : true
-          )
+          .filter((user) => (isLocal ? user.normalized !== normalized : true)),
       );
     });
 
     on("ai-generating-start", (data: unknown) => {
-      const typedData = data as { aiId?: string; providerKey?: string; modelKey?: string; alias?: string; displayName?: string; aiName?: string; emoji?: string };
+      const typedData = data as {
+        aiId?: string;
+        providerKey?: string;
+        modelKey?: string;
+        alias?: string;
+        displayName?: string;
+        aiName?: string;
+        emoji?: string;
+      };
       console.log("🤖 AI started generating:", data);
       setTypingAIs((prev) => {
         const id =
@@ -419,14 +469,15 @@ function App() {
           (typedData?.providerKey && typedData?.modelKey
             ? `${typedData.providerKey}_${typedData.modelKey}`
             : undefined);
-        const alias = typedData?.alias || typedData?.displayName || typedData?.aiName;
+        const alias =
+          typedData?.alias || typedData?.displayName || typedData?.aiName;
         const displayName = typedData?.displayName || alias || id || "AI";
         const normalized = normalizeAlias(alias || displayName || id);
 
         const exists = prev.some(
           (ai) =>
             (id && ai.id === id) ||
-            (normalized && ai.normalizedAlias === normalized)
+            (normalized && ai.normalizedAlias === normalized),
         );
         if (exists) {
           return prev;
@@ -448,7 +499,14 @@ function App() {
     });
 
     on("ai-generating-stop", (data: unknown) => {
-      const typedData = data as { aiId?: string; providerKey?: string; modelKey?: string; alias?: string; displayName?: string; aiName?: string };
+      const typedData = data as {
+        aiId?: string;
+        providerKey?: string;
+        modelKey?: string;
+        alias?: string;
+        displayName?: string;
+        aiName?: string;
+      };
       console.log("🤖 AI stopped generating:", data);
       const id =
         typedData?.aiId ||
@@ -456,7 +514,7 @@ function App() {
           ? `${typedData.providerKey}_${typedData.modelKey}`
           : undefined);
       const normalized = normalizeAlias(
-        typedData?.alias || typedData?.displayName || typedData?.aiName
+        typedData?.alias || typedData?.displayName || typedData?.aiName,
       );
       setTypingAIs((prev) =>
         prev.filter((ai) => {
@@ -467,7 +525,7 @@ function App() {
             return false;
           }
           return true;
-        })
+        }),
       );
     });
   }, [on, showToast]);
@@ -527,7 +585,7 @@ function App() {
     setMessages(
       previewMessagesRef.current.length > 0
         ? [...previewMessagesRef.current]
-        : []
+        : [],
     );
     setTypingUsers([]);
     setTypingAIs([]);
@@ -538,7 +596,6 @@ function App() {
   const toggleTheme = () => {
     setTheme((prev) => (prev === "dark" ? "light" : "dark"));
   };
-
 
   const handleClearCommand = useCallback(() => {
     setMessages([]);
@@ -623,7 +680,6 @@ function App() {
       <ToastContainer toasts={toasts} />
     </ThemeContext.Provider>
   );
-
 }
 
 export default App;

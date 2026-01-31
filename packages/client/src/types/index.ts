@@ -2,13 +2,16 @@
  * Shared TypeScript type definitions for the client application
  */
 
-import type { RefObject, ReactNode, FormEvent } from 'react';
+import type { RefObject, ReactNode, FormEvent } from "react";
 
 // Re-export AI participant types from config
-export type { AiParticipant, AiParticipantStatus } from '@/config/aiParticipants';
+export type {
+  AiParticipant,
+  AiParticipantStatus,
+} from "@/config/aiParticipants";
 
 // Message types
-export type SenderType = 'user' | 'ai' | 'system';
+export type SenderType = "user" | "ai" | "system";
 
 export interface Message {
   id: string;
@@ -40,7 +43,7 @@ export interface TypingUser {
   name: string;
   displayName: string;
   normalized: string;
-  type: 'user';
+  type: "user";
   isLocal: boolean;
 }
 
@@ -50,7 +53,7 @@ export interface TypingAI {
   displayName: string;
   alias: string;
   normalizedAlias: string;
-  type: 'ai';
+  type: "ai";
   emoji?: string;
 }
 
@@ -72,12 +75,12 @@ export interface RoomInfo {
 
 // AI status types
 export interface AIStatus {
-  status: 'active' | 'sleeping';
+  status: "active" | "sleeping";
   reason?: string;
 }
 
 // Toast types
-export type ToastType = 'success' | 'info' | 'warning';
+export type ToastType = "success" | "info" | "warning";
 
 export interface Toast {
   id: string;
@@ -86,7 +89,7 @@ export interface Toast {
 }
 
 // Theme types
-export type Theme = 'light' | 'dark';
+export type Theme = "light" | "dark";
 
 export interface ThemeContextValue {
   theme: Theme;
@@ -130,7 +133,7 @@ export interface DashboardMetrics {
 }
 
 // Import for AiParticipant type
-import type { AiParticipant } from '@/config/aiParticipants';
+import type { AiParticipant } from "@/config/aiParticipants";
 
 // Component prop types - ChatView
 export interface ChatViewProps {
@@ -260,7 +263,7 @@ export interface CircuitIconProps {
 }
 
 // Icon types
-export type IconStyleVariant = 'classic' | 'modern';
+export type IconStyleVariant = "classic" | "modern";
 
 export interface IconVariantConfig {
   strokeWidth: number;
@@ -273,21 +276,21 @@ export interface IconDefinition {
 }
 
 export type IconName =
-  | 'chat'
-  | 'topic'
-  | 'arrow-down'
-  | 'participants'
-  | 'users'
-  | 'monitor'
-  | 'info'
-  | 'chevron-right'
-  | 'x-mark'
-  | 'send'
-  | 'sparkle'
-  | 'moon'
-  | 'sun'
-  | 'alert'
-  | 'tag';
+  | "chat"
+  | "topic"
+  | "arrow-down"
+  | "participants"
+  | "users"
+  | "monitor"
+  | "info"
+  | "chevron-right"
+  | "x-mark"
+  | "send"
+  | "sparkle"
+  | "moon"
+  | "sun"
+  | "alert"
+  | "tag";
 
 export interface IconProps {
   name?: IconName;

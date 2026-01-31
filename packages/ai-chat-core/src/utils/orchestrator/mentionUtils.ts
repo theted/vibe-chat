@@ -1,9 +1,6 @@
 import { MENTION_FORMATS } from "@/orchestrator/constants.js";
 import { normalizeAlias, toMentionAlias } from "@/utils/stringUtils.js";
-import {
-  findAIByNormalizedAlias,
-  getMentionTokenForAI,
-} from "./aiLookup.js";
+import { findAIByNormalizedAlias, getMentionTokenForAI } from "./aiLookup.js";
 
 export const addMentionToResponse = (aiServices, response, targetAI) => {
   if (!targetAI) {

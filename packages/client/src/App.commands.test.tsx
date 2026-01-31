@@ -1,21 +1,9 @@
-import {
-  describe,
-  it,
-  expect,
-  vi,
-  beforeAll,
-  beforeEach,
-} from "vitest";
-import {
-  render,
-  screen,
-  waitFor,
-  fireEvent,
-} from "@testing-library/react";
+import { describe, it, expect, vi, beforeAll, beforeEach } from "vitest";
+import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import { act } from "react-dom/test-utils";
-import type { ReactNode } from 'react';
-import type { AiParticipant } from './config/aiParticipants';
-import type { Message } from './types';
+import type { ReactNode } from "react";
+import type { AiParticipant } from "./config/aiParticipants";
+import type { Message } from "./types";
 
 const listeners: Record<string, (data: unknown) => void> = {};
 const sendMessageMock = vi.fn();
@@ -47,10 +35,14 @@ vi.mock("./components/LoadingOverlay", () => ({
 }));
 
 vi.mock("./components/ChatView", () => ({
-  default: ({ messages, onSendMessage, aiParticipants }: {
+  default: ({
+    messages,
+    onSendMessage,
+    aiParticipants,
+  }: {
     messages: Message[];
     onSendMessage: (msg: string) => void;
-    aiParticipants: AiParticipant[]
+    aiParticipants: AiParticipant[];
   }) => (
     <div data-testid="chat-view">
       <span data-testid="message-count">{messages.length}</span>
@@ -111,7 +103,10 @@ describe("App command handling", () => {
     });
   };
 
-  const joinRoomWithMessages = async (messages: Message[] = [], aiParticipants: AiParticipant[] = []) => {
+  const joinRoomWithMessages = async (
+    messages: Message[] = [],
+    aiParticipants: AiParticipant[] = [],
+  ) => {
     await triggerEvent("recent-messages", { messages, participants: [] });
     await triggerEvent("room-joined", {
       participants: [],
@@ -125,7 +120,13 @@ describe("App command handling", () => {
 
   it("handles the /clear command locally", async () => {
     const storedMessages: Message[] = [
-      { id: "1", content: "Stored message", sender: "test", senderType: "user", timestamp: Date.now() },
+      {
+        id: "1",
+        content: "Stored message",
+        sender: "test",
+        senderType: "user",
+        timestamp: Date.now(),
+      },
     ];
     localStorage.setItem("ai-chat-messages", JSON.stringify(storedMessages));
 
@@ -161,7 +162,19 @@ describe("App command handling", () => {
   it("uses server AI participants for chat view", async () => {
     render(<App />);
 
-    await joinRoomWithMessages([], [{ id: "OPENAI_GPT5", name: "GPT-5", alias: "gpt-5", provider: "OpenAI", status: "active", emoji: "🧠" }]);
+    await joinRoomWithMessages(
+      [],
+      [
+        {
+          id: "OPENAI_GPT5",
+          name: "GPT-5",
+          alias: "gpt-5",
+          provider: "OpenAI",
+          status: "active",
+          emoji: "🧠",
+        },
+      ],
+    );
 
     await waitFor(() => {
       expect(screen.getByTestId("ai-count")).toHaveTextContent("1");

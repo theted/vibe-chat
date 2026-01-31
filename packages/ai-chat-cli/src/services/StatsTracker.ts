@@ -95,14 +95,20 @@ export class StatsTracker {
       console.log("Redis stats tracker connected");
       return client as RedisClientType;
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
       console.warn(`Redis stats tracker disabled: ${errorMessage}`);
       this.enabled = false;
       return null;
     }
   }
 
-  async recordMessage({ role, content, provider, model }: MessageStats): Promise<void> {
+  async recordMessage({
+    role,
+    content,
+    provider,
+    model,
+  }: MessageStats): Promise<void> {
     try {
       const client = await this.getClient();
       if (!client) return;
@@ -135,13 +141,14 @@ export class StatsTracker {
       pipeline.lTrim(
         STATS_LATEST_MESSAGES_KEY,
         0,
-        STATS_MAX_LATEST_MESSAGES - 1
+        STATS_MAX_LATEST_MESSAGES - 1,
       );
 
       await pipeline.exec();
     } catch (error) {
       // Swallow errors to avoid affecting the main app flow.
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       console.warn(`Failed to record stats: ${errorMessage}`);
     }
   }
@@ -152,7 +159,7 @@ export class StatsTracker {
   getStatus(): { enabled: boolean; initialized: boolean } {
     return {
       enabled: this.enabled,
-      initialized: this.initialized
+      initialized: this.initialized,
     };
   }
 

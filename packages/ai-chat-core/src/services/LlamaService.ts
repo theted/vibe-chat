@@ -17,7 +17,10 @@ export class LlamaService extends OpenAICompatibleService {
     super(config, "Llama");
   }
 
-  protected createClient(apiKey: string, options?: ServiceInitOptions): OpenAIClient {
+  protected createClient(
+    apiKey: string,
+    options?: ServiceInitOptions,
+  ): OpenAIClient {
     return new OpenAI({
       apiKey,
       baseURL: options?.baseURL || LLAMA_BASE_URL,

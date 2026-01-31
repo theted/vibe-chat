@@ -92,7 +92,7 @@ export class MetricsService extends EventEmitter {
     this.persistenceThrottleMs = 1000;
     this.lastPersist = 0;
     this.pendingPersistTimeout = null;
-    
+
     this.startMetricsBroadcast();
   }
 
@@ -105,18 +105,19 @@ export class MetricsService extends EventEmitter {
     }
 
     try {
-      const [metricsJson, historyJson, providerStatsJson, errorLogsJson] = await Promise.all([
-        this.redis.get(this.redisKeys.metrics),
-        this.redis.get(this.redisKeys.history),
-        this.redis.get(this.redisKeys.providerStats),
-        this.redis.get(this.redisKeys.errorLogs),
-      ]);
+      const [metricsJson, historyJson, providerStatsJson, errorLogsJson] =
+        await Promise.all([
+          this.redis.get(this.redisKeys.metrics),
+          this.redis.get(this.redisKeys.history),
+          this.redis.get(this.redisKeys.providerStats),
+          this.redis.get(this.redisKeys.errorLogs),
+        ]);
 
       if (metricsJson) {
         const parsedMetrics = JSON.parse(metricsJson);
         this.metrics = {
           ...this.metrics,
-          ...parsedMetrics
+          ...parsedMetrics,
         };
         this.metrics.activeUsers = 0;
         this.metrics.activeRooms = 0;
@@ -129,7 +130,7 @@ export class MetricsService extends EventEmitter {
             (entry) =>
               entry &&
               typeof entry.timestamp === "number" &&
-              typeof entry.type === "string"
+              typeof entry.type === "string",
           );
           this.pruneMessageHistory();
         }
@@ -144,13 +145,16 @@ export class MetricsService extends EventEmitter {
               typeof entry.provider === "string" &&
               typeof entry.model === "string"
             ) {
-              this.providerStats.set(this.buildProviderKey(entry.provider, entry.model), {
-                provider: entry.provider,
-                model: entry.model,
-                requests: Number(entry.requests) || 0,
-                errors: Number(entry.errors) || 0,
-                totalResponseTimeMs: Number(entry.totalResponseTimeMs) || 0,
-              });
+              this.providerStats.set(
+                this.buildProviderKey(entry.provider, entry.model),
+                {
+                  provider: entry.provider,
+                  model: entry.model,
+                  requests: Number(entry.requests) || 0,
+                  errors: Number(entry.errors) || 0,
+                  totalResponseTimeMs: Number(entry.totalResponseTimeMs) || 0,
+                },
+              );
             }
           });
         }
@@ -165,7 +169,7 @@ export class MetricsService extends EventEmitter {
               typeof entry.provider === "string" &&
               typeof entry.model === "string" &&
               typeof entry.message === "string" &&
-              typeof entry.timestamp === "number"
+              typeof entry.timestamp === "number",
           );
           if (this.errorLogs.length > this.maxErrorLogs) {
             this.errorLogs = this.errorLogs.slice(0, this.maxErrorLogs);
@@ -227,16 +231,13 @@ export class MetricsService extends EventEmitter {
       this.redis.set(this.redisKeys.metrics, JSON.stringify(this.metrics)),
       this.redis.set(
         this.redisKeys.history,
-        JSON.stringify(this.messageHistory)
+        JSON.stringify(this.messageHistory),
       ),
       this.redis.set(
         this.redisKeys.providerStats,
-        JSON.stringify(this.getProviderStatsSnapshot(true))
+        JSON.stringify(this.getProviderStatsSnapshot(true)),
       ),
-      this.redis.set(
-        this.redisKeys.errorLogs,
-        JSON.stringify(this.errorLogs)
-      ),
+      this.redis.set(this.redisKeys.errorLogs, JSON.stringify(this.errorLogs)),
     ])
       .then(() => undefined)
       .catch((error) => {
@@ -344,7 +345,10 @@ export class MetricsService extends EventEmitter {
    * @param {string} type - Message type ('user' or 'ai')
    * @param {number} timestamp - Message timestamp
    */
-  addMessageToHistory(type: MessageHistoryEntry["type"], timestamp: number): void {
+  addMessageToHistory(
+    type: MessageHistoryEntry["type"],
+    timestamp: number,
+  ): void {
     this.messageHistory.push({ type, timestamp });
     this.pruneMessageHistory(60 * 60 * 1000, timestamp);
   }
@@ -356,11 +360,11 @@ export class MetricsService extends EventEmitter {
    */
   pruneMessageHistory(
     windowMs = 60 * 60 * 1000,
-    referenceTimestamp = Date.now()
+    referenceTimestamp = Date.now(),
   ): void {
     const cutoff = referenceTimestamp - windowMs;
     this.messageHistory = this.messageHistory.filter(
-      (msg) => msg.timestamp > cutoff
+      (msg) => msg.timestamp > cutoff,
     );
   }
 
@@ -368,9 +372,9 @@ export class MetricsService extends EventEmitter {
    * Update messages per minute calculation
    */
   updateMessagesPerMinute(): void {
-    const oneMinuteAgo = Date.now() - (60 * 1000);
+    const oneMinuteAgo = Date.now() - 60 * 1000;
     const recentMessages = this.messageHistory.filter(
-      (msg) => msg.timestamp > oneMinuteAgo
+      (msg) => msg.timestamp > oneMinuteAgo,
     );
     this.metrics.messagesPerMinute = recentMessages.length;
   }
@@ -421,28 +425,28 @@ export class MetricsService extends EventEmitter {
     daily: MetricsBucket;
   } {
     const now = Date.now();
-    const oneHourAgo = now - (60 * 60 * 1000);
-    const oneDayAgo = now - (24 * 60 * 60 * 1000);
-    
+    const oneHourAgo = now - 60 * 60 * 1000;
+    const oneDayAgo = now - 24 * 60 * 60 * 1000;
+
     const recentMessages = this.messageHistory.filter(
-      (msg) => msg.timestamp > oneHourAgo
+      (msg) => msg.timestamp > oneHourAgo,
     );
     const dailyMessages = this.messageHistory.filter(
-      (msg) => msg.timestamp > oneDayAgo
+      (msg) => msg.timestamp > oneDayAgo,
     );
-    
+
     const hourlyAIMessages = recentMessages.filter(
-      (msg) => msg.type === "ai"
+      (msg) => msg.type === "ai",
     ).length;
     const hourlyUserMessages = recentMessages.filter(
-      (msg) => msg.type === "user"
+      (msg) => msg.type === "user",
     ).length;
-    
+
     const dailyAIMessages = dailyMessages.filter(
-      (msg) => msg.type === "ai"
+      (msg) => msg.type === "ai",
     ).length;
     const dailyUserMessages = dailyMessages.filter(
-      (msg) => msg.type === "user"
+      (msg) => msg.type === "user",
     ).length;
 
     return {
@@ -489,13 +493,13 @@ export class MetricsService extends EventEmitter {
     if (now - this.lastBroadcast < this.broadcastInterval) {
       return; // Rate limit broadcasts
     }
-    
+
     this.lastBroadcast = now;
     const metrics = this.getMetrics();
-    
+
     // Emit to dashboard route specifically
     this.io.emit("metrics-update", metrics);
-    
+
     // Also emit to any room that wants metrics
     this.io.to("dashboard").emit("metrics-update", metrics);
   }
@@ -514,15 +518,20 @@ export class MetricsService extends EventEmitter {
   }
 
   private getProviderStatsSnapshot(): ProviderModelStats[];
-  private getProviderStatsSnapshot(includeTotals: true): ProviderModelStatsInternal[];
   private getProviderStatsSnapshot(
-    includeTotals = false
+    includeTotals: true,
+  ): ProviderModelStatsInternal[];
+  private getProviderStatsSnapshot(
+    includeTotals = false,
   ): ProviderModelStats[] | ProviderModelStatsInternal[] {
     if (includeTotals) {
-      const stats = Array.from(this.providerStats.values()).map((entry) => ({ ...entry }));
+      const stats = Array.from(this.providerStats.values()).map((entry) => ({
+        ...entry,
+      }));
       return stats.sort(
         (a, b) =>
-          a.provider.localeCompare(b.provider) || a.model.localeCompare(b.model)
+          a.provider.localeCompare(b.provider) ||
+          a.model.localeCompare(b.model),
       );
     }
 
@@ -542,7 +551,7 @@ export class MetricsService extends EventEmitter {
 
     return stats.sort(
       (a, b) =>
-        a.provider.localeCompare(b.provider) || a.model.localeCompare(b.model)
+        a.provider.localeCompare(b.provider) || a.model.localeCompare(b.model),
     );
   }
 
@@ -554,26 +563,27 @@ export class MetricsService extends EventEmitter {
   getMetricsHistory(duration = 60 * 60 * 1000): MetricsHistoryEntry[] {
     const now = Date.now();
     const startTime = now - duration;
-    
+
     // Group messages by 5-minute intervals
     const intervalMs = 5 * 60 * 1000; // 5 minutes
     const intervals = Math.ceil(duration / intervalMs);
     const history: MetricsHistoryEntry[] = [];
-    
+
     for (let i = 0; i < intervals; i++) {
-      const intervalStart = startTime + (i * intervalMs);
+      const intervalStart = startTime + i * intervalMs;
       const intervalEnd = intervalStart + intervalMs;
-      
+
       const intervalMessages = this.messageHistory.filter(
-        (msg) => msg.timestamp >= intervalStart && msg.timestamp < intervalEnd
+        (msg) => msg.timestamp >= intervalStart && msg.timestamp < intervalEnd,
       );
-      
-      const aiMessages = intervalMessages.filter((msg) => msg.type === "ai")
-        .length;
-      const userMessages = intervalMessages.filter(
-        (msg) => msg.type === "user"
+
+      const aiMessages = intervalMessages.filter(
+        (msg) => msg.type === "ai",
       ).length;
-      
+      const userMessages = intervalMessages.filter(
+        (msg) => msg.type === "user",
+      ).length;
+
       history.push({
         timestamp: intervalStart,
         aiMessages,
@@ -581,7 +591,7 @@ export class MetricsService extends EventEmitter {
         totalMessages: aiMessages + userMessages,
       });
     }
-    
+
     return history;
   }
 }

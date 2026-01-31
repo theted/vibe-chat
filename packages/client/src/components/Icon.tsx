@@ -3,12 +3,12 @@
  * Renders SVG icons using the modern design system.
  */
 
-import type { IconProps, IconName, IconStyleVariant } from '@/types';
-import { ICON_PATHS, DEFAULT_ICON_VARIANT } from '@/config/iconPaths';
+import type { IconProps, IconName, IconStyleVariant } from "@/types";
+import { ICON_PATHS, DEFAULT_ICON_VARIANT } from "@/config/iconPaths";
 
 const Icon = ({
-  name = 'sparkle',
-  className = '',
+  name = "sparkle",
+  className = "",
   strokeWidth,
   styleVariant,
   paths,

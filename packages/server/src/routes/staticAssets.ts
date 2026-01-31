@@ -7,7 +7,7 @@ import { clientBuildDir } from "@/config/serverConfig.js";
 export const registerStaticAssets = (app: Express): void => {
   if (!fs.existsSync(clientBuildDir)) {
     console.warn(
-      "⚠️  CLIENT_BUILD_DIR not found. Static assets will not be served by the API server."
+      "⚠️  CLIENT_BUILD_DIR not found. Static assets will not be served by the API server.",
     );
     return;
   }

@@ -18,7 +18,10 @@ import { LlamaService } from "./LlamaService.js";
 import { PerplexityService } from "./PerplexityService.js";
 import { AI_PROVIDERS } from "@/config/aiProviders/index.js";
 import type { AIServiceConfig, IAIService } from "@/types/index.js";
-import type { ServiceConstructor, ServiceConfigurationError } from "@/types/services.js";
+import type {
+  ServiceConstructor,
+  ServiceConfigurationError,
+} from "@/types/services.js";
 import { BaseAIService } from "./base/BaseAIService.js";
 
 export class AIServiceFactory {
@@ -50,7 +53,7 @@ export class AIServiceFactory {
     if (!ServiceClass) {
       const supportedProviders = this.getAvailableProviders();
       throw new Error(
-        `Unsupported AI provider: ${providerName}. Supported providers: ${supportedProviders.join(', ')}`
+        `Unsupported AI provider: ${providerName}. Supported providers: ${supportedProviders.join(", ")}`,
       );
     }
 
@@ -64,7 +67,10 @@ export class AIServiceFactory {
    * @returns An instance of the appropriate AI service
    * @throws Error if the provider or model is not found
    */
-  static createServiceByName(providerKey: string, modelKey: string): IAIService {
+  static createServiceByName(
+    providerKey: string,
+    modelKey: string,
+  ): IAIService {
     const provider = AI_PROVIDERS[providerKey as keyof typeof AI_PROVIDERS];
     if (!provider) {
       throw new Error(`Provider not found: ${providerKey}`);
@@ -73,7 +79,7 @@ export class AIServiceFactory {
     const model = provider.models[modelKey];
     if (!model) {
       throw new Error(
-        `Model not found: ${modelKey} for provider ${providerKey}`
+        `Model not found: ${modelKey} for provider ${providerKey}`,
       );
     }
 
@@ -103,7 +109,7 @@ export class AIServiceFactory {
    * @returns The previous registry for restoration.
    */
   static __setServiceRegistryForTesting(
-    registry: Record<string, ServiceConstructor>
+    registry: Record<string, ServiceConstructor>,
   ): Record<string, ServiceConstructor> {
     const previous = this.serviceRegistry;
     this.serviceRegistry = registry;

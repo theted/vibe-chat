@@ -18,7 +18,8 @@ const envKey = "KIMI_API_KEY";
 const envState = new Map<string, string | undefined>();
 
 const getClientBaseUrl = (service: KimiService): string | undefined => {
-  const client = (service as unknown as { client?: { baseURL?: string } }).client;
+  const client = (service as unknown as { client?: { baseURL?: string } })
+    .client;
   return client?.baseURL;
 };
 
@@ -58,7 +59,10 @@ describe("KimiService", () => {
     const overrideBaseUrl = "https://override.moonshot.example/v1";
 
     const service = new KimiService(config);
-    await service.initialize({ validateOnInit: false, baseURL: overrideBaseUrl });
+    await service.initialize({
+      validateOnInit: false,
+      baseURL: overrideBaseUrl,
+    });
 
     assert.equal(getClientBaseUrl(service), overrideBaseUrl);
   });

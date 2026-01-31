@@ -6,7 +6,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { DEFAULT_AI_PARTICIPANTS } from "@/config/aiParticipants";
 import Icon from "./Icon";
-import type { AISelectionDialogProps, DialogPosition } from '@/types';
+import type { AISelectionDialogProps, DialogPosition } from "@/types";
 
 interface MentionOption {
   id: string;
@@ -107,7 +107,7 @@ const AISelectionDialog = ({
             normalizedName,
             normalizedProvider,
             ...keywords,
-          ])
+          ]),
         ).filter(Boolean),
       };
     });
@@ -122,7 +122,7 @@ const AISelectionDialog = ({
         score: computeScore(normalizedTerm, option),
       }))
       .filter((option) =>
-        normalizedTerm ? option.score < Number.POSITIVE_INFINITY : true
+        normalizedTerm ? option.score < Number.POSITIVE_INFINITY : true,
       )
       .sort((a, b) => {
         if (a.score !== b.score) return a.score - b.score;
@@ -150,7 +150,7 @@ const AISelectionDialog = ({
       } else if (e.key === "ArrowUp" && filteredAIs.length > 0) {
         e.preventDefault();
         setActiveIndex(
-          (prev) => (prev - 1 + filteredAIs.length) % filteredAIs.length
+          (prev) => (prev - 1 + filteredAIs.length) % filteredAIs.length,
         );
       } else if (e.key === "Enter" && filteredAIs.length > 0) {
         e.preventDefault();

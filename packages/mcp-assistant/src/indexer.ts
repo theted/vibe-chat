@@ -72,15 +72,12 @@ export type WorkspaceIndexerOptions = {
 // Sanitize text to ensure valid JSON serialization
 // Uses toWellFormed() if available (Node 20+), otherwise manual fix
 function sanitizeText(text: string): string;
-function sanitizeText(
-  text?: string | null
-): string | null | undefined {
+function sanitizeText(text?: string | null): string | null | undefined {
   if (!text) return text;
 
   // Node 20+ has String.prototype.toWellFormed()
-  const maybeWellFormed = (
-    text as string & { toWellFormed?: () => string }
-  ).toWellFormed;
+  const maybeWellFormed = (text as string & { toWellFormed?: () => string })
+    .toWellFormed;
   if (typeof maybeWellFormed === "function") {
     return maybeWellFormed.call(text);
   }
@@ -91,20 +88,20 @@ function sanitizeText(
   for (let i = 0; i < text.length; i += 1) {
     const code = text.charCodeAt(i);
 
-    if (code >= 0xD800 && code <= 0xDBFF) {
+    if (code >= 0xd800 && code <= 0xdbff) {
       // High surrogate
       const nextCode = text.charCodeAt(i + 1);
-      if (nextCode >= 0xDC00 && nextCode <= 0xDFFF) {
+      if (nextCode >= 0xdc00 && nextCode <= 0xdfff) {
         // Valid pair
-        codePoints.push(text.codePointAt(i) ?? 0xFFFD);
+        codePoints.push(text.codePointAt(i) ?? 0xfffd);
         i += 1;
       } else {
         // Lone high surrogate
-        codePoints.push(0xFFFD);
+        codePoints.push(0xfffd);
       }
-    } else if (code >= 0xDC00 && code <= 0xDFFF) {
+    } else if (code >= 0xdc00 && code <= 0xdfff) {
       // Lone low surrogate
-      codePoints.push(0xFFFD);
+      codePoints.push(0xfffd);
     } else {
       codePoints.push(code);
     }
@@ -142,7 +139,7 @@ const lineNumberAt = (indices: number[], position: number): number => {
 
 const chunkContent = (
   content: string,
-  options: ChunkOptions = {}
+  options: ChunkOptions = {},
 ): ContentChunk[] => {
   const {
     chunkSize = DEFAULT_CHUNK_SIZE,
@@ -187,13 +184,13 @@ const chunkContent = (
 
 const extractComponentInfo = (
   content: string,
-  relativePath: string
+  relativePath: string,
 ): FileInfo => {
   const info: FileInfo = {};
 
   // Extract component/function names from file
   const componentMatch = content.match(
-    /(?:export\s+(?:default\s+)?(?:function|const)\s+(\w+)|const\s+(\w+)\s*=.*?(?:React\.)?(?:memo|forwardRef))/
+    /(?:export\s+(?:default\s+)?(?:function|const)\s+(\w+)|const\s+(\w+)\s*=.*?(?:React\.)?(?:memo|forwardRef))/,
   );
   if (componentMatch) {
     const name = componentMatch[1] || componentMatch[2];
@@ -208,7 +205,7 @@ const extractComponentInfo = (
   if (
     content.includes("import React") ||
     content.includes("from 'react'") ||
-    content.includes("from \"react\"")
+    content.includes('from "react"')
   ) {
     info.isReactComponent = true;
   }
@@ -218,7 +215,7 @@ const extractComponentInfo = (
 
 const buildDocuments = async (
   rootDir: string,
-  options: WorkspaceIndexerOptions = {}
+  options: WorkspaceIndexerOptions = {},
 ): Promise<WorkspaceDocument[]> => {
   const { allowedExtensions = DEFAULT_ALLOWED_EXTENSIONS } = options;
 
@@ -251,7 +248,7 @@ const buildDocuments = async (
           JSON.stringify(sanitizedContent);
         } catch (err) {
           console.warn(
-            `[MCP] Skipping chunk from ${relativePath} - invalid Unicode after sanitization`
+            `[MCP] Skipping chunk from ${relativePath} - invalid Unicode after sanitization`,
           );
           return;
         }
@@ -294,8 +291,8 @@ export class WorkspaceIndexer {
     const {
       rootDir = process.cwd(),
       chromaUrl = process.env.CHROMA_URL || DEFAULT_CHROMA_URL,
-      collectionName =
-        process.env.CHAT_ASSISTANT_COLLECTION || DEFAULT_COLLECTION_NAME,
+      collectionName = process.env.CHAT_ASSISTANT_COLLECTION ||
+        DEFAULT_COLLECTION_NAME,
       embeddingModel = DEFAULT_EMBEDDING_MODEL,
       allowedExtensions = DEFAULT_ALLOWED_EXTENSIONS,
       chunkSize = DEFAULT_CHUNK_SIZE,
@@ -307,7 +304,7 @@ export class WorkspaceIndexer {
 
     if (!openAiApiKey) {
       throw new Error(
-        "OPENAI_API_KEY is required to build the MCP embedding index."
+        "OPENAI_API_KEY is required to build the MCP embedding index.",
       );
     }
 
@@ -356,7 +353,7 @@ export class WorkspaceIndexer {
 
   static #unavailableError(chromaUrl: string, originalError: ErrorWithCode) {
     const error = new Error(
-      `Unable to reach Chroma vector store at ${chromaUrl}. Ensure the service is running and reachable.`
+      `Unable to reach Chroma vector store at ${chromaUrl}. Ensure the service is running and reachable.`,
     ) as ErrorWithCode;
     error.code = VECTOR_STORE_UNAVAILABLE_CODE;
     error.cause = originalError;
@@ -385,7 +382,7 @@ export class WorkspaceIndexer {
       if (WorkspaceIndexer.#isUnavailable(error as ErrorWithCode)) {
         throw WorkspaceIndexer.#unavailableError(
           this.chromaUrl,
-          error as ErrorWithCode
+          error as ErrorWithCode,
         );
       }
       console.warn(`[MCP] Heartbeat failed: ${error.message}`);
@@ -395,13 +392,13 @@ export class WorkspaceIndexer {
       try {
         await client.deleteCollection({ name: this.collectionName });
         console.info(
-          `[MCP] Deleted existing Chroma collection "${this.collectionName}".`
+          `[MCP] Deleted existing Chroma collection "${this.collectionName}".`,
         );
       } catch (error) {
         if (WorkspaceIndexer.#isUnavailable(error as ErrorWithCode)) {
           throw WorkspaceIndexer.#unavailableError(
             this.chromaUrl,
-            error as ErrorWithCode
+            error as ErrorWithCode,
           );
         }
 
@@ -412,13 +409,13 @@ export class WorkspaceIndexer {
           message.includes("could not be found");
         if (!isNotFound) {
           console.warn(
-            `[MCP] Could not delete existing collection: ${error.message}`
+            `[MCP] Could not delete existing collection: ${error.message}`,
           );
         }
       }
     } else {
       console.info(
-        `[MCP] Skipping delete step for collection "${this.collectionName}" (skip-delete enabled).`
+        `[MCP] Skipping delete step for collection "${this.collectionName}" (skip-delete enabled).`,
       );
     }
 
@@ -454,5 +451,5 @@ export class WorkspaceIndexer {
  * @param options - Workspace indexer configuration.
  */
 export const createWorkspaceIndexer = (
-  options: WorkspaceIndexerOptions = {}
+  options: WorkspaceIndexerOptions = {},
 ): WorkspaceIndexer => new WorkspaceIndexer(options);

@@ -34,7 +34,9 @@ describe("StatsTracker", () => {
     };
     const fakeClient = {
       connect: mock.fn(async () => {}),
-      on: mock.fn((_event: string, _handler: (...args: unknown[]) => void) => {}),
+      on: mock.fn(
+        (_event: string, _handler: (...args: unknown[]) => void) => {},
+      ),
       multi: mock.fn(() => pipeline),
     };
     const tracker = new StatsTracker({
@@ -59,7 +61,7 @@ describe("StatsTracker", () => {
     assert.strictEqual(pipeline.incr.mock.callCount(), 2);
     assert.deepStrictEqual(
       pipeline.incr.mock.calls.map(({ arguments: [key] }) => key),
-      [STATS_TOTAL_MESSAGES_KEY, STATS_TOTAL_AI_MESSAGES_KEY]
+      [STATS_TOTAL_MESSAGES_KEY, STATS_TOTAL_AI_MESSAGES_KEY],
     );
 
     assert.strictEqual(pipeline.lPush.mock.callCount(), 1);
@@ -87,7 +89,7 @@ describe("StatsTracker", () => {
         content: "hello",
         provider: "Provider",
         model: "model",
-      })
+      }),
     );
 
     assert.strictEqual(tracker.getStatus().enabled, false);

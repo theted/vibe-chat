@@ -40,7 +40,7 @@ type LocalCodeMcpServer = {
   ensureCollection: () => Promise<boolean>;
   answerQuestion: (
     question: string,
-    options: { chatHistory?: ChatHistoryEntry[] }
+    options: { chatHistory?: ChatHistoryEntry[] },
   ) => Promise<MCPAnswer>;
 };
 
@@ -76,7 +76,7 @@ const normalizeAlias = (value?: string | number | null): string =>
 const withTimeout = async <T>(
   promise: Promise<T>,
   timeoutMs: number,
-  createTimeoutError?: string | (() => Error)
+  createTimeoutError?: string | (() => Error),
 ): Promise<T> => {
   if (!timeoutMs || Number.isNaN(timeoutMs) || timeoutMs <= 0) {
     return promise;
@@ -95,7 +95,7 @@ const withTimeout = async <T>(
               : new Error(
                   typeof createTimeoutError === "string"
                     ? createTimeoutError
-                    : `Operation timed out after ${timeoutMs}ms`
+                    : `Operation timed out after ${timeoutMs}ms`,
                 );
           reject(error);
         }, timeoutMs);
@@ -143,8 +143,7 @@ const resolveWorkspaceRoot = (options: { projectRoot?: string } = {}) => {
   const moduleDir = path.dirname(fileURLToPath(import.meta.url));
   const envRoot = process.env.CHAT_ASSISTANT_ROOT;
 
-  const explicitRoot =
-    options.projectRoot || (envRoot ? envRoot.trim() : null);
+  const explicitRoot = options.projectRoot || (envRoot ? envRoot.trim() : null);
 
   const resolvedProject =
     (explicitRoot && path.resolve(explicitRoot)) ||
@@ -161,22 +160,22 @@ const resolveWorkspaceRoot = (options: { projectRoot?: string } = {}) => {
 const formatGitHubUrl = (
   relativePath: string,
   startLine: number | null = null,
-  endLine: number | null = null
+  endLine: number | null = null,
 ): string => {
   const baseUrl = "https://github.com/theted/vibe-chat/blob/master";
   const lineFragment =
     startLine && endLine
       ? `#L${startLine}-L${endLine}`
       : startLine
-      ? `#L${startLine}`
-      : "";
+        ? `#L${startLine}`
+        : "";
   return `${baseUrl}/${relativePath}${lineFragment}`;
 };
 
 const enhanceAnswerWithLinks = (
   answer: string,
   contexts: VectorContext[] | undefined,
-  projectRoot: string
+  projectRoot: string,
 ): string => {
   if (!answer || !contexts || contexts.length === 0) {
     return answer;
@@ -188,20 +187,21 @@ const enhanceAnswerWithLinks = (
   const sourceRefs = contexts
     .map((ctx) => {
       const lineInfo =
-        ctx.startLine && ctx.endLine
-          ? `:${ctx.startLine}-${ctx.endLine}`
-          : "";
+        ctx.startLine && ctx.endLine ? `:${ctx.startLine}-${ctx.endLine}` : "";
       const githubUrl = formatGitHubUrl(
         ctx.relativePath,
         ctx.startLine,
-        ctx.endLine
+        ctx.endLine,
       );
       return `- [\`${ctx.relativePath}${lineInfo}\`](${githubUrl})`;
     })
     .join("\n");
 
   // Append sources section if not already present
-  if (!enhanced.includes("**Sources:**") && !enhanced.includes("**References:**")) {
+  if (
+    !enhanced.includes("**Sources:**") &&
+    !enhanced.includes("**References:**")
+  ) {
     enhanced += `\n\n**Sources:**\n${sourceRefs}`;
   }
 
@@ -271,7 +271,7 @@ export class ChatAssistantService {
   async initialise(): Promise<void> {
     if (this.configUnresolved) {
       throw new Error(
-        "Unable to locate project root. Set CHAT_ASSISTANT_ROOT or provide projectRoot explicitly."
+        "Unable to locate project root. Set CHAT_ASSISTANT_ROOT or provide projectRoot explicitly.",
       );
     }
 
@@ -290,7 +290,9 @@ export class ChatAssistantService {
     }) as LocalCodeMcpServer;
 
     try {
-      console.log(`[ChatAssistant Debug] Checking vector store availability...`);
+      console.log(
+        `[ChatAssistant Debug] Checking vector store availability...`,
+      );
       const { collectionReady } = await this.ensureVectorStoreAvailability();
       console.log(`[ChatAssistant Debug] Vector store check result:`, {
         reachable: this.vectorStoreReachable,
@@ -298,37 +300,49 @@ export class ChatAssistantService {
       });
 
       if (!collectionReady && this.autoIndex && this.vectorStoreReachable) {
-        console.log(`[ChatAssistant Debug] 🔄 Auto-indexing enabled and collection missing - starting background index build...`);
+        console.log(
+          `[ChatAssistant Debug] 🔄 Auto-indexing enabled and collection missing - starting background index build...`,
+        );
         this.indexPromise = this.buildIndex()
           .then(() => {
             console.log(`[ChatAssistant] ✅ Auto-index completed successfully`);
           })
           .catch((error: Error) => {
-            const message = error instanceof Error ? error.message : String(error);
-            console.error(
-              `[ChatAssistant] ❌ Auto-index failed: ${message}`
-            );
+            const message =
+              error instanceof Error ? error.message : String(error);
+            console.error(`[ChatAssistant] ❌ Auto-index failed: ${message}`);
             return null;
           })
           .finally(() => {
             this.indexPromise = null;
           });
-      } else if (!collectionReady && !this.autoIndex && this.vectorStoreReachable) {
-        console.warn(`[ChatAssistant] ⚠️  Collection not found and auto-indexing is disabled.`);
+      } else if (
+        !collectionReady &&
+        !this.autoIndex &&
+        this.vectorStoreReachable
+      ) {
+        console.warn(
+          `[ChatAssistant] ⚠️  Collection not found and auto-indexing is disabled.`,
+        );
         console.warn(`[ChatAssistant] To create the collection, either:`);
         console.warn(
-          `[ChatAssistant]   1. Run: npm run build && node dist/scripts/index-mcp-chat.js`
+          `[ChatAssistant]   1. Run: npm run build && node dist/scripts/index-mcp-chat.js`,
         );
-        console.warn(`[ChatAssistant]   2. Set CHAT_ASSISTANT_AUTO_INDEX=true and restart`);
+        console.warn(
+          `[ChatAssistant]   2. Set CHAT_ASSISTANT_AUTO_INDEX=true and restart`,
+        );
       }
     } catch (error) {
-      if ((error as ErrorWithCode)?.code === MCP_ERROR_CODES.VECTOR_STORE_UNAVAILABLE) {
+      if (
+        (error as ErrorWithCode)?.code ===
+        MCP_ERROR_CODES.VECTOR_STORE_UNAVAILABLE
+      ) {
         console.warn(
-          `[ChatAssistant] Vector store unreachable (${(error as Error).message}). @Chat will respond with setup guidance until the index becomes available.`
+          `[ChatAssistant] Vector store unreachable (${(error as Error).message}). @Chat will respond with setup guidance until the index becomes available.`,
         );
       } else {
         console.warn(
-          `[ChatAssistant] Unable to verify vector store availability: ${(error as Error).message}`
+          `[ChatAssistant] Unable to verify vector store availability: ${(error as Error).message}`,
         );
       }
     }
@@ -357,10 +371,7 @@ export class ChatAssistantService {
       input && typeof (input as { content?: unknown }).content === "string"
         ? (input as { content?: string }).content
         : null;
-    const content =
-      typeof input === "string"
-        ? input
-        : contentValue || "";
+    const content = typeof input === "string" ? input : contentValue || "";
     return Boolean(content && this.mentionRegex.test(content));
   }
 
@@ -375,7 +386,9 @@ export class ChatAssistantService {
     return chatHistory
       .filter(
         (message) =>
-          message && typeof message.content === "string" && message.content.trim()
+          message &&
+          typeof message.content === "string" &&
+          message.content.trim(),
       )
       .slice(-this.chatHistoryLimit)
       .map((message) => ({
@@ -392,7 +405,7 @@ export class ChatAssistantService {
 
   async createResponseFromContent(
     content: string,
-    options: ChatAssistantResponseOptions = {}
+    options: ChatAssistantResponseOptions = {},
   ): Promise<ChatAssistantResponse | null> {
     const { emitter = null, roomId = null, chatHistory = [] } = options;
     const emitTyping = (event: string, payload: Record<string, unknown>) => {
@@ -406,7 +419,9 @@ export class ChatAssistantService {
       return null;
     }
 
-    console.info(`[ChatAssistant] Generating answer for question: "${question}"`);
+    console.info(
+      `[ChatAssistant] Generating answer for question: "${question}"`,
+    );
 
     const historyContext = this.prepareChatHistory(chatHistory);
 
@@ -419,9 +434,10 @@ export class ChatAssistantService {
         try {
           await this.indexPromise;
         } catch (error) {
-          const message = error instanceof Error ? error.message : String(error);
+          const message =
+            error instanceof Error ? error.message : String(error);
           console.warn(
-            `[ChatAssistant] Background indexing failed: ${message}`
+            `[ChatAssistant] Background indexing failed: ${message}`,
           );
         }
       }
@@ -458,7 +474,8 @@ export class ChatAssistantService {
       ) {
         this.indexPromise = this.buildIndex()
           .catch((error: Error) => {
-            const message = error instanceof Error ? error.message : String(error);
+            const message =
+              error instanceof Error ? error.message : String(error);
             console.warn(`[ChatAssistant] Auto-index failed: ${message}`);
             return null;
           })
@@ -475,9 +492,10 @@ export class ChatAssistantService {
             });
           }
         } catch (error) {
-          const message = error instanceof Error ? error.message : String(error);
+          const message =
+            error instanceof Error ? error.message : String(error);
           console.warn(
-            `[ChatAssistant] Failed to rebuild vector index: ${message}`
+            `[ChatAssistant] Failed to rebuild vector index: ${message}`,
           );
         }
       }
@@ -539,7 +557,7 @@ export class ChatAssistantService {
 
     const result = await indexer.buildEmbeddingStore();
     console.info(
-      `[ChatAssistant] Indexed ${result.chunks} chunks into "${result.collectionName}" at ${result.chromaUrl}`
+      `[ChatAssistant] Indexed ${result.chunks} chunks into "${result.collectionName}" at ${result.chromaUrl}`,
     );
 
     await this.server.ensureCollection();
@@ -548,9 +566,11 @@ export class ChatAssistantService {
     this.vectorStoreError = null;
   }
 
-  async ensureVectorStoreAvailability(options: {
-    throwOnUnavailable?: boolean;
-  } = {}): Promise<{
+  async ensureVectorStoreAvailability(
+    options: {
+      throwOnUnavailable?: boolean;
+    } = {},
+  ): Promise<{
     reachable: boolean;
     collectionReady: boolean;
     error?: Error;
@@ -569,7 +589,9 @@ export class ChatAssistantService {
       };
     }
 
-    console.log(`[ChatAssistant Debug] Checking vector store availability at ${this.chromaUrl} (timeout: ${this.timeoutMs}ms)`);
+    console.log(
+      `[ChatAssistant Debug] Checking vector store availability at ${this.chromaUrl} (timeout: ${this.timeoutMs}ms)`,
+    );
 
     try {
       const timeoutMs = Number.isFinite(this.timeoutMs)
@@ -581,13 +603,15 @@ export class ChatAssistantService {
         timeoutMs,
         () => {
           const error = new Error(
-            `Timed out after ${timeoutMs}ms while contacting the Chroma vector store at ${this.chromaUrl}.`
+            `Timed out after ${timeoutMs}ms while contacting the Chroma vector store at ${this.chromaUrl}.`,
           ) as ErrorWithCode;
           error.code = MCP_ERROR_CODES.VECTOR_STORE_UNAVAILABLE;
           return error;
-        }
+        },
       );
-      console.log(`[ChatAssistant Debug] ✅ Vector store reachable, collection exists: ${exists}`);
+      console.log(
+        `[ChatAssistant Debug] ✅ Vector store reachable, collection exists: ${exists}`,
+      );
       this.vectorStoreReachable = true;
       this.collectionReady = Boolean(exists);
       this.vectorStoreError = null;
@@ -602,7 +626,10 @@ export class ChatAssistantService {
         chromaUrl: this.chromaUrl,
       });
 
-      if ((error as ErrorWithCode)?.code === MCP_ERROR_CODES.VECTOR_STORE_UNAVAILABLE) {
+      if (
+        (error as ErrorWithCode)?.code ===
+        MCP_ERROR_CODES.VECTOR_STORE_UNAVAILABLE
+      ) {
         this.vectorStoreReachable = false;
         this.collectionReady = false;
         this.vectorStoreError = error as Error;

@@ -4,22 +4,29 @@
  * This service handles interactions with the OpenAI API.
  */
 
-import { OpenAICompatibleService } from './base/OpenAICompatibleService.js';
-import { OpenAIClient, OpenAIServiceConfig } from '@/types/services.js';
-import { AIServiceConfig, ServiceInitOptions, OpenAIMessage } from '@/types/index.js';
-import OpenAI from 'openai';
+import { OpenAICompatibleService } from "./base/OpenAICompatibleService.js";
+import { OpenAIClient, OpenAIServiceConfig } from "@/types/services.js";
+import {
+  AIServiceConfig,
+  ServiceInitOptions,
+  OpenAIMessage,
+} from "@/types/index.js";
+import OpenAI from "openai";
 
 export class OpenAIService extends OpenAICompatibleService {
   constructor(config: AIServiceConfig) {
-    super(config, 'OpenAI');
+    super(config, "OpenAI");
   }
 
   /**
    * Create the OpenAI client with proper typing
    */
-  protected createClient(apiKey: string, options?: ServiceInitOptions): OpenAIClient {
+  protected createClient(
+    apiKey: string,
+    options?: ServiceInitOptions,
+  ): OpenAIClient {
     const clientConfig: ConstructorParameters<typeof OpenAI>[0] = {
-      apiKey
+      apiKey,
     };
 
     // Add organization if specified in config

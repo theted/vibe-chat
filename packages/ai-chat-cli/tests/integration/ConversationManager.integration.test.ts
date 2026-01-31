@@ -42,7 +42,9 @@ class MockContextManager {
   }
 
   getLastMessage() {
-    return this.messages.length > 0 ? this.messages[this.messages.length - 1] : null;
+    return this.messages.length > 0
+      ? this.messages[this.messages.length - 1]
+      : null;
   }
 }
 
@@ -76,9 +78,12 @@ describe("ConversationManager integration", () => {
 
     getRandomConfigMock = mock.fn(
       (): ParticipantConfig => ({
-        provider: { name: "RandomProvider", apiKeyEnvVar: "RANDOM_PROVIDER_KEY" },
+        provider: {
+          name: "RandomProvider",
+          apiKeyEnvVar: "RANDOM_PROVIDER_KEY",
+        },
         model: { id: "random-model" },
-      })
+      }),
     );
 
     dependencies = {
@@ -128,18 +133,24 @@ describe("ConversationManager integration", () => {
     assert.strictEqual(streamCalls.length, 3);
     assert.deepStrictEqual(
       streamCalls.map((call) => call.prefix),
-      ["[User]: ", "[ProviderA (model-a)]: ", "[ProviderB (model-b)]: "]
+      ["[User]: ", "[ProviderA (model-a)]: ", "[ProviderB (model-b)]: "],
     );
 
     assert.strictEqual(recordMessageMock.mock.callCount(), 3);
-    const recordCalls = recordMessageMock.mock.calls.map(({ arguments: [payload] }) => payload);
+    const recordCalls = recordMessageMock.mock.calls.map(
+      ({ arguments: [payload] }) => payload,
+    );
     assert.deepStrictEqual(
-      recordCalls.map(({ role, provider, model }) => ({ role, provider, model })),
+      recordCalls.map(({ role, provider, model }) => ({
+        role,
+        provider,
+        model,
+      })),
       [
         { role: "user", provider: "User", model: null },
         { role: "assistant", provider: "ProviderA", model: "model-a" },
         { role: "assistant", provider: "ProviderB", model: "model-b" },
-      ]
+      ],
     );
 
     const history = manager.getConversationHistory();
@@ -149,7 +160,7 @@ describe("ConversationManager integration", () => {
         { from: "User", content: "Hello everyone" },
         { from: "ProviderA (model-a)", content: "Response A1" },
         { from: "ProviderB (model-b)", content: "Response B1" },
-      ]
+      ],
     );
   });
 
@@ -184,17 +195,23 @@ describe("ConversationManager integration", () => {
     assert.strictEqual(streamCalls.length, 2);
     assert.deepStrictEqual(
       streamCalls.map((call) => call.prefix),
-      ["[User]: ", "[ProviderB (model-b)]: "]
+      ["[User]: ", "[ProviderB (model-b)]: "],
     );
 
     assert.strictEqual(recordMessageMock.mock.callCount(), 2);
-    const recordCalls = recordMessageMock.mock.calls.map(({ arguments: [payload] }) => payload);
+    const recordCalls = recordMessageMock.mock.calls.map(
+      ({ arguments: [payload] }) => payload,
+    );
     assert.deepStrictEqual(
-      recordCalls.map(({ role, provider, model }) => ({ role, provider, model })),
+      recordCalls.map(({ role, provider, model }) => ({
+        role,
+        provider,
+        model,
+      })),
       [
         { role: "user", provider: "User", model: null },
         { role: "assistant", provider: "ProviderB", model: "model-b" },
-      ]
+      ],
     );
   });
 
@@ -209,7 +226,7 @@ describe("ConversationManager integration", () => {
 
     await assert.rejects(
       manager.startConversation("Can anyone hear me?"),
-      /At least two participants/
+      /At least two participants/,
     );
   });
 

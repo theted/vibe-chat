@@ -122,30 +122,42 @@
 ### File Organization
 
 **Bad:**
+
 ```javascript
 // ParticipantsList.jsx (305 lines)
-const DEFAULT_AI_PARTICIPANTS = [ /* 80+ lines of config */ ];
-const ParticipantsList = () => { /* component logic */ };
+const DEFAULT_AI_PARTICIPANTS = [
+  /* 80+ lines of config */
+];
+const ParticipantsList = () => {
+  /* component logic */
+};
 ```
 
 **Good:**
+
 ```javascript
 // config/aiParticipants.js
-export const DEFAULT_AI_PARTICIPANTS = [ /* config */ ];
+export const DEFAULT_AI_PARTICIPANTS = [
+  /* config */
+];
 
 // components/ParticipantsList.jsx
-import { DEFAULT_AI_PARTICIPANTS } from '../config/aiParticipants';
-const ParticipantsList = () => { /* component logic */ };
+import { DEFAULT_AI_PARTICIPANTS } from "../config/aiParticipants";
+const ParticipantsList = () => {
+  /* component logic */
+};
 ```
 
 ### Tailwind Dynamic Classes
 
 **Bad:**
+
 ```jsx
 <div className={`text-${color}-500 bg-${color}-100`}>
 ```
 
 **Good:**
+
 ```jsx
 const colorClasses = {
   blue: 'text-blue-500 bg-blue-100',
@@ -157,44 +169,53 @@ const colorClasses = {
 ### Component Extraction
 
 **Bad:**
+
 ```javascript
 const Dashboard = () => {
-  const MetricCard = ({title}) => <div>...</div>;
-  const ProgressBar = ({value}) => <div>...</div>;
+  const MetricCard = ({ title }) => <div>...</div>;
+  const ProgressBar = ({ value }) => <div>...</div>;
   return <div>...</div>;
 };
 ```
 
 **Good:**
+
 ```javascript
 // components/MetricCard.jsx
-const MetricCard = ({title}) => <div>...</div>;
+const MetricCard = ({ title }) => <div>...</div>;
 
 // components/Dashboard.jsx
-import MetricCard from './MetricCard';
+import MetricCard from "./MetricCard";
 const Dashboard = () => <div>...</div>;
 ```
 
 ### Constants
 
 **Bad:**
+
 ```javascript
-setTimeout(() => emit('get-metrics'), 30000);
-if (messages.length > 100) { /* ... */ }
+setTimeout(() => emit("get-metrics"), 30000);
+if (messages.length > 100) {
+  /* ... */
+}
 ```
 
 **Good:**
+
 ```javascript
 const METRICS_REFRESH_INTERVAL_MS = 30_000;
 const MAX_CACHED_MESSAGES = 100;
 
-setTimeout(() => emit('get-metrics'), METRICS_REFRESH_INTERVAL_MS);
-if (messages.length > MAX_CACHED_MESSAGES) { /* ... */ }
+setTimeout(() => emit("get-metrics"), METRICS_REFRESH_INTERVAL_MS);
+if (messages.length > MAX_CACHED_MESSAGES) {
+  /* ... */
+}
 ```
 
 ### Hooks
 
 **Good:**
+
 ```javascript
 // handles pagination + filters state
 const useTableControls = () => {

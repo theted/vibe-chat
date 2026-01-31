@@ -1,4 +1,7 @@
-import { DEFAULT_TEMPERATURE, DEFAULT_MAX_TOKENS } from "@/config/aiProviders/constants.js";
+import {
+  DEFAULT_TEMPERATURE,
+  DEFAULT_MAX_TOKENS,
+} from "@/config/aiProviders/constants.js";
 import type { AIProvider } from "@/types/index.js";
 
 const KIMI_SYSTEM_PROMPT =

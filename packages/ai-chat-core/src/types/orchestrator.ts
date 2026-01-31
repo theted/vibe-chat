@@ -2,8 +2,8 @@
  * Orchestrator-specific type definitions for AI Chat Core library
  */
 
-import { Message, IAIService, AIProvider, AIModel } from './index.js';
-import EventEmitter from 'events';
+import { Message, IAIService, AIProvider, AIModel } from "./index.js";
+import EventEmitter from "events";
 
 // Orchestrator configuration
 export interface ChatOrchestratorConfig {
@@ -19,13 +19,13 @@ export interface ChatOrchestratorConfig {
 
 // Interaction strategies
 export type InteractionStrategy =
-  | 'agree-expand'
-  | 'challenge'
-  | 'redirect'
-  | 'question'
-  | 'direct'
-  | 'support'
-  | 'analyze';
+  | "agree-expand"
+  | "challenge"
+  | "redirect"
+  | "question"
+  | "direct"
+  | "support"
+  | "analyze";
 
 export interface InteractionStrategyConfig {
   type: InteractionStrategy;
@@ -87,7 +87,7 @@ export interface AIParticipantConfig {
 
 // Mention handling
 export interface MentionData {
-  type: 'direct' | 'indirect' | 'context';
+  type: "direct" | "indirect" | "context";
   targetAI?: AIParticipant;
   originalText: string;
   normalizedTarget: string;
@@ -175,17 +175,17 @@ export interface SystemPromptBuilderConfig {
 
 // Event types for orchestrator
 export type OrchestratorEvent =
-  | 'participant_added'
-  | 'participant_removed'
-  | 'response_scheduled'
-  | 'response_generated'
-  | 'strategy_selected'
-  | 'background_conversation_started'
-  | 'background_conversation_stopped'
-  | 'participant_sleeping'
-  | 'participant_awakened'
-  | 'mention_detected'
-  | 'error';
+  | "participant_added"
+  | "participant_removed"
+  | "response_scheduled"
+  | "response_generated"
+  | "strategy_selected"
+  | "background_conversation_started"
+  | "background_conversation_stopped"
+  | "participant_sleeping"
+  | "participant_awakened"
+  | "mention_detected"
+  | "error";
 
 export interface OrchestratorEventData {
   type: OrchestratorEvent;
@@ -214,7 +214,10 @@ export interface IChatOrchestrator extends EventEmitter {
 
   // Message processing
   processMessage(message: Message): Promise<void>;
-  generateResponses(message: Message, strategy?: InteractionStrategy): Promise<Message[]>;
+  generateResponses(
+    message: Message,
+    strategy?: InteractionStrategy,
+  ): Promise<Message[]>;
 
   // Participant management
   getActiveParticipants(): AIParticipant[];
@@ -223,7 +226,10 @@ export interface IChatOrchestrator extends EventEmitter {
 
   // Strategy and scheduling
   determineInteractionStrategy(context: StrategyContext): StrategyDecision;
-  scheduleResponses(participants: AIParticipant[], strategy: InteractionStrategy): ResponseSchedule[];
+  scheduleResponses(
+    participants: AIParticipant[],
+    strategy: InteractionStrategy,
+  ): ResponseSchedule[];
 
   // Background conversation
   startBackgroundConversation(): void;
@@ -239,16 +245,27 @@ export interface IChatOrchestrator extends EventEmitter {
 // Strategy manager interface
 export interface IInteractionStrategyManager {
   determineStrategy(context: StrategyContext): StrategyDecision;
-  applyStrategy(strategy: InteractionStrategy, context: StrategyContext): Record<string, unknown>;
+  applyStrategy(
+    strategy: InteractionStrategy,
+    context: StrategyContext,
+  ): Record<string, unknown>;
   getStrategyWeights(context: StrategyContext): StrategyWeight[];
   registerStrategy(config: InteractionStrategyConfig): void;
-  updateStrategyWeights(updates: Partial<Record<InteractionStrategy, number>>): void;
+  updateStrategyWeights(
+    updates: Partial<Record<InteractionStrategy, number>>,
+  ): void;
 }
 
 // Mention handler interface
 export interface IMentionHandler {
-  detectMentions(message: Message, participants: AIParticipant[]): MentionContext;
-  findAIByAlias(alias: string, participants: AIParticipant[]): AIParticipant | undefined;
+  detectMentions(
+    message: Message,
+    participants: AIParticipant[],
+  ): MentionContext;
+  findAIByAlias(
+    alias: string,
+    participants: AIParticipant[],
+  ): AIParticipant | undefined;
   normalizeAlias(alias: string): string;
   addMentionToResponse(response: string, targetAI: AIParticipant): string;
   getMentionTokenForAI(ai: AIParticipant): string;
@@ -259,20 +276,20 @@ export interface IResponseScheduler {
   scheduleResponses(
     participants: AIParticipant[],
     strategy: InteractionStrategy,
-    context: SchedulingContext
+    context: SchedulingContext,
   ): ResponseSchedule[];
 
   selectRespondingAIs(
     participants: AIParticipant[],
     mentions: MentionContext,
-    strategy: InteractionStrategy
+    strategy: InteractionStrategy,
   ): AIParticipant[];
 
   calculateResponseDelay(
     participant: AIParticipant,
     position: number,
     total: number,
-    context: SchedulingContext
+    context: SchedulingContext,
   ): number;
 
   executeSchedule(schedule: ResponseSchedule[]): Promise<void>;
@@ -294,24 +311,21 @@ export interface ISystemPromptBuilder {
   buildPrompt(
     basePrompt: string,
     context: PromptContext,
-    participant: AIParticipant
+    participant: AIParticipant,
   ): string;
 
   enhanceContextForStrategy(
     context: string,
-    strategy: InteractionStrategy
+    strategy: InteractionStrategy,
   ): string;
 
   enhanceContextForTopicChange(
     context: string,
     newTopic: string,
-    previousTopic?: string
+    previousTopic?: string,
   ): string;
 
-  enhanceContextForComment(
-    context: string,
-    comment: string
-  ): string;
+  enhanceContextForComment(context: string, comment: string): string;
 
   truncateResponse(response: string, maxLength: number): string;
 }
@@ -321,10 +335,10 @@ export class OrchestratorError extends Error {
   constructor(
     message: string,
     public readonly operation?: string,
-    public readonly context?: Record<string, unknown>
+    public readonly context?: Record<string, unknown>,
   ) {
     super(message);
-    this.name = 'OrchestratorError';
+    this.name = "OrchestratorError";
   }
 }
 
@@ -332,10 +346,10 @@ export class StrategyError extends Error {
   constructor(
     message: string,
     public readonly strategy?: InteractionStrategy,
-    public readonly context?: StrategyContext
+    public readonly context?: StrategyContext,
   ) {
     super(message);
-    this.name = 'StrategyError';
+    this.name = "StrategyError";
   }
 }
 
@@ -343,10 +357,10 @@ export class SchedulingError extends Error {
   constructor(
     message: string,
     public readonly schedule?: ResponseSchedule[],
-    public readonly participants?: AIParticipant[]
+    public readonly participants?: AIParticipant[],
   ) {
     super(message);
-    this.name = 'SchedulingError';
+    this.name = "SchedulingError";
   }
 }
 
@@ -354,17 +368,22 @@ export class ParticipantError extends Error {
   constructor(
     message: string,
     public readonly participantId?: string,
-    public readonly operation?: string
+    public readonly operation?: string,
   ) {
     super(message);
-    this.name = 'ParticipantError';
+    this.name = "ParticipantError";
   }
 }
 
 // Utility types for orchestrator
-export type ParticipantStatus = 'active' | 'sleeping' | 'inactive' | 'error';
+export type ParticipantStatus = "active" | "sleeping" | "inactive" | "error";
 
-export type ConversationPhase = 'starting' | 'active' | 'background' | 'ending' | 'silent';
+export type ConversationPhase =
+  | "starting"
+  | "active"
+  | "background"
+  | "ending"
+  | "silent";
 
 export interface ConversationMetrics {
   totalMessages: number;
@@ -398,19 +417,19 @@ export interface QueueStatus {
 }
 
 export type BrokerEvent =
-  | 'message-queued'
-  | 'message-ready'
-  | 'message-error'
-  | 'message'
-  | 'broadcast'
-  | 'processing-started'
-  | 'processing-completed'
-  | 'processing-paused'
-  | 'processing-resumed'
-  | 'queue-cleared'
-  | 'queue-trimmed'
-  | 'messages-removed'
-  | 'error';
+  | "message-queued"
+  | "message-ready"
+  | "message-error"
+  | "message"
+  | "broadcast"
+  | "processing-started"
+  | "processing-completed"
+  | "processing-paused"
+  | "processing-resumed"
+  | "queue-cleared"
+  | "queue-trimmed"
+  | "messages-removed"
+  | "error";
 
 export interface IMessageBroker extends EventEmitter {
   enqueueMessage(message: Message, priority?: number): void;
@@ -432,7 +451,7 @@ export interface ContextMessage extends Message {
   importance?: number;
   tokens?: number;
   sender?: string;
-  senderType?: 'user' | 'ai' | 'system';
+  senderType?: "user" | "ai" | "system";
   displayName?: string;
   alias?: string;
   normalizedAlias?: string;
@@ -465,32 +484,32 @@ export interface IContextManager {
 // Type guards
 export const isAIParticipant = (obj: unknown): obj is AIParticipant => {
   return (
-    typeof obj === 'object' &&
+    typeof obj === "object" &&
     obj !== null &&
-    'id' in obj &&
-    'service' in obj &&
-    'provider' in obj &&
-    typeof (obj as AIParticipant).id === 'string'
+    "id" in obj &&
+    "service" in obj &&
+    "provider" in obj &&
+    typeof (obj as AIParticipant).id === "string"
   );
 };
 
 export const isMentionData = (obj: unknown): obj is MentionData => {
   return (
-    typeof obj === 'object' &&
+    typeof obj === "object" &&
     obj !== null &&
-    'type' in obj &&
-    'originalText' in obj &&
-    typeof (obj as MentionData).originalText === 'string'
+    "type" in obj &&
+    "originalText" in obj &&
+    typeof (obj as MentionData).originalText === "string"
   );
 };
 
 export const isResponseSchedule = (obj: unknown): obj is ResponseSchedule => {
   return (
-    typeof obj === 'object' &&
+    typeof obj === "object" &&
     obj !== null &&
-    'participant' in obj &&
-    'delayMs' in obj &&
-    'strategy' in obj &&
+    "participant" in obj &&
+    "delayMs" in obj &&
+    "strategy" in obj &&
     isAIParticipant((obj as ResponseSchedule).participant)
   );
 };

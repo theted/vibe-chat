@@ -66,7 +66,7 @@ const USER_MESSAGE_LIMIT = 10;
 const USER_MESSAGE_WINDOW_MS = 10 * 60 * 1000;
 
 const toOrchestratorAIServiceInfo = (
-  value: unknown
+  value: unknown,
 ): OrchestratorAIServiceInfo | null => {
   if (!value || typeof value !== "object") {
     return null;
@@ -114,7 +114,7 @@ export class SocketController {
     chatOrchestrator: ChatOrchestrator,
     metricsService: MetricsService,
     redisClient: RedisClient | null = null,
-    options: { chatAssistantService?: ChatAssistantService | null } = {}
+    options: { chatAssistantService?: ChatAssistantService | null } = {},
   ) {
     this.io = io;
     this.chatOrchestrator = chatOrchestrator;
@@ -147,14 +147,14 @@ export class SocketController {
       "message-broadcast",
       async ({ message, roomId }: { message: ChatMessage; roomId: string }) => {
         await this.handleBroadcastMessage(message, roomId);
-      }
+      },
     );
 
     this.chatOrchestrator.on(
       "ais-sleeping",
       ({ reason }: { reason?: string }) => {
         this.io.emit("ai-status-changed", { status: "sleeping", reason });
-      }
+      },
     );
 
     this.chatOrchestrator.on("ais-awakened", () => {
@@ -166,7 +166,7 @@ export class SocketController {
       (payload: { roomId?: string }) => {
         if (!payload?.roomId) return;
         this.io.to(payload.roomId).emit("ai-generating-start", payload);
-      }
+      },
     );
 
     this.chatOrchestrator.on(
@@ -174,7 +174,7 @@ export class SocketController {
       (payload: { roomId?: string }) => {
         if (!payload?.roomId) return;
         this.io.to(payload.roomId).emit("ai-generating-stop", payload);
-      }
+      },
     );
 
     this.chatOrchestrator.on(
@@ -185,7 +185,7 @@ export class SocketController {
         responseTimeMs?: number;
       }) => {
         this.metricsService.recordAIResponse(payload);
-      }
+      },
     );
 
     this.chatOrchestrator.on(
@@ -204,7 +204,7 @@ export class SocketController {
           responseTimeMs: payload.responseTimeMs,
           errorMessage,
         });
-      }
+      },
     );
 
     this.chatOrchestrator.on(
@@ -219,7 +219,7 @@ export class SocketController {
         roomId: string;
       }) => {
         this.io.to(roomId).emit("topic-changed", { newTopic, changedBy });
-      }
+      },
     );
 
     this.chatOrchestrator.on("error", ({ error }: { error: Error }) => {
@@ -229,12 +229,13 @@ export class SocketController {
 
   async handleBroadcastMessage(
     message: ChatMessage,
-    roomId: string
+    roomId: string,
   ): Promise<void> {
     try {
       await this.storeMessage(roomId, message);
     } catch (error) {
-      const messageText = error instanceof Error ? error.message : String(error);
+      const messageText =
+        error instanceof Error ? error.message : String(error);
       console.warn("Failed to persist message history:", messageText);
     }
 
@@ -251,7 +252,7 @@ export class SocketController {
       this.metricsService.recordAIMessage(
         roomId,
         message.aiId || message.sender,
-        message
+        message,
       );
     }
 
@@ -292,7 +293,8 @@ export class SocketController {
     });
 
     this.sendRecentMessages(socket).catch((error) => {
-      const messageText = error instanceof Error ? error.message : String(error);
+      const messageText =
+        error instanceof Error ? error.message : String(error);
       console.warn("Failed to send recent messages on connect:", messageText);
     });
   }
@@ -410,7 +412,7 @@ export class SocketController {
 
       // Join room
       const room = this.roomManager.joinRoom(socket.id, roomId, userData);
-      
+
       if (!room) {
         socket.emit("error", {
           message: "Failed to join room - room may be full",
@@ -420,7 +422,7 @@ export class SocketController {
 
       // Join Socket.IO room
       socket.join(roomId);
-      
+
       // Store user data
       this.connectedUsers.set(socket.id, { ...userData, roomId });
 
@@ -429,7 +431,9 @@ export class SocketController {
 
       // Update metrics
       this.metricsService.updateActiveUsers(this.connectedUsers.size);
-      this.metricsService.updateActiveRooms(this.roomManager.getStats().totalRooms);
+      this.metricsService.updateActiveRooms(
+        this.roomManager.getStats().totalRooms,
+      );
 
       // Notify user
       socket.emit("room-joined", {
@@ -442,7 +446,8 @@ export class SocketController {
 
       socket.leave(this.previewRoomId);
       this.sendRecentMessages(socket, roomId).catch((error) => {
-        const messageText = error instanceof Error ? error.message : String(error);
+        const messageText =
+          error instanceof Error ? error.message : String(error);
         console.warn("Failed to send room history after join:", messageText);
       });
 
@@ -453,7 +458,6 @@ export class SocketController {
       });
 
       console.log(`${userData.username} joined room ${roomId}`);
-
     } catch (error) {
       console.error("Error handling join room:", error);
       socket.emit("error", { message: "Failed to join room" });
@@ -467,7 +471,7 @@ export class SocketController {
    */
   async handleUserMessage(
     socket: Socket,
-    data: UserMessagePayload
+    data: UserMessagePayload,
   ): Promise<void> {
     try {
       const user = this.connectedUsers.get(socket.id);
@@ -503,7 +507,7 @@ export class SocketController {
           retryAfterSeconds,
         });
         console.warn(
-          `Rate limit exceeded for IP ${ipAddress || "unknown"} (user: ${user.username})`
+          `Rate limit exceeded for IP ${ipAddress || "unknown"} (user: ${user.username})`,
         );
         return;
       }
@@ -527,11 +531,15 @@ export class SocketController {
 
       // Track user message
       this.aiTracker.onUserMessage(user.roomId, user.username);
-      this.metricsService.recordUserMessage(user.roomId, user.username, message);
+      this.metricsService.recordUserMessage(
+        user.roomId,
+        user.username,
+        message,
+      );
       if (isChatAssistantQuery) {
         console.info(
           `[ChatAssistant] User "${user.username}" mentioned @${this.chatAssistantService.name} with question:`,
-          message.content
+          message.content,
         );
       }
       // Add message to chat orchestrator
@@ -542,7 +550,7 @@ export class SocketController {
       });
 
       console.log(
-        `Message from ${user.username} in ${user.roomId}: ${content.substring(0, 50)}...`
+        `Message from ${user.username} in ${user.roomId}: ${content.substring(0, 50)}...`,
       );
 
       if (isChatAssistantQuery) {
@@ -552,7 +560,6 @@ export class SocketController {
           origin: { type: "user", username: user.username },
         });
       }
-
     } catch (error) {
       console.error("Error handling user message:", error);
       socket.emit("error", { message: "Failed to send message" });
@@ -636,15 +643,21 @@ export class SocketController {
       }
 
       if (topic.length > 100) {
-        socket.emit("error", { message: "Topic too long (max 100 characters)" });
+        socket.emit("error", {
+          message: "Topic too long (max 100 characters)",
+        });
         return;
       }
 
       const newTopic = topic.trim();
-      
+
       // Update room topic
-      const updated = this.roomManager.updateRoomTopic(user.roomId, newTopic, user.username);
-      
+      const updated = this.roomManager.updateRoomTopic(
+        user.roomId,
+        newTopic,
+        user.username,
+      );
+
       if (!updated) {
         socket.emit("error", { message: "Failed to update topic" });
         return;
@@ -654,9 +667,8 @@ export class SocketController {
       this.chatOrchestrator.changeTopic(newTopic, user.username, user.roomId);
 
       console.log(
-        `${user.username} changed topic in ${user.roomId} to: ${newTopic}`
+        `${user.username} changed topic in ${user.roomId} to: ${newTopic}`,
       );
-
     } catch (error) {
       console.error("Error handling topic change:", error);
       socket.emit("error", { message: "Failed to change topic" });
@@ -686,7 +698,6 @@ export class SocketController {
         aiStatus,
         aiParticipants: this.getActiveAIParticipants(),
       });
-
     } catch (error) {
       console.error("Error getting room info:", error);
       socket.emit("error", { message: "Failed to get room info" });
@@ -706,7 +717,6 @@ export class SocketController {
         orchestrator: orchestratorStatus,
         tracker: trackerStats,
       });
-
     } catch (error) {
       console.error("Error getting AI status:", error);
       socket.emit("error", { message: "Failed to get AI status" });
@@ -717,10 +727,7 @@ export class SocketController {
     return `ai-chat:rooms:${roomId}:messages`;
   }
 
-  async storeMessage(
-    roomId = "default",
-    message: ChatMessage
-  ): Promise<void> {
+  async storeMessage(roomId = "default", message: ChatMessage): Promise<void> {
     if (!this.redisClient) return;
 
     const key = this.getRoomMessageKey(roomId);
@@ -739,7 +746,8 @@ export class SocketController {
         .expire(key, MESSAGE_TTL_SECONDS)
         .exec();
     } catch (error) {
-      const messageText = error instanceof Error ? error.message : String(error);
+      const messageText =
+        error instanceof Error ? error.message : String(error);
       console.warn("Failed to store message in Redis:", messageText);
     }
   }
@@ -747,11 +755,12 @@ export class SocketController {
   async getRecentMessages(roomId = "default"): Promise<ChatMessage[]> {
     if (!this.redisClient) {
       // Fallback to in-memory context
-      return this.chatOrchestrator
-        .contextManager
+      return this.chatOrchestrator.contextManager
         .getContextForAI(this.recentMessageLimit)
         .map((ctx) => ({
-          id: ctx.id || `ctx-${ctx.timestamp || Date.now()}-${Math.random().toString(16).slice(2)}`,
+          id:
+            ctx.id ||
+            `ctx-${ctx.timestamp || Date.now()}-${Math.random().toString(16).slice(2)}`,
           sender: ctx.sender || "unknown",
           displayName: ctx.displayName || ctx.sender || "unknown",
           alias: ctx.alias || ctx.sender || "unknown",
@@ -765,7 +774,11 @@ export class SocketController {
 
     const key = this.getRoomMessageKey(roomId);
     try {
-      const entries = await this.redisClient.lRange(key, 0, this.recentMessageLimit - 1);
+      const entries = await this.redisClient.lRange(
+        key,
+        0,
+        this.recentMessageLimit - 1,
+      );
       const parsedEntries = entries
         .map((entry) => {
           try {
@@ -782,7 +795,8 @@ export class SocketController {
         .filter(Boolean) as ChatMessage[];
       return parsedEntries.reverse();
     } catch (error) {
-      const messageText = error instanceof Error ? error.message : String(error);
+      const messageText =
+        error instanceof Error ? error.message : String(error);
       console.warn("Failed to load recent messages from Redis:", messageText);
       return [];
     }
@@ -797,7 +811,7 @@ export class SocketController {
         const displayName = resolveText(ai.displayName, name);
         const alias = resolveText(
           ai.displayAlias,
-          resolveText(ai.alias, displayName)
+          resolveText(ai.alias, displayName),
         );
         const normalizedAlias = resolveText(ai.normalizedAlias, alias);
 
@@ -817,10 +831,7 @@ export class SocketController {
       });
   }
 
-  async sendRecentMessages(
-    socket: Socket,
-    roomId = "default"
-  ): Promise<void> {
+  async sendRecentMessages(socket: Socket, roomId = "default"): Promise<void> {
     try {
       const [messages, participants, aiParticipants] = await Promise.all([
         this.getRecentMessages(roomId),
@@ -835,7 +846,8 @@ export class SocketController {
         aiParticipants,
       });
     } catch (error) {
-      const messageText = error instanceof Error ? error.message : String(error);
+      const messageText =
+        error instanceof Error ? error.message : String(error);
       console.warn("Failed to send recent messages:", messageText);
     }
   }
@@ -859,7 +871,6 @@ export class SocketController {
         action: "wake-ais",
         by: user.username,
       });
-
     } catch (error) {
       console.error("Error waking AIs:", error);
     }
@@ -877,14 +888,16 @@ export class SocketController {
         return;
       }
 
-      this.aiTracker.putAIsToSleep(user.roomId, `admin-sleep-by-${user.username}`);
+      this.aiTracker.putAIsToSleep(
+        user.roomId,
+        `admin-sleep-by-${user.username}`,
+      );
       this.chatOrchestrator.putAIsToSleep();
 
       socket.to(user.roomId).emit("admin-action", {
         action: "sleep-ais",
         by: user.username,
       });
-
     } catch (error) {
       console.error("Error sleeping AIs:", error);
     }
@@ -897,7 +910,7 @@ export class SocketController {
   handleDisconnect(socket: Socket): void {
     try {
       const user = this.connectedUsers.get(socket.id);
-      
+
       if (user) {
         // Notify others in room
         socket.to(user.roomId).emit("user-left", {
@@ -918,8 +931,9 @@ export class SocketController {
 
       // Update metrics
       this.metricsService.updateActiveUsers(this.connectedUsers.size);
-      this.metricsService.updateActiveRooms(this.roomManager.getStats().totalRooms);
-
+      this.metricsService.updateActiveRooms(
+        this.roomManager.getStats().totalRooms,
+      );
     } catch (error) {
       console.error("Error handling disconnect:", error);
     }
@@ -983,7 +997,7 @@ export class SocketController {
           emitter: this.io,
           roomId,
           chatHistory,
-        }
+        },
       );
       if (!result || !result.answer) {
         return;
@@ -992,7 +1006,7 @@ export class SocketController {
       if (result.error) {
         console.warn(
           "Chat assistant encountered an issue:",
-          result.error?.message || result.error
+          result.error?.message || result.error,
         );
       }
 
@@ -1007,9 +1021,7 @@ export class SocketController {
         isInternalResponder: true,
         suppressAIResponses: true,
         mentionsTriggerSender:
-          origin.type === "user"
-            ? origin.username
-            : origin.sender || null,
+          origin.type === "user" ? origin.username : origin.sender || null,
         contextQuestion: result.question,
         timestamp: Date.now(),
         id: messageId,
@@ -1019,18 +1031,18 @@ export class SocketController {
         origin.type === "user"
           ? `user "${origin.username}"`
           : origin.sender
-          ? `AI "${origin.sender}"`
-          : "trigger";
+            ? `AI "${origin.sender}"`
+            : "trigger";
 
       console.info(
-        `[ChatAssistant] Dispatching answer for ${originLabel} (question: "${result.question}")`
+        `[ChatAssistant] Dispatching answer for ${originLabel} (question: "${result.question}")`,
       );
 
       await this.chatOrchestrator.handleMessage(message);
     } catch (error) {
       console.error(
         "Failed to dispatch chat assistant response:",
-        error instanceof Error ? error.message : String(error)
+        error instanceof Error ? error.message : String(error),
       );
     }
   }

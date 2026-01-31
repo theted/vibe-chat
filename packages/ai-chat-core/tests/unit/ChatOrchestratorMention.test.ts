@@ -41,7 +41,7 @@ describe("ChatOrchestrator user mention behavior", () => {
     const strategy = orchestrator.determineInteractionStrategy(
       aiService,
       context,
-      true
+      true,
     );
 
     assert.equal(strategy.shouldMention, true);
@@ -66,11 +66,14 @@ describe("ChatOrchestrator user mention behavior", () => {
     // @ai-chat/core types only accept a string target today; runtime supports object mention targets.
     const updated = orchestrator.addMentionToResponse(
       message,
-      mentionTarget as unknown as string
+      mentionTarget as unknown as string,
     );
 
     assert.notEqual(updated, message, "mention should modify the message");
-    assert.ok(updated.includes("@Bob"), "mention should include the user's name");
+    assert.ok(
+      updated.includes("@Bob"),
+      "mention should include the user's name",
+    );
     assert.ok(!updated.includes("@bob"), "mention should preserve casing");
   });
 });

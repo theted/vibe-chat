@@ -206,12 +206,14 @@ describe("chat constants", () => {
         const normalized = mapping.toLowerCase().replace(/[^a-z0-9]/g, "");
         const hasCorrespondingEmoji = Object.keys(AI_EMOJI_LOOKUP).some(
           (emojiKey) => {
-            const normalizedKey = emojiKey.toLowerCase().replace(/[^a-z0-9]/g, "");
+            const normalizedKey = emojiKey
+              .toLowerCase()
+              .replace(/[^a-z0-9]/g, "");
             return (
               normalized.includes(normalizedKey) ||
               normalizedKey.includes(normalized)
             );
-          }
+          },
         );
         expect(hasCorrespondingEmoji).toBe(true);
       });

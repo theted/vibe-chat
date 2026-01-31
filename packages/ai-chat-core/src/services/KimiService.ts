@@ -17,7 +17,10 @@ export class KimiService extends OpenAICompatibleService {
     super(config, "Kimi");
   }
 
-  protected createClient(apiKey: string, options?: ServiceInitOptions): OpenAIClient {
+  protected createClient(
+    apiKey: string,
+    options?: ServiceInitOptions,
+  ): OpenAIClient {
     const baseURL = options?.baseURL || this.getBaseURL() || KIMI_BASE_URL;
     const defaultHeaders = this.getDefaultHeaders();
     const clientConfig: ConstructorParameters<typeof OpenAI>[0] = {

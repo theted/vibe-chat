@@ -1,14 +1,14 @@
-const path = require('path');
+const path = require("path");
 
 exports.config = {
-  tests: './tests/e2e/**/*_test.js',
-  output: './tests/e2e/output',
+  tests: "./tests/e2e/**/*_test.js",
+  output: "./tests/e2e/output",
   helpers: {
     Playwright: {
-      url: process.env.CODECEPT_BASE_URL || 'http://localhost:3000',
+      url: process.env.CODECEPT_BASE_URL || "http://localhost:3000",
       show: false,
-      browser: 'chromium',
-      waitForNavigation: 'networkidle0',
+      browser: "chromium",
+      waitForNavigation: "networkidle0",
       waitForTimeout: 10000,
       waitForAction: 500,
     },
@@ -27,8 +27,8 @@ exports.config = {
   },
   mocha: {
     reporterOptions: {
-      reportDir: path.resolve(__dirname, './tests/e2e/output'),
+      reportDir: path.resolve(__dirname, "./tests/e2e/output"),
     },
   },
-  name: 'vibe-chat',
+  name: "vibe-chat",
 };

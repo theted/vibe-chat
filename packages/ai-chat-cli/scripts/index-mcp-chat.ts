@@ -3,17 +3,12 @@
 import path from "path";
 import process from "process";
 import { fileURLToPath } from "url";
-import {
-  createWorkspaceIndexer,
-} from "@ai-chat/mcp-assistant/indexer";
-import {
-  MCP_ERROR_CODES,
-} from "@ai-chat/mcp-assistant";
+import { createWorkspaceIndexer } from "@ai-chat/mcp-assistant/indexer";
+import { MCP_ERROR_CODES } from "@ai-chat/mcp-assistant";
 
 const DEFAULT_COLLECTION_NAME =
   process.env.CHAT_ASSISTANT_COLLECTION || "ai-chat-workspace";
-const DEFAULT_CHROMA_URL =
-  process.env.CHROMA_URL || "http://localhost:8000";
+const DEFAULT_CHROMA_URL = process.env.CHROMA_URL || "http://localhost:8000";
 
 type IndexArgs = {
   chunkSize?: number;
@@ -78,7 +73,7 @@ const tryLoadDotenv = async (projectRoot: string): Promise<void> => {
   } catch (error: any) {
     if (error?.code !== "ERR_MODULE_NOT_FOUND") {
       console.warn(
-        `index-mcp-chat: Failed to load dotenv (${error?.message || error}). Continuing with process env.`
+        `index-mcp-chat: Failed to load dotenv (${error?.message || error}). Continuing with process env.`,
       );
     }
   }
@@ -90,20 +85,19 @@ const main = async (): Promise<void> => {
 
   const args = parseArgs();
   const projectRoot =
-    args.projectRoot ||
-    process.env.CHAT_ASSISTANT_ROOT ||
-    defaultProjectRoot;
+    args.projectRoot || process.env.CHAT_ASSISTANT_ROOT || defaultProjectRoot;
 
   await tryLoadDotenv(projectRoot);
 
   if (!process.env.OPENAI_API_KEY) {
     console.error(
-      "OPENAI_API_KEY is required to index the MCP workspace. Add it to your environment or .env file."
+      "OPENAI_API_KEY is required to index the MCP workspace. Add it to your environment or .env file.",
     );
     process.exit(1);
   }
 
-  const chromaUrl = args.chromaUrl || process.env.CHROMA_URL || DEFAULT_CHROMA_URL;
+  const chromaUrl =
+    args.chromaUrl || process.env.CHROMA_URL || DEFAULT_CHROMA_URL;
   const collectionName =
     args.collectionName ||
     process.env.CHAT_ASSISTANT_COLLECTION ||
@@ -125,12 +119,12 @@ const main = async (): Promise<void> => {
   try {
     const result = await indexer.buildEmbeddingStore();
     console.log(
-      `✅ Indexed ${result.chunks} chunks into collection "${result.collectionName}" at ${result.chromaUrl}`
+      `✅ Indexed ${result.chunks} chunks into collection "${result.collectionName}" at ${result.chromaUrl}`,
     );
   } catch (error: any) {
     if (error?.code === MCP_ERROR_CODES.VECTOR_STORE_UNAVAILABLE) {
       console.error(
-        `index-mcp-chat: Unable to reach Chroma at ${chromaUrl}. Start the vector store (e.g. 'docker compose up chroma') or set CHROMA_URL before retrying.`
+        `index-mcp-chat: Unable to reach Chroma at ${chromaUrl}. Start the vector store (e.g. 'docker compose up chroma') or set CHROMA_URL before retrying.`,
       );
     } else {
       console.error(`index-mcp-chat failed: ${error?.message || error}`);

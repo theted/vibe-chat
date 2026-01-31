@@ -38,10 +38,7 @@ export {
 } from "./types/index.js";
 
 // Constants
-export {
-  DEFAULT_TEMPERATURE,
-  DEFAULT_MAX_TOKENS,
-} from "./types/index.js";
+export { DEFAULT_TEMPERATURE, DEFAULT_MAX_TOKENS } from "./types/index.js";
 
 // AI Service base & factory
 export { BaseAIService } from "./services/base/BaseAIService.js";

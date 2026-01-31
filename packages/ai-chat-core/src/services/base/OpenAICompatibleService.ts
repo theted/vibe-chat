@@ -19,14 +19,14 @@ import {
   OpenAICompletionRequest,
   OpenAICompletionResponse,
   ServiceAPIError,
-  ServiceTimeoutError
+  ServiceTimeoutError,
 } from "@/types/services.js";
 import {
   Message,
   ServiceResponse,
   ServiceInitOptions,
   AIServiceConfig,
-  OpenAIMessage
+  OpenAIMessage,
 } from "@/types/index.js";
 
 export abstract class OpenAICompatibleService extends BaseAIService {
@@ -58,15 +58,22 @@ export abstract class OpenAICompatibleService extends BaseAIService {
    * Create the OpenAI-compatible client
    * Must be implemented by subclasses with provider-specific client creation
    */
-  protected abstract createClient(apiKey: string, options?: ServiceInitOptions): OpenAIClient;
+  protected abstract createClient(
+    apiKey: string,
+    options?: ServiceInitOptions,
+  ): OpenAIClient;
 
   /**
    * Service-specific initialization logic
    */
-  protected async performInitialization(options?: ServiceInitOptions): Promise<void> {
+  protected async performInitialization(
+    options?: ServiceInitOptions,
+  ): Promise<void> {
     const apiKey = process.env[this.config.provider.apiKeyEnvVar];
     if (!apiKey) {
-      throw new Error(`${this.config.provider.apiKeyEnvVar} environment variable is not set`);
+      throw new Error(
+        `${this.config.provider.apiKeyEnvVar} environment variable is not set`,
+      );
     }
 
     this.baseURL = this.getBaseURL();
@@ -81,10 +88,10 @@ export abstract class OpenAICompatibleService extends BaseAIService {
     this.client = this.createClient(apiKey, options);
 
     // Log successful initialization
-    this.logger?.info('Service initialized', {
+    this.logger?.info("Service initialized", {
       service: this.name,
       model: this.getModel(),
-      baseURL: this.baseURL
+      baseURL: this.baseURL,
     });
   }
 
@@ -101,13 +108,13 @@ export abstract class OpenAICompatibleService extends BaseAIService {
    */
   protected prepareRequestParams(
     formattedMessages: OpenAIMessage[],
-    context?: Record<string, unknown>
+    context?: Record<string, unknown>,
   ): OpenAICompletionRequest {
     const baseParams: OpenAICompletionRequest = {
       model: this.getModel(),
       messages: formattedMessages,
       temperature: this.config.model.temperature || 0.7,
-      max_tokens: this.config.model.maxTokens || 4000
+      max_tokens: this.config.model.maxTokens || 4000,
     };
 
     // Apply any context-specific parameters
@@ -132,19 +139,23 @@ export abstract class OpenAICompatibleService extends BaseAIService {
   }
 
   protected usesResponsesAPI(): boolean {
-    return Boolean((this.config.model as { useResponsesApi?: boolean }).useResponsesApi);
+    return Boolean(
+      (this.config.model as { useResponsesApi?: boolean }).useResponsesApi,
+    );
   }
 
   protected async makeResponsesAPIRequest(
     messages: OpenAIMessage[],
-    context?: Record<string, unknown>
+    context?: Record<string, unknown>,
   ): Promise<ServiceResponse> {
     const client = ensureResponsesClient(this.client, this.name);
 
     const temperatureRaw =
       context?.temperature ?? this.config.model.temperature ?? 0.7;
     const temperature =
-      typeof temperatureRaw === "number" ? temperatureRaw : Number(temperatureRaw);
+      typeof temperatureRaw === "number"
+        ? temperatureRaw
+        : Number(temperatureRaw);
     const maxTokensRaw = context?.maxTokens ?? this.config.model.maxTokens;
     const maxTokens =
       typeof maxTokensRaw === "number"
@@ -152,8 +163,9 @@ export abstract class OpenAICompatibleService extends BaseAIService {
         : typeof maxTokensRaw === "string"
           ? Number(maxTokensRaw)
           : undefined;
-    const reasoningEffort = (context as { reasoningEffort?: string } | undefined)
-      ?.reasoningEffort;
+    const reasoningEffort = (
+      context as { reasoningEffort?: string } | undefined
+    )?.reasoningEffort;
     const payload = buildResponsesPayload({
       model: this.getModel(),
       messages,
@@ -175,11 +187,13 @@ export abstract class OpenAICompatibleService extends BaseAIService {
   /**
    * Make the API request to the OpenAI-compatible endpoint
    */
-  protected async makeAPIRequest(params: OpenAICompletionRequest): Promise<OpenAICompletionResponse> {
+  protected async makeAPIRequest(
+    params: OpenAICompletionRequest,
+  ): Promise<OpenAICompletionResponse> {
     if (!this.client) {
       throw new ServiceAPIError(
-        'Client not initialized. Call initialize() first.',
-        this.name
+        "Client not initialized. Call initialize() first.",
+        this.name,
       );
     }
 
@@ -191,32 +205,33 @@ export abstract class OpenAICompatibleService extends BaseAIService {
       const response = await Promise.race([
         this.client.chat.completions.create(params),
         new Promise<never>((_, reject) => {
-          controller.signal.addEventListener('abort', () => {
-            reject(new ServiceTimeoutError(
-              `Request timed out after ${timeoutMs}ms`,
-              this.name,
-              timeoutMs
-            ));
+          controller.signal.addEventListener("abort", () => {
+            reject(
+              new ServiceTimeoutError(
+                `Request timed out after ${timeoutMs}ms`,
+                this.name,
+                timeoutMs,
+              ),
+            );
           });
-        })
+        }),
       ]);
 
       clearTimeout(timeoutId);
       return response as OpenAICompletionResponse;
-
     } catch (error) {
       if (error instanceof ServiceTimeoutError) {
         throw error;
       }
 
       // Handle different types of errors
-      if (error && typeof error === 'object' && 'status' in error) {
+      if (error && typeof error === "object" && "status" in error) {
         const statusCode = (error as { status: number }).status;
         throw new ServiceAPIError(
           `API request failed with status ${statusCode}`,
           this.name,
           statusCode,
-          error
+          error,
         );
       }
 
@@ -224,7 +239,7 @@ export abstract class OpenAICompatibleService extends BaseAIService {
         `API request failed: ${error instanceof Error ? error.message : String(error)}`,
         this.name,
         undefined,
-        error
+        error,
       );
     }
   }
@@ -232,27 +247,31 @@ export abstract class OpenAICompatibleService extends BaseAIService {
   /**
    * Parse the API response and extract the content
    */
-  protected parseResponse(apiResponse: OpenAICompletionResponse): ServiceResponse {
+  protected parseResponse(
+    apiResponse: OpenAICompletionResponse,
+  ): ServiceResponse {
     const choice = apiResponse.choices[0];
     if (!choice?.message?.content) {
       throw new ServiceAPIError(
-        'Invalid API response: missing content',
+        "Invalid API response: missing content",
         this.name,
         undefined,
-        apiResponse
+        apiResponse,
       );
     }
 
     return {
       content: choice.message.content.trim(),
-      usage: apiResponse.usage ? {
-        promptTokens: apiResponse.usage.prompt_tokens,
-        completionTokens: apiResponse.usage.completion_tokens,
-        totalTokens: apiResponse.usage.total_tokens
-      } : undefined,
+      usage: apiResponse.usage
+        ? {
+            promptTokens: apiResponse.usage.prompt_tokens,
+            completionTokens: apiResponse.usage.completion_tokens,
+            totalTokens: apiResponse.usage.total_tokens,
+          }
+        : undefined,
       model: apiResponse.model,
       finishReason: choice.finish_reason,
-      rawResponse: apiResponse
+      rawResponse: apiResponse,
     };
   }
 
@@ -269,7 +288,7 @@ export abstract class OpenAICompatibleService extends BaseAIService {
    */
   protected async performGenerateResponse(
     messages: Message[],
-    context?: Record<string, unknown>
+    context?: Record<string, unknown>,
   ): Promise<ServiceResponse> {
     // Format messages for API
     const formattedMessages = this.formatMessages(messages);
@@ -329,7 +348,6 @@ export abstract class OpenAICompatibleService extends BaseAIService {
       this.logHealthCheckDetails("response", { url, response: apiResponse });
       const response = this.parseResponse(apiResponse);
       return response.content.length > 0;
-
     } catch (error) {
       this.logger?.debug("Health check failed", {
         service: this.name,
@@ -344,7 +362,7 @@ export abstract class OpenAICompatibleService extends BaseAIService {
    */
   protected async performShutdown(): Promise<void> {
     this.client = null;
-    this.logger?.info('Service shut down', { service: this.name });
+    this.logger?.info("Service shut down", { service: this.name });
   }
 
   /**
@@ -353,7 +371,7 @@ export abstract class OpenAICompatibleService extends BaseAIService {
   protected async performConnectionReset(): Promise<void> {
     this.client = null;
     await this.performInitialization();
-    this.logger?.info('Connection reset', { service: this.name });
+    this.logger?.info("Connection reset", { service: this.name });
   }
 
   /**
@@ -364,7 +382,9 @@ export abstract class OpenAICompatibleService extends BaseAIService {
       ...super.getMetadata(),
       baseURL: this.baseURL,
       hasClient: !!this.client,
-      supportsStreaming: (this.config as OpenAICompatibleServiceConfig).supportsStreaming ?? true
+      supportsStreaming:
+        (this.config as OpenAICompatibleServiceConfig).supportsStreaming ??
+        true,
     };
   }
 }
