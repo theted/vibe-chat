@@ -46,6 +46,7 @@ import {
 type ChatOrchestratorOptions = {
   maxMessages?: number;
   maxAIMessages?: number;
+  maxConcurrentResponses?: number;
   minUserResponseDelay?: number;
   maxUserResponseDelay?: number;
   minBackgroundDelay?: number;
@@ -54,6 +55,14 @@ type ChatOrchestratorOptions = {
   maxDelayBetweenAI?: number;
   topicChangeChance?: number;
   verboseContextLogging?: boolean;
+};
+
+type QueuedResponse = {
+  aiId: string;
+  roomId: string;
+  isUserResponse: boolean;
+  options: GenerateResponseOptions;
+  scheduledTime: number;
 };
 
 type GenerateResponseOptions = {
@@ -84,6 +93,11 @@ export class ChatOrchestrator extends EventEmitter {
   backgroundConversationTimer: NodeJS.Timeout | null;
   topicChangeChance: number;
   verboseContextLogging: boolean;
+  // Response queue for concurrency limiting
+  maxConcurrentResponses: number;
+  responseQueue: QueuedResponse[];
+  activeResponseCount: number;
+  isProcessingQueue: boolean;
 
   /**
    * Create a ChatOrchestrator instance.
@@ -121,6 +135,13 @@ export class ChatOrchestrator extends EventEmitter {
     this.backgroundConversationTimer = null;
     this.topicChangeChance =
       options.topicChangeChance || DEFAULTS.TOPIC_CHANGE_CHANCE;
+
+    // Response queue initialization
+    this.maxConcurrentResponses =
+      options.maxConcurrentResponses || DEFAULTS.MAX_CONCURRENT_RESPONSES;
+    this.responseQueue = [];
+    this.activeResponseCount = 0;
+    this.isProcessingQueue = false;
 
     const envVerboseFlag = parseBooleanEnvFlag(
       getEnvFlag("AI_CHAT_VERBOSE_CONTEXT")
@@ -348,6 +369,7 @@ export class ChatOrchestrator extends EventEmitter {
 
     const responders = [...uniqueMentioned, ...additionalResponders];
 
+    // Queue responses instead of firing all at once
     responders.forEach((aiId, index) => {
       const isMentioned = uniqueMentioned.includes(aiId);
       const delay = this.calculateResponseDelay(
@@ -357,13 +379,82 @@ export class ChatOrchestrator extends EventEmitter {
         typingAICount
       );
 
-      setTimeout(() => {
-        this.generateAIResponse(aiId, roomId, isUserResponse, {
+      const queuedResponse: QueuedResponse = {
+        aiId,
+        roomId,
+        isUserResponse,
+        options: {
           isMentioned,
           triggerMessage: lastMessage,
-        });
-      }, delay);
+        },
+        scheduledTime: Date.now() + delay,
+      };
+
+      this.responseQueue.push(queuedResponse);
     });
+
+    // Sort queue by scheduled time
+    this.responseQueue.sort((a, b) => a.scheduledTime - b.scheduledTime);
+
+    // Start processing the queue
+    this.processResponseQueue();
+  }
+
+  /**
+   * Process queued responses respecting concurrency limit
+   */
+  processResponseQueue() {
+    if (this.isProcessingQueue) return;
+    this.isProcessingQueue = true;
+
+    const processNext = () => {
+      // Check if we can process more responses
+      if (
+        this.responseQueue.length === 0 ||
+        this.activeResponseCount >= this.maxConcurrentResponses
+      ) {
+        this.isProcessingQueue = false;
+        return;
+      }
+
+      const now = Date.now();
+      const nextResponse = this.responseQueue[0];
+
+      // Wait until scheduled time
+      const waitTime = Math.max(0, nextResponse.scheduledTime - now);
+
+      setTimeout(() => {
+        // Re-check conditions after wait
+        if (
+          this.messageTracker.isAsleep ||
+          this.activeResponseCount >= this.maxConcurrentResponses
+        ) {
+          this.isProcessingQueue = false;
+          // Retry later if we're at capacity
+          if (this.responseQueue.length > 0) {
+            setTimeout(() => this.processResponseQueue(), 1000);
+          }
+          return;
+        }
+
+        // Remove from queue and process
+        const response = this.responseQueue.shift();
+        if (response) {
+          this.activeResponseCount++;
+          this.generateAIResponse(
+            response.aiId,
+            response.roomId,
+            response.isUserResponse,
+            response.options
+          );
+        }
+
+        // Continue processing
+        processNext();
+      }, waitTime);
+    };
+
+    processNext();
   }
 
   /**
@@ -515,7 +606,13 @@ export class ChatOrchestrator extends EventEmitter {
       });
     } finally {
       aiService.isGenerating = false;
+      this.activeResponseCount = Math.max(0, this.activeResponseCount - 1);
       this.emit("ai-generating-stop", aiMeta);
+
+      // Process next queued response now that we have capacity
+      if (this.responseQueue.length > 0) {
+        this.processResponseQueue();
+      }
     }
   }
 
@@ -725,5 +822,7 @@ export class ChatOrchestrator extends EventEmitter {
     this.activeAIs = [];
     this.contextManager.clear();
     this.messageBroker.clearQueue();
+    this.responseQueue = [];
+    this.activeResponseCount = 0;
   }
 }
