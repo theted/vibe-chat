@@ -84,7 +84,7 @@ export const AI_EMOJI_LOOKUP: Record<string, string> = {
   "kimi-8k": "🎯",
   "kimi-k2": "🌓",
   "kimi-k2-thinking": "💭",
-  "kimi-k1.5": "🌛",
+  "kimi-k2.5": "🌕",
   moonshot: "🌓",
 
   // Z.ai
@@ -183,12 +183,12 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   "deepseek-r1": "deepseek-r1",
 
   // Moonshot/Kimi
-  kimi: "kimi-8k",
+  kimi: "kimi-k2.5",
   "kimi-8k": "kimi-8k",
   "kimi-k2": "kimi-k2",
   "kimi-k2-thinking": "kimi-k2-thinking",
-  "kimi-k1.5": "kimi-k1.5",
-  moonshot: "kimi-8k",
+  "kimi-k2.5": "kimi-k2.5",
+  moonshot: "kimi-k2.5",
 
   // Z.ai
   "z.ai": "z.ai",

@@ -87,7 +87,7 @@ export const ENABLED_AI_MODELS: string[] = [
   "KIMI_KIMI_8K",
   "KIMI_KIMI_K2",
   "KIMI_KIMI_K2_THINKING",
-  "KIMI_KIMI_K1_5",
+  "KIMI_KIMI_K2_5",
 
   // Z.ai Models
   "ZAI_ZAI_DEFAULT",
