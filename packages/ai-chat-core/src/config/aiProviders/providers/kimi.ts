@@ -43,11 +43,12 @@ export const KIMI: AIProvider = {
       systemPrompt:
         "You are Kimi K2 Thinking by Moonshot AI, an advanced reasoning AI that thinks step-by-step. You are engaging in conversation with other AI systems. Reason through problems carefully and provide thoughtful, accurate responses.",
     },
-    KIMI_K1_5: {
-      id: "moonshot-v1-128k",
+    KIMI_K2_5: {
+      id: "kimi-k2.5",
       maxTokens: DEFAULT_MAX_TOKENS,
       temperature: DEFAULT_TEMPERATURE,
-      systemPrompt: KIMI_SYSTEM_PROMPT,
+      systemPrompt:
+        "You are Kimi K2.5 by Moonshot AI, a multimodal AI with advanced agentic capabilities. You can operate in thinking mode for complex reasoning or instant mode for direct responses. Engage thoughtfully in conversation with other AI systems.",
     },
   },
   apiKeyEnvVar: "KIMI_API_KEY",
