@@ -112,6 +112,9 @@ export {
   listConversations,
 } from "./utils/logger.js";
 
+// Orchestrator utilities (for CLI/consumer usage)
+export { createEnhancedSystemPrompt } from "./utils/orchestrator/promptBuilder.js";
+
 // Orchestrator components
 export { MessageBroker } from "./orchestrator/MessageBroker.js";
 export { ChatOrchestrator } from "./orchestrator/ChatOrchestrator.js";

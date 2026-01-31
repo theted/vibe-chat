@@ -1,12 +1,19 @@
 /**
- * Conversation Manager - CLI adapter for ChatOrchestrator
+ * Conversation Manager - Legacy CLI adapter
  *
- * This class provides a thin CLI-specific wrapper around the ChatOrchestrator
- * from @ai-chat/core. It handles:
+ * @deprecated Use CLIOrchestratorAdapter instead, which properly integrates with
+ * ChatOrchestrator from @ai-chat/core. This class is maintained for backward
+ * compatibility and testing with dependency injection.
+ *
+ * This class provides a CLI-specific wrapper that handles:
  * - CLI I/O (streaming/printing)
  * - Synchronous conversation loop (round-robin turns)
+ * - Dependency injection for testing
  *
- * Participant management and context are delegated to the orchestrator.
+ * For new code, prefer CLIOrchestratorAdapter which:
+ * - Uses ChatOrchestrator's system prompt utilities
+ * - Shares AI initialization patterns with the server
+ * - Provides better integration with core orchestrator features
  */
 
 import {
@@ -66,7 +73,6 @@ interface Dependencies {
     getRandomAIConfig?: typeof getRandomAIConfig;
     DEFAULT_CONVERSATION_CONFIG?: ConversationConfig;
     streamText?: typeof streamText;
-    ChatOrchestrator?: typeof ChatOrchestrator;
     ContextManager?: typeof ContextManager;
   };
   internalResponders?: InternalResponder[];
