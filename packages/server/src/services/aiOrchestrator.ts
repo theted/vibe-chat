@@ -3,7 +3,7 @@ import {
   type AIConfig,
   PROVIDER_ENV_VARS,
   getProviderAIConfigs,
-} from "../config/aiModels.js";
+} from "@/config/aiModels.js";
 
 type OrchestratorAIServiceInfo = {
   emoji?: string;

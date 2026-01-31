@@ -6,7 +6,7 @@
 
 import fs from "fs";
 import path from "path";
-import type { Message } from "../types/index.js";
+import type { Message } from "@/types/index.js";
 
 interface ConversationData {
   topic: string;

@@ -1,5 +1,5 @@
-import type { IAIService } from "../../types/index.js";
-import { normalizeAlias, toMentionAlias } from "../stringUtils.js";
+import type { IAIService } from "@/types/index.js";
+import { normalizeAlias, toMentionAlias } from "@/utils/stringUtils.js";
 
 export type OrchestratorAIService = {
   id?: string;

@@ -1,8 +1,8 @@
-import type { OpenAIMessage } from "../../types/index.js";
+import type { OpenAIMessage } from "@/types/index.js";
 import {
   OpenAIClient,
   ServiceAPIError,
-} from "../../types/services.js";
+} from "@/types/services.js";
 
 type ResponsesPayloadOptions = {
   model: string;

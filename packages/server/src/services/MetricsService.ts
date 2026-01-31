@@ -11,7 +11,7 @@ import type {
   MetricsSnapshot,
   ProviderErrorLogEntry,
   ProviderModelStats,
-} from "../types.js";
+} from "@/types.js";
 import type { RedisClient } from "./RedisClient.js";
 
 type MetricsServiceOptions = {

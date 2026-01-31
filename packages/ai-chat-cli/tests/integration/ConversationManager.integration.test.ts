@@ -1,7 +1,7 @@
 import { beforeEach, describe, it, mock } from "node:test";
 import assert from "node:assert/strict";
 import type { AIServiceConfig } from "@ai-chat/core";
-import { ConversationManager } from "../../src/conversation/ConversationManager.js";
+import { ConversationManager } from "@/conversation/ConversationManager.js";
 
 type ParticipantConfig = Pick<AIServiceConfig, "provider" | "model">;
 type StreamCall = { text: string; prefix: string; delay: number };

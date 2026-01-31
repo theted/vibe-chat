@@ -1,4 +1,4 @@
-import { CONTEXT_LIMITS } from "../../orchestrator/constants.js";
+import { CONTEXT_LIMITS } from "@/orchestrator/constants.js";
 
 export const truncateResponse = (response) => {
   if (response && typeof response === "object" && "content" in response) {

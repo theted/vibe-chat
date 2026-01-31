@@ -21,8 +21,8 @@ import type {
   IAIService,
   Message as CoreMessage,
 } from "@ai-chat/core";
-import { statsTracker } from "../services/StatsTracker.js";
-import { STREAM_WORD_DELAY_MS } from "../config/constants.js";
+import { statsTracker } from "@/services/StatsTracker.js";
+import { STREAM_WORD_DELAY_MS } from "@/config/constants.js";
 
 // Define interfaces
 type ConversationMessage = Omit<CoreMessage, "timestamp"> & {

@@ -15,7 +15,7 @@ vi.mock("./Icon", () => ({
   default: ({ name }: { name: string }) => <span data-testid={`icon-${name}`}>{name}</span>,
 }));
 
-vi.mock("../config/aiParticipants", () => ({
+vi.mock("@/config/aiParticipants", () => ({
   DEFAULT_AI_PARTICIPANTS: [
     { id: "ALPHA", name: "Alpha", alias: "alpha", provider: "Test", emoji: "🅰️" },
     { id: "BETA", name: "Beta", alias: "beta", provider: "Test", emoji: "🅱️" },

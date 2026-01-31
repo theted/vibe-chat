@@ -2,18 +2,18 @@ import type { IncomingHttpHeaders } from "http";
 import type { Server, Socket } from "socket.io";
 import type { ChatOrchestrator } from "@ai-chat/core";
 
-import { RoomManager } from "../managers/RoomManager.js";
-import { AIMessageTracker } from "../managers/AIMessageTracker.js";
-import { RateLimiter } from "../services/RateLimiter.js";
-import type { ChatAssistantService } from "../services/ChatAssistantService.js";
-import type { MetricsService } from "../services/MetricsService.js";
-import type { RedisClient } from "../services/RedisClient.js";
+import { RoomManager } from "@/managers/RoomManager.js";
+import { AIMessageTracker } from "@/managers/AIMessageTracker.js";
+import { RateLimiter } from "@/services/RateLimiter.js";
+import type { ChatAssistantService } from "@/services/ChatAssistantService.js";
+import type { MetricsService } from "@/services/MetricsService.js";
+import type { RedisClient } from "@/services/RedisClient.js";
 import type {
   ActiveAIParticipant,
   ChatAssistantMetadata,
   ChatMessage,
   ConnectedUser,
-} from "../types.js";
+} from "@/types.js";
 
 type ChatAssistantOrigin = {
   type?: "user" | "ai" | string;

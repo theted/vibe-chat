@@ -4,8 +4,8 @@ import {
   STRATEGY_ADJUSTMENTS,
   STRATEGY_INSTRUCTIONS,
   STRATEGY_WEIGHTS,
-} from "../../orchestrator/constants.js";
-import { normalizeAlias } from "../stringUtils.js";
+} from "@/orchestrator/constants.js";
+import { normalizeAlias } from "@/utils/stringUtils.js";
 
 type StrategyOption = {
   type: string;

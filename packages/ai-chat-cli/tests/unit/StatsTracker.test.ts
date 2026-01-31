@@ -1,12 +1,12 @@
 import { afterEach, describe, it, mock } from "node:test";
 import assert from "node:assert/strict";
 import type { RedisClientType } from "redis";
-import { StatsTracker } from "../../src/services/StatsTracker.js";
+import { StatsTracker } from "@/services/StatsTracker.js";
 import {
   STATS_MAX_CONTENT_LENGTH,
   STATS_TOTAL_AI_MESSAGES_KEY,
   STATS_TOTAL_MESSAGES_KEY,
-} from "../../src/config/statsConstants.js";
+} from "@/config/statsConstants.js";
 
 const originalRedisUrl = process.env.REDIS_URL;
 
