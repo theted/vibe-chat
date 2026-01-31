@@ -6,6 +6,7 @@
 export const DEFAULTS = {
   MAX_MESSAGES: 100,
   MAX_AI_MESSAGES: 10,
+  MAX_CONCURRENT_RESPONSES: 3, // Hard limit on simultaneous AI responses
   MIN_USER_RESPONSE_DELAY: 1000, // 1 second
   MAX_USER_RESPONSE_DELAY: 10000, // 10 seconds
   MIN_BACKGROUND_DELAY: 10000, // 10 seconds
