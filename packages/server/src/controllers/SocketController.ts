@@ -1,88 +1,30 @@
-import type { IncomingHttpHeaders } from "http";
 import type { Server, Socket } from "socket.io";
 import type { ChatOrchestrator } from "@ai-chat/core";
 
 import { RoomManager } from "@/managers/RoomManager.js";
 import { AIMessageTracker } from "@/managers/AIMessageTracker.js";
 import { RateLimiter } from "@/services/RateLimiter.js";
+import { MessageHistoryService } from "@/services/MessageHistoryService.js";
 import type { ChatAssistantService } from "@/services/ChatAssistantService.js";
 import type { MetricsService } from "@/services/MetricsService.js";
 import type { RedisClient } from "@/services/RedisClient.js";
+import { getClientIp } from "@/utils/httpUtils.js";
+import { transformAIServicesToParticipants } from "@/utils/aiServiceUtils.js";
 import type {
   ActiveAIParticipant,
   ChatAssistantMetadata,
+  ChatAssistantOrigin,
   ChatMessage,
   ConnectedUser,
+  JoinRoomPayload,
+  MetricsHistoryPayload,
+  TopicChangePayload,
+  TriggerChatAssistantPayload,
+  UserMessagePayload,
 } from "@/types.js";
 
-type ChatAssistantOrigin = {
-  type?: "user" | "ai" | string;
-  sender?: string;
-  username?: string;
-  aiId?: string;
-  isInternalResponder?: boolean;
-};
-
-type TriggerChatAssistantPayload = {
-  roomId: string;
-  content: string;
-  origin?: ChatAssistantOrigin;
-};
-
-type JoinRoomPayload = {
-  username?: string;
-  roomId?: string;
-};
-
-type UserMessagePayload = {
-  content?: string;
-};
-
-type TopicChangePayload = {
-  topic?: string;
-};
-
-type MetricsHistoryPayload = {
-  duration?: number;
-};
-
-type OrchestratorAIServiceInfo = {
-  id?: string;
-  name?: string;
-  displayName?: string;
-  displayAlias?: string;
-  alias?: string;
-  normalizedAlias?: string;
-  emoji?: string;
-  config?: {
-    providerKey?: string;
-  };
-  isActive?: boolean;
-};
-
-const RECENT_MESSAGE_LIMIT = 20;
-const MESSAGE_TTL_SECONDS = 60 * 60 * 24 * 7; // 7 days
 const USER_MESSAGE_LIMIT = 10;
 const USER_MESSAGE_WINDOW_MS = 10 * 60 * 1000;
-
-const toOrchestratorAIServiceInfo = (
-  value: unknown
-): OrchestratorAIServiceInfo | null => {
-  if (!value || typeof value !== "object") {
-    return null;
-  }
-  return value as OrchestratorAIServiceInfo;
-};
-
-const resolveText = (value: unknown, fallback: string): string => {
-  if (typeof value === "string") {
-    const trimmed = value.trim();
-    if (trimmed) {
-      return trimmed;
-    }
-  }
-  return fallback;
-};
 
 /**
  * Handles Socket.IO events and chat state for each room.
@@ -91,8 +33,7 @@ export class SocketController {
   private io: Server;
   private chatOrchestrator: ChatOrchestrator;
   private metricsService: MetricsService;
-  private redisClient: RedisClient | null;
-  private recentMessageLimit: number;
+  private messageHistory: MessageHistoryService;
   private previewRoomId: string;
   roomManager: RoomManager;
   private aiTracker: AIMessageTracker;
@@ -119,8 +60,7 @@ export class SocketController {
     this.io = io;
     this.chatOrchestrator = chatOrchestrator;
     this.metricsService = metricsService;
-    this.redisClient = redisClient;
-    this.recentMessageLimit = RECENT_MESSAGE_LIMIT;
+    this.messageHistory = new MessageHistoryService({ redisClient });
     this.previewRoomId = "preview-default-room";
     this.roomManager = new RoomManager();
     this.aiTracker = new AIMessageTracker();
@@ -232,7 +172,7 @@ export class SocketController {
     roomId: string
   ): Promise<void> {
     try {
-      await this.storeMessage(roomId, message);
+      await this.messageHistory.storeMessage(roomId, message);
     } catch (error) {
       const messageText = error instanceof Error ? error.message : String(error);
       console.warn("Failed to persist message history:", messageText);
@@ -489,7 +429,7 @@ export class SocketController {
         return;
       }
 
-      const ipAddress = this.getClientIp(socket);
+      const ipAddress = getClientIp(socket);
       const rateLimitResult = await this.rateLimiter.check(ipAddress);
 
       if (!rateLimitResult.allowed) {
@@ -557,39 +497,6 @@ export class SocketController {
       console.error("Error handling user message:", error);
       socket.emit("error", { message: "Failed to send message" });
     }
-  }
-
-  getClientIp(socket: Socket): string | null {
-    const headers = (socket.handshake?.headers || {}) as IncomingHttpHeaders;
-
-    const forwarded = headers["x-forwarded-for"];
-    if (forwarded) {
-      const forwardedValue = Array.isArray(forwarded)
-        ? forwarded[0]
-        : forwarded;
-      const forwardedIps = forwardedValue
-        .split(",")
-        .map((part) => part.trim())
-        .filter(Boolean);
-      if (forwardedIps.length > 0) {
-        return forwardedIps[0];
-      }
-    }
-
-    const realIpHeader = headers["x-real-ip"] || headers["cf-connecting-ip"];
-    if (realIpHeader) {
-      const realIp = Array.isArray(realIpHeader)
-        ? realIpHeader[0]
-        : realIpHeader;
-      return realIp;
-    }
-
-    return (
-      socket.handshake?.address ||
-      socket.conn?.remoteAddress ||
-      socket.request?.connection?.remoteAddress ||
-      null
-    );
   }
 
   /**
@@ -713,114 +620,18 @@ export class SocketController {
     }
   }
 
-  getRoomMessageKey(roomId = "default"): string {
-    return `ai-chat:rooms:${roomId}:messages`;
-  }
-
-  async storeMessage(
-    roomId = "default",
-    message: ChatMessage
-  ): Promise<void> {
-    if (!this.redisClient) return;
-
-    const key = this.getRoomMessageKey(roomId);
-    const storedMessage = {
-      ...message,
-      roomId,
-      timestamp: message.timestamp || Date.now(),
-      storedAt: Date.now(),
-    };
-
-    try {
-      await this.redisClient
-        .multi()
-        .lPush(key, JSON.stringify(storedMessage))
-        .lTrim(key, 0, this.recentMessageLimit - 1)
-        .expire(key, MESSAGE_TTL_SECONDS)
-        .exec();
-    } catch (error) {
-      const messageText = error instanceof Error ? error.message : String(error);
-      console.warn("Failed to store message in Redis:", messageText);
-    }
+  getActiveAIParticipants(): ActiveAIParticipant[] {
+    return transformAIServicesToParticipants(this.chatOrchestrator.aiServices);
   }
 
   async getRecentMessages(roomId = "default"): Promise<ChatMessage[]> {
-    if (!this.redisClient) {
-      // Fallback to in-memory context
-      return this.chatOrchestrator
-        .contextManager
-        .getContextForAI(this.recentMessageLimit)
-        .map((ctx) => ({
-          id: ctx.id || `ctx-${ctx.timestamp || Date.now()}-${Math.random().toString(16).slice(2)}`,
-          sender: ctx.sender || "unknown",
-          displayName: ctx.displayName || ctx.sender || "unknown",
-          alias: ctx.alias || ctx.sender || "unknown",
-          normalizedAlias: ctx.normalizedAlias,
-          content: ctx.content,
-          senderType: ctx.senderType || "user",
-          timestamp: ctx.timestamp || Date.now(),
-          roomId,
-        })) as ChatMessage[];
-    }
-
-    const key = this.getRoomMessageKey(roomId);
-    try {
-      const entries = await this.redisClient.lRange(key, 0, this.recentMessageLimit - 1);
-      const parsedEntries = entries
-        .map((entry) => {
-          try {
-            const parsed = JSON.parse(entry) as ChatMessage;
-            return {
-              ...parsed,
-              timestamp: parsed.timestamp || parsed.storedAt || Date.now(),
-              roomId: parsed.roomId || roomId,
-            };
-          } catch (error) {
-            return null;
-          }
-        })
-        .filter(Boolean) as ChatMessage[];
-      return parsedEntries.reverse();
-    } catch (error) {
-      const messageText = error instanceof Error ? error.message : String(error);
-      console.warn("Failed to load recent messages from Redis:", messageText);
-      return [];
-    }
+    return this.messageHistory.getRecentMessages(
+      roomId,
+      this.chatOrchestrator.contextManager
+    );
   }
 
-  getActiveAIParticipants(): ActiveAIParticipant[] {
-    return Array.from(this.chatOrchestrator.aiServices.values())
-      .map(toOrchestratorAIServiceInfo)
-      .filter((ai): ai is OrchestratorAIServiceInfo => ai !== null)
-      .map((ai) => {
-        const name = resolveText(ai.name, "AI");
-        const displayName = resolveText(ai.displayName, name);
-        const alias = resolveText(
-          ai.displayAlias,
-          resolveText(ai.alias, displayName)
-        );
-        const normalizedAlias = resolveText(ai.normalizedAlias, alias);
-
-        return {
-          id: resolveText(ai.id, alias),
-          name: displayName,
-          displayName,
-          alias,
-          mentionAlias: resolveText(ai.alias, alias),
-          normalizedAlias,
-          emoji: ai.emoji,
-          provider:
-            ai.config?.providerKey?.toUpperCase?.() ||
-            resolveText(ai.name, "AI"),
-          status: ai.isActive ? "active" : "inactive",
-        };
-      });
-  }
-
-  async sendRecentMessages(
-    socket: Socket,
-    roomId = "default"
-  ): Promise<void> {
+  async sendRecentMessages(socket: Socket, roomId = "default"): Promise<void> {
     try {
       const [messages, participants, aiParticipants] = await Promise.all([
         this.getRecentMessages(roomId),
@@ -835,7 +646,8 @@ export class SocketController {
         aiParticipants,
       });
     } catch (error) {
-      const messageText = error instanceof Error ? error.message : String(error);
+      const messageText =
+        error instanceof Error ? error.message : String(error);
       console.warn("Failed to send recent messages:", messageText);
     }
   }

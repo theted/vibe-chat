@@ -4,21 +4,10 @@ import {
   PROVIDER_ENV_VARS,
   getProviderAIConfigs,
 } from "@/config/aiModels.js";
-
-type OrchestratorAIServiceInfo = {
-  emoji?: string;
-  displayName?: string;
-  name?: string;
-};
-
-const toOrchestratorAIServiceInfo = (
-  value: unknown
-): OrchestratorAIServiceInfo | null => {
-  if (!value || typeof value !== "object") {
-    return null;
-  }
-  return value as OrchestratorAIServiceInfo;
-};
+import {
+  toOrchestratorAIServiceInfo,
+  type OrchestratorAIServiceInfo,
+} from "@/utils/aiServiceUtils.js";
 
 export const initializeAISystem = async (): Promise<ChatOrchestrator> => {
   console.log("🤖 Initializing AI Chat System...");
