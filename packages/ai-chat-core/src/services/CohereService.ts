@@ -10,7 +10,7 @@ import { OpenAIClient } from "@/types/services.js";
 import { AIServiceConfig, ServiceInitOptions } from "@/types/index.js";
 import OpenAI from "openai";
 
-const COHERE_BASE_URL = "https://api.cohere.ai/v1";
+const COHERE_BASE_URL = "https://api.cohere.ai/compatibility/v1";
 
 export class CohereService extends OpenAICompatibleService {
   constructor(config: AIServiceConfig) {
