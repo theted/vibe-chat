@@ -5,10 +5,10 @@
 import {
   IContextManager,
   ContextMessage,
-  ContextManagerConfig
-} from '@/types/orchestrator.js';
-import { Message } from '@/types/index.js';
-import { normalizeAlias, parseMentions } from '@/utils/stringUtils.js';
+  ContextManagerConfig,
+} from "@/types/orchestrator.js";
+import { Message } from "@/types/index.js";
+import { normalizeAlias, parseMentions } from "@/utils/stringUtils.js";
 
 export class ContextManager implements IContextManager {
   private messages: ContextMessage[] = [];
@@ -18,7 +18,7 @@ export class ContextManager implements IContextManager {
     this.config = {
       maxMessages,
       includeMetadata: true,
-      preserveMentions: true
+      preserveMentions: true,
     };
   }
 
@@ -35,10 +35,11 @@ export class ContextManager implements IContextManager {
 
     const displayName = (message as any).displayName || (message as any).sender;
     const alias = (message as any).alias || displayName;
-    const normalizedAlias = (message as any).normalizedAlias || normalizeAlias(alias);
+    const normalizedAlias =
+      (message as any).normalizedAlias || normalizeAlias(alias);
 
     const contextMessage: ContextMessage = {
-      role: (message as any).senderType === 'user' ? 'user' : 'assistant',
+      role: (message as any).senderType === "user" ? "user" : "assistant",
       content: message.content,
       timestamp: message.timestamp,
       sender: (message as any).sender,
@@ -50,7 +51,7 @@ export class ContextManager implements IContextManager {
       modelKey: (message as any).modelKey,
       mentions,
       mentionsNormalized: normalized,
-      id: (message as any).id
+      id: (message as any).id,
     };
 
     if (this.messages.length >= this.config.maxMessages) {
@@ -107,21 +108,23 @@ export class ContextManager implements IContextManager {
    * Get the last message
    */
   getLastMessage(): ContextMessage | null {
-    return this.messages.length > 0 ? this.messages[this.messages.length - 1] : null;
+    return this.messages.length > 0
+      ? this.messages[this.messages.length - 1]
+      : null;
   }
 
   /**
    * Get messages from a specific sender
    */
   getMessagesBySender(sender: string): ContextMessage[] {
-    return this.messages.filter(msg => msg.sender === sender);
+    return this.messages.filter((msg) => msg.sender === sender);
   }
 
   /**
    * Get messages by role
    */
-  getMessagesByRole(role: 'user' | 'assistant'): ContextMessage[] {
-    return this.messages.filter(msg => msg.role === role);
+  getMessagesByRole(role: "user" | "assistant"): ContextMessage[] {
+    return this.messages.filter((msg) => msg.role === role);
   }
 
   /**
@@ -154,21 +157,24 @@ export class ContextManager implements IContextManager {
    * Get context metrics
    */
   getMetrics(): Record<string, unknown> {
-    const userMessages = this.getMessagesByRole('user');
-    const assistantMessages = this.getMessagesByRole('assistant');
+    const userMessages = this.getMessagesByRole("user");
+    const assistantMessages = this.getMessagesByRole("assistant");
 
     return {
       totalMessages: this.messages.length,
       userMessages: userMessages.length,
       assistantMessages: assistantMessages.length,
       maxMessages: this.config.maxMessages,
-      utilizationPercent: (this.messages.length / this.config.maxMessages) * 100,
-      oldestMessageAge: this.messages.length > 0
-        ? Date.now() - this.messages[0].timestamp
-        : null,
-      newestMessageAge: this.messages.length > 0
-        ? Date.now() - this.messages[this.messages.length - 1].timestamp
-        : null
+      utilizationPercent:
+        (this.messages.length / this.config.maxMessages) * 100,
+      oldestMessageAge:
+        this.messages.length > 0
+          ? Date.now() - this.messages[0].timestamp
+          : null,
+      newestMessageAge:
+        this.messages.length > 0
+          ? Date.now() - this.messages[this.messages.length - 1].timestamp
+          : null,
     };
   }
 
@@ -176,7 +182,9 @@ export class ContextManager implements IContextManager {
    * Find messages containing mentions
    */
   getMessagesWithMentions(): ContextMessage[] {
-    return this.messages.filter(msg => msg.mentions && msg.mentions.length > 0);
+    return this.messages.filter(
+      (msg) => msg.mentions && msg.mentions.length > 0,
+    );
   }
 
   /**
@@ -188,10 +196,13 @@ export class ContextManager implements IContextManager {
     }
 
     const recentMessages = this.getRecentContext(5);
-    const summary = recentMessages.map(msg => {
-      const role = msg.role === 'user' ? 'User' : (msg.displayName || 'Assistant');
-      return `${role}: ${msg.content.substring(0, 100)}${msg.content.length > 100 ? '...' : ''}`;
-    }).join('\n');
+    const summary = recentMessages
+      .map((msg) => {
+        const role =
+          msg.role === "user" ? "User" : msg.displayName || "Assistant";
+        return `${role}: ${msg.content.substring(0, 100)}${msg.content.length > 100 ? "..." : ""}`;
+      })
+      .join("\n");
 
     return `Recent conversation:\n${summary}`;
   }

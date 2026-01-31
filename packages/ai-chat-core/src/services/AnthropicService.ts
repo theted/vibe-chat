@@ -6,7 +6,12 @@
 
 import { BaseAIService } from "./base/BaseAIService.js";
 import Anthropic from "@anthropic-ai/sdk";
-import { Message, ServiceResponse, AnthropicServiceConfig, ServiceInitOptions } from "@/types/index.js";
+import {
+  Message,
+  ServiceResponse,
+  AnthropicServiceConfig,
+  ServiceInitOptions,
+} from "@/types/index.js";
 import { ServiceError } from "@/types/services.js";
 import { DEFAULT_MAX_TOKENS } from "@/config/aiProviders/constants.js";
 
@@ -25,7 +30,9 @@ export class AnthropicService extends BaseAIService {
   /**
    * Initialize the Anthropic client
    */
-  protected async performInitialization(_options?: ServiceInitOptions): Promise<void> {
+  protected async performInitialization(
+    _options?: ServiceInitOptions,
+  ): Promise<void> {
     this.client = new Anthropic({
       apiKey: process.env[this.config.provider.apiKeyEnvVar],
     });
@@ -34,13 +41,20 @@ export class AnthropicService extends BaseAIService {
   /**
    * Generate a response using Anthropic
    */
-  protected async performGenerateResponse(messages: Message[], _context?: Record<string, unknown>): Promise<ServiceResponse> {
+  protected async performGenerateResponse(
+    messages: Message[],
+    _context?: Record<string, unknown>,
+  ): Promise<ServiceResponse> {
     if (!this.client) {
       await this.performInitialization();
     }
 
     if (!this.client) {
-      throw new ServiceError("Anthropic client not initialized", "initialization", this.name);
+      throw new ServiceError(
+        "Anthropic client not initialized",
+        "initialization",
+        this.name,
+      );
     }
 
     // Extract system message if present
@@ -49,7 +63,7 @@ export class AnthropicService extends BaseAIService {
 
     // Find and extract system message
     const systemMessageIndex = messages.findIndex(
-      (msg) => msg.role === "system"
+      (msg) => msg.role === "system",
     );
 
     if (systemMessageIndex !== -1) {
@@ -88,10 +102,12 @@ export class AnthropicService extends BaseAIService {
           usage: {
             promptTokens: response.usage?.input_tokens || 0,
             completionTokens: response.usage?.output_tokens || 0,
-            totalTokens: (response.usage?.input_tokens || 0) + (response.usage?.output_tokens || 0)
+            totalTokens:
+              (response.usage?.input_tokens || 0) +
+              (response.usage?.output_tokens || 0),
           },
           model: this.config.model.id,
-          finishReason: response.stop_reason || "completed"
+          finishReason: response.stop_reason || "completed",
         };
       }
 
@@ -112,17 +128,19 @@ export class AnthropicService extends BaseAIService {
         usage: {
           promptTokens: response.usage?.input_tokens || 0,
           completionTokens: response.usage?.output_tokens || 0,
-          totalTokens: (response.usage?.input_tokens || 0) + (response.usage?.output_tokens || 0)
+          totalTokens:
+            (response.usage?.input_tokens || 0) +
+            (response.usage?.output_tokens || 0),
         },
         model: this.config.model.id,
-        finishReason: response.stop_reason || "completed"
+        finishReason: response.stop_reason || "completed",
       };
     }
 
     throw new ServiceError(
       "Failed to parse Anthropic response: unexpected response structure",
       "response_parsing",
-      this.name
+      this.name,
     );
   }
 
@@ -138,7 +156,9 @@ export class AnthropicService extends BaseAIService {
     const payload = {
       model: this.config.model.id,
       messages: testMessages.map((message) => ({
-        role: (message.role === "user" ? "user" : "assistant") as "user" | "assistant",
+        role: (message.role === "user" ? "user" : "assistant") as
+          | "user"
+          | "assistant",
         content: message.content.trim(),
       })),
       max_tokens: this.config.model.maxTokens || DEFAULT_MAX_TOKENS,

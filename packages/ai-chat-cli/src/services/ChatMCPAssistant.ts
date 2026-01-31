@@ -56,7 +56,7 @@ export class ChatMCPAssistant {
         ? scriptPath
         : path.resolve(
             this.projectRoot,
-            scriptPath || path.join("dist", "scripts", "run-mcp-chat.js")
+            scriptPath || path.join("dist", "scripts", "run-mcp-chat.js"),
           );
   }
 
@@ -68,7 +68,9 @@ export class ChatMCPAssistant {
     return Boolean(message?.content && this.mentionRegex.test(message.content));
   }
 
-  async handleMessage({ message }: HandleMessageParams): Promise<AssistantResponse | null> {
+  async handleMessage({
+    message,
+  }: HandleMessageParams): Promise<AssistantResponse | null> {
     const question = this.#extractQuestion(message?.content);
     if (!question) {
       return null;
@@ -119,7 +121,7 @@ export class ChatMCPAssistant {
         {
           cwd: this.projectRoot,
           stdio: ["ignore", "pipe", "pipe"],
-        }
+        },
       );
 
       let stdout = "";
@@ -149,8 +151,8 @@ export class ChatMCPAssistant {
         }
         reject(
           new Error(
-            stderr.trim() || `generator exited with status code ${code}`
-          )
+            stderr.trim() || `generator exited with status code ${code}`,
+          ),
         );
       });
     });

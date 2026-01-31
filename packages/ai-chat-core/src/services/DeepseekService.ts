@@ -17,7 +17,10 @@ export class DeepseekService extends OpenAICompatibleService {
     super(config, "Deepseek");
   }
 
-  protected createClient(apiKey: string, options?: ServiceInitOptions): OpenAIClient {
+  protected createClient(
+    apiKey: string,
+    options?: ServiceInitOptions,
+  ): OpenAIClient {
     return new OpenAI({
       apiKey,
       baseURL: options?.baseURL || DEEPSEEK_BASE_URL,

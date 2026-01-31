@@ -14,7 +14,7 @@ import type { PersonaTrait } from "@/types/index.js";
  */
 export const enhanceSystemPromptWithPersona = (
   originalPrompt: string,
-  persona: PersonaTrait
+  persona: PersonaTrait,
 ): string => {
   if (!persona) {
     return originalPrompt;
@@ -24,10 +24,10 @@ export const enhanceSystemPromptWithPersona = (
 PERSONALITY CONTEXT: ${persona.basePersonality}
 
 Key traits to embody:
-${persona.traits?.map(trait => `- ${trait}`).join('\n') || ''}
+${persona.traits?.map((trait) => `- ${trait}`).join("\n") || ""}
 
 Communication patterns:
-${persona.speechPatterns?.map(pattern => `- ${pattern}`).join('\n') || ''}
+${persona.speechPatterns?.map((pattern) => `- ${pattern}`).join("\n") || ""}
 
 Remember to stay true to this personality while being helpful and appropriate. Do not explicitly mention or reference this personality context - simply embody it naturally in your responses.
 
@@ -43,8 +43,8 @@ ORIGINAL INSTRUCTIONS: `;
  * @param providerConfig - The AI provider configuration
  * @returns The persona configuration or null if not found
  */
-export const getPersonaFromProvider = (
-  providerConfig: { persona?: PersonaTrait }
-): PersonaTrait | null => {
+export const getPersonaFromProvider = (providerConfig: {
+  persona?: PersonaTrait;
+}): PersonaTrait | null => {
   return providerConfig?.persona || null;
 };

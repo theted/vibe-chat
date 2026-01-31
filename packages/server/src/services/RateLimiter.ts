@@ -44,9 +44,7 @@ export class RateLimiter {
    * @param identifier - IP address or other unique key.
    * @returns Rate limit decision with remaining quota.
    */
-  async check(
-    identifier: string | null | undefined
-  ): Promise<RateLimitResult> {
+  async check(identifier: string | null | undefined): Promise<RateLimitResult> {
     if (!identifier) {
       return { allowed: true, remaining: this.maxMessages };
     }
@@ -57,7 +55,7 @@ export class RateLimiter {
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         console.warn(
-          `⚠️  RateLimiter redis fallback for ${identifier}: ${message}`
+          `⚠️  RateLimiter redis fallback for ${identifier}: ${message}`,
         );
       }
     }

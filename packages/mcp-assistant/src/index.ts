@@ -109,8 +109,8 @@ export class LangChainMcpServer {
     const {
       rootDir = process.cwd(),
       chromaUrl = process.env.CHROMA_URL || DEFAULT_CHROMA_URL,
-      collectionName =
-        process.env.CHAT_ASSISTANT_COLLECTION || DEFAULT_COLLECTION_NAME,
+      collectionName = process.env.CHAT_ASSISTANT_COLLECTION ||
+        DEFAULT_COLLECTION_NAME,
       embeddingModel = DEFAULT_EMBEDDING_MODEL,
       completionModel = DEFAULT_COMPLETION_MODEL,
       openAiApiKey = process.env.OPENAI_API_KEY,
@@ -118,7 +118,7 @@ export class LangChainMcpServer {
 
     if (!openAiApiKey) {
       throw new Error(
-        "OPENAI_API_KEY is required to initialise LangChainMcpServer."
+        "OPENAI_API_KEY is required to initialise LangChainMcpServer.",
       );
     }
 
@@ -130,7 +130,7 @@ export class LangChainMcpServer {
     this.openAiApiKey = openAiApiKey;
 
     console.log(
-      `[MCP Debug] Initializing ChromaClient with URL: ${this.chromaUrl}`
+      `[MCP Debug] Initializing ChromaClient with URL: ${this.chromaUrl}`,
     );
     console.log(`[MCP Debug] Target collection: ${this.collectionName}`);
 
@@ -138,11 +138,11 @@ export class LangChainMcpServer {
     try {
       const url = new URL(this.chromaUrl);
       console.log(
-        `[MCP Debug] Parsed Chroma URL - protocol: ${url.protocol}, host: ${url.host}, port: ${url.port || "default"}`
+        `[MCP Debug] Parsed Chroma URL - protocol: ${url.protocol}, host: ${url.host}, port: ${url.port || "default"}`,
       );
     } catch (error) {
       console.error(
-        `[MCP Debug] ❌ Invalid Chroma URL format: ${this.chromaUrl}`
+        `[MCP Debug] ❌ Invalid Chroma URL format: ${this.chromaUrl}`,
       );
     }
 
@@ -213,7 +213,7 @@ export class LangChainMcpServer {
 
   static #unavailableError(chromaUrl: string, originalError: ErrorWithCode) {
     const error = new Error(
-      `Unable to reach Chroma vector store at ${chromaUrl}. Ensure the service is running and reachable.`
+      `Unable to reach Chroma vector store at ${chromaUrl}. Ensure the service is running and reachable.`,
     ) as ErrorWithCode;
     error.code = VECTOR_STORE_UNAVAILABLE_CODE;
     error.cause = originalError;
@@ -222,7 +222,7 @@ export class LangChainMcpServer {
 
   async ensureCollection(): Promise<boolean> {
     console.log(
-      `[MCP Debug] Attempting to connect to Chroma at ${this.chromaUrl}`
+      `[MCP Debug] Attempting to connect to Chroma at ${this.chromaUrl}`,
     );
     console.log(`[MCP Debug] Looking for collection: ${this.collectionName}`);
 
@@ -232,7 +232,7 @@ export class LangChainMcpServer {
         embeddingFunction: this.embeddingFunction,
       });
       console.log(
-        `[MCP Debug] ✅ Successfully retrieved collection "${this.collectionName}"`
+        `[MCP Debug] ✅ Successfully retrieved collection "${this.collectionName}"`,
       );
 
       const count = await collection.count();
@@ -249,20 +249,20 @@ export class LangChainMcpServer {
 
       if (LangChainMcpServer.#isMissingCollection(error)) {
         console.warn(
-          `[MCP] ⚠️  Chroma collection "${this.collectionName}" not found.`
+          `[MCP] ⚠️  Chroma collection "${this.collectionName}" not found.`,
         );
         console.warn(
-          `[MCP] To create and populate the collection, run: npm run build && node dist/scripts/index-mcp-chat.js`
+          `[MCP] To create and populate the collection, run: npm run build && node dist/scripts/index-mcp-chat.js`,
         );
         console.warn(
-          `[MCP] Or set CHAT_ASSISTANT_AUTO_INDEX=true to auto-create on startup.`
+          `[MCP] Or set CHAT_ASSISTANT_AUTO_INDEX=true to auto-create on startup.`,
         );
         return false;
       }
 
       if (LangChainMcpServer.#isUnavailable(error)) {
         console.error(
-          `[MCP Debug] Connection to Chroma failed - service appears unreachable`
+          `[MCP Debug] Connection to Chroma failed - service appears unreachable`,
         );
         throw LangChainMcpServer.#unavailableError(this.chromaUrl, error);
       }
@@ -275,7 +275,7 @@ export class LangChainMcpServer {
     const exists = await this.ensureCollection();
     if (!exists) {
       const error = new Error(
-        `Embedding store "${this.collectionName}" not found at ${this.chromaUrl}. Run the indexing script first.`
+        `Embedding store "${this.collectionName}" not found at ${this.chromaUrl}. Run the indexing script first.`,
       ) as ErrorWithCode;
       error.code = EMBEDDING_STORE_MISSING_CODE;
       throw error;
@@ -285,20 +285,20 @@ export class LangChainMcpServer {
 
   async answerQuestion(
     question: string,
-    options: AnswerQuestionOptions = {}
+    options: AnswerQuestionOptions = {},
   ): Promise<AnswerResult> {
     const { topK = 5, chatHistory = [] } = options;
     const normalizedQuestion = question?.toString().trim() || "";
 
     const normalizedHistory: NormalizedHistoryMessage[] = Array.isArray(
-      chatHistory
+      chatHistory,
     )
       ? chatHistory
           .filter(
             (message) =>
               message &&
               typeof message.content === "string" &&
-              message.content.trim()
+              message.content.trim(),
           )
           .slice(-CHAT_HISTORY_LIMIT)
           .map((message) => ({
@@ -325,7 +325,7 @@ export class LangChainMcpServer {
       : normalizedQuestion;
 
     console.log(
-      `[MCP Debug] Answering question (topK=${topK}): "${normalizedQuestion}" with ${normalizedHistory.length} history messages`
+      `[MCP Debug] Answering question (topK=${topK}): "${normalizedQuestion}" with ${normalizedHistory.length} history messages`,
     );
 
     let collection: Awaited<
@@ -333,7 +333,7 @@ export class LangChainMcpServer {
     >;
     try {
       console.log(
-        `[MCP Debug] Fetching collection "${this.collectionName}" for query...`
+        `[MCP Debug] Fetching collection "${this.collectionName}" for query...`,
       );
       collection = await this.client.getCollection({
         name: this.collectionName,
@@ -343,7 +343,7 @@ export class LangChainMcpServer {
     } catch (error) {
       console.error(
         `[MCP Debug] ❌ Failed to retrieve collection for query:`,
-        error.message
+        error.message,
       );
       if (LangChainMcpServer.#isMissingCollection(error as ErrorWithCode)) {
         return {
@@ -355,7 +355,7 @@ export class LangChainMcpServer {
       if (LangChainMcpServer.#isUnavailable(error as ErrorWithCode)) {
         throw LangChainMcpServer.#unavailableError(
           this.chromaUrl,
-          error as ErrorWithCode
+          error as ErrorWithCode,
         );
       }
       throw error;
@@ -365,7 +365,7 @@ export class LangChainMcpServer {
     try {
       console.log(`[MCP Debug] Embedding query with OpenAI...`);
       const queryEmbedding = await this.embeddings.embedQuery(
-        queryWithHistory || normalizedQuestion
+        queryWithHistory || normalizedQuestion,
       );
       console.log(`[MCP Debug] Query embedded, searching Chroma collection...`);
       queryResult = (await collection.query({
@@ -380,14 +380,14 @@ export class LangChainMcpServer {
       console.log(
         `[MCP Debug] ✅ Query completed, found ${
           queryResult.documents?.[0]?.length || 0
-        } results`
+        } results`,
       );
     } catch (error) {
       console.error(`[MCP Debug] ❌ Query failed:`, error.message);
       if (LangChainMcpServer.#isUnavailable(error as ErrorWithCode)) {
         throw LangChainMcpServer.#unavailableError(
           this.chromaUrl,
-          error as ErrorWithCode
+          error as ErrorWithCode,
         );
       }
       throw error;
@@ -414,7 +414,9 @@ export class LangChainMcpServer {
         endLine: metadata.endLine || null,
         content,
         score:
-          typeof distance === "number" ? Number(distance) : metadata.score || null,
+          typeof distance === "number"
+            ? Number(distance)
+            : metadata.score || null,
       };
     });
 
@@ -458,7 +460,7 @@ export class LangChainMcpServer {
             `- ${buildSourceLabel(ctx, idx)} – ${ctx.content
               .replace(/\s+/g, " ")
               .trim()
-              .slice(0, 200)}`
+              .slice(0, 200)}`,
         ),
       ].join("\n");
       answerText = fallback;
@@ -476,7 +478,7 @@ export class LangChainMcpServer {
  * @param options - MCP server configuration.
  */
 export const createLocalCodeMcpServer = (
-  options: LangChainMcpServerOptions = {}
+  options: LangChainMcpServerOptions = {},
 ): LangChainMcpServer => new LangChainMcpServer(options);
 
 export const MCP_ERROR_CODES = {

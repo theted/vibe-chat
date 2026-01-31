@@ -31,11 +31,7 @@ import {
   createGracefulShutdownHandler,
   createServerCleanup,
 } from "./utils/serverLifecycle.js";
-import {
-  allowedOrigins,
-  clientUrl,
-  port,
-} from "./config/serverConfig.js";
+import { allowedOrigins, clientUrl, port } from "./config/serverConfig.js";
 
 dotenv.config();
 
@@ -90,7 +86,7 @@ async function startServer(): Promise<void> {
           console.warn(
             `⚠️  Chat assistant disabled: ${
               error.message || "initialisation failed"
-            }`
+            }`,
           );
           chatAssistantService = null;
           const socketController = getSocketController();
@@ -105,7 +101,7 @@ async function startServer(): Promise<void> {
       console.warn(
         `⚠️  Chat assistant disabled: ${
           error.message || "initialisation failed"
-        }`
+        }`,
       );
     }
 
@@ -115,13 +111,9 @@ async function startServer(): Promise<void> {
 
     // Create socket controller
     setSocketController(
-      new SocketController(
-        io,
-        chatOrchestrator,
-        metricsService,
-        redisClient,
-        { chatAssistantService }
-      )
+      new SocketController(io, chatOrchestrator, metricsService, redisClient, {
+        chatAssistantService,
+      }),
     );
 
     // Handle Socket.IO connections
@@ -166,7 +158,7 @@ async function startServer(): Promise<void> {
       } catch (flushError) {
         console.error(
           "⚠️  Additionally failed to flush metrics to Redis:",
-          flushError
+          flushError,
         );
       }
     }
@@ -179,7 +171,7 @@ async function startServer(): Promise<void> {
       } catch (redisError) {
         console.error(
           "⚠️  Additionally failed to close Redis connection:",
-          redisError
+          redisError,
         );
       }
     }
@@ -192,7 +184,7 @@ process.on(
   "unhandledRejection",
   (reason: unknown, promise: Promise<unknown>) => {
     console.error("Unhandled Rejection at:", promise, "reason:", reason);
-  }
+  },
 );
 
 process.on("uncaughtException", (error: Error) => {

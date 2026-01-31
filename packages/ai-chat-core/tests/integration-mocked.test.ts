@@ -41,7 +41,7 @@ if (!providerConfig) {
 const [modelKey] = Object.keys(providerConfig.models);
 if (!modelKey) {
   throw new Error(
-    `No models available for provider ${providerConfig.name} in mocked integration test.`
+    `No models available for provider ${providerConfig.name} in mocked integration test.`,
   );
 }
 
@@ -51,7 +51,7 @@ let previousRegistry: Record<string, ServiceConstructor> | null = null;
 beforeEach(() => {
   envState.set(
     providerConfig.apiKeyEnvVar,
-    process.env[providerConfig.apiKeyEnvVar]
+    process.env[providerConfig.apiKeyEnvVar],
   );
   process.env[providerConfig.apiKeyEnvVar] = "test-key";
   previousRegistry = AIServiceFactory.__getServiceRegistryForTesting();

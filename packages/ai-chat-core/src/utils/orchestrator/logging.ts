@@ -6,7 +6,9 @@ export const logAIContext = (aiService, messages, verboseContextLogging) => {
   const provider = aiService.config?.providerKey || "unknown";
   const model =
     aiService.config?.modelKey || aiService.service?.getModel?.() || "unknown";
-  console.log(`📝 [Verbose] Prompt for ${aiService.name} (${provider}:${model})`);
+  console.log(
+    `📝 [Verbose] Prompt for ${aiService.name} (${provider}:${model})`,
+  );
 
   messages.forEach((message, index) => {
     const parts = [];

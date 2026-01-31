@@ -159,7 +159,7 @@ export class AIMessageTracker {
   updateMaxMessages(roomId: string, maxMessages: number): void {
     const tracker = this.getOrCreateTracker(roomId);
     tracker.maxMessages = maxMessages;
-    
+
     // If current count exceeds new limit, put to sleep
     if (tracker.messageCount >= maxMessages) {
       this.putAIsToSleep(roomId, "max-messages-updated");
@@ -188,12 +188,15 @@ export class AIMessageTracker {
    */
   getStats(): AITrackerStats {
     const totalRooms = this.roomTrackers.size;
-    const sleepingRooms = Array.from(this.roomTrackers.values())
-      .filter((tracker) => tracker.isAsleep).length;
+    const sleepingRooms = Array.from(this.roomTrackers.values()).filter(
+      (tracker) => tracker.isAsleep,
+    ).length;
     const activeRooms = totalRooms - sleepingRooms;
-    
-    const totalMessages = Array.from(this.roomTrackers.values())
-      .reduce((sum, tracker) => sum + tracker.messageCount, 0);
+
+    const totalMessages = Array.from(this.roomTrackers.values()).reduce(
+      (sum, tracker) => sum + tracker.messageCount,
+      0,
+    );
 
     return {
       totalRooms,
@@ -208,7 +211,8 @@ export class AIMessageTracker {
    * Cleanup old room trackers
    * @param {number} maxAge - Max age in milliseconds
    */
-  cleanup(maxAge = 24 * 60 * 60 * 1000): number { // 24 hours default
+  cleanup(maxAge = 24 * 60 * 60 * 1000): number {
+    // 24 hours default
     const now = Date.now();
     const toRemove = [];
 

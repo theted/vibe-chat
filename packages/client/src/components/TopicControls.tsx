@@ -2,18 +2,22 @@
  * TopicControls Component - Controls for changing chat topic
  */
 
-import { useState, type FormEvent } from 'react';
-import Icon from './Icon';
-import type { TopicControlsProps } from '@/types';
+import { useState, type FormEvent } from "react";
+import Icon from "./Icon";
+import type { TopicControlsProps } from "@/types";
 
-const TopicControls = ({ currentTopic, onTopicChange, disabled = false }: TopicControlsProps) => {
-  const [newTopic, setNewTopic] = useState('');
+const TopicControls = ({
+  currentTopic,
+  onTopicChange,
+  disabled = false,
+}: TopicControlsProps) => {
+  const [newTopic, setNewTopic] = useState("");
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (newTopic.trim() && !disabled) {
       onTopicChange(newTopic.trim());
-      setNewTopic('');
+      setNewTopic("");
     }
   };
 

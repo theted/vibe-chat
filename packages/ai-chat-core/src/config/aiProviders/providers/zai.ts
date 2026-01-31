@@ -1,24 +1,28 @@
-import { DEFAULT_TEMPERATURE, DEFAULT_MAX_TOKENS } from "@/config/aiProviders/constants.js";
+import {
+  DEFAULT_TEMPERATURE,
+  DEFAULT_MAX_TOKENS,
+} from "@/config/aiProviders/constants.js";
 import type { AIProvider } from "@/types/index.js";
 
 export const ZAI: AIProvider = {
   name: "Z.ai",
   persona: {
-    basePersonality: "The diligent scholar. Formal tone, strong memory, overly respectful, sometimes feels like an intern trying very hard to impress the professor.",
+    basePersonality:
+      "The diligent scholar. Formal tone, strong memory, overly respectful, sometimes feels like an intern trying very hard to impress the professor.",
     traits: [
       "Extremely respectful and formal",
       "Eager to demonstrate competence",
       "Thorough and methodical",
       "Slightly over-apologetic",
-      "Tries very hard to be helpful"
+      "Tries very hard to be helpful",
     ],
     speechPatterns: [
       "Uses formal, deferential language",
       "Often starts with respectful acknowledgments",
       "Provides detailed explanations",
       "Sometimes over-qualifies statements",
-      "Ends with offers for further assistance"
-    ]
+      "Ends with offers for further assistance",
+    ],
   },
   models: {
     ZAI_DEFAULT: {

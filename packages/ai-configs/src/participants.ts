@@ -473,9 +473,11 @@ export const getParticipantById = (id: string): AiParticipant | undefined =>
 /**
  * Get participant by alias
  */
-export const getParticipantByAlias = (alias: string): AiParticipant | undefined =>
+export const getParticipantByAlias = (
+  alias: string,
+): AiParticipant | undefined =>
   DEFAULT_AI_PARTICIPANTS.find(
-    (p) => p.alias.toLowerCase() === alias.toLowerCase()
+    (p) => p.alias.toLowerCase() === alias.toLowerCase(),
   );
 
 /**
@@ -489,5 +491,5 @@ export const getActiveParticipants = (): AiParticipant[] =>
  */
 export const getParticipantsByProvider = (provider: string): AiParticipant[] =>
   DEFAULT_AI_PARTICIPANTS.filter(
-    (p) => p.provider.toLowerCase() === provider.toLowerCase()
+    (p) => p.provider.toLowerCase() === provider.toLowerCase(),
   );

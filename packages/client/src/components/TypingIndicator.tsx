@@ -2,20 +2,26 @@
  * TypingIndicator Component - Shows when someone is typing
  */
 
-import type { TypingIndicatorProps, TypingParticipant } from '@/types';
+import type { TypingIndicatorProps, TypingParticipant } from "@/types";
 
-const TypingIndicator = ({ typingUsers = [], typingAIs = [] }: TypingIndicatorProps) => {
+const TypingIndicator = ({
+  typingUsers = [],
+  typingAIs = [],
+}: TypingIndicatorProps) => {
   const otherTypingUsers = typingUsers.filter((user) => !user.isLocal);
   const allTyping: TypingParticipant[] = [...otherTypingUsers, ...typingAIs];
 
   if (allTyping.length === 0) return null;
 
   const getDisplayName = (participant: TypingParticipant): string =>
-    participant.displayName || participant.name || 'Participant';
+    participant.displayName || participant.name || "Participant";
 
   const formatParticipant = (participant: TypingParticipant): string => {
-    const fallbackEmoji = participant.type === 'ai' ? '🤖' : '🧑';
-    const emoji = participant.type === 'ai' ? (participant.emoji || fallbackEmoji) : fallbackEmoji;
+    const fallbackEmoji = participant.type === "ai" ? "🤖" : "🧑";
+    const emoji =
+      participant.type === "ai"
+        ? participant.emoji || fallbackEmoji
+        : fallbackEmoji;
     return `${emoji} ${getDisplayName(participant)}`;
   };
 
@@ -46,14 +52,14 @@ const TypingIndicator = ({ typingUsers = [], typingAIs = [] }: TypingIndicatorPr
           <div
             key={`${user.type}-${user.id || user.name || index}`}
             className={`w-6 h-6 rounded-full border-2 border-white flex items-center justify-center text-xs font-semibold animate-pulse dark:border-slate-900 ${
-              user.type === 'ai'
-                ? 'bg-gradient-to-br from-purple-400 to-purple-600 text-white dark:from-purple-500 dark:to-purple-700'
-                : 'bg-gradient-to-br from-blue-400 to-blue-600 text-white dark:from-blue-400 dark:to-blue-700'
+              user.type === "ai"
+                ? "bg-gradient-to-br from-purple-400 to-purple-600 text-white dark:from-purple-500 dark:to-purple-700"
+                : "bg-gradient-to-br from-blue-400 to-blue-600 text-white dark:from-blue-400 dark:to-blue-700"
             }`}
             style={{ animationDelay: `${index * 100}ms` }}
           >
-            {user.type === 'ai'
-              ? user.emoji || '🤖'
+            {user.type === "ai"
+              ? user.emoji || "🤖"
               : getDisplayName(user).charAt(0).toUpperCase()}
           </div>
         ))}

@@ -24,7 +24,7 @@ export type OrchestratorAIService = {
 
 export const findAIByNormalizedAlias = (
   aiServices: Map<string, OrchestratorAIService>,
-  normalizedAlias?: string | null
+  normalizedAlias?: string | null,
 ) => {
   if (!normalizedAlias) return null;
   for (const ai of aiServices.values()) {
@@ -39,7 +39,7 @@ export const findAIByNormalizedAlias = (
 
 export const findAIFromContextMessage = (
   aiServices: Map<string, OrchestratorAIService>,
-  message
+  message,
 ) => {
   if (!message) return null;
 
@@ -55,10 +55,7 @@ export const findAIFromContextMessage = (
   ].filter(Boolean);
 
   for (const candidate of candidates) {
-    const ai = findAIByNormalizedAlias(
-      aiServices,
-      normalizeAlias(candidate)
-    );
+    const ai = findAIByNormalizedAlias(aiServices, normalizeAlias(candidate));
     if (ai) return ai;
   }
 

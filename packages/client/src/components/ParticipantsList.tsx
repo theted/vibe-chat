@@ -3,11 +3,14 @@
  */
 
 import { motion } from "framer-motion";
-import { DEFAULT_AI_PARTICIPANTS, type AiParticipant } from "@/config/aiParticipants";
+import {
+  DEFAULT_AI_PARTICIPANTS,
+  type AiParticipant,
+} from "@/config/aiParticipants";
 import Icon from "./Icon";
 import AnimatedListItem from "./AnimatedListItem";
 import SectionHeader from "./SectionHeader";
-import type { ParticipantsListProps, TypingUser, TypingAI } from '@/types';
+import type { ParticipantsListProps, TypingUser, TypingAI } from "@/types";
 
 interface NormalizedAiParticipant extends AiParticipant {
   displayName: string;
@@ -31,7 +34,8 @@ const ParticipantsList = ({
           .replace(/[^a-z0-9]/g, "")
       : "";
 
-  const baseAIList = aiParticipants.length > 0 ? aiParticipants : DEFAULT_AI_PARTICIPANTS;
+  const baseAIList =
+    aiParticipants.length > 0 ? aiParticipants : DEFAULT_AI_PARTICIPANTS;
   const aiList: NormalizedAiParticipant[] = baseAIList.map((ai) => {
     const alias = ai.alias || ai.name;
     return {
@@ -53,7 +57,7 @@ const ParticipantsList = ({
   }, new Map<string, NormalizedAiParticipant[]>());
 
   const sortedProviders = Array.from(aiProviders.keys()).sort((a, b) =>
-    a.localeCompare(b)
+    a.localeCompare(b),
   );
 
   const getModelSortKey = (ai: NormalizedAiParticipant): string =>
@@ -69,7 +73,7 @@ const ParticipantsList = ({
 
   const isAITyping = (aiEntry: NormalizedAiParticipant): boolean => {
     const normalizedTarget = normalize(
-      aiEntry.alias || aiEntry.name || aiEntry.displayName
+      aiEntry.alias || aiEntry.name || aiEntry.displayName,
     );
     return typingAIs.some((ai) => {
       if (ai.id && aiEntry.id && ai.id === aiEntry.id) return true;
@@ -106,7 +110,11 @@ const ParticipantsList = ({
         {/* Users */}
         {participants.length > 0 && (
           <div className="border-b border-slate-100 dark:border-slate-800/60">
-            <SectionHeader icon="users" title="Users" count={participants.length} />
+            <SectionHeader
+              icon="users"
+              title="Users"
+              count={participants.length}
+            />
             <div className="pb-2">
               {participants.map((participant, index) => {
                 const typing = isUserTyping(participant.username);
@@ -145,13 +153,19 @@ const ParticipantsList = ({
 
         {/* AI Participants */}
         <div>
-          <SectionHeader icon="monitor" title="AI Assistants" count={aiList.length} />
+          <SectionHeader
+            icon="monitor"
+            title="AI Assistants"
+            count={aiList.length}
+          />
           <div className="pb-2">
             {(() => {
               let aiIndex = 0;
               return sortedProviders.map((provider) => {
-                const providerParticipants = [...aiProviders.get(provider)!].sort(
-                  (a, b) => getModelSortKey(a).localeCompare(getModelSortKey(b))
+                const providerParticipants = [
+                  ...aiProviders.get(provider)!,
+                ].sort((a, b) =>
+                  getModelSortKey(a).localeCompare(getModelSortKey(b)),
                 );
 
                 return (

@@ -1,8 +1,5 @@
 import type { OpenAIMessage } from "@/types/index.js";
-import {
-  OpenAIClient,
-  ServiceAPIError,
-} from "@/types/services.js";
+import { OpenAIClient, ServiceAPIError } from "@/types/services.js";
 
 type ResponsesPayloadOptions = {
   model: string;
@@ -14,12 +11,15 @@ type ResponsesPayloadOptions = {
 
 export const ensureResponsesClient = (
   client: OpenAIClient | null,
-  serviceName: string
+  serviceName: string,
 ): OpenAIClient => {
-  if (!client || !(client as OpenAIClient & { responses?: unknown }).responses) {
+  if (
+    !client ||
+    !(client as OpenAIClient & { responses?: unknown }).responses
+  ) {
     throw new ServiceAPIError(
       "Responses API is not available on this OpenAI client",
-      serviceName
+      serviceName,
     );
   }
 
@@ -58,7 +58,7 @@ export const buildResponsesPayload = ({
 
 export const extractTextFromResponses = (
   response: unknown,
-  serviceName: string
+  serviceName: string,
 ): string => {
   if (
     typeof (response as { output_text?: string })?.output_text === "string" &&
@@ -88,6 +88,6 @@ export const extractTextFromResponses = (
     "Invalid API response: missing content",
     serviceName,
     undefined,
-    response
+    response,
   );
 };

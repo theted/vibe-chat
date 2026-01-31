@@ -55,6 +55,7 @@ ai-chat/
    ```
 
 3. Create a `.env` file based on `.env.example` and add your API keys:
+
    ```bash
    cp .env.example .env
    # Edit .env and add your API keys
@@ -83,6 +84,7 @@ npm run cli grok gemini "Nature of consciousness?" 8
 ```
 
 Provider aliases:
+
 - `gemeni` (typo) and `google` resolve to `gemini`
 - `moonshot` resolves to `kimi`
 - `z` and `z.ai` resolve to `zai`
@@ -130,6 +132,7 @@ node packages/ai-chat-cli/dist/scripts/run-mcp-chat.js --question "How are messa
 Current defaults and IDs (see `packages/ai-chat-core/src/config/aiProviders`):
 
 ### OpenAI ([API keys](https://platform.openai.com/api-keys))
+
 - `GPT4O` → `gpt-4o`
 - `GPT4_1` → `gpt-4.1` (specialized for coding)
 - `GPT5` → `gpt-5` (most advanced with multimodal)
@@ -139,12 +142,14 @@ Current defaults and IDs (see `packages/ai-chat-core/src/config/aiProviders`):
 - `GPT35_TURBO` → `gpt-3.5-turbo`
 
 ### Anthropic ([API keys](https://console.anthropic.com/settings/keys))
+
 - `CLAUDE3_7_SONNET` → `claude-3-7-sonnet-20250219` (hybrid reasoning)
 - `CLAUDE_SONNET_4_5` (default) → `claude-sonnet-4-5` (best coding model)
 - `CLAUDE_OPUS_4_5` → `claude-opus-4-5`
 - `CLAUDE_OPUS_4_1` → `claude-opus-4-1` (industry leader for coding/agents)
 
 ### Mistral ([API keys](https://console.mistral.ai/api-keys))
+
 - `MISTRAL_LARGE` → `mistral-large-latest`
 - `MISTRAL_MEDIUM` → `mistral-medium-latest`
 - `MISTRAL_SMALL` → `mistral-small-latest`
@@ -153,18 +158,21 @@ Current defaults and IDs (see `packages/ai-chat-core/src/config/aiProviders`):
 - `CODESTRAL` → `codestral-latest`
 
 ### Gemini ([API keys](https://aistudio.google.com/app/apikey))
+
 - `GEMINI_PRO` → `gemini-2.0-flash-exp`
 - `GEMINI_FLASH` → `gemini-2.0-flash`
 - `GEMINI_25` (default) → `gemini-2.5-pro`
 - `GEMINI_3` → `gemini-3.0-pro`
 
 ### DeepSeek ([API keys](https://platform.deepseek.com/api_keys))
+
 - `DEEPSEEK_CHAT` → `deepseek-chat`
 - `DEEPSEEK_V3` → `deepseek-v3`
 - `DEEPSEEK_V3_2` → `deepseek-v3.2`
 - `DEEPSEEK_R1` → `deepseek-reasoner`
 
 ### Grok ([API keys](https://console.x.ai/keys))
+
 - `GROK_3` (default) → `grok-3`
 - `GROK_3_MINI` → `grok-3-mini`
 - `GROK_4_0709` → `grok-4-0709`
@@ -173,11 +181,13 @@ Current defaults and IDs (see `packages/ai-chat-core/src/config/aiProviders`):
 - `GROK_CODE_FAST_1` → `grok-code-fast-1` (agentic coding)
 
 ### Cohere ([API keys](https://dashboard.cohere.com/api-keys))
+
 - `COMMAND_A_03_2025` (default) → `command-a-03-2025`
 - `COMMAND_A_REASONING_08_2025` → `command-a-reasoning-08-2025`
 - `COMMAND_R_PLUS_08_2024` → `command-r-plus-08-2024`
 
 ### Z.ai ([API keys](https://z.ai/manage-apikey/apikey-list))
+
 - `ZAI_DEFAULT` (default) → `glm-4.6`
 - `ZAI_GLM_4_7` → `glm-4.7`
 - `ZAI_GLM_4_7_FLASH` → `glm-4.7-flash`
@@ -192,6 +202,7 @@ Current defaults and IDs (see `packages/ai-chat-core/src/config/aiProviders`):
 Define these in `.env` (see `.env.example`):
 
 ### Required (by provider you use)
+
 - `OPENAI_API_KEY`
 - `ANTHROPIC_API_KEY`
 - `GOOGLE_AI_API_KEY` (Gemini)
@@ -205,22 +216,26 @@ Define these in `.env` (see `.env.example`):
 - `TOGETHER_API_KEY`
 
 ### Server Configuration
+
 - `PORT` (default `3001`)
 - `CLIENT_URL` (default `http://localhost:3000`)
 - `REDIS_URL` (default `redis://localhost:6379`)
 - `CHROMA_URL` (default `http://localhost:8000`)
 
 ### Server Behavior Flags
+
 - `AI_CHAT_VERBOSE_CONTEXT` (default `false`)
 - `AI_CHAT_ENABLE_PERSONAS` (default `false`)
 - `AI_CHAT_SKIP_HEALTHCHECK` (default `false`)
 
 ### MCP/RAG Assistant
+
 - `CHAT_ASSISTANT_SCRIPT` (default `./packages/ai-chat-cli/dist/scripts/run-mcp-chat.js`)
 - `CHAT_ASSISTANT_AUTO_INDEX` (default `false`)
 - `CHAT_ASSISTANT_COLLECTION` (default `ai-chat-workspace`)
 
 ### Optional Base URLs
+
 - `QWEN_BASE_URL` (e.g. `https://dashscope.aliyuncs.com/compatible-mode/v1`)
 - `KIMI_BASE_URL` (default `https://api.moonshot.ai/v1`)
 - `Z_BASE_URL` or `ZAI_BASE_URL` (default `https://api.z.ai/v1`)

@@ -19,10 +19,13 @@ import {
   DEFAULT_MODELS,
   streamText,
 } from "@ai-chat/core";
-import type { AIModel, AIProvider, AIServiceConfig, Message } from "@ai-chat/core";
-import {
-  statsTracker,
-} from "./services/StatsTracker.js";
+import type {
+  AIModel,
+  AIProvider,
+  AIServiceConfig,
+  Message,
+} from "@ai-chat/core";
+import { statsTracker } from "./services/StatsTracker.js";
 import { ChatMCPAssistant } from "./services/ChatMCPAssistant.js";
 import {
   DEFAULT_TOPIC,
@@ -80,7 +83,10 @@ interface ConversationOptions {
   maxTurns: number;
   singlePromptMode?: boolean;
   existingResponses?: ConversationHistoryEntry[];
-  initialConversation?: Array<{ role: "user" | "assistant" | "system"; content: string }>;
+  initialConversation?: Array<{
+    role: "user" | "assistant" | "system";
+    content: string;
+  }>;
   metadata?: Record<string, unknown>;
 }
 
@@ -95,7 +101,8 @@ interface ContinueOptions {
  */
 const toMessages = (entries: ConversationHistoryEntry[]): Message[] =>
   entries.map((entry) => {
-    const role: Message["role"] = entry.role || (entry.from === "User" ? "user" : "assistant");
+    const role: Message["role"] =
+      entry.role || (entry.from === "User" ? "user" : "assistant");
     return { role, content: entry.content };
   });
 
@@ -111,7 +118,7 @@ const normalizeProviderInput = (providerName: string): string =>
 const resolveProviderKey = (providerName: string): ProviderKey => {
   const normalized = normalizeProviderInput(providerName);
   const providerKey = (Object.keys(AI_PROVIDERS) as ProviderKey[]).find(
-    (key) => key.toLowerCase() === normalized
+    (key) => key.toLowerCase() === normalized,
   );
 
   if (!providerKey) {
@@ -121,7 +128,9 @@ const resolveProviderKey = (providerName: string): ProviderKey => {
   return providerKey;
 };
 
-const createOrchestratorAdapter = async (config: { maxTurns?: number; timeoutMs?: number } = {}): Promise<CLIOrchestratorAdapter> => {
+const createOrchestratorAdapter = async (
+  config: { maxTurns?: number; timeoutMs?: number } = {},
+): Promise<CLIOrchestratorAdapter> => {
   const chatAssistant = new ChatMCPAssistant({
     mentionName: "Chat",
     projectRoot,
@@ -136,7 +145,7 @@ const createOrchestratorAdapter = async (config: { maxTurns?: number; timeoutMs?
     responders.push(chatAssistant);
   } catch (error: unknown) {
     console.error(
-      `Warning: Chat assistant initialisation failed (${getErrorMessage(error)}).`
+      `Warning: Chat assistant initialisation failed (${getErrorMessage(error)}).`,
     );
   }
 
@@ -186,7 +195,7 @@ const parseArgs = (): ParsedArgs | null => {
   if (args[0].toLowerCase() === "continue") {
     if (args.length < 2) {
       console.error(
-        'Usage: npm start continue <conversation-file> [provider[:MODEL] ...] [additionalTurns]'
+        "Usage: npm start continue <conversation-file> [provider[:MODEL] ...] [additionalTurns]",
       );
       return null;
     }
@@ -222,19 +231,22 @@ const parseArgs = (): ParsedArgs | null => {
     let topicIndex = args.findIndex((arg, index) => {
       // If it contains a colon, it's definitely a participant (provider:model)
       if (arg.includes(":")) return false;
-      
+
       // Check if it's a known model name across all providers
       const upperArg = arg.toUpperCase();
       for (const providerConfig of Object.values(AI_PROVIDERS)) {
         if (providerConfig.models[upperArg]) return false;
       }
-      
+
       // Check if it's a known provider name
       const lowerArg = arg.toLowerCase();
-      const providerNames = Object.keys(AI_PROVIDERS).map(k => k.toLowerCase());
+      const providerNames = Object.keys(AI_PROVIDERS).map((k) =>
+        k.toLowerCase(),
+      );
       const aliasNames = Object.keys(CLI_ALIASES);
-      if (providerNames.includes(lowerArg) || aliasNames.includes(lowerArg)) return false;
-      
+      if (providerNames.includes(lowerArg) || aliasNames.includes(lowerArg))
+        return false;
+
       // If it's not a known model or provider, it's likely the start of the topic
       return true;
     });
@@ -317,11 +329,11 @@ const parseArgs = (): ParsedArgs | null => {
 const parseParticipant = (participantStr: string): ParticipantConfig => {
   const parts = participantStr.split(":");
   const rawProvider = parts[0].toLowerCase();
-  
+
   // If no colon, check if this might be a model name instead of provider name
   if (parts.length === 1) {
     const modelName = participantStr.toUpperCase();
-    
+
     // Search for this model across all providers
     for (const [providerKey, providerConfig] of Object.entries(AI_PROVIDERS)) {
       if (providerConfig.models[modelName]) {
@@ -331,7 +343,7 @@ const parseParticipant = (participantStr: string): ParticipantConfig => {
         };
       }
     }
-    
+
     // If not found as a model, treat as provider name
     return {
       provider: normalizeProviderInput(rawProvider),
@@ -346,29 +358,29 @@ const parseParticipant = (participantStr: string): ParticipantConfig => {
 };
 
 const findProviderKey = (providerConfig: AIProvider): ProviderKey | null => {
-  const entry = (Object.entries(AI_PROVIDERS) as [ProviderKey, AIProvider][]).find(
-    ([, provider]) => provider === providerConfig
-  );
+  const entry = (
+    Object.entries(AI_PROVIDERS) as [ProviderKey, AIProvider][]
+  ).find(([, provider]) => provider === providerConfig);
   return entry ? entry[0] : null;
 };
 
 const findModelKey = (
   providerConfig: AIProvider,
-  modelConfig: AIModel
+  modelConfig: AIModel,
 ): string | null => {
   const entry = Object.entries(providerConfig.models).find(
-    ([, model]) => model === modelConfig
+    ([, model]) => model === modelConfig,
   );
   return entry ? entry[0] : null;
 };
 
 const buildParticipantMetadata = (
-  participantConfig: ResolvedParticipantConfig
+  participantConfig: ResolvedParticipantConfig,
 ): ParticipantMetadata => {
   const providerKey = findProviderKey(participantConfig.provider);
   const modelKey = findModelKey(
     participantConfig.provider,
-    participantConfig.model
+    participantConfig.model,
   );
 
   return {
@@ -381,7 +393,7 @@ const buildParticipantMetadata = (
 };
 
 const participantsFromMetadata = (
-  metadataParticipants: ParticipantMetadata[] = []
+  metadataParticipants: ParticipantMetadata[] = [],
 ): ParticipantConfig[] =>
   metadataParticipants
     .filter((meta) => meta.providerKey && meta.modelKey)
@@ -409,7 +421,7 @@ const resolveConversationPath = (filePath?: string): string | null => {
  * Get provider and model configuration based on provider name and optional model name
  */
 const getProviderConfig = (
-  participantConfig: ParticipantConfig
+  participantConfig: ParticipantConfig,
 ): ResolvedParticipantConfig => {
   const providerName = participantConfig.provider;
   const modelName = participantConfig.model;
@@ -421,7 +433,7 @@ const getProviderConfig = (
   if (modelName) {
     if (!provider.models[modelName]) {
       throw new Error(
-        `Model ${modelName} not found for provider ${provider.name}`
+        `Model ${modelName} not found for provider ${provider.name}`,
       );
     }
     return {
@@ -440,12 +452,14 @@ const getProviderConfig = (
 /**
  * Start a conversation between AI services
  */
-const startAIConversation = async (options: ConversationOptions): Promise<void> => {
+const startAIConversation = async (
+  options: ConversationOptions,
+): Promise<void> => {
   console.log("Starting AI conversation...");
   console.log(`Topic: "${options.topic}"`);
 
   const participantStrings = options.participants.map(
-    (p) => `${p.provider}${p.model ? `:${p.model}` : ""}`
+    (p) => `${p.provider}${p.model ? `:${p.model}` : ""}`,
   );
   console.log(`Participants: ${participantStrings.join(", ")}`);
   console.log(`Max turns: ${options.maxTurns}`);
@@ -467,7 +481,7 @@ const startAIConversation = async (options: ConversationOptions): Promise<void> 
       console.log(
         `Added participant ${i + 1}: ${participantConfig.provider.name} (${
           participantConfig.model.id
-        })`
+        })`,
       );
     }
 
@@ -490,7 +504,7 @@ const startAIConversation = async (options: ConversationOptions): Promise<void> 
     console.error(`Error: ${errorMessage}`);
     if (errorMessage.includes("API key")) {
       console.log(
-        "\nMake sure you've set up your .env file with the required API keys."
+        "\nMake sure you've set up your .env file with the required API keys.",
       );
       console.log("See .env.example for the required variables.");
     }
@@ -500,21 +514,23 @@ const startAIConversation = async (options: ConversationOptions): Promise<void> 
 /**
  * Get responses from multiple AI services in a multi-turn group chat
  */
-const getSinglePromptResponses = async (options: ConversationOptions): Promise<void> => {
+const getSinglePromptResponses = async (
+  options: ConversationOptions,
+): Promise<void> => {
   console.log("Getting responses from multiple AI services...");
   console.log(`Prompt: "${options.topic}"`);
 
   const participantStrings = options.participants.map(
-    (p) => `${p.provider}${p.model ? `:${p.model}` : ""}`
+    (p) => `${p.provider}${p.model ? `:${p.model}` : ""}`,
   );
   console.log(`Models: ${participantStrings.join(", ")}`);
 
   try {
-    const responses: ConversationHistoryEntry[] = (options.existingResponses || []).map(
-      (entry) => ({
+    const responses: ConversationHistoryEntry[] = (
+      options.existingResponses || []
+    ).map((entry) => ({
       ...entry,
-      })
-    );
+    }));
     const hasInitialConversation = !!options.initialConversation;
     const conversation: Message[] = hasInitialConversation
       ? [...(options.initialConversation || [])]
@@ -527,7 +543,7 @@ const getSinglePromptResponses = async (options: ConversationOptions): Promise<v
 
     if (hasInitialConversation) {
       console.log(
-        `[Prompt]: ${options.topic} (continuing conversation with ${responses.length} prior responses)`
+        `[Prompt]: ${options.topic} (continuing conversation with ${responses.length} prior responses)`,
       );
     } else {
       await streamText(options.topic, "[Prompt]: ", STREAM_WORD_DELAY_MS);
@@ -544,13 +560,13 @@ const getSinglePromptResponses = async (options: ConversationOptions): Promise<v
       ...getProviderConfig(p),
       participantData: p,
     }));
-    const participantMeta: ParticipantMetadata[] = participantConfigs.map(({ provider, model }) =>
-      buildParticipantMetadata({ provider, model })
+    const participantMeta: ParticipantMetadata[] = participantConfigs.map(
+      ({ provider, model }) => buildParticipantMetadata({ provider, model }),
     );
     const metadataBase = options.metadata || {};
 
     let lastParticipantIndex = -1;
-    
+
     // Multi-turn conversation loop
     for (let turn = 0; turn < options.maxTurns; turn++) {
       // Select next participant (avoid consecutive responses from same model)
@@ -559,10 +575,15 @@ const getSinglePromptResponses = async (options: ConversationOptions): Promise<v
         nextParticipantIndex = 0;
       } else {
         do {
-          nextParticipantIndex = Math.floor(Math.random() * participantConfigs.length);
-        } while (nextParticipantIndex === lastParticipantIndex && participantConfigs.length > 1);
+          nextParticipantIndex = Math.floor(
+            Math.random() * participantConfigs.length,
+          );
+        } while (
+          nextParticipantIndex === lastParticipantIndex &&
+          participantConfigs.length > 1
+        );
       }
-      
+
       const config = participantConfigs[nextParticipantIndex];
       const service = AIServiceFactory.createService(config);
       const participantName = `${config.provider.name} (${config.model.id})`;
@@ -570,7 +591,7 @@ const getSinglePromptResponses = async (options: ConversationOptions): Promise<v
       try {
         // Create system message that evolves as the chat progresses
         const assistantTurns = conversation.filter(
-          (m) => m.role === "assistant"
+          (m) => m.role === "assistant",
         ).length;
         const earlyPhase = assistantTurns < participantConfigs.length;
         const systemMessage: Message = {
@@ -603,7 +624,7 @@ const getSinglePromptResponses = async (options: ConversationOptions): Promise<v
         await streamText(
           truncatedResponse,
           `[${participantName}]: `,
-          STREAM_WORD_DELAY_MS
+          STREAM_WORD_DELAY_MS,
         );
 
         // Add response to conversation history
@@ -628,7 +649,6 @@ const getSinglePromptResponses = async (options: ConversationOptions): Promise<v
         });
 
         lastParticipantIndex = nextParticipantIndex;
-        
       } catch (error) {
         const errorMessage = getErrorMessage(error);
         console.error(`Error with ${config.provider.name}: ${errorMessage}`);
@@ -657,22 +677,23 @@ const getSinglePromptResponses = async (options: ConversationOptions): Promise<v
     console.error(`Error: ${errorMessage}`);
     if (errorMessage.includes("API key")) {
       console.log(
-        "\nMake sure you've set up your .env file with the required API keys."
+        "\nMake sure you've set up your .env file with the required API keys.",
       );
       console.log("See .env.example for the required variables.");
     }
   }
 };
 
-const continueConversationFromFile = async (options: ContinueOptions): Promise<void> => {
+const continueConversationFromFile = async (
+  options: ContinueOptions,
+): Promise<void> => {
   try {
     const resolvedPath = resolveConversationPath(options.conversationFile);
     console.log(`Loading conversation from ${resolvedPath}`);
 
     const conversationData = loadConversationFromFile(resolvedPath);
     const metadata = conversationData.metadata || {};
-    const additionalTurns =
-      options.additionalTurns || DEFAULT_ADDITIONAL_TURNS;
+    const additionalTurns = options.additionalTurns || DEFAULT_ADDITIONAL_TURNS;
 
     let participantInputs = options.participants;
     if (!participantInputs || participantInputs.length === 0) {
@@ -681,7 +702,7 @@ const continueConversationFromFile = async (options: ContinueOptions): Promise<v
 
     if (!participantInputs || participantInputs.length === 0) {
       throw new Error(
-        "Unable to determine participants. Specify overrides after the file path."
+        "Unable to determine participants. Specify overrides after the file path.",
       );
     }
 
@@ -692,7 +713,7 @@ const continueConversationFromFile = async (options: ContinueOptions): Promise<v
 
     const topic = conversationData.topic || "Continued conversation";
     console.log(
-      `Continuing in ${mode} mode with ${participantInputs.length} participant(s).`
+      `Continuing in ${mode} mode with ${participantInputs.length} participant(s).`,
     );
 
     if (mode === "conversation") {
@@ -704,14 +725,18 @@ const continueConversationFromFile = async (options: ContinueOptions): Promise<v
         conversationManager.addParticipant(participantConfig);
         participantMeta.push(buildParticipantMetadata(participantConfig));
         console.log(
-          `Loaded participant ${index + 1}: ${participantConfig.provider.name} (${participantConfig.model.id})`
+          `Loaded participant ${index + 1}: ${participantConfig.provider.name} (${participantConfig.model.id})`,
         );
       });
 
       // Rebuild conversation state
       // Loaded messages may have extra properties like 'from' from saved files
-      type LoadedMessage = Message & { from?: string; participantId?: number | null };
-      const savedMessages = (conversationData.messages || []) as LoadedMessage[];
+      type LoadedMessage = Message & {
+        from?: string;
+        participantId?: number | null;
+      };
+      const savedMessages = (conversationData.messages ||
+        []) as LoadedMessage[];
       if (!savedMessages.length) {
         throw new Error("Conversation file contains no messages to continue.");
       }
@@ -727,13 +752,13 @@ const continueConversationFromFile = async (options: ContinueOptions): Promise<v
         let participantId = null;
         if (!isUser) {
           const matchedIndex = conversationManager.participants.findIndex(
-            (p) => p.name === msg.from
+            (p) => p.name === msg.from,
           );
           if (matchedIndex !== -1) {
             participantId = matchedIndex;
           } else {
             console.warn(
-              `Warning: could not match participant for "${msg.from}". Treating as user message.`
+              `Warning: could not match participant for "${msg.from}". Treating as user message.`,
             );
           }
         }
@@ -742,16 +767,17 @@ const continueConversationFromFile = async (options: ContinueOptions): Promise<v
           role: isUser ? "user" : "assistant",
           content: msg.content,
           participantId,
-          timestamp: typeof msg.timestamp === "number"
-            ? new Date(msg.timestamp).toISOString()
-            : (msg.timestamp || new Date().toISOString()),
+          timestamp:
+            typeof msg.timestamp === "number"
+              ? new Date(msg.timestamp).toISOString()
+              : msg.timestamp || new Date().toISOString(),
         });
 
         if (participantId !== null) assistantTurns += 1;
       });
 
       const existingUserMessages = conversationManager.messages.filter(
-        (msg) => msg.participantId === null
+        (msg) => msg.participantId === null,
       );
       if (existingUserMessages.length === 0) {
         conversationManager.messages.unshift({
@@ -768,7 +794,7 @@ const continueConversationFromFile = async (options: ContinueOptions): Promise<v
       conversationManager.isActive = true;
 
       console.log(
-        `Loaded ${assistantTurns} previous turns. Continuing for ${additionalTurns} more.`
+        `Loaded ${assistantTurns} previous turns. Continuing for ${additionalTurns} more.`,
       );
 
       await conversationManager.continueConversation();
@@ -794,7 +820,10 @@ const continueConversationFromFile = async (options: ContinueOptions): Promise<v
     // Single prompt mode continuation
     type LoadedMessage = Message & { from?: string };
     const loadedMessages = (conversationData.messages || []) as LoadedMessage[];
-    const initialConversation: Array<{ role: "user" | "assistant" | "system"; content: string }> = [
+    const initialConversation: Array<{
+      role: "user" | "assistant" | "system";
+      content: string;
+    }> = [
       {
         role: "user" as const,
         content: topic,

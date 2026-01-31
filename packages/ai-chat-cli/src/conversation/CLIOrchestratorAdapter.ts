@@ -21,9 +21,18 @@ import {
   AI_PROVIDERS,
   createEnhancedSystemPrompt,
 } from "@ai-chat/core";
-import type { AIServiceConfig, IAIService, Message, AIProvider, AIModel } from "@ai-chat/core";
+import type {
+  AIServiceConfig,
+  IAIService,
+  Message,
+  AIProvider,
+  AIModel,
+} from "@ai-chat/core";
 import { statsTracker } from "../services/StatsTracker.js";
-import { STREAM_WORD_DELAY_MS, MAX_STREAMED_RESPONSE_LENGTH } from "../config/constants.js";
+import {
+  STREAM_WORD_DELAY_MS,
+  MAX_STREAMED_RESPONSE_LENGTH,
+} from "../config/constants.js";
 
 // Types
 interface CLIParticipant {
@@ -50,12 +59,16 @@ interface InternalResponder {
   name?: string;
   shouldHandle: (
     message: ConversationMessage,
-    conversation?: ConversationMessage[]
+    conversation?: ConversationMessage[],
   ) => boolean;
   handleMessage: (params: {
     message: ConversationMessage;
     conversation: ConversationMessage[];
-  }) => Promise<{ role?: Message["role"]; content: string; authorName?: string } | null>;
+  }) => Promise<{
+    role?: Message["role"];
+    content: string;
+    authorName?: string;
+  } | null>;
 }
 
 interface ConversationMessage {
@@ -114,8 +127,9 @@ export class CLIOrchestratorAdapter {
     // Stop background conversation timer (not needed for CLI)
     this.orchestrator.cleanup();
     // Re-initialize context manager (cleanup clears it)
-    (this.orchestrator as unknown as { contextManager: ContextManager }).contextManager =
-      new ContextManager(100);
+    (
+      this.orchestrator as unknown as { contextManager: ContextManager }
+    ).contextManager = new ContextManager(100);
   }
 
   /**
@@ -136,7 +150,9 @@ export class CLIOrchestratorAdapter {
       this.orchestrator.contextManager.addMessage({
         role: msg.role,
         content: msg.content,
-        timestamp: msg.timestamp ? new Date(msg.timestamp).getTime() : Date.now(),
+        timestamp: msg.timestamp
+          ? new Date(msg.timestamp).getTime()
+          : Date.now(),
         sender: msg.authorName,
         senderType: msg.participantId === null ? "user" : "ai",
       } as Parameters<ContextManager["addMessage"]>[0]);
@@ -197,7 +213,9 @@ export class CLIOrchestratorAdapter {
    */
   async startConversation(initialMessage: string): Promise<void> {
     if (this.participants.length < 2) {
-      throw new Error("At least two participants are required for a conversation");
+      throw new Error(
+        "At least two participants are required for a conversation",
+      );
     }
 
     this.isActive = true;
@@ -214,10 +232,14 @@ export class CLIOrchestratorAdapter {
     });
 
     console.log("Starting conversation...");
-    console.log(`Participants: ${this.participants.map((p) => p.name).join(", ")}`);
+    console.log(
+      `Participants: ${this.participants.map((p) => p.name).join(", ")}`,
+    );
 
     await streamText(initialMessage, "[User]: ", STREAM_WORD_DELAY_MS);
-    await this.handleInternalResponders(this._messages[this._messages.length - 1]);
+    await this.handleInternalResponders(
+      this._messages[this._messages.length - 1],
+    );
 
     await this.continueConversation();
   }
@@ -227,7 +249,10 @@ export class CLIOrchestratorAdapter {
    */
   async continueConversation(): Promise<void> {
     while (this.isActive && this.turnCount < this.config.maxTurns) {
-      if (this.startTime && Date.now() - this.startTime > this.config.timeoutMs) {
+      if (
+        this.startTime &&
+        Date.now() - this.startTime > this.config.timeoutMs
+      ) {
         console.log("Conversation timed out");
         this.isActive = false;
         break;
@@ -241,7 +266,9 @@ export class CLIOrchestratorAdapter {
         const response = await this.generateResponse(participant);
 
         if (!response || response.trim().length === 0) {
-          console.log(`Participant ${participant.name} provided empty response, skipping turn`);
+          console.log(
+            `Participant ${participant.name} provided empty response, skipping turn`,
+          );
           this.turnCount++;
           continue;
         }
@@ -252,12 +279,19 @@ export class CLIOrchestratorAdapter {
           participantId: participant.id,
         });
 
-        await streamText(response, `[${participant.name}]: `, STREAM_WORD_DELAY_MS);
-        await this.handleInternalResponders(this._messages[this._messages.length - 1]);
+        await streamText(
+          response,
+          `[${participant.name}]: `,
+          STREAM_WORD_DELAY_MS,
+        );
+        await this.handleInternalResponders(
+          this._messages[this._messages.length - 1],
+        );
 
         this.turnCount++;
       } catch (error: unknown) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
         console.error(`Error in conversation: ${errorMessage}`);
         this.isActive = false;
         break;
@@ -265,7 +299,9 @@ export class CLIOrchestratorAdapter {
     }
 
     if (this.turnCount >= this.config.maxTurns) {
-      console.log(`Conversation reached maximum turns (${this.config.maxTurns})`);
+      console.log(
+        `Conversation reached maximum turns (${this.config.maxTurns})`,
+      );
       this.isActive = false;
     }
   }
@@ -275,9 +311,14 @@ export class CLIOrchestratorAdapter {
    */
   async generateResponse(participant: CLIParticipant): Promise<string> {
     const isLastTurn = this.turnCount >= this.config.maxTurns - 2;
-    const lastMessage = this._messages.length > 0 ? this._messages[this._messages.length - 1] : null;
+    const lastMessage =
+      this._messages.length > 0
+        ? this._messages[this._messages.length - 1]
+        : null;
     const isResponseToOtherAI =
-      lastMessage && lastMessage.participantId !== null && lastMessage.participantId !== participant.id;
+      lastMessage &&
+      lastMessage.participantId !== null &&
+      lastMessage.participantId !== participant.id;
 
     // Build system prompt using orchestrator utilities
     const context = this.orchestrator.contextManager.getContextForAI(50);
@@ -292,7 +333,7 @@ export class CLIOrchestratorAdapter {
         aiService,
         context,
         true, // isUserResponse
-        this.orchestrator.aiServices
+        this.orchestrator.aiServices,
       );
     } else {
       // Fallback system prompt
@@ -316,10 +357,14 @@ ${isResponseToOtherAI ? "- DIRECTLY RESPOND to the last message from the other p
 
     const formattedMessages: Message[] = [
       { role: "system", content: fullSystemPrompt },
-      ...this._messages.map((msg) => ({ role: msg.role, content: msg.content })),
+      ...this._messages.map((msg) => ({
+        role: msg.role,
+        content: msg.content,
+      })),
     ];
 
-    const response = await participant.service.generateResponse(formattedMessages);
+    const response =
+      await participant.service.generateResponse(formattedMessages);
     return this.truncateResponse(response.content);
   }
 
@@ -333,7 +378,8 @@ ${isResponseToOtherAI ? "- DIRECTLY RESPOND to the last message from the other p
     };
 
     const participant =
-      enrichedMessage.participantId !== null && enrichedMessage.participantId !== undefined
+      enrichedMessage.participantId !== null &&
+      enrichedMessage.participantId !== undefined
         ? this.participants[enrichedMessage.participantId]
         : null;
 
@@ -375,10 +421,16 @@ ${isResponseToOtherAI ? "- DIRECTLY RESPOND to the last message from the other p
   /**
    * Get conversation history
    */
-  getConversationHistory(): Array<{ from: string; content: string; timestamp: string }> {
+  getConversationHistory(): Array<{
+    from: string;
+    content: string;
+    timestamp: string;
+  }> {
     return this._messages.map((msg) => {
       const participant =
-        msg.participantId !== null ? this.participants[msg.participantId!] : { name: "User" };
+        msg.participantId !== null
+          ? this.participants[msg.participantId!]
+          : { name: "User" };
 
       return {
         from: msg.authorName || participant.name,
@@ -414,7 +466,7 @@ ${isResponseToOtherAI ? "- DIRECTLY RESPOND to the last message from the other p
 
   private findProviderKey(provider: AIProvider): string {
     const entry = (Object.entries(AI_PROVIDERS) as [string, AIProvider][]).find(
-      ([, p]) => p === provider
+      ([, p]) => p === provider,
     );
     return entry ? entry[0] : "unknown";
   }
@@ -450,7 +502,9 @@ ${otherParticipants}`;
     return content;
   }
 
-  private async handleInternalResponders(sourceMessage: ConversationMessage): Promise<void> {
+  private async handleInternalResponders(
+    sourceMessage: ConversationMessage,
+  ): Promise<void> {
     if (!sourceMessage || this.internalResponders.length === 0) {
       return;
     }
@@ -488,11 +542,14 @@ ${otherParticipants}`;
         await streamText(
           response.content,
           `[${response.authorName || responder.name || "Internal"}]: `,
-          STREAM_WORD_DELAY_MS
+          STREAM_WORD_DELAY_MS,
         );
       } catch (error: unknown) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        console.error(`Internal responder "${responder.name || "unknown"}" failed: ${errorMessage}`);
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
+        console.error(
+          `Internal responder "${responder.name || "unknown"}" failed: ${errorMessage}`,
+        );
       }
     }
   }

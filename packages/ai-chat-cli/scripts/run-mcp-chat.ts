@@ -43,7 +43,7 @@ const tryLoadDotenv = async (projectRoot: string): Promise<void> => {
   } catch (error: any) {
     if (error?.code !== "ERR_MODULE_NOT_FOUND") {
       console.warn(
-        `run-mcp-chat: Failed to load dotenv (${error?.message || error}). Continuing with process env.`
+        `run-mcp-chat: Failed to load dotenv (${error?.message || error}). Continuing with process env.`,
       );
     }
   }
@@ -53,7 +53,7 @@ const main = async (): Promise<void> => {
   const { question, raw } = parseArgs();
   if (!question || !question.trim()) {
     console.error(
-      "run-mcp-chat: A question is required. Pass it via '--question \"...\"'."
+      "run-mcp-chat: A question is required. Pass it via '--question \"...\"'.",
     );
     process.exit(1);
   }
@@ -73,11 +73,11 @@ const main = async (): Promise<void> => {
       console.error(
         `MCP embedding lookup failed: could not reach Chroma at ${
           process.env.CHROMA_URL || "http://localhost:8000"
-        }. ${error?.message || error}`
+        }. ${error?.message || error}`,
       );
     } else {
       console.error(
-        `MCP embedding store missing or unreadable. Run 'npm run build && node dist/scripts/index-mcp-chat.js' first. (${error?.message || error})`
+        `MCP embedding store missing or unreadable. Run 'npm run build && node dist/scripts/index-mcp-chat.js' first. (${error?.message || error})`,
       );
     }
     process.exit(1);
@@ -87,7 +87,7 @@ const main = async (): Promise<void> => {
     const result = await server.answerQuestion(question);
     if (!result?.answer) {
       console.log(
-        `I could not locate indexed code related to "${question.trim()}".`
+        `I could not locate indexed code related to "${question.trim()}".`,
       );
       return;
     }
@@ -100,7 +100,7 @@ const main = async (): Promise<void> => {
           (ctx) =>
             `[${ctx.id}] ${ctx.relativePath}:${ctx.startLine}-${
               ctx.endLine
-            } (score=${ctx.score.toFixed(3)})`
+            } (score=${ctx.score.toFixed(3)})`,
         )
         .join("\n");
       console.log(`\nContexts:\n${refs}`);

@@ -19,7 +19,7 @@ const createTestApp = () => {
 
 const withServer = async <T>(
   app: express.Express,
-  action: (baseUrl: string) => Promise<T>
+  action: (baseUrl: string) => Promise<T>,
 ): Promise<T> => {
   const server = await new Promise<ReturnType<typeof app.listen>>((resolve) => {
     const instance = app.listen(0, () => resolve(instance));
@@ -66,7 +66,7 @@ describe("server routes integration", () => {
           ({
             getStats: () => statsPayload,
           }) as unknown as SocketController,
-      })
+      }),
     );
 
     await withServer(app, async (baseUrl) => {
@@ -102,7 +102,7 @@ describe("server routes integration", () => {
               getRoomList: () => roomsPayload,
             },
           }) as unknown as SocketController,
-      })
+      }),
     );
 
     await withServer(app, async (baseUrl) => {
@@ -128,14 +128,14 @@ describe("server routes integration", () => {
               return historyPayload;
             },
           }) as unknown as MetricsService,
-      })
+      }),
     );
 
     await withServer(app, async (baseUrl) => {
       const metricsResponse = await fetch(`${baseUrl}/api/metrics`);
       const metricsBody = await metricsResponse.json();
       const historyResponse = await fetch(
-        `${baseUrl}/api/metrics/history?duration=60`
+        `${baseUrl}/api/metrics/history?duration=60`,
       );
       const historyBody = await historyResponse.json();
 

@@ -7,7 +7,12 @@
 import { BaseAIService } from "./base/BaseAIService.js";
 import { toGeminiHistory } from "@/utils/aiFormatting.js";
 import { GoogleGenerativeAI, GenerativeModel } from "@google/generative-ai";
-import { Message, ServiceResponse, GeminiServiceConfig, ServiceInitOptions } from "@/types/index.js";
+import {
+  Message,
+  ServiceResponse,
+  GeminiServiceConfig,
+  ServiceInitOptions,
+} from "@/types/index.js";
 import { ServiceError } from "@/types/services.js";
 
 export class GeminiService extends BaseAIService {
@@ -21,9 +26,11 @@ export class GeminiService extends BaseAIService {
   /**
    * Initialize the Gemini client
    */
-  protected async performInitialization(_options?: ServiceInitOptions): Promise<void> {
+  protected async performInitialization(
+    _options?: ServiceInitOptions,
+  ): Promise<void> {
     this.client = new GoogleGenerativeAI(
-      process.env[this.config.provider.apiKeyEnvVar]!
+      process.env[this.config.provider.apiKeyEnvVar]!,
     );
 
     this.geminiModel = this.client.getGenerativeModel({
@@ -35,13 +42,19 @@ export class GeminiService extends BaseAIService {
   /**
    * Generate a response using Gemini
    */
-  protected async performGenerateResponse(messages: Message[]): Promise<ServiceResponse> {
+  protected async performGenerateResponse(
+    messages: Message[],
+  ): Promise<ServiceResponse> {
     if (!this.client || !this.geminiModel) {
       await this.performInitialization();
     }
 
     if (!this.client || !this.geminiModel) {
-      throw new ServiceError("Gemini client not initialized", "initialization", this.name);
+      throw new ServiceError(
+        "Gemini client not initialized",
+        "initialization",
+        this.name,
+      );
     }
 
     // Convert the conversation into Gemini history (skip system messages)
@@ -53,7 +66,11 @@ export class GeminiService extends BaseAIService {
       .findIndex((m) => m.role === "user");
 
     if (lastUserIndex === -1) {
-      throw new ServiceError("No user message found to send to Gemini", "invalid_input", this.name);
+      throw new ServiceError(
+        "No user message found to send to Gemini",
+        "invalid_input",
+        this.name,
+      );
     }
 
     const actualLastUserIndex = nonSystem.length - 1 - lastUserIndex;
@@ -96,10 +113,10 @@ export class GeminiService extends BaseAIService {
       usage: {
         promptTokens: usageMetadata?.promptTokenCount,
         completionTokens: usageMetadata?.candidatesTokenCount,
-        totalTokens: usageMetadata?.totalTokenCount
+        totalTokens: usageMetadata?.totalTokenCount,
       },
       model: this.config.model.id,
-      finishReason: finalResult.candidates?.[0]?.finishReason ?? 'completed'
+      finishReason: finalResult.candidates?.[0]?.finishReason ?? "completed",
     };
   }
 

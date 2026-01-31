@@ -22,14 +22,14 @@ const baseMentionCandidates = (() => {
       ...Object.keys(AI_MENTION_MAPPINGS),
       ...Object.values(AI_MENTION_MAPPINGS),
       ...baseParticipants,
-    ])
+    ]),
   )
     .map((value) => value?.trim())
     .filter((value): value is string => Boolean(value));
 })();
 
 const buildMentionCandidates = (
-  aiParticipants: AiParticipant[] = []
+  aiParticipants: AiParticipant[] = [],
 ): string[] => {
   const participantValues = aiParticipants.flatMap((participant) => [
     participant.name,
@@ -37,9 +37,7 @@ const buildMentionCandidates = (
     participant.id,
   ]);
 
-  return Array.from(
-    new Set([...baseMentionCandidates, ...participantValues])
-  )
+  return Array.from(new Set([...baseMentionCandidates, ...participantValues]))
     .map((value) => value?.trim())
     .filter((value): value is string => Boolean(value))
     .sort((a, b) => b.length - a.length);
@@ -52,7 +50,7 @@ const hasBoundary = (value: string | undefined): boolean => {
 
 export const findMentionMatches = (
   text: string,
-  aiParticipants: AiParticipant[] = []
+  aiParticipants: AiParticipant[] = [],
 ): MentionMatch[] => {
   if (!text.includes("@")) return [];
 
@@ -90,7 +88,7 @@ export const findMentionMatches = (
 
 export const extractMentionsFromText = (
   text: string,
-  aiParticipants: AiParticipant[] = []
+  aiParticipants: AiParticipant[] = [],
 ): string[] =>
   findMentionMatches(text, aiParticipants)
     .map((match) => match.mention.toLowerCase())

@@ -17,10 +17,10 @@ export const determineInteractionStrategy = (
   context,
   isUserResponse,
   findAIFromContextMessage,
-  getMentionTokenForAI
+  getMentionTokenForAI,
 ) => {
   const recentMessages = context.slice(
-    -CONTEXT_LIMITS.RECENT_MESSAGES_FOR_STRATEGY
+    -CONTEXT_LIMITS.RECENT_MESSAGES_FOR_STRATEGY,
   );
   const aiMessages = recentMessages.filter((msg) => msg.senderType === "ai");
   const lastMessage = recentMessages[recentMessages.length - 1];
@@ -84,10 +84,7 @@ export const determineInteractionStrategy = (
   let targetAI = null;
 
   const mentionCandidateRaw =
-    lastMessage?.alias ||
-    lastMessage?.displayName ||
-    lastMessage?.sender ||
-    "";
+    lastMessage?.alias || lastMessage?.displayName || lastMessage?.sender || "";
   const mentionCandidate = mentionCandidateRaw.trim();
   const shouldMentionUser =
     isUserResponse &&
@@ -127,7 +124,8 @@ export const determineInteractionStrategy = (
 
     for (
       let i = aiMessages.length - 1;
-      i >= 0 && potentialTargets.length < CONTEXT_LIMITS.POTENTIAL_MENTION_TARGETS;
+      i >= 0 &&
+      potentialTargets.length < CONTEXT_LIMITS.POTENTIAL_MENTION_TARGETS;
       i--
     ) {
       const msg = aiMessages[i];
@@ -166,7 +164,7 @@ export const applyInteractionStrategy = (
   context,
   strategy,
   aiService,
-  lastMessage
+  lastMessage,
 ) => {
   const enhancedContext = [...context];
 
@@ -192,7 +190,7 @@ export const applyInteractionStrategy = (
       case "agree-expand":
         if (lastMessage?.senderType === "ai") {
           instructionPrompt = STRATEGY_INSTRUCTIONS.AGREE_EXPAND(
-            lastMessage.sender
+            lastMessage.sender,
           );
         }
         break;
@@ -200,7 +198,7 @@ export const applyInteractionStrategy = (
       case "challenge":
         if (lastMessage?.senderType === "ai") {
           instructionPrompt = STRATEGY_INSTRUCTIONS.CHALLENGE(
-            lastMessage.sender
+            lastMessage.sender,
           );
         }
         break;

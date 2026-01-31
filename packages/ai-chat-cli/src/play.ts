@@ -74,7 +74,9 @@ function fmtHeader(name: string, color: string): string {
 }
 
 function loadConversation(filePath: string): ConversationFile {
-  const data = JSON.parse(fs.readFileSync(filePath, "utf8")) as Partial<ConversationFile>;
+  const data = JSON.parse(
+    fs.readFileSync(filePath, "utf8"),
+  ) as Partial<ConversationFile>;
   if (!Array.isArray(data.messages)) {
     throw new Error("Invalid conversation file: missing messages array.");
   }
@@ -96,7 +98,8 @@ async function playConversation(filePath: string) {
 
   // Build color map per speaker
   const uniqueNames = [];
-  for (const m of messages) if (!uniqueNames.includes(m.from)) uniqueNames.push(m.from);
+  for (const m of messages)
+    if (!uniqueNames.includes(m.from)) uniqueNames.push(m.from);
   const nameColors = new Map(uniqueNames.map((n) => [n, colorForName(n)]));
 
   // Stream messages

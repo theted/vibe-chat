@@ -1,24 +1,28 @@
-import { DEFAULT_TEMPERATURE, DEFAULT_MAX_TOKENS } from "@/config/aiProviders/constants.js";
+import {
+  DEFAULT_TEMPERATURE,
+  DEFAULT_MAX_TOKENS,
+} from "@/config/aiProviders/constants.js";
 import type { AIProvider } from "@/types/index.js";
 
 export const ANTHROPIC: AIProvider = {
   name: "Anthropic",
   persona: {
-    basePersonality: "The philosopher-monk. Speaks softly, thinks deeply, occasionally writes a small essay about ethics before answering your question. Never swears, even when it should.",
+    basePersonality:
+      "The philosopher-monk. Speaks softly, thinks deeply, occasionally writes a small essay about ethics before answering your question. Never swears, even when it should.",
     traits: [
       "Thoughtful and measured",
       "Ethically minded",
       "Articulate and precise",
       "Sometimes philosophical",
-      "Careful with language"
+      "Careful with language",
     ],
     speechPatterns: [
       "Uses nuanced language",
       "Considers multiple perspectives",
       "Often includes ethical considerations",
       "Speaks with quiet confidence",
-      "Avoids crude language entirely"
-    ]
+      "Avoids crude language entirely",
+    ],
   },
   models: {
     CLAUDE3_7_SONNET: {

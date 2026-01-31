@@ -5,7 +5,9 @@ import path from "node:path";
 const [packageDirArg] = process.argv.slice(2);
 
 if (!packageDirArg) {
-  throw new Error("Usage: node scripts/watch-resolve-aliases.mjs <package-dir>");
+  throw new Error(
+    "Usage: node scripts/watch-resolve-aliases.mjs <package-dir>",
+  );
 }
 
 const packageDir = path.resolve(process.cwd(), packageDirArg);
@@ -28,15 +30,18 @@ const rewriteFile = async (filePath) => {
       return;
     }
 
-    const updated = contents.replace(aliasPattern, (_match, quote, aliasPath) => {
-      const targetPath = path.join(outDirPath, aliasPath);
-      let relativePath = path.relative(path.dirname(filePath), targetPath);
-      if (!relativePath.startsWith(".")) {
-        relativePath = `./${relativePath}`;
-      }
-      const normalized = relativePath.split(path.sep).join(path.posix.sep);
-      return `${quote}${normalized}${quote}`;
-    });
+    const updated = contents.replace(
+      aliasPattern,
+      (_match, quote, aliasPath) => {
+        const targetPath = path.join(outDirPath, aliasPath);
+        let relativePath = path.relative(path.dirname(filePath), targetPath);
+        if (!relativePath.startsWith(".")) {
+          relativePath = `./${relativePath}`;
+        }
+        const normalized = relativePath.split(path.sep).join(path.posix.sep);
+        return `${quote}${normalized}${quote}`;
+      },
+    );
 
     if (updated !== contents) {
       await writeFile(filePath, updated, "utf8");
@@ -58,7 +63,7 @@ const scheduleRewrite = (filePath) => {
     setTimeout(() => {
       pending.delete(filePath);
       rewriteFile(filePath);
-    }, DEBOUNCE_MS)
+    }, DEBOUNCE_MS),
   );
 };
 

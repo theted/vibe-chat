@@ -1,17 +1,29 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import ParticipantsList from "./ParticipantsList";
-import type { ReactNode } from 'react';
-import type { AiParticipant } from '@/config/aiParticipants';
+import type { ReactNode } from "react";
+import type { AiParticipant } from "@/config/aiParticipants";
 
 vi.mock("framer-motion", () => ({
   motion: {
-    div: ({ children, ...props }: { children: ReactNode; [key: string]: unknown }) => <div {...props}>{children}</div>,
+    div: ({
+      children,
+      ...props
+    }: {
+      children: ReactNode;
+      [key: string]: unknown;
+    }) => <div {...props}>{children}</div>,
   },
 }));
 
 vi.mock("./AnimatedListItem", () => ({
-  default: ({ children, ...props }: { children: ReactNode; [key: string]: unknown }) => <div {...props}>{children}</div>,
+  default: ({
+    children,
+    ...props
+  }: {
+    children: ReactNode;
+    [key: string]: unknown;
+  }) => <div {...props}>{children}</div>,
 }));
 
 vi.mock("./SectionHeader", () => ({
@@ -21,7 +33,9 @@ vi.mock("./SectionHeader", () => ({
 }));
 
 vi.mock("./Icon", () => ({
-  default: ({ name }: { name: string }) => <span data-testid={`icon-${name}`}>{name}</span>,
+  default: ({ name }: { name: string }) => (
+    <span data-testid={`icon-${name}`}>{name}</span>
+  ),
 }));
 
 describe("ParticipantsList", () => {
@@ -62,7 +76,7 @@ describe("ParticipantsList", () => {
     ];
 
     const { container } = render(
-      <ParticipantsList participants={[]} aiParticipants={aiParticipants} />
+      <ParticipantsList participants={[]} aiParticipants={aiParticipants} />,
     );
 
     const providerHeaders = screen.getAllByTestId(/ai-provider-/i);
@@ -72,7 +86,7 @@ describe("ParticipantsList", () => {
     ]);
 
     const modelNames = Array.from(
-      container.querySelectorAll('[data-testid^="ai-name-"]')
+      container.querySelectorAll('[data-testid^="ai-name-"]'),
     ).map((node) => node.textContent);
 
     expect(modelNames).toEqual(["Alpha", "Delta", "Beta", "Gamma"]);

@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion";
 import Icon from "./Icon";
-import type { ToastContainerProps, ToastType, IconName } from '@/types';
+import type { ToastContainerProps, ToastType, IconName } from "@/types";
 
 const variants = {
   initial: { opacity: 0, y: 20, scale: 0.95 },
@@ -21,10 +21,8 @@ const variants = {
 const typeStyles: Record<ToastType, string> = {
   success:
     "bg-emerald-500/95 text-white border-emerald-300/60 shadow-emerald-500/30",
-  info:
-    "bg-sky-500/95 text-white border-sky-300/60 shadow-sky-500/30",
-  warning:
-    "bg-amber-500/95 text-white border-amber-300/60 shadow-amber-500/30",
+  info: "bg-sky-500/95 text-white border-sky-300/60 shadow-sky-500/30",
+  warning: "bg-amber-500/95 text-white border-amber-300/60 shadow-amber-500/30",
 };
 
 const typeIcon: Record<ToastType, IconName> = {
@@ -34,7 +32,7 @@ const typeIcon: Record<ToastType, IconName> = {
 };
 
 const resolveType = (type: string): ToastType =>
-  typeStyles[type as ToastType] ? type as ToastType : "info";
+  typeStyles[type as ToastType] ? (type as ToastType) : "info";
 
 const ToastContainer = ({ toasts }: ToastContainerProps) => (
   <div className="pointer-events-none fixed inset-x-0 bottom-6 flex justify-center px-4 sm:px-0 z-[9999]">

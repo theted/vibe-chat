@@ -42,7 +42,7 @@ export const ensureDirectoryExists = (dirPath: string): void => {
 export const saveConversationToFile = (
   conversationHistory: Message[],
   topic: string,
-  metadata: Record<string, any> = {}
+  metadata: Record<string, any> = {},
 ): string => {
   const conversationsDir = path.join(process.cwd(), "conversations");
   ensureDirectoryExists(conversationsDir);
@@ -86,7 +86,9 @@ export const formatConversation = (conversationHistory: Message[]): string =>
  * @param filePath - The path to the conversation file
  * @returns The conversation data
  */
-export const loadConversationFromFile = (filePath: string): ConversationData => {
+export const loadConversationFromFile = (
+  filePath: string,
+): ConversationData => {
   if (!fs.existsSync(filePath)) {
     throw new Error(`Conversation file not found: ${filePath}`);
   }
@@ -122,7 +124,8 @@ export const listConversations = (): ConversationFileInfo[] => {
         messageCount: data.messages.length,
       };
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
       return {
         filename: file,
         path: filePath,

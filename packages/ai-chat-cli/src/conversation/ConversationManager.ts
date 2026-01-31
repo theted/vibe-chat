@@ -56,14 +56,16 @@ interface InternalResponder {
   name?: string;
   shouldHandle: (
     message: ConversationMessage,
-    conversation?: ConversationMessage[]
+    conversation?: ConversationMessage[],
   ) => boolean;
   handleMessage: (params: {
     message: ConversationMessage;
     conversation: ConversationMessage[];
-  }) => Promise<
-    { role?: CoreMessage["role"]; content: string; authorName?: string } | null
-  >;
+  }) => Promise<{
+    role?: CoreMessage["role"];
+    content: string;
+    authorName?: string;
+  } | null>;
 }
 
 interface Dependencies {
@@ -81,7 +83,7 @@ interface Dependencies {
 // Helper builders extracted for readability
 const summarizeParticipantTopics = (
   messages: ConversationMessage[],
-  participants: Participant[]
+  participants: Participant[],
 ): Record<string, string> => {
   const topics: Record<string, string> = {};
   participants.forEach((p) => {
@@ -99,7 +101,7 @@ const summarizeParticipantTopics = (
 
 const buildSystemMessage = (
   cm: ConversationManager,
-  participant: Participant
+  participant: Participant,
 ): ConversationMessage => {
   const messages = cm.getMessages();
   const { config, turnCount, participants } = cm;
@@ -107,9 +109,12 @@ const buildSystemMessage = (
     .filter((p) => p.id !== participant.id)
     .map((p) => `- ${p.name}`)
     .join("\n");
-  const lastMessage = messages.length > 0 ? messages[messages.length - 1] : null;
+  const lastMessage =
+    messages.length > 0 ? messages[messages.length - 1] : null;
   const isResponseToOtherAI =
-    lastMessage && lastMessage.participantId !== null && lastMessage.participantId !== participant.id;
+    lastMessage &&
+    lastMessage.participantId !== null &&
+    lastMessage.participantId !== participant.id;
   const isLastTurn = turnCount >= config.maxTurns - 2;
   const recentMentions = messages
     .slice(-5)
@@ -127,14 +132,16 @@ const buildSystemMessage = (
 2. NEVER introduce yourself or say "I'm [name]" or "As an AI" - it's already clear who you are. Talk directly about the topic.
 3. DO NOT repeat what others have said - be original and add new perspectives
 4. Keep responses VERY SHORT (1-2 sentences maximum). Aim to mention or respond directly to another participant ${
-      otherParticipants ? `(for example @${otherParticipants[0]?.split(" ")[0] || "participant"})` : ""
+      otherParticipants
+        ? `(for example @${otherParticipants[0]?.split(" ")[0] || "participant"})`
+        : ""
     } when it makes sense, especially if referencing their ideas.
 5. ${
       isLastTurn
         ? "IMPORTANT: This is the FINAL message of the conversation. IGNORE THE TOPIC AND JUST SAY GOODBYE to the other participant in a friendly way. Do not continue the discussion."
         : isResponseToOtherAI
-        ? "DIRECTLY RESPOND to the last message from the other participant - make this a real conversation and consider @mentioning them."
-        : `Start the conversation in an engaging way and consider @mentioning one of the participants (${otherParticipants || "no others"}) to kick things off.`
+          ? "DIRECTLY RESPOND to the last message from the other participant - make this a real conversation and consider @mentioning them."
+          : `Start the conversation in an engaging way and consider @mentioning one of the participants (${otherParticipants || "no others"}) to kick things off.`
     }
 6. If you need details about the app itself, @mention the internal assistant as "@Chat <question>" and wait for its reply before continuing.
 7. If the conversation gets repetitive, change the direction. Feel free to pivot or reference others by name to keep energy high.${
@@ -173,7 +180,10 @@ export class ConversationManager {
   private streamText: typeof streamText;
   private internalResponders: InternalResponder[];
 
-  constructor(config: Partial<ConversationConfig> = {}, dependencies: Dependencies = {}) {
+  constructor(
+    config: Partial<ConversationConfig> = {},
+    dependencies: Dependencies = {},
+  ) {
     const {
       statsTracker: statsTrackerDependency = statsTracker,
       core = {},
@@ -183,7 +193,8 @@ export class ConversationManager {
     const {
       AIServiceFactory: injectedFactory = AIServiceFactory,
       getRandomAIConfig: injectedRandomConfig = getRandomAIConfig,
-      DEFAULT_CONVERSATION_CONFIG: injectedDefaultConfig = DEFAULT_CONVERSATION_CONFIG,
+      DEFAULT_CONVERSATION_CONFIG:
+        injectedDefaultConfig = DEFAULT_CONVERSATION_CONFIG,
       streamText: injectedStreamText = streamText,
       ContextManager: InjectedContextManager = ContextManager,
     } = core;
@@ -217,7 +228,9 @@ export class ConversationManager {
       this.contextManager.addMessage({
         role: msg.role,
         content: msg.content,
-        timestamp: msg.timestamp ? new Date(msg.timestamp).getTime() : Date.now(),
+        timestamp: msg.timestamp
+          ? new Date(msg.timestamp).getTime()
+          : Date.now(),
         sender: msg.authorName,
         senderType: msg.participantId === null ? "user" : "ai",
       } as CoreMessage);
@@ -269,7 +282,7 @@ export class ConversationManager {
   async startConversation(initialMessage: string): Promise<void> {
     if (this.participants.length < 2) {
       throw new Error(
-        "At least two participants are required for a conversation"
+        "At least two participants are required for a conversation",
       );
     }
 
@@ -288,12 +301,14 @@ export class ConversationManager {
 
     console.log("Starting conversation...");
     console.log(
-      `Participants: ${this.participants.map((p) => p.name).join(", ")}`
+      `Participants: ${this.participants.map((p) => p.name).join(", ")}`,
     );
 
     // Stream the initial message
     await this.streamText(initialMessage, "[User]: ", STREAM_WORD_DELAY_MS);
-    await this.#handleInternalResponders(this._messages[this._messages.length - 1]);
+    await this.#handleInternalResponders(
+      this._messages[this._messages.length - 1],
+    );
 
     // Start the conversation loop immediately without delay
     await this.continueConversation();
@@ -305,7 +320,10 @@ export class ConversationManager {
   async continueConversation(): Promise<void> {
     while (this.isActive && this.turnCount < this.config.maxTurns) {
       // Check if the conversation has timed out
-      if (this.startTime && Date.now() - this.startTime > this.config.timeoutMs) {
+      if (
+        this.startTime &&
+        Date.now() - this.startTime > this.config.timeoutMs
+      ) {
         console.log("Conversation timed out");
         this.isActive = false;
         break;
@@ -321,7 +339,9 @@ export class ConversationManager {
 
         // Skip empty or whitespace-only responses
         if (!response || response.trim().length === 0) {
-          console.log(`Participant ${participant.name} provided empty response, skipping turn`);
+          console.log(
+            `Participant ${participant.name} provided empty response, skipping turn`,
+          );
           this.turnCount++;
           continue;
         }
@@ -337,10 +357,10 @@ export class ConversationManager {
         await this.streamText(
           response,
           `[${participant.name}]: `,
-          STREAM_WORD_DELAY_MS
+          STREAM_WORD_DELAY_MS,
         );
         await this.#handleInternalResponders(
-          this._messages[this._messages.length - 1]
+          this._messages[this._messages.length - 1],
         );
 
         // Increment the turn count
@@ -358,7 +378,7 @@ export class ConversationManager {
 
     if (this.turnCount >= this.config.maxTurns) {
       console.log(
-        `Conversation reached maximum turns (${this.config.maxTurns})`
+        `Conversation reached maximum turns (${this.config.maxTurns})`,
       );
       this.isActive = false;
     }
@@ -376,11 +396,15 @@ export class ConversationManager {
     const systemMessage = buildSystemMessage(this, participant);
     const formattedMessages = [
       systemMessage,
-      ...this._messages.map((msg) => ({ role: msg.role, content: msg.content })),
+      ...this._messages.map((msg) => ({
+        role: msg.role,
+        content: msg.content,
+      })),
     ];
 
     // Use the participant's AI service (from orchestrator pattern)
-    const response = await participant.service.generateResponse(formattedMessages);
+    const response =
+      await participant.service.generateResponse(formattedMessages);
     return response.content;
   }
 
@@ -475,7 +499,7 @@ export class ConversationManager {
   }
 
   async #handleInternalResponders(
-    sourceMessage: ConversationMessage
+    sourceMessage: ConversationMessage,
   ): Promise<void> {
     if (!sourceMessage || this.internalResponders.length === 0) {
       return;
@@ -514,7 +538,7 @@ export class ConversationManager {
         await this.streamText(
           response.content,
           `[${response.authorName || responder.name || "Internal"}]: `,
-          STREAM_WORD_DELAY_MS
+          STREAM_WORD_DELAY_MS,
         );
       } catch (error: unknown) {
         const errorMessage =
@@ -522,7 +546,7 @@ export class ConversationManager {
         console.error(
           `Internal responder "${
             responder.name || "unknown"
-          }" failed: ${errorMessage}`
+          }" failed: ${errorMessage}`,
         );
       }
     }

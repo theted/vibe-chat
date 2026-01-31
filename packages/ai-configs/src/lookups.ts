@@ -217,7 +217,7 @@ export const resolveEmoji = (alias: string): string => {
   if (directMatch) return directMatch;
 
   const aliasKey = Object.keys(AI_EMOJI_LOOKUP).find((key) =>
-    normalized.includes(key)
+    normalized.includes(key),
   );
   return aliasKey ? AI_EMOJI_LOOKUP[aliasKey] : "🤖";
 };

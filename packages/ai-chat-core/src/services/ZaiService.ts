@@ -25,7 +25,10 @@ export class ZaiService extends OpenAICompatibleService {
     return getZaiBaseUrl();
   }
 
-  protected createClient(apiKey: string, options?: ServiceInitOptions): OpenAIClient {
+  protected createClient(
+    apiKey: string,
+    options?: ServiceInitOptions,
+  ): OpenAIClient {
     return new OpenAI({
       apiKey,
       baseURL: options?.baseURL || getZaiBaseUrl(),

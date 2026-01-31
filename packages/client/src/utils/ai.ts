@@ -4,15 +4,13 @@ import { AI_EMOJI_LOOKUP, AI_MENTION_MAPPINGS } from "@/constants/chat.ts";
 const normalizedMentionLookup = Object.entries(AI_MENTION_MAPPINGS).reduce(
   (lookup, [key, value]) => {
     lookup[key.toLowerCase()] = value;
-    const normalizedKey = key
-      .toLowerCase()
-      .replace(/[^a-z0-9]/g, "");
+    const normalizedKey = key.toLowerCase().replace(/[^a-z0-9]/g, "");
     if (normalizedKey) {
       lookup[normalizedKey] = value;
     }
     return lookup;
   },
-  {} as Record<string, string>
+  {} as Record<string, string>,
 );
 
 export const normalizeAlias = (value?: string | number | null): string => {
@@ -46,7 +44,7 @@ export const resolveEmoji = (value?: string | number | null): string => {
 };
 
 export const mapMentionsToAiNames = (
-  mentions: Array<string | number | boolean | null | undefined> = []
+  mentions: Array<string | number | boolean | null | undefined> = [],
 ): string[] =>
   mentions
     .map((mention) => {

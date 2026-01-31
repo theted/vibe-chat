@@ -17,7 +17,10 @@ export class GrokService extends OpenAICompatibleService {
     super(config, "Grok");
   }
 
-  protected createClient(apiKey: string, options?: ServiceInitOptions): OpenAIClient {
+  protected createClient(
+    apiKey: string,
+    options?: ServiceInitOptions,
+  ): OpenAIClient {
     return new OpenAI({
       apiKey,
       baseURL: options?.baseURL || GROK_BASE_URL,

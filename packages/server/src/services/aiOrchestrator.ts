@@ -31,7 +31,7 @@ export const initializeAISystem = async (): Promise<ChatOrchestrator> => {
   }
 
   const otherProviders = Object.keys(PROVIDER_ENV_VARS).filter(
-    (provider) => provider !== "OPENAI"
+    (provider) => provider !== "OPENAI",
   );
   for (const providerKey of otherProviders) {
     const envVar = PROVIDER_ENV_VARS[providerKey];
@@ -42,7 +42,7 @@ export const initializeAISystem = async (): Promise<ChatOrchestrator> => {
 
   if (aiConfigs.length === 0) {
     console.warn(
-      "⚠️  No AI API keys found! Please set API keys in environment variables."
+      "⚠️  No AI API keys found! Please set API keys in environment variables.",
     );
     const availableKeys = Object.values(PROVIDER_ENV_VARS).join(", ");
     console.warn(`Available keys: ${availableKeys}`);
@@ -55,11 +55,9 @@ export const initializeAISystem = async (): Promise<ChatOrchestrator> => {
 
     const initializedModels = Array.from(orchestrator.aiServices.values())
       .map(toOrchestratorAIServiceInfo)
-      .filter(
-        (ai): ai is OrchestratorAIServiceInfo => ai !== null
-      );
+      .filter((ai): ai is OrchestratorAIServiceInfo => ai !== null);
     console.log(
-      `✅ Initialized ${initializedModels.length}/${aiConfigs.length} AI services`
+      `✅ Initialized ${initializedModels.length}/${aiConfigs.length} AI services`,
     );
 
     if (initializedModels.length > 0) {
@@ -73,7 +71,7 @@ export const initializeAISystem = async (): Promise<ChatOrchestrator> => {
 
     if (initializedModels.length < aiConfigs.length) {
       console.warn(
-        `⚠️  ${aiConfigs.length - initializedModels.length} model(s) failed to initialize`
+        `⚠️  ${aiConfigs.length - initializedModels.length} model(s) failed to initialize`,
       );
     }
   } catch (error) {

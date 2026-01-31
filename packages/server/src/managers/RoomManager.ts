@@ -71,10 +71,10 @@ export class RoomManager {
   joinRoom(
     socketId: string,
     roomId: string,
-    userData: RoomUserData
+    userData: RoomUserData,
   ): RoomData | null {
     let room = this.getRoom(roomId);
-    
+
     // Create room if it doesn't exist
     if (!room) {
       room = this.createRoom(roomId);
@@ -113,7 +113,7 @@ export class RoomManager {
     const room = this.getRoom(currentRoomId);
     if (room) {
       room.participants.delete(socketId);
-      
+
       // Remove empty rooms (except default room)
       if (room.participants.size === 0 && currentRoomId !== "default") {
         this.rooms.delete(currentRoomId);
@@ -151,7 +151,11 @@ export class RoomManager {
    * @param {string} changedBy - Who changed the topic
    * @returns {boolean} Success status
    */
-  updateRoomTopic(roomId: string, newTopic: string, changedBy: string): boolean {
+  updateRoomTopic(
+    roomId: string,
+    newTopic: string,
+    changedBy: string,
+  ): boolean {
     const room = this.getRoom(roomId);
     if (!room) {
       return false;
@@ -190,16 +194,19 @@ export class RoomManager {
   getStats(): RoomStats {
     const totalRooms = this.rooms.size;
     const activeRooms = Array.from(this.rooms.values()).filter(
-      (room) => room.isActive
+      (room) => room.isActive,
     ).length;
-    const totalParticipants = Array.from(this.rooms.values())
-      .reduce((sum, room) => sum + room.participants.size, 0);
+    const totalParticipants = Array.from(this.rooms.values()).reduce(
+      (sum, room) => sum + room.participants.size,
+      0,
+    );
 
     return {
       totalRooms,
       activeRooms,
       totalParticipants,
-      avgParticipantsPerRoom: totalRooms > 0 ? totalParticipants / totalRooms : 0,
+      avgParticipantsPerRoom:
+        totalRooms > 0 ? totalParticipants / totalRooms : 0,
     };
   }
 

@@ -4,7 +4,7 @@
 
 // Base message structure
 export interface Message {
-  role: 'user' | 'assistant' | 'system';
+  role: "user" | "assistant" | "system";
   content: string;
   timestamp?: number;
   id?: string;
@@ -13,7 +13,7 @@ export interface Message {
 
 // Formatted message for AI services
 export interface FormattedMessage {
-  role: 'user' | 'assistant' | 'system';
+  role: "user" | "assistant" | "system";
   content: string;
 }
 
@@ -43,7 +43,10 @@ export interface AIProvider {
 }
 
 // Service configuration with generic provider/model types
-export interface AIServiceConfig<P extends string = string, M extends string = string> {
+export interface AIServiceConfig<
+  P extends string = string,
+  M extends string = string,
+> {
   provider: {
     name: P;
     apiKeyEnvVar: string;
@@ -69,13 +72,13 @@ export interface ChatFormattingOptions {
 
 // OpenAI compatible message format
 export interface OpenAIMessage {
-  role: 'user' | 'assistant' | 'system';
+  role: "user" | "assistant" | "system";
   content: string;
 }
 
 // Gemini message format
 export interface GeminiMessage {
-  role: 'user' | 'model';
+  role: "user" | "model";
   parts: Array<{ text: string }>;
 }
 
@@ -143,14 +146,26 @@ export interface StreamTextOptions {
 }
 
 // Logger levels
-export type LogLevel = 'error' | 'warn' | 'info' | 'debug';
+export type LogLevel = "error" | "warn" | "info" | "debug";
 
 // Logger interface with strict typing
 export interface Logger {
-  error: <T extends Record<string, unknown> = Record<string, unknown>>(message: string, metadata?: T) => void;
-  warn: <T extends Record<string, unknown> = Record<string, unknown>>(message: string, metadata?: T) => void;
-  info: <T extends Record<string, unknown> = Record<string, unknown>>(message: string, metadata?: T) => void;
-  debug: <T extends Record<string, unknown> = Record<string, unknown>>(message: string, metadata?: T) => void;
+  error: <T extends Record<string, unknown> = Record<string, unknown>>(
+    message: string,
+    metadata?: T,
+  ) => void;
+  warn: <T extends Record<string, unknown> = Record<string, unknown>>(
+    message: string,
+    metadata?: T,
+  ) => void;
+  info: <T extends Record<string, unknown> = Record<string, unknown>>(
+    message: string,
+    metadata?: T,
+  ) => void;
+  debug: <T extends Record<string, unknown> = Record<string, unknown>>(
+    message: string,
+    metadata?: T,
+  ) => void;
 }
 
 // Context manager types
@@ -162,11 +177,11 @@ export interface ConversationContext {
 
 // Message broker event types
 export type MessageBrokerEvent =
-  | 'message_sent'
-  | 'message_received'
-  | 'conversation_started'
-  | 'conversation_ended'
-  | 'error';
+  | "message_sent"
+  | "message_received"
+  | "conversation_started"
+  | "conversation_ended"
+  | "error";
 
 export interface MessageBrokerEventData {
   type: MessageBrokerEvent;
@@ -187,7 +202,10 @@ export interface IAIService {
   name: string;
 
   initialize(options?: ServiceInitOptions): Promise<void>;
-  generateResponse(messages: Message[], context?: Record<string, unknown>): Promise<ServiceResponse>;
+  generateResponse(
+    messages: Message[],
+    context?: Record<string, unknown>,
+  ): Promise<ServiceResponse>;
   isConfigured(): boolean;
   isInitialized?(): boolean;
   getName(): string;
@@ -199,11 +217,15 @@ export interface IAIService {
 }
 
 // Service factory types
-export type ServiceConstructor<T extends IAIService = IAIService> = new (config: AIServiceConfig) => T;
+export type ServiceConstructor<T extends IAIService = IAIService> = new (
+  config: AIServiceConfig,
+) => T;
 
-export type ServiceRegistry<T extends Record<string, IAIService> = Record<string, IAIService>> = {
+export type ServiceRegistry<
+  T extends Record<string, IAIService> = Record<string, IAIService>,
+> = {
   [K in keyof T]: ServiceConstructor<T[K]>;
-}
+};
 
 // AI Response types
 export interface AIResponse {
@@ -220,7 +242,7 @@ export interface AIResponse {
 // Service-specific configuration types
 export interface AnthropicServiceConfig extends AIServiceConfig {
   provider: {
-    name: 'anthropic';
+    name: "anthropic";
     displayName: string;
     apiKeyEnvVar: string;
   };
@@ -228,7 +250,7 @@ export interface AnthropicServiceConfig extends AIServiceConfig {
 
 export interface GeminiServiceConfig extends AIServiceConfig {
   provider: {
-    name: 'gemini';
+    name: "gemini";
     displayName: string;
     apiKeyEnvVar: string;
   };
@@ -238,12 +260,17 @@ export interface GeminiServiceConfig extends AIServiceConfig {
 export class ServiceError extends Error {
   constructor(
     message: string,
-    public readonly errorType: 'configuration' | 'api_error' | 'initialization' | 'invalid_input' | 'response_parsing',
+    public readonly errorType:
+      | "configuration"
+      | "api_error"
+      | "initialization"
+      | "invalid_input"
+      | "response_parsing",
     public readonly service?: string,
-    public readonly details?: Record<string, unknown>
+    public readonly details?: Record<string, unknown>,
   ) {
     super(message);
-    this.name = 'ServiceError';
+    this.name = "ServiceError";
   }
 }
 
@@ -252,17 +279,21 @@ export class AIServiceError extends Error {
     message: string,
     public readonly service?: string,
     public readonly originalError?: Error,
-    public readonly errorCode?: string
+    public readonly errorCode?: string,
   ) {
     super(message);
-    this.name = 'AIServiceError';
+    this.name = "AIServiceError";
   }
 }
 
 export class ConfigurationError extends Error {
-  constructor(message: string, public readonly field?: string, public readonly value?: unknown) {
+  constructor(
+    message: string,
+    public readonly field?: string,
+    public readonly value?: unknown,
+  ) {
     super(message);
-    this.name = 'ConfigurationError';
+    this.name = "ConfigurationError";
   }
 }
 
@@ -270,24 +301,32 @@ export class NetworkError extends Error {
   constructor(
     message: string,
     public readonly statusCode?: number,
-    public readonly responseData?: unknown
+    public readonly responseData?: unknown,
   ) {
     super(message);
-    this.name = 'NetworkError';
+    this.name = "NetworkError";
   }
 }
 
 export class InitializationError extends Error {
-  constructor(message: string, public readonly service?: string, public readonly details?: Record<string, unknown>) {
+  constructor(
+    message: string,
+    public readonly service?: string,
+    public readonly details?: Record<string, unknown>,
+  ) {
     super(message);
-    this.name = 'InitializationError';
+    this.name = "InitializationError";
   }
 }
 
 export class ValidationError extends Error {
-  constructor(message: string, public readonly field?: string, public readonly constraints?: string[]) {
+  constructor(
+    message: string,
+    public readonly field?: string,
+    public readonly constraints?: string[],
+  ) {
     super(message);
-    this.name = 'ValidationError';
+    this.name = "ValidationError";
   }
 }
 
@@ -307,20 +346,20 @@ export type ErrorCallback = (error: Error) => void | Promise<void>;
 // Type guards
 export const isMessage = (obj: unknown): obj is Message => {
   return (
-    typeof obj === 'object' &&
+    typeof obj === "object" &&
     obj !== null &&
-    'role' in obj &&
-    'content' in obj &&
-    typeof (obj as Message).content === 'string'
+    "role" in obj &&
+    "content" in obj &&
+    typeof (obj as Message).content === "string"
   );
 };
 
 export const isServiceResponse = (obj: unknown): obj is ServiceResponse => {
   return (
-    typeof obj === 'object' &&
+    typeof obj === "object" &&
     obj !== null &&
-    'content' in obj &&
-    typeof (obj as ServiceResponse).content === 'string'
+    "content" in obj &&
+    typeof (obj as ServiceResponse).content === "string"
   );
 };
 

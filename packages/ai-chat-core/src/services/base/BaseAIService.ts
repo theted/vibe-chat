@@ -5,22 +5,25 @@
  * Each AI provider should extend this class and implement its methods.
  */
 
-import { enhanceSystemPromptWithPersona, getPersonaFromProvider } from '@/utils/personaUtils.js';
-import { getEnvFlag, parseBooleanEnvFlag } from '@/utils/stringUtils.js';
+import {
+  enhanceSystemPromptWithPersona,
+  getPersonaFromProvider,
+} from "@/utils/personaUtils.js";
+import { getEnvFlag, parseBooleanEnvFlag } from "@/utils/stringUtils.js";
 import {
   IAIServiceExtended,
   ServiceInitializationOptions,
   EnhancedServiceResponse,
   ServiceInitializationError,
-  ServiceConfigurationError
-} from '@/types/services.js';
+  ServiceConfigurationError,
+} from "@/types/services.js";
 import {
   AIServiceConfig,
   Message,
   ServiceResponse,
   ServiceInitOptions,
-  Logger
-} from '@/types/index.js';
+  Logger,
+} from "@/types/index.js";
 
 export abstract class BaseAIService implements IAIServiceExtended {
   public readonly config: AIServiceConfig;
@@ -30,7 +33,7 @@ export abstract class BaseAIService implements IAIServiceExtended {
   protected lastHealthCheck?: number;
   protected lastValidationError?: string;
 
-  constructor(config: AIServiceConfig, name: string = 'BaseAIService') {
+  constructor(config: AIServiceConfig, name: string = "BaseAIService") {
     this.config = config;
     this.name = name;
     this.validateConfig(config);
@@ -42,25 +45,23 @@ export abstract class BaseAIService implements IAIServiceExtended {
   private validateConfig(config: AIServiceConfig): void {
     if (!config?.provider?.name) {
       throw new ServiceConfigurationError(
-        'Provider name is required',
+        "Provider name is required",
         this.name,
-        ['provider.name']
+        ["provider.name"],
       );
     }
 
     if (!config?.model?.id) {
-      throw new ServiceConfigurationError(
-        'Model ID is required',
-        this.name,
-        ['model.id']
-      );
+      throw new ServiceConfigurationError("Model ID is required", this.name, [
+        "model.id",
+      ]);
     }
 
     if (!config?.provider?.apiKeyEnvVar) {
       throw new ServiceConfigurationError(
-        'API key environment variable is required',
+        "API key environment variable is required",
         this.name,
-        ['provider.apiKeyEnvVar']
+        ["provider.apiKeyEnvVar"],
       );
     }
   }
@@ -92,7 +93,7 @@ export abstract class BaseAIService implements IAIServiceExtended {
       const initError = new ServiceInitializationError(
         `Failed to initialize ${this.name}: ${error instanceof Error ? error.message : String(error)}`,
         this.name,
-        { originalError: error }
+        { originalError: error },
       );
       throw initError;
     }
@@ -102,26 +103,28 @@ export abstract class BaseAIService implements IAIServiceExtended {
    * Abstract method for service-specific initialization
    * Must be implemented by subclasses
    */
-  protected abstract performInitialization(options?: ServiceInitOptions): Promise<void>;
+  protected abstract performInitialization(
+    options?: ServiceInitOptions,
+  ): Promise<void>;
 
   /**
    * Generate a response based on the conversation history
    */
   async generateResponse(
     messages: Message[],
-    context?: Record<string, unknown>
+    context?: Record<string, unknown>,
   ): Promise<ServiceResponse> {
     if (!this.initialized) {
       throw new ServiceInitializationError(
         `Service ${this.name} is not initialized. Call initialize() first.`,
-        this.name
+        this.name,
       );
     }
 
     if (!this.isConfigured()) {
       throw new ServiceConfigurationError(
         `Service ${this.name} is not properly configured`,
-        this.name
+        this.name,
       );
     }
 
@@ -133,13 +136,13 @@ export abstract class BaseAIService implements IAIServiceExtended {
       return {
         ...response,
         responseTime,
-        model: this.getModel()
+        model: this.getModel(),
       } as EnhancedServiceResponse;
     } catch (error) {
-      this.logger?.error('Failed to generate response', {
+      this.logger?.error("Failed to generate response", {
         service: this.name,
         error: error instanceof Error ? error.message : String(error),
-        messageCount: messages.length
+        messageCount: messages.length,
       });
       throw error;
     }
@@ -151,7 +154,7 @@ export abstract class BaseAIService implements IAIServiceExtended {
    */
   protected abstract performGenerateResponse(
     messages: Message[],
-    context?: Record<string, unknown>
+    context?: Record<string, unknown>,
   ): Promise<ServiceResponse>;
 
   /**
@@ -198,7 +201,7 @@ export abstract class BaseAIService implements IAIServiceExtended {
    * Get the enhanced system prompt with persona traits
    */
   getEnhancedSystemPrompt(additionalContext?: string): string {
-    const originalPrompt = this.config.model.systemPrompt || '';
+    const originalPrompt = this.config.model.systemPrompt || "";
     const persona = getPersonaFromProvider(this.config.provider);
 
     let enhancedPrompt = originalPrompt;
@@ -251,7 +254,7 @@ export abstract class BaseAIService implements IAIServiceExtended {
       const now = Date.now();
 
       // Cache health check results for 5 minutes
-      if (this.lastHealthCheck && (now - this.lastHealthCheck) < 300000) {
+      if (this.lastHealthCheck && now - this.lastHealthCheck < 300000) {
         return true;
       }
 
@@ -263,9 +266,9 @@ export abstract class BaseAIService implements IAIServiceExtended {
 
       return healthCheckResult;
     } catch (error) {
-      this.logger?.error('Health check failed', {
+      this.logger?.error("Health check failed", {
         service: this.name,
-        error: error instanceof Error ? error.message : String(error)
+        error: error instanceof Error ? error.message : String(error),
       });
       return false;
     }
@@ -292,7 +295,7 @@ export abstract class BaseAIService implements IAIServiceExtended {
    */
   protected logHealthCheckDetails(
     stage: "request" | "response",
-    details: Record<string, unknown>
+    details: Record<string, unknown>,
   ): void {
     if (!this.isVerboseHealthCheckLoggingEnabled()) {
       return;
@@ -317,9 +320,9 @@ export abstract class BaseAIService implements IAIServiceExtended {
       this.initialized = false;
       this.lastHealthCheck = undefined;
     } catch (error) {
-      this.logger?.error('Error during service shutdown', {
+      this.logger?.error("Error during service shutdown", {
         service: this.name,
-        error: error instanceof Error ? error.message : String(error)
+        error: error instanceof Error ? error.message : String(error),
       });
       throw error;
     }
@@ -341,9 +344,9 @@ export abstract class BaseAIService implements IAIServiceExtended {
       await this.performConnectionReset();
       this.lastHealthCheck = undefined;
     } catch (error) {
-      this.logger?.error('Error resetting connection', {
+      this.logger?.error("Error resetting connection", {
         service: this.name,
-        error: error instanceof Error ? error.message : String(error)
+        error: error instanceof Error ? error.message : String(error),
       });
       throw error;
     }
@@ -388,7 +391,7 @@ export abstract class BaseAIService implements IAIServiceExtended {
       model: this.config.model.id,
       initialized: this.initialized,
       lastHealthCheck: this.lastHealthCheck,
-      configured: this.isConfigured()
+      configured: this.isConfigured(),
     };
   }
 }

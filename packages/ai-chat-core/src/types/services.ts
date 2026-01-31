@@ -2,12 +2,21 @@
  * Service-specific type definitions for AI Chat Core library
  */
 
-import { IAIService, ServiceResponse, AIServiceConfig, ServiceInitOptions, Message } from './index.js';
+import {
+  IAIService,
+  ServiceResponse,
+  AIServiceConfig,
+  ServiceInitOptions,
+  Message,
+} from "./index.js";
 
 // Extended AI Service interface with complete contract
 export interface IAIServiceExtended extends IAIService {
   initialize(options?: ServiceInitOptions): Promise<void>;
-  generateResponse(messages: Message[], context?: Record<string, unknown>): Promise<ServiceResponse>;
+  generateResponse(
+    messages: Message[],
+    context?: Record<string, unknown>,
+  ): Promise<ServiceResponse>;
   isConfigured(): boolean;
   getName(): string;
   getModel(): string;
@@ -29,7 +38,9 @@ export interface ServiceInitializationOptions extends ServiceInitOptions {
 }
 
 // Service response with provider-specific metadata
-export interface EnhancedServiceResponse<T = unknown> extends ServiceResponse<T> {
+export interface EnhancedServiceResponse<
+  T = unknown,
+> extends ServiceResponse<T> {
   responseTime?: number;
   requestId?: string;
   modelVersion?: string;
@@ -38,17 +49,20 @@ export interface EnhancedServiceResponse<T = unknown> extends ServiceResponse<T>
 }
 
 // Provider-specific configuration interfaces
-export interface OpenAIServiceConfig extends AIServiceConfig<'openai', string> {
+export interface OpenAIServiceConfig extends AIServiceConfig<"openai", string> {
   organization?: string;
   project?: string;
   dangerouslyAllowBrowser?: boolean;
 }
 
-export interface AnthropicServiceConfig extends AIServiceConfig<'anthropic', string> {
+export interface AnthropicServiceConfig extends AIServiceConfig<
+  "anthropic",
+  string
+> {
   defaultHeaders?: Record<string, string>;
 }
 
-export interface GeminiServiceConfig extends AIServiceConfig<'gemini', string> {
+export interface GeminiServiceConfig extends AIServiceConfig<"gemini", string> {
   generationConfig?: {
     temperature?: number;
     topP?: number;
@@ -74,7 +88,9 @@ export interface OpenAICompatibleServiceConfig extends AIServiceConfig {
 export interface OpenAIClient {
   chat: {
     completions: {
-      create(params: OpenAICompletionRequest): Promise<OpenAICompletionResponse>;
+      create(
+        params: OpenAICompletionRequest,
+      ): Promise<OpenAICompletionResponse>;
     };
   };
 }
@@ -86,7 +102,9 @@ export interface AnthropicClient {
 }
 
 export interface GeminiClient {
-  generateContent(params: GeminiGenerateRequest): Promise<GeminiGenerateResponse>;
+  generateContent(
+    params: GeminiGenerateRequest,
+  ): Promise<GeminiGenerateResponse>;
 }
 
 // Request/Response types for each provider
@@ -136,10 +154,10 @@ export interface AnthropicMessageRequest {
 
 export interface AnthropicMessageResponse {
   id: string;
-  type: 'message';
-  role: 'assistant';
+  type: "message";
+  role: "assistant";
   content: Array<{
-    type: 'text';
+    type: "text";
     text: string;
   }>;
   model: string;
@@ -203,7 +221,9 @@ export interface ServiceFactory {
   isProviderSupported(provider: string): boolean;
 }
 
-export type ServiceConstructor<T extends IAIService = IAIService> = new (config: AIServiceConfig) => T;
+export type ServiceConstructor<T extends IAIService = IAIService> = new (
+  config: AIServiceConfig,
+) => T;
 
 export interface ServiceRegistryMap {
   [provider: string]: ServiceConstructor;
@@ -214,10 +234,10 @@ export class ServiceInitializationError extends Error {
   constructor(
     message: string,
     public readonly service: string,
-    public readonly details?: Record<string, unknown>
+    public readonly details?: Record<string, unknown>,
   ) {
     super(message);
-    this.name = 'ServiceInitializationError';
+    this.name = "ServiceInitializationError";
   }
 }
 
@@ -225,10 +245,10 @@ export class ServiceConfigurationError extends Error {
   constructor(
     message: string,
     public readonly service: string,
-    public readonly missingFields?: string[]
+    public readonly missingFields?: string[],
   ) {
     super(message);
-    this.name = 'ServiceConfigurationError';
+    this.name = "ServiceConfigurationError";
   }
 }
 
@@ -237,52 +257,58 @@ export class ServiceAPIError extends Error {
     message: string,
     public readonly service: string,
     public readonly statusCode?: number,
-    public readonly apiError?: unknown
+    public readonly apiError?: unknown,
   ) {
     super(message);
-    this.name = 'ServiceAPIError';
+    this.name = "ServiceAPIError";
   }
 }
 
 export class ServiceTimeoutError extends Error {
-  constructor(message: string, public readonly service: string, public readonly timeoutMs: number) {
+  constructor(
+    message: string,
+    public readonly service: string,
+    public readonly timeoutMs: number,
+  ) {
     super(message);
-    this.name = 'ServiceTimeoutError';
+    this.name = "ServiceTimeoutError";
   }
 }
 
 // Utility types for services
 export type ProviderName =
-  | 'openai'
-  | 'anthropic'
-  | 'gemini'
-  | 'mistral'
-  | 'deepseek'
-  | 'grok'
-  | 'qwen'
-  | 'kimi'
-  | 'zai'
-  | 'cohere'
-  | 'llama'
-  | 'perplexity';
+  | "openai"
+  | "anthropic"
+  | "gemini"
+  | "mistral"
+  | "deepseek"
+  | "grok"
+  | "qwen"
+  | "kimi"
+  | "zai"
+  | "cohere"
+  | "llama"
+  | "perplexity";
 
-export type SupportedModel<T extends ProviderName> =
-  T extends 'openai' ? 'gpt-4' | 'gpt-3.5-turbo' | 'gpt-4-turbo' :
-  T extends 'anthropic' ? 'claude-3-opus' | 'claude-3-sonnet' | 'claude-3-haiku' :
-  T extends 'gemini' ? 'gemini-pro' | 'gemini-pro-vision' :
-  string;
+export type SupportedModel<T extends ProviderName> = T extends "openai"
+  ? "gpt-4" | "gpt-3.5-turbo" | "gpt-4-turbo"
+  : T extends "anthropic"
+    ? "claude-3-opus" | "claude-3-sonnet" | "claude-3-haiku"
+    : T extends "gemini"
+      ? "gemini-pro" | "gemini-pro-vision"
+      : string;
 
 // Service status and health
 export interface ServiceStatus {
   service: string;
-  status: 'healthy' | 'unhealthy' | 'unknown';
+  status: "healthy" | "unhealthy" | "unknown";
   lastChecked: number;
   responseTime?: number;
   error?: string;
 }
 
 export interface ServiceHealthReport {
-  overall: 'healthy' | 'unhealthy' | 'degraded';
+  overall: "healthy" | "unhealthy" | "degraded";
   services: Record<string, ServiceStatus>;
   timestamp: number;
 }
@@ -307,47 +333,55 @@ export interface ServicePerformanceReport {
 }
 
 // Re-export ServiceError for backward compatibility
-export { ServiceError } from './index.js';
+export { ServiceError } from "./index.js";
 
 // Type guards for service validation
 export const isServiceResponse = (obj: unknown): obj is ServiceResponse => {
   return (
-    typeof obj === 'object' &&
+    typeof obj === "object" &&
     obj !== null &&
-    'content' in obj &&
-    typeof (obj as ServiceResponse).content === 'string'
+    "content" in obj &&
+    typeof (obj as ServiceResponse).content === "string"
   );
 };
 
-export const isEnhancedServiceResponse = (obj: unknown): obj is EnhancedServiceResponse => {
+export const isEnhancedServiceResponse = (
+  obj: unknown,
+): obj is EnhancedServiceResponse => {
   return isServiceResponse(obj);
 };
 
-export const isOpenAIResponse = (obj: unknown): obj is OpenAICompletionResponse => {
+export const isOpenAIResponse = (
+  obj: unknown,
+): obj is OpenAICompletionResponse => {
   return (
-    typeof obj === 'object' &&
+    typeof obj === "object" &&
     obj !== null &&
-    'choices' in obj &&
-    'model' in obj &&
+    "choices" in obj &&
+    "model" in obj &&
     Array.isArray((obj as OpenAICompletionResponse).choices)
   );
 };
 
-export const isAnthropicResponse = (obj: unknown): obj is AnthropicMessageResponse => {
+export const isAnthropicResponse = (
+  obj: unknown,
+): obj is AnthropicMessageResponse => {
   return (
-    typeof obj === 'object' &&
+    typeof obj === "object" &&
     obj !== null &&
-    'content' in obj &&
-    'type' in obj &&
-    (obj as AnthropicMessageResponse).type === 'message'
+    "content" in obj &&
+    "type" in obj &&
+    (obj as AnthropicMessageResponse).type === "message"
   );
 };
 
-export const isGeminiResponse = (obj: unknown): obj is GeminiGenerateResponse => {
+export const isGeminiResponse = (
+  obj: unknown,
+): obj is GeminiGenerateResponse => {
   return (
-    typeof obj === 'object' &&
+    typeof obj === "object" &&
     obj !== null &&
-    'candidates' in obj &&
+    "candidates" in obj &&
     Array.isArray((obj as GeminiGenerateResponse).candidates)
   );
 };

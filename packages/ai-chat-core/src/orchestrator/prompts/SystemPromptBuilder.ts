@@ -11,9 +11,9 @@ import {
   PromptTemplate,
   SystemPromptBuilderConfig,
   AIParticipant,
-  InteractionStrategy
-} from '@/types/orchestrator.js';
-import { enhanceSystemPromptWithPersona } from '@/utils/personaUtils.js';
+  InteractionStrategy,
+} from "@/types/orchestrator.js";
+import { enhanceSystemPromptWithPersona } from "@/utils/personaUtils.js";
 
 export class SystemPromptBuilder implements ISystemPromptBuilder {
   private config: SystemPromptBuilderConfig;
@@ -25,7 +25,7 @@ export class SystemPromptBuilder implements ISystemPromptBuilder {
       includeParticipantInfo: true,
       includeStrategyHints: true,
       ...config,
-      templates: this.getDefaultTemplates()
+      templates: this.getDefaultTemplates(),
     };
     this.templates = this.config.templates;
   }
@@ -34,7 +34,7 @@ export class SystemPromptBuilder implements ISystemPromptBuilder {
    * Check if persona injection is enabled via environment variable
    */
   private isPersonaEnabled(): boolean {
-    return process.env.AI_CHAT_ENABLE_PERSONAS === 'true';
+    return process.env.AI_CHAT_ENABLE_PERSONAS === "true";
   }
 
   /**
@@ -43,13 +43,16 @@ export class SystemPromptBuilder implements ISystemPromptBuilder {
   buildPrompt(
     basePrompt: string,
     context: PromptContext,
-    participant: AIParticipant
+    participant: AIParticipant,
   ): string {
     let prompt = basePrompt || this.templates.base;
 
     // Inject persona into the prompt if enabled and available
     if (this.isPersonaEnabled() && participant.provider?.persona) {
-      prompt = enhanceSystemPromptWithPersona(prompt, participant.provider.persona);
+      prompt = enhanceSystemPromptWithPersona(
+        prompt,
+        participant.provider.persona,
+      );
     }
 
     // Add participant-specific information
@@ -79,7 +82,7 @@ export class SystemPromptBuilder implements ISystemPromptBuilder {
    */
   enhanceContextForStrategy(
     context: string,
-    strategy: InteractionStrategy
+    strategy: InteractionStrategy,
   ): string {
     const strategyTemplate = this.templates.strategySpecific[strategy];
     if (!strategyTemplate) {
@@ -95,13 +98,16 @@ export class SystemPromptBuilder implements ISystemPromptBuilder {
   enhanceContextForTopicChange(
     context: string,
     newTopic: string,
-    previousTopic?: string
+    previousTopic?: string,
   ): string {
     const topicChangeTemplate = this.templates.contextEnhancements.topicChange;
 
     let enhancement = topicChangeTemplate
-      .replace('{{NEW_TOPIC}}', newTopic)
-      .replace('{{PREVIOUS_TOPIC}}', previousTopic || 'the previous discussion');
+      .replace("{{NEW_TOPIC}}", newTopic)
+      .replace(
+        "{{PREVIOUS_TOPIC}}",
+        previousTopic || "the previous discussion",
+      );
 
     return `${context}\n\n${enhancement}`;
   }
@@ -109,12 +115,9 @@ export class SystemPromptBuilder implements ISystemPromptBuilder {
   /**
    * Enhance context for comments or responses
    */
-  enhanceContextForComment(
-    context: string,
-    comment: string
-  ): string {
+  enhanceContextForComment(context: string, comment: string): string {
     const commentTemplate = this.templates.contextEnhancements.comment;
-    const enhancement = commentTemplate.replace('{{COMMENT}}', comment);
+    const enhancement = commentTemplate.replace("{{COMMENT}}", comment);
 
     return `${context}\n\n${enhancement}`;
   }
@@ -129,10 +132,10 @@ export class SystemPromptBuilder implements ISystemPromptBuilder {
 
     // Try to truncate at sentence boundaries
     const sentences = response.split(/[.!?]+/);
-    let truncated = '';
+    let truncated = "";
 
     for (const sentence of sentences) {
-      const potential = truncated + sentence + '.';
+      const potential = truncated + sentence + ".";
       if (potential.length > maxLength) {
         break;
       }
@@ -141,15 +144,15 @@ export class SystemPromptBuilder implements ISystemPromptBuilder {
 
     // If no complete sentence fits, just truncate at word boundary
     if (truncated.length === 0) {
-      const words = response.split(' ');
+      const words = response.split(" ");
       for (const word of words) {
-        const potential = truncated + (truncated ? ' ' : '') + word;
+        const potential = truncated + (truncated ? " " : "") + word;
         if (potential.length > maxLength - 3) {
           break;
         }
         truncated = potential;
       }
-      truncated += '...';
+      truncated += "...";
     }
 
     return truncated.trim();
@@ -164,12 +167,12 @@ export class SystemPromptBuilder implements ISystemPromptBuilder {
       ...updates,
       strategySpecific: {
         ...this.templates.strategySpecific,
-        ...updates.strategySpecific
+        ...updates.strategySpecific,
       },
       contextEnhancements: {
         ...this.templates.contextEnhancements,
-        ...updates.contextEnhancements
-      }
+        ...updates.contextEnhancements,
+      },
     };
   }
 
@@ -202,19 +205,19 @@ Guidelines:
 - Avoid being overly formal or robotic`,
 
       strategySpecific: {
-        'agree-expand': `For this response, focus on agreeing with valid points and expanding the discussion with additional insights, examples, or related perspectives.`,
+        "agree-expand": `For this response, focus on agreeing with valid points and expanding the discussion with additional insights, examples, or related perspectives.`,
 
-        'challenge': `For this response, respectfully challenge assumptions or present alternative viewpoints. Ask probing questions and encourage deeper thinking about the topic.`,
+        challenge: `For this response, respectfully challenge assumptions or present alternative viewpoints. Ask probing questions and encourage deeper thinking about the topic.`,
 
-        'redirect': `For this response, help guide the conversation toward new but related topics. Use natural transitions to introduce fresh perspectives or areas of discussion.`,
+        redirect: `For this response, help guide the conversation toward new but related topics. Use natural transitions to introduce fresh perspectives or areas of discussion.`,
 
-        'question': `For this response, focus on asking thoughtful questions that deepen the conversation. Show curiosity and help uncover new aspects of the topic.`,
+        question: `For this response, focus on asking thoughtful questions that deepen the conversation. Show curiosity and help uncover new aspects of the topic.`,
 
-        'direct': `For this response, provide a clear, direct answer or reaction to what was said. Be concise but informative.`,
+        direct: `For this response, provide a clear, direct answer or reaction to what was said. Be concise but informative.`,
 
-        'support': `For this response, build upon and reinforce good points made by others. Show agreement and add supporting evidence or examples.`,
+        support: `For this response, build upon and reinforce good points made by others. Show agreement and add supporting evidence or examples.`,
 
-        'analyze': `For this response, break down complex topics into components. Provide analytical insights and examine different aspects of the discussion.`
+        analyze: `For this response, break down complex topics into components. Provide analytical insights and examine different aspects of the discussion.`,
       },
 
       contextEnhancements: {
@@ -224,15 +227,18 @@ Guidelines:
 
         agreement: `There seems to be consensus forming. Consider how to build on this agreement constructively.`,
 
-        challenge: `Different viewpoints are emerging. Consider how to contribute to a respectful debate.`
-      }
+        challenge: `Different viewpoints are emerging. Consider how to contribute to a respectful debate.`,
+      },
     };
   }
 
   /**
    * Build participant-specific information section
    */
-  private buildParticipantSection(participant: AIParticipant, context: PromptContext): string {
+  private buildParticipantSection(
+    participant: AIParticipant,
+    context: PromptContext,
+  ): string {
     const sections = [];
 
     sections.push(`\nParticipant Information:`);
@@ -240,10 +246,12 @@ Guidelines:
     sections.push(`- Provider: ${participant.provider.name}`);
 
     if (context.participantCount > 1) {
-      sections.push(`- Other participants: ${context.participantCount - 1} other AI(s) in conversation`);
+      sections.push(
+        `- Other participants: ${context.participantCount - 1} other AI(s) in conversation`,
+      );
     }
 
-    return sections.join('\n');
+    return sections.join("\n");
   }
 
   /**
@@ -252,7 +260,7 @@ Guidelines:
   private buildStrategySection(strategy: InteractionStrategy): string {
     const strategyPrompt = this.templates.strategySpecific[strategy];
     if (!strategyPrompt) {
-      return '';
+      return "";
     }
 
     return `\nStrategy Guidance:\n${strategyPrompt}`;
@@ -263,7 +271,7 @@ Guidelines:
    */
   private buildContextSection(recentContext: string): string {
     if (!recentContext.trim()) {
-      return '';
+      return "";
     }
 
     const truncatedContext = this.truncateContext(recentContext, 500);
@@ -289,10 +297,10 @@ Guidelines:
     }
 
     if (metadata.length === 0) {
-      return '';
+      return "";
     }
 
-    return `\nConversation Metadata:\n- ${metadata.join('\n- ')}`;
+    return `\nConversation Metadata:\n- ${metadata.join("\n- ")}`;
   }
 
   /**
@@ -304,7 +312,7 @@ Guidelines:
     }
 
     // Truncate and add ellipsis
-    return context.substring(0, maxLength - 3).trim() + '...';
+    return context.substring(0, maxLength - 3).trim() + "...";
   }
 
   /**
@@ -316,12 +324,13 @@ Guidelines:
     }
 
     // Find a good truncation point (preferably end of a section)
-    const sections = prompt.split('\n\n');
-    let truncated = '';
+    const sections = prompt.split("\n\n");
+    let truncated = "";
 
     for (const section of sections) {
-      const potential = truncated + (truncated ? '\n\n' : '') + section;
-      if (potential.length > maxLength - 100) { // Leave some buffer
+      const potential = truncated + (truncated ? "\n\n" : "") + section;
+      if (potential.length > maxLength - 100) {
+        // Leave some buffer
         break;
       }
       truncated = potential;
@@ -332,7 +341,7 @@ Guidelines:
       truncated = prompt.substring(0, maxLength - 50);
     }
 
-    truncated += '\n\n[Prompt truncated due to length limits]';
+    truncated += "\n\n[Prompt truncated due to length limits]";
     return truncated;
   }
 
@@ -355,19 +364,37 @@ Guidelines:
    * Detect emotional tone from context
    */
   detectEmotionalTone(context: string): string {
-    const positiveWords = ['great', 'excellent', 'amazing', 'wonderful', 'fantastic'];
-    const negativeWords = ['terrible', 'awful', 'bad', 'horrible', 'disappointing'];
-    const questionWords = ['what', 'how', 'why', 'when', 'where', 'which'];
+    const positiveWords = [
+      "great",
+      "excellent",
+      "amazing",
+      "wonderful",
+      "fantastic",
+    ];
+    const negativeWords = [
+      "terrible",
+      "awful",
+      "bad",
+      "horrible",
+      "disappointing",
+    ];
+    const questionWords = ["what", "how", "why", "when", "where", "which"];
 
     const lowerContext = context.toLowerCase();
 
-    const positiveCount = positiveWords.filter(word => lowerContext.includes(word)).length;
-    const negativeCount = negativeWords.filter(word => lowerContext.includes(word)).length;
-    const questionCount = questionWords.filter(word => lowerContext.includes(word)).length;
+    const positiveCount = positiveWords.filter((word) =>
+      lowerContext.includes(word),
+    ).length;
+    const negativeCount = negativeWords.filter((word) =>
+      lowerContext.includes(word),
+    ).length;
+    const questionCount = questionWords.filter((word) =>
+      lowerContext.includes(word),
+    ).length;
 
-    if (questionCount > 2) return 'inquisitive';
-    if (positiveCount > negativeCount) return 'positive';
-    if (negativeCount > positiveCount) return 'critical';
-    return 'neutral';
+    if (questionCount > 2) return "inquisitive";
+    if (positiveCount > negativeCount) return "positive";
+    if (negativeCount > positiveCount) return "critical";
+    return "neutral";
   }
 }

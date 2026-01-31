@@ -27,7 +27,7 @@ export async function createRedisClient(): Promise<RedisClient | null> {
   } catch (error) {
     console.error(
       "❌ Failed to connect to Redis. Continuing without persistence.",
-      error
+      error,
     );
     return null;
   }

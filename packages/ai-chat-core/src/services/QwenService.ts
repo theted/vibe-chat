@@ -17,7 +17,10 @@ export class QwenService extends OpenAICompatibleService {
     super(config, "Qwen");
   }
 
-  protected createClient(apiKey: string, options?: ServiceInitOptions): OpenAIClient {
+  protected createClient(
+    apiKey: string,
+    options?: ServiceInitOptions,
+  ): OpenAIClient {
     return new OpenAI({
       apiKey,
       baseURL: options?.baseURL || QWEN_BASE_URL,

@@ -17,7 +17,10 @@ export class CohereService extends OpenAICompatibleService {
     super(config, "Cohere");
   }
 
-  protected createClient(apiKey: string, options?: ServiceInitOptions): OpenAIClient {
+  protected createClient(
+    apiKey: string,
+    options?: ServiceInitOptions,
+  ): OpenAIClient {
     return new OpenAI({
       apiKey,
       baseURL: options?.baseURL || COHERE_BASE_URL,

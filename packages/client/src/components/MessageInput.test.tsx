@@ -9,7 +9,9 @@ vi.mock("./AISelectionDialog", () => ({
 }));
 
 vi.mock("./Icon", () => ({
-  default: ({ name }: { name: string }) => <span data-testid={`icon-${name}`}>icon-{name}</span>,
+  default: ({ name }: { name: string }) => (
+    <span data-testid={`icon-${name}`}>icon-{name}</span>
+  ),
 }));
 
 describe("MessageInput", () => {
@@ -27,9 +29,7 @@ describe("MessageInput", () => {
 
   it("shows AI selection dialog while typing an @mention", () => {
     render(<MessageInput {...defaultProps} />);
-    const textarea = screen.getByPlaceholderText(
-      /Use @ to mention an AI/i
-    );
+    const textarea = screen.getByPlaceholderText(/Use @ to mention an AI/i);
 
     fireEvent.change(textarea, { target: { value: "@Gr", selectionStart: 3 } });
 
@@ -40,14 +40,12 @@ describe("MessageInput", () => {
 
   it("opens the AI selection dialog even if selectionStart is unavailable", () => {
     render(<MessageInput {...defaultProps} />);
-    const textarea = screen.getByPlaceholderText(
-      /Use @ to mention an AI/i
-    );
+    const textarea = screen.getByPlaceholderText(/Use @ to mention an AI/i);
 
     fireEvent.change(textarea, { target: { value: "@gr" } });
 
     expect(screen.getByTestId("ai-selection-dialog")).toHaveTextContent(
-      "search:gr"
+      "search:gr",
     );
   });
 });

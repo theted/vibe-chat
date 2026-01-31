@@ -13,9 +13,9 @@ import {
   SchedulingError,
   AIParticipant,
   InteractionStrategy,
-  MentionContext
-} from '@/types/orchestrator.js';
-import { Message } from '@/types/index.js';
+  MentionContext,
+} from "@/types/orchestrator.js";
+import { Message } from "@/types/index.js";
 
 export class ResponseScheduler implements IResponseScheduler {
   private config: SchedulingConfig;
@@ -30,7 +30,7 @@ export class ResponseScheduler implements IResponseScheduler {
       variabilityFactor: 0.3,
       priorityWeight: 0.5,
       enableStaggering: true,
-      ...config
+      ...config,
     };
   }
 
@@ -40,13 +40,15 @@ export class ResponseScheduler implements IResponseScheduler {
   scheduleResponses(
     participants: AIParticipant[],
     strategy: InteractionStrategy,
-    context: SchedulingContext
+    context: SchedulingContext,
   ): ResponseSchedule[] {
     try {
       const schedules: ResponseSchedule[] = [];
 
       // Filter active participants
-      const activeParticipants = participants.filter(p => p.isActive && !p.isSleeping);
+      const activeParticipants = participants.filter(
+        (p) => p.isActive && !p.isSleeping,
+      );
 
       if (activeParticipants.length === 0) {
         return schedules;
@@ -58,7 +60,7 @@ export class ResponseScheduler implements IResponseScheduler {
           participant,
           index,
           activeParticipants.length,
-          context
+          context,
         );
 
         const priority = this.calculatePriority(participant, strategy, context);
@@ -71,8 +73,8 @@ export class ResponseScheduler implements IResponseScheduler {
           context: {
             position: index,
             total: activeParticipants.length,
-            scheduledAt: Date.now()
-          }
+            scheduledAt: Date.now(),
+          },
         };
 
         schedules.push(schedule);
@@ -86,12 +88,11 @@ export class ResponseScheduler implements IResponseScheduler {
       }
 
       return sortedSchedules;
-
     } catch (error) {
       throw new SchedulingError(
         `Failed to schedule responses: ${error instanceof Error ? error.message : String(error)}`,
         undefined,
-        participants
+        participants,
       );
     }
   }
@@ -102,19 +103,23 @@ export class ResponseScheduler implements IResponseScheduler {
   selectRespondingAIs(
     participants: AIParticipant[],
     mentions: MentionContext,
-    strategy: InteractionStrategy
+    strategy: InteractionStrategy,
   ): AIParticipant[] {
     const respondingAIs: AIParticipant[] = [];
 
     // Always include explicitly mentioned AIs
-    mentions.explicitTargets.forEach(target => {
-      if (target.isActive && !target.isSleeping && !respondingAIs.includes(target)) {
+    mentions.explicitTargets.forEach((target) => {
+      if (
+        target.isActive &&
+        !target.isSleeping &&
+        !respondingAIs.includes(target)
+      ) {
         respondingAIs.push(target);
       }
     });
 
     // Add implicitly mentioned AIs with lower probability
-    mentions.implicitTargets.forEach(target => {
+    mentions.implicitTargets.forEach((target) => {
       if (
         target.isActive &&
         !target.isSleeping &&
@@ -127,13 +132,13 @@ export class ResponseScheduler implements IResponseScheduler {
 
     // Select additional responders based on strategy
     const remainingParticipants = participants.filter(
-      p => p.isActive && !p.isSleeping && !respondingAIs.includes(p)
+      (p) => p.isActive && !p.isSleeping && !respondingAIs.includes(p),
     );
 
     const additionalResponders = this.selectAdditionalResponders(
       remainingParticipants,
       strategy,
-      respondingAIs.length
+      respondingAIs.length,
     );
 
     return [...respondingAIs, ...additionalResponders];
@@ -146,25 +151,26 @@ export class ResponseScheduler implements IResponseScheduler {
     participant: AIParticipant,
     position: number,
     total: number,
-    context: SchedulingContext
+    context: SchedulingContext,
   ): number {
     let baseDelay = this.config.baseDelayMs;
 
     // Adjust based on participant history
-    const timeSinceLastResponse = Date.now() - (participant.lastResponseTime || 0);
+    const timeSinceLastResponse =
+      Date.now() - (participant.lastResponseTime || 0);
     if (timeSinceLastResponse < 5000) {
       baseDelay *= 1.5; // Slow down frequent responders
     }
 
     // Adjust based on position (staggering)
     if (this.config.enableStaggering && total > 1) {
-      const staggerDelay = (position * 1000) + (Math.random() * 500);
+      const staggerDelay = position * 1000 + Math.random() * 500;
       baseDelay += staggerDelay;
     }
 
     // Add variability
     const variability = this.config.variabilityFactor;
-    const randomFactor = 1 + ((Math.random() - 0.5) * 2 * variability);
+    const randomFactor = 1 + (Math.random() - 0.5) * 2 * variability;
     baseDelay *= randomFactor;
 
     // Adjust based on typing awareness
@@ -175,7 +181,7 @@ export class ResponseScheduler implements IResponseScheduler {
     // Ensure within bounds
     return Math.max(
       this.config.minDelayMs,
-      Math.min(baseDelay, this.config.maxDelayMs)
+      Math.min(baseDelay, this.config.maxDelayMs),
     );
   }
 
@@ -184,12 +190,12 @@ export class ResponseScheduler implements IResponseScheduler {
    */
   async executeSchedule(schedule: ResponseSchedule[]): Promise<void> {
     try {
-      const promises = schedule.map(item => this.executeScheduleItem(item));
+      const promises = schedule.map((item) => this.executeScheduleItem(item));
       await Promise.all(promises);
     } catch (error) {
       throw new SchedulingError(
         `Failed to execute schedule: ${error instanceof Error ? error.message : String(error)}`,
-        schedule
+        schedule,
       );
     }
   }
@@ -198,7 +204,7 @@ export class ResponseScheduler implements IResponseScheduler {
    * Cancel all scheduled responses
    */
   cancelAllSchedules(): void {
-    this.activeSchedules.forEach(timeout => {
+    this.activeSchedules.forEach((timeout) => {
       clearTimeout(timeout);
     });
     this.activeSchedules.clear();
@@ -217,7 +223,7 @@ export class ResponseScheduler implements IResponseScheduler {
 
     // Remove from queue
     this.responseQueue = this.responseQueue.filter(
-      item => item.participant.id !== participantId
+      (item) => item.participant.id !== participantId,
     );
   }
 
@@ -229,16 +235,20 @@ export class ResponseScheduler implements IResponseScheduler {
     queuedCount: number;
     nextScheduled?: number;
   } {
-    const nextScheduled = this.responseQueue.length > 0
-      ? Math.min(...this.responseQueue.map(item =>
-          ((item.context?.scheduledAt as number) || 0) + item.delayMs
-        ))
-      : undefined;
+    const nextScheduled =
+      this.responseQueue.length > 0
+        ? Math.min(
+            ...this.responseQueue.map(
+              (item) =>
+                ((item.context?.scheduledAt as number) || 0) + item.delayMs,
+            ),
+          )
+        : undefined;
 
     return {
       activeCount: this.activeSchedules.size,
       queuedCount: this.responseQueue.length,
-      nextScheduled
+      nextScheduled,
     };
   }
 
@@ -278,7 +288,7 @@ export class ResponseScheduler implements IResponseScheduler {
 
     // Remove from queue
     this.responseQueue = this.responseQueue.filter(
-      item => item.participant.id !== schedule.participant.id
+      (item) => item.participant.id !== schedule.participant.id,
     );
   }
 
@@ -288,25 +298,26 @@ export class ResponseScheduler implements IResponseScheduler {
   private calculatePriority(
     participant: AIParticipant,
     strategy: InteractionStrategy,
-    context: SchedulingContext
+    context: SchedulingContext,
   ): number {
     let priority = 0.5; // Base priority
 
     // Increase priority for recently active participants
-    const timeSinceLastResponse = Date.now() - (participant.lastResponseTime || 0);
+    const timeSinceLastResponse =
+      Date.now() - (participant.lastResponseTime || 0);
     if (timeSinceLastResponse > 30000) {
       priority += 0.2; // Boost inactive participants
     }
 
     // Adjust based on strategy
     switch (strategy) {
-      case 'direct':
+      case "direct":
         priority += 0.3;
         break;
-      case 'challenge':
+      case "challenge":
         priority += 0.1;
         break;
-      case 'question':
+      case "question":
         priority += 0.2;
         break;
     }
@@ -324,20 +335,20 @@ export class ResponseScheduler implements IResponseScheduler {
   private selectAdditionalResponders(
     availableParticipants: AIParticipant[],
     strategy: InteractionStrategy,
-    alreadySelectedCount: number
+    alreadySelectedCount: number,
   ): AIParticipant[] {
     const additional: AIParticipant[] = [];
 
     // Determine how many additional responders based on strategy
     let targetCount = 1;
     switch (strategy) {
-      case 'challenge':
+      case "challenge":
         targetCount = 2; // Encourage debate
         break;
-      case 'question':
+      case "question":
         targetCount = Math.min(2, availableParticipants.length);
         break;
-      case 'redirect':
+      case "redirect":
         targetCount = 1;
         break;
       default:
@@ -348,7 +359,7 @@ export class ResponseScheduler implements IResponseScheduler {
     const maxToAdd = Math.min(
       targetCount,
       availableParticipants.length,
-      3 - alreadySelectedCount
+      3 - alreadySelectedCount,
     );
 
     // Select randomly from available participants
@@ -367,7 +378,7 @@ export class ResponseScheduler implements IResponseScheduler {
 
     schedules.forEach((schedule, index) => {
       if (index > 0) {
-        cumulativeDelay += baseStagger + (Math.random() * 800);
+        cumulativeDelay += baseStagger + Math.random() * 800;
         schedule.delayMs += cumulativeDelay;
       }
     });
@@ -379,7 +390,7 @@ export class ResponseScheduler implements IResponseScheduler {
   private calculateTypingDelay(baseDelay: number): number {
     // Simulate typing time based on estimated response length
     // This is a simplified calculation
-    const estimatedResponseLength = 50 + (Math.random() * 100); // chars
+    const estimatedResponseLength = 50 + Math.random() * 100; // chars
     const typingSpeed = 3; // chars per second (slower for AI realism)
     const typingDelay = (estimatedResponseLength / typingSpeed) * 1000;
 
@@ -394,9 +405,11 @@ export class ResponseScheduler implements IResponseScheduler {
       config: this.config,
       activeSchedules: this.activeSchedules.size,
       queueLength: this.responseQueue.length,
-      averageDelay: this.responseQueue.length > 0
-        ? this.responseQueue.reduce((sum, item) => sum + item.delayMs, 0) / this.responseQueue.length
-        : 0
+      averageDelay:
+        this.responseQueue.length > 0
+          ? this.responseQueue.reduce((sum, item) => sum + item.delayMs, 0) /
+            this.responseQueue.length
+          : 0,
     };
   }
 }

@@ -2,8 +2,8 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { BrowserRouter } from "react-router-dom";
 import ChatView from "./ChatView";
-import type { RefObject, ReactNode } from 'react';
-import type { AiParticipant } from '@/config/aiParticipants';
+import type { RefObject, ReactNode } from "react";
+import type { AiParticipant } from "@/config/aiParticipants";
 
 const { mockDefaultAiParticipants } = vi.hoisted(() => ({
   mockDefaultAiParticipants: Array.from({ length: 11 }, (_, index) => ({
@@ -17,7 +17,9 @@ const { mockDefaultAiParticipants } = vi.hoisted(() => ({
 }));
 
 vi.mock("react-router-dom", () => ({
-  BrowserRouter: ({ children }: { children: ReactNode }) => <div data-testid="router">{children}</div>,
+  BrowserRouter: ({ children }: { children: ReactNode }) => (
+    <div data-testid="router">{children}</div>
+  ),
   Link: ({ to, children, ...rest }: { to: string; children: ReactNode }) => (
     <a href={to} {...rest}>
       {children}
@@ -32,7 +34,13 @@ vi.mock("./ChatMessage", () => ({
 }));
 
 vi.mock("./MessageInput", () => ({
-  default: ({ onSendMessage, disabled }: { onSendMessage: (msg: string) => void; disabled: boolean }) => (
+  default: ({
+    onSendMessage,
+    disabled,
+  }: {
+    onSendMessage: (msg: string) => void;
+    disabled: boolean;
+  }) => (
     <div data-testid="message-input">
       <button onClick={() => onSendMessage("test")} disabled={disabled}>
         Send
@@ -42,7 +50,13 @@ vi.mock("./MessageInput", () => ({
 }));
 
 vi.mock("./ParticipantsList", () => ({
-  default: ({ participants, aiParticipants = [] }: { participants: unknown[]; aiParticipants?: unknown[] }) => (
+  default: ({
+    participants,
+    aiParticipants = [],
+  }: {
+    participants: unknown[];
+    aiParticipants?: unknown[];
+  }) => (
     <div data-testid="participants-list">
       {participants.length} participants, {aiParticipants.length} AIs
     </div>
@@ -54,7 +68,13 @@ vi.mock("@/config/aiParticipants", () => ({
 }));
 
 vi.mock("./TypingIndicator", () => ({
-  default: ({ typingUsers, typingAIs }: { typingUsers: unknown[]; typingAIs: unknown[] }) => (
+  default: ({
+    typingUsers,
+    typingAIs,
+  }: {
+    typingUsers: unknown[];
+    typingAIs: unknown[];
+  }) => (
     <div data-testid="typing-indicator">
       {typingUsers.length} users, {typingAIs.length} AIs typing
     </div>
@@ -76,13 +96,24 @@ describe("ChatView Component", () => {
     connectionStatus: { connected: true },
     roomInfo: { topic: "General Chat" },
     username: "testuser",
-    participants: [
-      { username: "user1" },
-      { username: "user2" },
-    ],
+    participants: [{ username: "user1" }, { username: "user2" }],
     messages: [
-      { id: "1", text: "Hello", sender: "user1", senderType: "user" as const, content: "Hello", timestamp: Date.now() },
-      { id: "2", text: "Hi there", sender: "user2", senderType: "user" as const, content: "Hi there", timestamp: Date.now() },
+      {
+        id: "1",
+        text: "Hello",
+        sender: "user1",
+        senderType: "user" as const,
+        content: "Hello",
+        timestamp: Date.now(),
+      },
+      {
+        id: "2",
+        text: "Hi there",
+        sender: "user2",
+        senderType: "user" as const,
+        content: "Hi there",
+        timestamp: Date.now(),
+      },
     ],
     typingUsers: [],
     typingAIs: [],
@@ -206,7 +237,7 @@ describe("ChatView Component", () => {
       };
       renderWithRouter(<ChatView {...props} />);
       expect(
-        screen.getByText("Connection failed. Please try again.")
+        screen.getByText("Connection failed. Please try again."),
       ).toBeInTheDocument();
     });
   });

@@ -14,7 +14,7 @@ import readline from "readline";
 export const streamText = async (
   text: string,
   prefix: string = "",
-  wordDelayMs: number = 30
+  wordDelayMs: number = 30,
 ): Promise<void> => {
   // Create a readline interface to control the console output
   const rl = readline.createInterface({

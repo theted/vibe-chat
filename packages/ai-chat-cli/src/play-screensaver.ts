@@ -28,7 +28,8 @@ const listConversationFiles = (): string[] => {
     .map((f) => path.join(CONVERSATIONS_DIR, f));
 };
 
-const pickRandom = <T>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
+const pickRandom = <T>(arr: T[]): T =>
+  arr[Math.floor(Math.random() * arr.length)];
 
 let currentChild: ReturnType<typeof spawn> | null = null;
 let skipRequested = false;
@@ -66,7 +67,8 @@ const main = async (): Promise<void> => {
           // Politely terminate; fallback to force kill if needed
           currentChild.kill();
           setTimeout(() => {
-            if (currentChild && !currentChild.killed) currentChild.kill("SIGKILL");
+            if (currentChild && !currentChild.killed)
+              currentChild.kill("SIGKILL");
           }, 500);
         }
       }
@@ -77,7 +79,7 @@ const main = async (): Promise<void> => {
     const files = listConversationFiles();
     if (files.length === 0) {
       console.log(
-        `No conversations found in ${CONVERSATIONS_DIR}. Waiting for files...`
+        `No conversations found in ${CONVERSATIONS_DIR}. Waiting for files...`,
       );
       await sleep(Math.max(DELAY_MS, 1500));
       continue;
@@ -97,7 +99,9 @@ const main = async (): Promise<void> => {
 process.on("SIGINT", () => {
   console.log("\nScreensaver stopped.");
   if (process.stdin.isTTY) {
-    try { process.stdin.setRawMode(false); } catch {}
+    try {
+      process.stdin.setRawMode(false);
+    } catch {}
     process.stdin.pause();
   }
   process.exit(0);

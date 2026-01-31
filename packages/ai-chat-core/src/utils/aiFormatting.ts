@@ -2,7 +2,12 @@
  * Common message formatting helpers for provider services
  */
 
-import type { Message, OpenAIMessage, GeminiMessage, ChatFormattingOptions } from "@/types/index.js";
+import type {
+  Message,
+  OpenAIMessage,
+  GeminiMessage,
+  ChatFormattingOptions,
+} from "@/types/index.js";
 
 /**
  * Map internal messages to OpenAI-compatible chat messages
@@ -12,7 +17,7 @@ import type { Message, OpenAIMessage, GeminiMessage, ChatFormattingOptions } fro
  */
 export const mapToOpenAIChat = (
   messages: Message[],
-  { includeSystem = true }: ChatFormattingOptions = {}
+  { includeSystem = true }: ChatFormattingOptions = {},
 ): OpenAIMessage[] =>
   messages
     .filter((m) => (includeSystem ? true : m.role !== "system"))
@@ -24,7 +29,9 @@ export const mapToOpenAIChat = (
  * @param chat - Array of OpenAI-compatible messages
  * @returns Array with system messages inlined
  */
-export const inlineSystemIntoFirstUser = (chat: OpenAIMessage[]): OpenAIMessage[] => {
+export const inlineSystemIntoFirstUser = (
+  chat: OpenAIMessage[],
+): OpenAIMessage[] => {
   const systemText = chat
     .filter((m) => m.role === "system")
     .map((m) => m.content)

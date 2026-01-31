@@ -75,7 +75,7 @@ export const useSocket = (serverUrl: string) => {
     (aiNames: string[], message: string, context?: unknown[]) => {
       socketService.triggerAI(aiNames, message, context || []);
     },
-    []
+    [],
   );
 
   const startTyping = useCallback(() => {

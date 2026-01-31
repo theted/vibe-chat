@@ -10,7 +10,4 @@ export {
   getParticipantsByProvider,
 } from "@ai-chat/ai-configs";
 
-export type {
-  AiParticipant,
-  AiParticipantStatus,
-} from "@ai-chat/ai-configs";
+export type { AiParticipant, AiParticipantStatus } from "@ai-chat/ai-configs";

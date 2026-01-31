@@ -2,14 +2,16 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import LoginView from "./LoginView";
-import type { FormEvent } from 'react';
+import type { FormEvent } from "react";
 
 vi.mock("./ParticipantsList", () => ({
   default: () => <div data-testid="participants-list">Participants</div>,
 }));
 
 vi.mock("./Icon", () => ({
-  default: ({ name }: { name: string }) => <span data-testid={`icon-${name}`}>Icon-{name}</span>,
+  default: ({ name }: { name: string }) => (
+    <span data-testid={`icon-${name}`}>Icon-{name}</span>
+  ),
 }));
 
 describe("LoginView Component", () => {
@@ -171,7 +173,7 @@ describe("LoginView Component", () => {
 
     it("should display different error messages", () => {
       const { rerender } = render(
-        <LoginView {...defaultProps} error="Error 1" />
+        <LoginView {...defaultProps} error="Error 1" />,
       );
       expect(screen.getByText("Error 1")).toBeInTheDocument();
       rerender(<LoginView {...defaultProps} error="Error 2" />);
@@ -207,7 +209,7 @@ describe("LoginView Component", () => {
       let button = screen.getByRole("button", { name: /join chat/i });
       expect(button).not.toBeDisabled();
       rerender(
-        <LoginView {...props} connectionStatus={{ connected: false }} />
+        <LoginView {...props} connectionStatus={{ connected: false }} />,
       );
       button = screen.getByRole("button", { name: /join chat/i });
       expect(button).toBeDisabled();

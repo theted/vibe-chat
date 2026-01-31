@@ -133,49 +133,67 @@ export const MENTION_FORMATS = [
   (mention: string, response: string) => `${mention} ${response}`,
 
   // Questions (back)
-  (mention: string, response: string) => `${response} What do you think, ${mention}?`,
+  (mention: string, response: string) =>
+    `${response} What do you think, ${mention}?`,
   (mention: string, response: string) => `${response} Thoughts, ${mention}?`,
   (mention: string, response: string) => `${response} Agree, ${mention}?`,
-  (mention: string, response: string) => `${response} ${mention}, does that make sense?`,
-  (mention: string, response: string) => `${response} How would you approach this, ${mention}?`,
-  (mention: string, response: string) => `${response} ${mention}, have you considered this?`,
-  (mention: string, response: string) => `${response} What's your take on this, ${mention}?`,
-  (mention: string, response: string) => `${response} ${mention}, am I missing something?`,
+  (mention: string, response: string) =>
+    `${response} ${mention}, does that make sense?`,
+  (mention: string, response: string) =>
+    `${response} How would you approach this, ${mention}?`,
+  (mention: string, response: string) =>
+    `${response} ${mention}, have you considered this?`,
+  (mention: string, response: string) =>
+    `${response} What's your take on this, ${mention}?`,
+  (mention: string, response: string) =>
+    `${response} ${mention}, am I missing something?`,
   (mention: string, response: string) =>
     `${response} Curious for your perspective, ${mention}?`,
   (mention: string, response: string) => `${response} Right, ${mention}?`,
-  (mention: string, response: string) => `${response} Don't you think, ${mention}?`,
-  (mention: string, response: string) => `${response} ${mention}, you see what I mean?`,
+  (mention: string, response: string) =>
+    `${response} Don't you think, ${mention}?`,
+  (mention: string, response: string) =>
+    `${response} ${mention}, you see what I mean?`,
   (mention: string, response: string) => `${response} ${mention}?`,
 
   // Collaborative/seeking input (back)
   (mention: string, response: string) =>
     `${response} Curious what ${mention} thinks about this.`,
-  (mention: string, response: string) => `${response} Would love ${mention}'s input here.`,
-  (mention: string, response: string) => `${response} ${mention} might have thoughts on this.`,
+  (mention: string, response: string) =>
+    `${response} Would love ${mention}'s input here.`,
+  (mention: string, response: string) =>
+    `${response} ${mention} might have thoughts on this.`,
   (mention: string, response: string) =>
     `${response} I'd be interested to hear from ${mention} too.`,
   (mention: string, response: string) =>
     `${response} ${mention}, you probably have experience with this?`,
-  (mention: string, response: string) => `${response} Tagging ${mention} for visibility.`,
-  (mention: string, response: string) => `${response} ${mention}, care to weigh in?`,
-  (mention: string, response: string) => `${response} I wonder if ${mention} agrees with this.`,
-  (mention: string, response: string) => `${response} Maybe ${mention} has a different view?`,
+  (mention: string, response: string) =>
+    `${response} Tagging ${mention} for visibility.`,
+  (mention: string, response: string) =>
+    `${response} ${mention}, care to weigh in?`,
+  (mention: string, response: string) =>
+    `${response} I wonder if ${mention} agrees with this.`,
+  (mention: string, response: string) =>
+    `${response} Maybe ${mention} has a different view?`,
   (mention: string, response: string) =>
     `${response} Curious if ${mention} sees it differently.`,
   (mention: string, response: string) => `${response} cc ${mention}`,
 
   // Deferring/acknowledging expertise (back)
-  (mention: string, response: string) => `${response} ${mention} would know better than me.`,
+  (mention: string, response: string) =>
+    `${response} ${mention} would know better than me.`,
   (mention: string, response: string) =>
     `${response} ${mention}, you've dealt with this before, right?`,
-  (mention: string, response: string) => `${response} Let's see what ${mention} says.`,
+  (mention: string, response: string) =>
+    `${response} Let's see what ${mention} says.`,
   (mention: string, response: string) =>
     `${response} ${mention} could probably add more context here.`,
 
   // Building on their point (front-mid blend)
-  (mention: string, response: string) => `${mention}, building on what you said - ${response}`,
-  (mention: string, response: string) => `${mention}, interesting point. ${response}`,
+  (mention: string, response: string) =>
+    `${mention}, building on what you said - ${response}`,
+  (mention: string, response: string) =>
+    `${mention}, interesting point. ${response}`,
   (mention: string, response: string) =>
     `${mention}, I think you're onto something. ${response}`,
 ];
