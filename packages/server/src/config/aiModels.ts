@@ -72,8 +72,8 @@ export const ENABLED_AI_MODELS: string[] = [
   "MISTRAL_MISTRAL_LARGE",
   "MISTRAL_MISTRAL_MEDIUM",
   "MISTRAL_MISTRAL_SMALL",
-  "MISTRAL_MAGISTRAL_SMALL",
-  "MISTRAL_MAGISTRAL_MEDIUM",
+  // "MISTRAL_MAGISTRAL_SMALL",
+  // "MISTRAL_MAGISTRAL_MEDIUM",
   "MISTRAL_CODESTRAL",
   "MISTRAL_MINISTRAL_8B",
 
@@ -135,7 +135,7 @@ export const getProviderModels = (providerKey: string): string[] => {
  */
 export const createAIConfig = (
   providerKey: string,
-  modelKey: string
+  modelKey: string,
 ): AIConfig => {
   const config: AIConfig = { providerKey, modelKey };
   const displayKey = `${providerKey}_${modelKey}`;
@@ -174,7 +174,7 @@ export const getAvailableAIConfigs = (): AIConfig[] => {
  */
 export const parseModelAllowlist = (
   envVarName: string,
-  validKeys: string[]
+  validKeys: string[],
 ): string[] => {
   const rawList = process.env[envVarName];
   if (!rawList) return [];
@@ -193,7 +193,7 @@ export const parseModelAllowlist = (
  */
 export const getProviderAIConfigs = (
   providerKey: string,
-  allowlistEnvVar?: string
+  allowlistEnvVar?: string,
 ): AIConfig[] => {
   const allModels = getProviderModels(providerKey);
   if (allModels.length === 0) return [];
@@ -207,7 +207,7 @@ export const getProviderAIConfigs = (
       selectedModels = allowlist;
     } else if (process.env[allowlistEnvVar]) {
       console.warn(
-        `⚠️  ${allowlistEnvVar} did not match any supported ${providerKey} models; using all available.`
+        `⚠️  ${allowlistEnvVar} did not match any supported ${providerKey} models; using all available.`,
       );
     }
   }
