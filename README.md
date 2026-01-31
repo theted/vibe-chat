@@ -182,7 +182,7 @@ Current defaults and IDs (see `packages/ai-chat-core/src/config/aiProviders`):
 - `ZAI_GLM_4_7` → `glm-4.7`
 - `ZAI_GLM_4_7_FLASH` → `glm-4.7-flash`
 
-### Kimi (Moonshot) ([API keys](https://platform.moonshot.cn/console/api-keys))
+### Kimi (Moonshot) ([API keys](https://platform.moonshot.ai/console/api-keys))
 - `KIMI_8K` (default) → `moonshot-v1-8k`
 - `KIMI_K2` → `kimi-k2-0905-preview`
 - `KIMI_K2_THINKING` → `kimi-k2-thinking`
@@ -222,7 +222,7 @@ Define these in `.env` (see `.env.example`):
 
 ### Optional Base URLs
 - `QWEN_BASE_URL` (e.g. `https://dashscope.aliyuncs.com/compatible-mode/v1`)
-- `KIMI_BASE_URL` (default `https://api.moonshot.cn/v1`)
+- `KIMI_BASE_URL` (default `https://api.moonshot.ai/v1`)
 - `Z_BASE_URL` or `ZAI_BASE_URL` (default `https://api.z.ai/v1`)
 - `COHERE_BASE_URL` (default `https://api.cohere.ai/v1`)
 - `TOGETHER_BASE_URL` (default `https://api.together.xyz/v1`)
