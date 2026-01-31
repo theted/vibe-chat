@@ -349,12 +349,57 @@ export abstract class OpenAICompatibleService extends BaseAIService {
       const response = this.parseResponse(apiResponse);
       return response.content.length > 0;
     } catch (error) {
+      const errorMessage = this.extractAPIErrorMessage(error);
+      this.lastValidationError = `Health check failed: ${errorMessage}`;
       this.logger?.debug("Health check failed", {
         service: this.name,
-        error: error instanceof Error ? error.message : String(error),
+        error: errorMessage,
       });
       return false;
     }
+  }
+
+  /**
+   * Extract meaningful error message from API errors
+   */
+  protected extractAPIErrorMessage(error: unknown): string {
+    if (!error) return 'Unknown error';
+
+    // Handle OpenAI SDK error format
+    if (error && typeof error === 'object') {
+      const err = error as Record<string, unknown>;
+
+      // Check for error.error.message (OpenAI format)
+      if (err.error && typeof err.error === 'object') {
+        const innerError = err.error as Record<string, unknown>;
+        if (innerError.message) return String(innerError.message);
+      }
+
+      // Check for error.message
+      if (err.message) return String(err.message);
+
+      // Check for status code and body
+      if (err.status && err.body) {
+        const body = err.body as Record<string, unknown>;
+        const bodyMessage = body?.message || body?.error;
+        return bodyMessage
+          ? `HTTP ${err.status}: ${bodyMessage}`
+          : `HTTP ${err.status}`;
+      }
+
+      // Check for response data
+      if (err.response && typeof err.response === 'object') {
+        const resp = err.response as Record<string, unknown>;
+        if (resp.data && typeof resp.data === 'object') {
+          const data = resp.data as Record<string, unknown>;
+          if (data.message) return String(data.message);
+          if (data.error) return String(data.error);
+        }
+      }
+    }
+
+    if (error instanceof Error) return error.message;
+    return String(error);
   }
 
   /**

@@ -265,10 +265,10 @@ export const AI_DISPLAY_INFO: AiDisplayInfoMap = {
     alias: "kimi-k2-thinking",
     emoji: "💭",
   },
-  KIMI_KIMI_K1_5: {
-    displayName: "Kimi K1.5",
-    alias: "kimi-k1.5",
-    emoji: "🌛",
+  KIMI_KIMI_K2_5: {
+    displayName: "Kimi K2.5",
+    alias: "kimi-k2.5",
+    emoji: "🌕",
   },
 
   // Z.ai Models

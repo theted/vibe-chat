@@ -1,6 +1,3 @@
-import { existsSync } from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
 import {
   createLocalCodeMcpServer,
   MCP_ERROR_CODES,
@@ -9,6 +6,13 @@ import { createWorkspaceIndexer } from "@ai-chat/mcp-assistant/indexer";
 import type { Server } from "socket.io";
 
 import type { ChatAssistantMetadata, ChatMessage } from "@/types.js";
+import { normalizeAlias } from "@/utils/stringUtils.js";
+import { withTimeout } from "@/utils/promiseUtils.js";
+import { resolveWorkspaceRoot } from "@/utils/workspaceUtils.js";
+import {
+  enhanceAnswerWithLinks,
+  type VectorContext,
+} from "@/utils/formatUtils.js";
 
 type ChatAssistantOptions = {
   mentionName?: string;
@@ -20,12 +24,6 @@ type ChatHistoryEntry = {
   sender: string;
   senderType: string;
   content: string;
-};
-
-type VectorContext = {
-  relativePath: string;
-  startLine?: number | null;
-  endLine?: number | null;
 };
 
 type MCPAnswer = {
@@ -65,149 +63,6 @@ type ChatAssistantResponseOptions = {
   chatHistory?: ChatMessage[];
 };
 
-const normalizeAlias = (value?: string | number | null): string =>
-  value
-    ? value
-        .toString()
-        .toLowerCase()
-        .replace(/[^a-z0-9]/g, "")
-    : "";
-
-const withTimeout = async <T>(
-  promise: Promise<T>,
-  timeoutMs: number,
-  createTimeoutError?: string | (() => Error),
-): Promise<T> => {
-  if (!timeoutMs || Number.isNaN(timeoutMs) || timeoutMs <= 0) {
-    return promise;
-  }
-
-  let timeoutId: NodeJS.Timeout | null = null;
-
-  try {
-    return await Promise.race<T>([
-      promise,
-      new Promise<T>((_, reject) => {
-        timeoutId = setTimeout(() => {
-          const error =
-            typeof createTimeoutError === "function"
-              ? createTimeoutError()
-              : new Error(
-                  typeof createTimeoutError === "string"
-                    ? createTimeoutError
-                    : `Operation timed out after ${timeoutMs}ms`,
-                );
-          reject(error);
-        }, timeoutMs);
-      }),
-    ]);
-  } finally {
-    if (timeoutId) {
-      clearTimeout(timeoutId);
-    }
-  }
-};
-
-const findWorkspaceRoot = (startDir?: string): string | null => {
-  if (!startDir) {
-    return null;
-  }
-
-  let current = path.resolve(startDir);
-  const visited = new Set();
-
-  while (!visited.has(current)) {
-    visited.add(current);
-    const candidates = [
-      path.join(current, "scripts", "run-mcp-chat.ts"),
-      path.join(current, "scripts", "index-mcp-chat.ts"),
-      path.join(current, "dist", "scripts", "run-mcp-chat.js"),
-      path.join(current, "dist", "scripts", "index-mcp-chat.js"),
-    ];
-    const hasScripts = candidates.every((candidate) => existsSync(candidate));
-    if (hasScripts) {
-      return current;
-    }
-
-    const parent = path.dirname(current);
-    if (parent === current) {
-      break;
-    }
-    current = parent;
-  }
-
-  return null;
-};
-
-const resolveWorkspaceRoot = (options: { projectRoot?: string } = {}) => {
-  const moduleDir = path.dirname(fileURLToPath(import.meta.url));
-  const envRoot = process.env.CHAT_ASSISTANT_ROOT;
-
-  const explicitRoot = options.projectRoot || (envRoot ? envRoot.trim() : null);
-
-  const resolvedProject =
-    (explicitRoot && path.resolve(explicitRoot)) ||
-    findWorkspaceRoot(moduleDir) ||
-    findWorkspaceRoot(process.cwd());
-
-  if (!resolvedProject) {
-    return { projectRoot: moduleDir, unresolved: true };
-  }
-
-  return { projectRoot: resolvedProject, unresolved: false };
-};
-
-const formatGitHubUrl = (
-  relativePath: string,
-  startLine: number | null = null,
-  endLine: number | null = null,
-): string => {
-  const baseUrl = "https://github.com/theted/vibe-chat/blob/master";
-  const lineFragment =
-    startLine && endLine
-      ? `#L${startLine}-L${endLine}`
-      : startLine
-        ? `#L${startLine}`
-        : "";
-  return `${baseUrl}/${relativePath}${lineFragment}`;
-};
-
-const enhanceAnswerWithLinks = (
-  answer: string,
-  contexts: VectorContext[] | undefined,
-  projectRoot: string,
-): string => {
-  if (!answer || !contexts || contexts.length === 0) {
-    return answer;
-  }
-
-  let enhanced = answer;
-
-  // Add source references section if contexts exist
-  const sourceRefs = contexts
-    .map((ctx) => {
-      const lineInfo =
-        ctx.startLine && ctx.endLine ? `:${ctx.startLine}-${ctx.endLine}` : "";
-      const githubUrl = formatGitHubUrl(
-        ctx.relativePath,
-        ctx.startLine,
-        ctx.endLine,
-      );
-      return `- [\`${ctx.relativePath}${lineInfo}\`](${githubUrl})`;
-    })
-    .join("\n");
-
-  // Append sources section if not already present
-  if (
-    !enhanced.includes("**Sources:**") &&
-    !enhanced.includes("**References:**")
-  ) {
-    enhanced += `\n\n**Sources:**\n${sourceRefs}`;
-  }
-
-  return enhanced;
-};
-
 /**
  * Handles @Chat requests using the local MCP assistant.
  */
@@ -237,7 +92,7 @@ export class ChatAssistantService {
   constructor(options: ChatAssistantOptions = {}) {
     const { mentionName = "Chat", projectRoot, timeoutMs = 15_000 } = options;
 
-    const resolved = resolveWorkspaceRoot({ projectRoot });
+    const resolved = resolveWorkspaceRoot({ projectRoot }, import.meta.url);
 
     this.name = mentionName;
     this.displayName = `@${mentionName}`;
@@ -511,7 +366,7 @@ export class ChatAssistantService {
 
       return {
         question,
-        answer: enhanceAnswerWithLinks(answer, contexts, this.projectRoot),
+        answer: enhanceAnswerWithLinks(answer, contexts),
         contexts,
         error: result.error || null,
       };

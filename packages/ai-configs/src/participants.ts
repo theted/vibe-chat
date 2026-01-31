@@ -405,12 +405,12 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     emoji: "💭",
   },
   {
-    id: "KIMI_KIMI_K1_5",
-    name: "Kimi K1.5",
-    alias: "kimi-k1.5",
+    id: "KIMI_KIMI_K2_5",
+    name: "Kimi K2.5",
+    alias: "kimi-k2.5",
     provider: "Moonshot AI",
     status: "active",
-    emoji: "🌛",
+    emoji: "🌕",
   },
 
   // Z.ai Models

@@ -31,6 +31,7 @@ export abstract class BaseAIService implements IAIServiceExtended {
   protected logger?: Logger;
   protected initialized: boolean = false;
   protected lastHealthCheck?: number;
+  protected lastValidationError?: string;
 
   constructor(config: AIServiceConfig, name: string = "BaseAIService") {
     this.config = config;
@@ -70,14 +71,19 @@ export abstract class BaseAIService implements IAIServiceExtended {
    */
   async initialize(options?: ServiceInitOptions): Promise<void> {
     try {
+      this.lastValidationError = undefined;
       await this.performInitialization(options);
 
       if (options?.validateOnInit !== false) {
         const isValid = await this.validateConfiguration();
         if (!isValid) {
+          const errorDetail = this.lastValidationError
+            ? `: ${this.lastValidationError}`
+            : '';
           throw new ServiceInitializationError(
-            "Service configuration validation failed",
+            `Service configuration validation failed${errorDetail}`,
             this.name,
+            this.lastValidationError ? { reason: this.lastValidationError } : undefined
           );
         }
       }
@@ -218,16 +224,22 @@ export abstract class BaseAIService implements IAIServiceExtended {
     try {
       // Basic configuration checks
       if (!this.isConfigured()) {
+        this.lastValidationError = 'Service is not properly configured (missing API key or config)';
         return false;
       }
 
       // Perform health check
       const healthCheckResult = await this.healthCheck();
+      if (!healthCheckResult && !this.lastValidationError) {
+        this.lastValidationError = 'Health check failed';
+      }
       return healthCheckResult;
     } catch (error) {
-      this.logger?.warn("Configuration validation failed", {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.lastValidationError = errorMessage;
+      this.logger?.warn('Configuration validation failed', {
         service: this.name,
-        error: error instanceof Error ? error.message : String(error),
+        error: errorMessage
       });
       return false;
     }

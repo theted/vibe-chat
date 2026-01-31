@@ -6,16 +6,17 @@
 export const DEFAULTS = {
   MAX_MESSAGES: 100,
   MAX_AI_MESSAGES: 10,
+  MAX_CONCURRENT_RESPONSES: 3, // Hard limit on simultaneous AI responses
   MIN_USER_RESPONSE_DELAY: 1000, // 1 second
   MAX_USER_RESPONSE_DELAY: 10000, // 10 seconds
   MIN_BACKGROUND_DELAY: 10000, // 10 seconds
   MAX_BACKGROUND_DELAY: 30000, // 30 seconds
-  MIN_DELAY_BETWEEN_AI: 1200,
-  MAX_DELAY_BETWEEN_AI: 3200,
+  MIN_DELAY_BETWEEN_AI: 3000, // 3 seconds (increased from 1.2s)
+  MAX_DELAY_BETWEEN_AI: 8000, // 8 seconds (increased from 3.2s)
   TOPIC_CHANGE_CHANCE: 0.1, // 10% chance
-  // First AI responder gets minimal delay for snappy UX
-  MIN_FIRST_RESPONDER_DELAY: 100, // 100ms minimum
-  MAX_FIRST_RESPONDER_DELAY: 400, // 400ms maximum
+  // First AI responder delay - gives conversation breathing room
+  MIN_FIRST_RESPONDER_DELAY: 1500, // 1.5 seconds (increased from 100ms)
+  MAX_FIRST_RESPONDER_DELAY: 3000, // 3 seconds (increased from 400ms)
 } as const;
 
 // Context and message limits
@@ -62,9 +63,9 @@ export const MENTION_CONFIG = {
 
 // Responder selection
 export const RESPONDER_CONFIG = {
-  USER_RESPONSE_MAX_MULTIPLIER: 0.45, // Max 45% of AIs respond to user
+  USER_RESPONSE_MAX_MULTIPLIER: 0.30, // Max 30% of AIs respond to user (reduced from 45%)
   USER_RESPONSE_MIN_BASE: 1, // At least 1 AI responds to user
-  USER_RESPONSE_MIN_COUNT: 2, // Minimum max responders for user messages
+  USER_RESPONSE_MIN_COUNT: 1, // Minimum max responders for user messages (reduced from 2)
   BACKGROUND_MAX_MULTIPLIER: 0.25, // Max 25% of AIs in background conversation
   BACKGROUND_MIN_BASE: 0, // Background can have 0 responders
   BACKGROUND_MIN_COUNT: 1, // Minimum max responders for background
