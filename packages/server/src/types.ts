@@ -150,3 +150,36 @@ export type ActiveAIParticipant = {
   provider?: string;
   status: "active" | "inactive";
 };
+
+// Socket event payload types
+
+export type ChatAssistantOrigin = {
+  type?: "user" | "ai" | string;
+  sender?: string;
+  username?: string;
+  aiId?: string;
+  isInternalResponder?: boolean;
+};
+
+export type TriggerChatAssistantPayload = {
+  roomId: string;
+  content: string;
+  origin?: ChatAssistantOrigin;
+};
+
+export type JoinRoomPayload = {
+  username?: string;
+  roomId?: string;
+};
+
+export type UserMessagePayload = {
+  content?: string;
+};
+
+export type TopicChangePayload = {
+  topic?: string;
+};
+
+export type MetricsHistoryPayload = {
+  duration?: number;
+};
