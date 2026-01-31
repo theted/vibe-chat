@@ -52,7 +52,7 @@ If you add new folders, extend this list so future contributors (and agents) sta
 - Integration tests may rely on third-party API keys. Use `npm run test:<provider>` scripts when credentials are available.
 
 ## Quality checklist (before committing)
-1. Format code (Prettier or `npm run lint` if configured).
+1. Format code (`npm run format` or `npm run format:fix`) and lint (`npm run lint`).
 2. Run `npm test` or the targeted test script for the package you're working on.
 3. Confirm log noise is minimal and error messages are actionable.
 4. Re-read new documentation or comments to ensure clarity for future automated agents.
