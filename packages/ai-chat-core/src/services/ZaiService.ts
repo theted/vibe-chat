@@ -10,7 +10,7 @@ import { OpenAIClient } from "@/types/services.js";
 import { AIServiceConfig, ServiceInitOptions } from "@/types/index.js";
 import OpenAI from "openai";
 
-const ZAI_BASE_URL = "https://api.z.ai/v1";
+const ZAI_BASE_URL = "https://api.z.ai/api/paas/v4";
 
 const getZaiBaseUrl = (): string => {
   return process.env.Z_BASE_URL || process.env.ZAI_BASE_URL || ZAI_BASE_URL;
