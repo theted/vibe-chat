@@ -9,7 +9,7 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
-import { ConversationManager } from "./conversation/ConversationManager.js";
+import { CLIOrchestratorAdapter } from "./conversation/CLIOrchestratorAdapter.js";
 import {
   AIServiceFactory,
   saveConversationToFile,
@@ -121,7 +121,7 @@ const resolveProviderKey = (providerName: string): ProviderKey => {
   return providerKey;
 };
 
-const createConversationManager = async (config: Record<string, unknown> = {}): Promise<ConversationManager> => {
+const createOrchestratorAdapter = async (config: { maxTurns?: number; timeoutMs?: number } = {}): Promise<CLIOrchestratorAdapter> => {
   const chatAssistant = new ChatMCPAssistant({
     mentionName: "Chat",
     projectRoot,
@@ -140,7 +140,8 @@ const createConversationManager = async (config: Record<string, unknown> = {}): 
     );
   }
 
-  return new ConversationManager(config, {
+  return new CLIOrchestratorAdapter({
+    ...config,
     internalResponders: responders,
   });
 };
@@ -450,7 +451,7 @@ const startAIConversation = async (options: ConversationOptions): Promise<void> 
   console.log(`Max turns: ${options.maxTurns}`);
 
   // Create a conversation manager
-  const conversationManager = await createConversationManager({
+  const conversationManager = await createOrchestratorAdapter({
     maxTurns: options.maxTurns,
   });
 
@@ -695,7 +696,7 @@ const continueConversationFromFile = async (options: ContinueOptions): Promise<v
     );
 
     if (mode === "conversation") {
-      const conversationManager = await createConversationManager();
+      const conversationManager = await createOrchestratorAdapter();
       const participantMeta: ParticipantMetadata[] = [];
 
       participantInputs.forEach((participantInput, index) => {
