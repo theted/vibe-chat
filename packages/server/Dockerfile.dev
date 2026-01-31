@@ -3,6 +3,9 @@ FROM node:22-alpine
 
 WORKDIR /app
 
+# Copy repo scripts needed for build steps
+COPY scripts ./scripts
+
 # Copy and build AI configs package
 COPY packages/ai-configs ./ai-configs
 WORKDIR /app/ai-configs
