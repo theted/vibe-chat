@@ -10,7 +10,7 @@ import { OpenAIClient } from "@/types/services.js";
 import { AIServiceConfig, ServiceInitOptions } from "@/types/index.js";
 import OpenAI from "openai";
 
-const KIMI_BASE_URL = "https://api.moonshot.cn/v1";
+const KIMI_BASE_URL = "https://api.moonshot.ai/v1";
 
 export class KimiService extends OpenAICompatibleService {
   constructor(config: AIServiceConfig) {
