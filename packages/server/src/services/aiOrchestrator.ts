@@ -26,12 +26,12 @@ export const initializeAISystem = async (): Promise<ChatOrchestrator> => {
   const orchestrator = new ChatOrchestrator({
     maxMessages: 100,
     maxAIMessages: 10,
-    minUserResponseDelay: 2000,
-    maxUserResponseDelay: 14000,
-    minBackgroundDelay: 15000,
-    maxBackgroundDelay: 45000,
-    minDelayBetweenAI: 1500,
-    maxDelayBetweenAI: 7000,
+    minUserResponseDelay: 3000, // 3 seconds (increased from 2s)
+    maxUserResponseDelay: 18000, // 18 seconds (increased from 14s)
+    minBackgroundDelay: 20000, // 20 seconds (increased from 15s)
+    maxBackgroundDelay: 60000, // 60 seconds (increased from 45s)
+    minDelayBetweenAI: 4000, // 4 seconds (increased from 1.5s)
+    maxDelayBetweenAI: 12000, // 12 seconds (increased from 7s)
   });
 
   let aiConfigs: AIConfig[] = [];
