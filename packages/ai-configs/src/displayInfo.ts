@@ -314,11 +314,6 @@ export const AI_DISPLAY_INFO: AiDisplayInfoMap = {
     alias: "sonar-pro",
     emoji: "📡",
   },
-  PERPLEXITY_SONAR_REASONING: {
-    displayName: "Sonar Reasoning",
-    alias: "sonar-reasoning",
-    emoji: "🌐",
-  },
   PERPLEXITY_SONAR_REASONING_PRO: {
     displayName: "Sonar Reasoning Pro",
     alias: "sonar-reasoning-pro",

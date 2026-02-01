@@ -38,13 +38,6 @@ export const PERPLEXITY: AIProvider = {
       systemPrompt:
         "You are Perplexity Sonar Pro, an advanced AI assistant with deep retrieval capabilities. Provide comprehensive, well-sourced answers with follow-up context. Greet briefly, then deliver thorough, accurate responses grounded in current information.",
     },
-    SONAR_REASONING: {
-      id: "sonar-reasoning",
-      maxTokens: DEFAULT_MAX_TOKENS,
-      temperature: DEFAULT_TEMPERATURE,
-      systemPrompt:
-        "You are Perplexity Sonar Reasoning, an AI that combines real-time search with analytical thinking. Approach questions methodically, breaking down complex topics while grounding answers in current information. Greet briefly, then provide reasoned, well-structured responses.",
-    },
     SONAR_REASONING_PRO: {
       id: "sonar-reasoning-pro",
       maxTokens: DEFAULT_MAX_TOKENS,
