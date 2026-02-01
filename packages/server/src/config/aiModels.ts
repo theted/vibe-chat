@@ -96,6 +96,14 @@ export const ENABLED_AI_MODELS: string[] = [
   "ZAI_ZAI_GLM_4_6",
   "ZAI_ZAI_GLM_4_7",
   "ZAI_ZAI_GLM_4_7_FLASH",
+
+  // Qwen/Alibaba Models
+  "QWEN_QWEN_TURBO",
+  "QWEN_QWEN_PLUS",
+  "QWEN_QWEN_MAX",
+  "QWEN_QWEN25_TURBO",
+  "QWEN_QWEN25_PLUS",
+  "QWEN_QWEN_CODER_PLUS",
 ];
 
 const ENABLED_AI_MODEL_SET = new Set(ENABLED_AI_MODELS);

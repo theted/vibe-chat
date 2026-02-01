@@ -302,6 +302,38 @@ export const AI_DISPLAY_INFO: AiDisplayInfoMap = {
     alias: "glm-4.7-flash",
     emoji: "📸",
   },
+
+  // Qwen/Alibaba Models
+  QWEN_QWEN_TURBO: {
+    displayName: "Qwen Turbo",
+    alias: "qwen-turbo",
+    emoji: "🐉",
+  },
+  QWEN_QWEN_PLUS: {
+    displayName: "Qwen Plus",
+    alias: "qwen-plus",
+    emoji: "🏮",
+  },
+  QWEN_QWEN_MAX: {
+    displayName: "Qwen Max",
+    alias: "qwen-max",
+    emoji: "🐲",
+  },
+  QWEN_QWEN25_TURBO: {
+    displayName: "Qwen 2.5 Turbo",
+    alias: "qwen-2.5-turbo",
+    emoji: "🎋",
+  },
+  QWEN_QWEN25_PLUS: {
+    displayName: "Qwen 2.5 Plus",
+    alias: "qwen-2.5-plus",
+    emoji: "🎍",
+  },
+  QWEN_QWEN_CODER_PLUS: {
+    displayName: "Qwen Coder",
+    alias: "qwen-coder",
+    emoji: "🧧",
+  },
 };
 
 /**
