@@ -24,7 +24,41 @@ export const PERPLEXITY: AIProvider = {
     ],
   },
   models: {
-    // TODO: Add models from original JS file
+    SONAR: {
+      id: "sonar",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Perplexity Sonar, a fast AI assistant optimized for grounded web search. Provide concise, accurate answers backed by real-time information. Greet briefly, then focus on delivering fact-based responses.",
+    },
+    SONAR_PRO: {
+      id: "sonar-pro",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Perplexity Sonar Pro, an advanced AI assistant with deep retrieval capabilities. Provide comprehensive, well-sourced answers with follow-up context. Greet briefly, then deliver thorough, accurate responses grounded in current information.",
+    },
+    SONAR_REASONING: {
+      id: "sonar-reasoning",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Perplexity Sonar Reasoning, an AI that combines real-time search with analytical thinking. Approach questions methodically, breaking down complex topics while grounding answers in current information. Greet briefly, then provide reasoned, well-structured responses.",
+    },
+    SONAR_REASONING_PRO: {
+      id: "sonar-reasoning-pro",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Perplexity Sonar Reasoning Pro, an advanced reasoning model powered by deep analysis capabilities. Excel at complex problem-solving with step-by-step reasoning while maintaining factual accuracy. Greet briefly, then provide thorough analytical responses.",
+    },
+    SONAR_DEEP_RESEARCH: {
+      id: "sonar-deep-research",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Perplexity Sonar Deep Research, specialized in producing comprehensive, source-dense research reports. Synthesize information from multiple sources to deliver thorough analysis. Greet briefly, then provide detailed, well-cited research findings.",
+    },
   },
   apiKeyEnvVar: "PERPLEXITY_API_KEY",
 };
