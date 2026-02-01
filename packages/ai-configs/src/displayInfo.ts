@@ -303,6 +303,28 @@ export const AI_DISPLAY_INFO: AiDisplayInfoMap = {
     emoji: "📸",
   },
 
+  // Perplexity Models
+  PERPLEXITY_SONAR: {
+    displayName: "Perplexity Sonar",
+    alias: "sonar",
+    emoji: "🔊",
+  },
+  PERPLEXITY_SONAR_PRO: {
+    displayName: "Perplexity Sonar Pro",
+    alias: "sonar-pro",
+    emoji: "📡",
+  },
+  PERPLEXITY_SONAR_REASONING_PRO: {
+    displayName: "Sonar Reasoning Pro",
+    alias: "sonar-reasoning-pro",
+    emoji: "🎛️",
+  },
+  PERPLEXITY_SONAR_DEEP_RESEARCH: {
+    displayName: "Sonar Deep Research",
+    alias: "sonar-research",
+    emoji: "🔬",
+  },
+  
   // Qwen/Alibaba Models
   QWEN_QWEN_TURBO: {
     displayName: "Qwen Turbo",

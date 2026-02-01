@@ -97,6 +97,12 @@ export const ENABLED_AI_MODELS: string[] = [
   "ZAI_ZAI_GLM_4_7",
   "ZAI_ZAI_GLM_4_7_FLASH",
 
+  // Perplexity Models
+  "PERPLEXITY_SONAR",
+  "PERPLEXITY_SONAR_PRO",
+  "PERPLEXITY_SONAR_REASONING_PRO",
+  "PERPLEXITY_SONAR_DEEP_RESEARCH",
+
   // Qwen/Alibaba Models
   "QWEN_QWEN_TURBO",
   "QWEN_QWEN_PLUS",
