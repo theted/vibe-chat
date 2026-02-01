@@ -12,17 +12,8 @@ import {
 export const initializeAISystem = async (): Promise<ChatOrchestrator> => {
   console.log("🤖 Initializing AI Chat System...");
 
-  const orchestrator = new ChatOrchestrator({
-    maxMessages: 100,
-    maxAIMessages: 10,
-    maxConcurrentResponses: 3, // Hard limit: max 3 AIs generating at once
-    minUserResponseDelay: 3000, // 3 seconds (increased from 2s)
-    maxUserResponseDelay: 18000, // 18 seconds (increased from 14s)
-    minBackgroundDelay: 20000, // 20 seconds (increased from 15s)
-    maxBackgroundDelay: 60000, // 60 seconds (increased from 45s)
-    minDelayBetweenAI: 4000, // 4 seconds (increased from 1.5s)
-    maxDelayBetweenAI: 12000, // 12 seconds (increased from 7s)
-  });
+  // Uses defaults from @ai-chat/core constants
+  const orchestrator = new ChatOrchestrator();
 
   let aiConfigs: AIConfig[] = [];
 

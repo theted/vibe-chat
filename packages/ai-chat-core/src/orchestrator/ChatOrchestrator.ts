@@ -436,7 +436,7 @@ export class ChatOrchestrator extends EventEmitter {
           this.isProcessingQueue = false;
           // Retry later if we're at capacity
           if (this.responseQueue.length > 0) {
-            setTimeout(() => this.processResponseQueue(), 1000);
+            setTimeout(() => this.processResponseQueue(), TIMING.QUEUE_RETRY_INTERVAL);
           }
           return;
         }

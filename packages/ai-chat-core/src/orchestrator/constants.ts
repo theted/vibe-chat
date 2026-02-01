@@ -7,16 +7,16 @@ export const DEFAULTS = {
   MAX_MESSAGES: 100,
   MAX_AI_MESSAGES: 10,
   MAX_CONCURRENT_RESPONSES: 3, // Hard limit on simultaneous AI responses
-  MIN_USER_RESPONSE_DELAY: 1000, // 1 second
-  MAX_USER_RESPONSE_DELAY: 10000, // 10 seconds
-  MIN_BACKGROUND_DELAY: 10000, // 10 seconds
-  MAX_BACKGROUND_DELAY: 30000, // 30 seconds
-  MIN_DELAY_BETWEEN_AI: 3000, // 3 seconds (increased from 1.2s)
-  MAX_DELAY_BETWEEN_AI: 8000, // 8 seconds (increased from 3.2s)
+  MIN_USER_RESPONSE_DELAY: 3000, // 3 seconds - delay before AI responds to user
+  MAX_USER_RESPONSE_DELAY: 18000, // 18 seconds
+  MIN_BACKGROUND_DELAY: 20000, // 20 seconds - delay for background AI chatter
+  MAX_BACKGROUND_DELAY: 60000, // 60 seconds
+  MIN_DELAY_BETWEEN_AI: 4000, // 4 seconds - stagger between AI responses
+  MAX_DELAY_BETWEEN_AI: 12000, // 12 seconds
   TOPIC_CHANGE_CHANCE: 0.1, // 10% chance
   // First AI responder delay - gives conversation breathing room
-  MIN_FIRST_RESPONDER_DELAY: 1500, // 1.5 seconds (increased from 100ms)
-  MAX_FIRST_RESPONDER_DELAY: 3000, // 3 seconds (increased from 400ms)
+  MIN_FIRST_RESPONDER_DELAY: 1500, // 1.5 seconds
+  MAX_FIRST_RESPONDER_DELAY: 3000, // 3 seconds
 } as const;
 
 // Context and message limits
@@ -32,6 +32,7 @@ export const CONTEXT_LIMITS = {
 export const TIMING = {
   SILENCE_TIMEOUT: 120000, // 2 minutes - stop background messages after this
   SLEEP_RETRY_INTERVAL: 30000, // 30 seconds - retry interval when AIs are asleep
+  QUEUE_RETRY_INTERVAL: 1000, // 1 second - retry interval when queue is at capacity
   MENTIONED_DELAY_MULTIPLIER: 0.35, // Respond faster when mentioned
   MIN_MENTIONED_DELAY: 400, // Minimum delay for mentioned AIs
   TYPING_AWARENESS_DELAY: 2500, // Additional delay per typing AI (ms)
