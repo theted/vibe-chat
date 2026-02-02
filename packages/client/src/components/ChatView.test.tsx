@@ -96,6 +96,7 @@ describe("ChatView Component", () => {
     connectionStatus: { connected: true },
     roomInfo: { topic: "General Chat" },
     username: "testuser",
+    isAuthenticated: true,
     participants: [{ username: "user1" }, { username: "user2" }],
     messages: [
       {
@@ -120,6 +121,8 @@ describe("ChatView Component", () => {
     showScrollButton: false,
     onScrollToBottom: vi.fn(),
     onLogout: vi.fn(),
+    onJoin: vi.fn(),
+    onUsernameChange: vi.fn(),
     onSendMessage: vi.fn(),
     onAIMention: vi.fn(),
     onTypingStart: vi.fn(),
