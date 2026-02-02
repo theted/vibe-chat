@@ -350,6 +350,14 @@ function App() {
     }
   }
 
+  /**
+   * Trigger AI processing for any AI mentions found in a message, supplying recent chat context.
+   *
+   * Maps raw mention tokens to AI names and, if any are resolved, calls the AI trigger with the message and the last 10 chat messages as context.
+   *
+   * @param mentions - Array of raw mention strings extracted from the message (e.g., ["@ai-name"])
+   * @param message - The message text that triggered the AI mention
+   */
   function handleAIMention(mentions: string[], message: string) {
     const aiNames = mapMentionsToAiNames(mentions);
 
