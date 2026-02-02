@@ -9,8 +9,10 @@ import Icon from "./Icon";
 import type { ChatViewProps } from "@/types";
 
 const styles = {
-  modalBackdrop: "absolute inset-0 bg-slate-950/60 backdrop-blur-sm animate-fade-in",
-  primaryIconButton: "flex items-center justify-center gap-2 rounded-xl border border-primary-200/70 bg-primary-50 px-4 py-3 text-sm font-semibold text-primary-700 transition-colors hover:bg-primary-100 dark:border-primary-500/40 dark:bg-primary-500/10 dark:text-primary-200 dark:hover:bg-primary-500/20",
+  modalBackdrop:
+    "absolute inset-0 bg-slate-950/60 backdrop-blur-sm transition-opacity duration-200 ease-out",
+  primaryIconButton:
+    "flex items-center justify-center gap-2 rounded-xl border border-primary-200/70 bg-primary-50 px-4 py-3 text-sm font-semibold text-primary-700 transition-colors hover:bg-primary-100 dark:border-primary-500/40 dark:bg-primary-500/10 dark:text-primary-200 dark:hover:bg-primary-500/20",
 };
 
 const ChatView = ({
@@ -43,10 +45,24 @@ const ChatView = ({
     aiParticipants.length > 0 ? aiParticipants : DEFAULT_AI_PARTICIPANTS;
   const aiParticipantCount = aiParticipantList.length;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isMenuVisible, setIsMenuVisible] = useState(false);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [isLoginVisible, setIsLoginVisible] = useState(false);
   const loginInputRef = useRef<HTMLInputElement>(null);
   const displayName = username.trim() ? username : "Guest";
   const isGuest = !username.trim();
+
+  useEffect(() => {
+    if (isMenuOpen) {
+      setIsMenuVisible(true);
+    } else if (isMenuVisible) {
+      const timeout = window.setTimeout(() => {
+        setIsMenuVisible(false);
+      }, 200);
+      return () => window.clearTimeout(timeout);
+    }
+    return undefined;
+  }, [isMenuOpen, isMenuVisible]);
 
   useEffect(() => {
     if (!isMenuOpen) {
@@ -65,6 +81,18 @@ const ChatView = ({
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [isMenuOpen]);
+
+  useEffect(() => {
+    if (isLoginOpen) {
+      setIsLoginVisible(true);
+    } else if (isLoginVisible) {
+      const timeout = window.setTimeout(() => {
+        setIsLoginVisible(false);
+      }, 200);
+      return () => window.clearTimeout(timeout);
+    }
+    return undefined;
+  }, [isLoginOpen, isLoginVisible]);
 
   useEffect(() => {
     if (!isLoginOpen) {
@@ -171,10 +199,16 @@ const ChatView = ({
               </div>
             </div>
           </div>
-          {isMenuOpen && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center">
+          {isMenuVisible && (
+            <div
+              className={`fixed inset-0 z-50 flex items-center justify-center ${
+                isMenuOpen ? "pointer-events-auto" : "pointer-events-none"
+              }`}
+            >
               <div
-                className={styles.modalBackdrop}
+                className={`${styles.modalBackdrop} ${
+                  isMenuOpen ? "opacity-100" : "opacity-0"
+                }`}
                 role="button"
                 tabIndex={-1}
                 aria-label="Close settings menu"
@@ -189,7 +223,12 @@ const ChatView = ({
                 role="dialog"
                 aria-modal="true"
                 aria-label="Settings"
-                className="relative w-full max-w-sm rounded-2xl bg-white/95 p-6 shadow-2xl border border-white/40 backdrop-blur-xl animate-fade-in animate-scale-in dark:bg-slate-900/95 dark:border-slate-700/60"
+                aria-hidden={!isMenuOpen}
+                className={`relative w-full max-w-sm rounded-2xl bg-white/95 p-6 shadow-2xl border border-white/40 backdrop-blur-xl transition-all duration-200 ease-out transform-gpu will-change-transform dark:bg-slate-900/95 dark:border-slate-700/60 ${
+                  isMenuOpen
+                    ? "opacity-100 translate-y-0 scale-100"
+                    : "opacity-0 translate-y-2 scale-95"
+                }`}
               >
                 <div className="flex items-center gap-3 mb-5">
                   <div className="w-10 h-10 rounded-xl bg-primary-500/20 flex items-center justify-center">
@@ -263,10 +302,16 @@ const ChatView = ({
               </div>
             </div>
           )}
-          {isLoginOpen && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center">
+          {isLoginVisible && (
+            <div
+              className={`fixed inset-0 z-50 flex items-center justify-center ${
+                isLoginOpen ? "pointer-events-auto" : "pointer-events-none"
+              }`}
+            >
               <div
-                className={styles.modalBackdrop}
+                className={`${styles.modalBackdrop} ${
+                  isLoginOpen ? "opacity-100" : "opacity-0"
+                }`}
                 role="button"
                 tabIndex={-1}
                 aria-label="Close login dialog"
@@ -281,7 +326,12 @@ const ChatView = ({
                 role="dialog"
                 aria-modal="true"
                 aria-label="Set your username"
-                className="relative w-full max-w-md rounded-3xl bg-white/95 p-8 shadow-2xl border border-white/40 backdrop-blur-xl animate-fade-in animate-scale-in dark:bg-slate-900/95 dark:border-slate-700/60"
+                aria-hidden={!isLoginOpen}
+                className={`relative w-full max-w-md rounded-3xl bg-white/95 p-8 shadow-2xl border border-white/40 backdrop-blur-xl transition-all duration-200 ease-out transform-gpu will-change-transform dark:bg-slate-900/95 dark:border-slate-700/60 ${
+                  isLoginOpen
+                    ? "opacity-100 translate-y-0 scale-100"
+                    : "opacity-0 translate-y-2 scale-95"
+                }`}
               >
                 <div className="absolute -top-10 right-8 h-24 w-24 rounded-full bg-primary-500/20 blur-2xl" />
                 <div className="absolute -bottom-8 left-8 h-24 w-24 rounded-full bg-indigo-500/20 blur-2xl" />
