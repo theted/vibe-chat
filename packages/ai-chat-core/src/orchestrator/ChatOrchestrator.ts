@@ -133,6 +133,7 @@ export class ChatOrchestrator extends EventEmitter {
   responseQueue: QueuedResponse[];
   activeResponseCount: number;
   isProcessingQueue: boolean;
+  private roomAllowedAIs: Map<string, Set<string>>;
 
   /**
    * Create a ChatOrchestrator instance.
@@ -177,6 +178,7 @@ export class ChatOrchestrator extends EventEmitter {
     this.responseQueue = [];
     this.activeResponseCount = 0;
     this.isProcessingQueue = false;
+    this.roomAllowedAIs = new Map();
 
     const envVerboseFlag = parseBooleanEnvFlag(
       getEnvFlag("AI_CHAT_VERBOSE_CONTEXT"),
@@ -338,17 +340,19 @@ export class ChatOrchestrator extends EventEmitter {
    * @param {boolean} isUserResponse - Whether this is a response to user message
    */
   scheduleAIResponses(roomId, isUserResponse = true) {
-    if (this.messageTracker.isAsleep || this.activeAIs.length === 0) {
+    const roomScopedAIs = this.filterAIsForRoom(roomId, this.activeAIs);
+
+    if (this.messageTracker.isAsleep || roomScopedAIs.length === 0) {
       return;
     }
 
     // Count how many AIs are currently typing/generating
-    const typingAICount = this.activeAIs.filter((aiId) => {
+    const typingAICount = roomScopedAIs.filter((aiId) => {
       const ai = this.aiServices.get(aiId);
       return ai && ai.isGenerating;
     }).length;
 
-    const eligibleAIs = this.activeAIs.filter((aiId) => {
+    const eligibleAIs = roomScopedAIs.filter((aiId) => {
       const ai = this.aiServices.get(aiId);
       return (
         ai &&
@@ -674,6 +678,44 @@ export class ChatOrchestrator extends EventEmitter {
       maxResponders,
       candidateList,
     );
+  }
+
+  /**
+   * Restrict AI responses for a room to the provided AI IDs.
+   * @param {string} roomId - Room identifier.
+   * @param {string[]} aiIds - Allowed AI IDs for the room.
+   */
+  setRoomAllowedAIs(roomId, aiIds) {
+    if (!roomId) {
+      return;
+    }
+
+    const uniqueIds = Array.from(
+      new Set(aiIds.filter((aiId) => Boolean(aiId))),
+    );
+
+    if (uniqueIds.length === 0) {
+      this.roomAllowedAIs.delete(roomId);
+      return;
+    }
+
+    this.roomAllowedAIs.set(roomId, new Set(uniqueIds));
+  }
+
+  /**
+   * Clear any AI restrictions for a room.
+   * @param {string} roomId - Room identifier.
+   */
+  clearRoomAllowedAIs(roomId) {
+    this.roomAllowedAIs.delete(roomId);
+  }
+
+  filterAIsForRoom(roomId, aiIds) {
+    const allowed = this.roomAllowedAIs.get(roomId);
+    if (!allowed || allowed.size === 0) {
+      return aiIds;
+    }
+    return aiIds.filter((aiId) => allowed.has(aiId));
   }
 
   findAIByNormalizedAlias(normalizedAlias) {

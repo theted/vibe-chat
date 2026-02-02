@@ -16,9 +16,9 @@ import LoginView from "./components/LoginView";
 import ChatView from "./components/ChatView";
 import LoadingOverlay from "./components/LoadingOverlay";
 import { ThemeContext } from "./context/ThemeContext";
-import { SERVER_URL } from "./constants/chat";
+import { PRIVATE_CONVERSATIONS_ENABLED, SERVER_URL } from "./constants/chat";
 import { LOCAL_STORAGE_MESSAGES_LIMIT } from "./constants/storage";
-import { mapMentionsToAiNames } from "./utils/ai";
+import { mapMentionsToAiNames, normalizeAlias } from "./utils/ai";
 import type {
   Theme,
   Message,
@@ -361,6 +361,34 @@ function App() {
     }
   }
 
+  const handlePrivateConversationStart = useCallback(
+    (ai: AiParticipant) => {
+      if (!PRIVATE_CONVERSATIONS_ENABLED) {
+        return;
+      }
+
+      const resolvedUsername = usernameRef.current.trim();
+      if (!resolvedUsername) {
+        return;
+      }
+
+      const aiIdentifier =
+        ai.id || normalizeAlias(ai.alias || ai.name || "");
+      if (!aiIdentifier) {
+        return;
+      }
+
+      const roomId = `private:${resolvedUsername}:${aiIdentifier}`;
+      setIsAuthLoading(true);
+      setPreviewMessages([]);
+      setMessages([]);
+      setTypingUsers([]);
+      setTypingAIs([]);
+      joinRoom(resolvedUsername, roomId);
+    },
+    [joinRoom],
+  );
+
   return (
     <ThemeContext.Provider value={{ theme, setTheme, toggleTheme }}>
       <LoadingOverlay visible={isAuthLoading} />
@@ -383,6 +411,11 @@ function App() {
             onAIMention={handleAIMention}
             onTypingStart={startTyping}
             onTypingStop={stopTyping}
+            onPrivateConversationStart={
+              PRIVATE_CONVERSATIONS_ENABLED
+                ? handlePrivateConversationStart
+                : undefined
+            }
             error={error}
             messagesEndRef={messagesEndRef}
             messagesContainerRef={messagesContainerRef}
