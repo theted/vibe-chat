@@ -313,7 +313,7 @@ const ChatMessage = ({
 
   return (
     <motion.div
-      className={`${getMaxWidth(message.senderType)} rounded-2xl p-6 mb-6 ${getMessageStyles(message.senderType)} transition-colors`}
+      className={`${getMaxWidth(message.senderType)} rounded-2xl p-6 mb-6 overflow-hidden ${getMessageStyles(message.senderType)} transition-colors`}
       variants={getAnimationVariants(message.senderType)}
       initial="hidden"
       animate="visible"
