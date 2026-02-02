@@ -118,13 +118,34 @@ export class QwenService extends OpenAICompatibleService {
     try {
       return await super.makeAPIRequest(params);
     } catch (error) {
-      if (
+      const retryableStatus =
         error instanceof ServiceAPIError &&
         (error.statusCode === 401 ||
           error.statusCode === 403 ||
-          error.statusCode === 404) &&
-        this.baseUrlFallbacks.length > 0
-      ) {
+          error.statusCode === 404 ||
+          error.statusCode === undefined);
+      const baseModelId = super.getModel();
+      if (retryableStatus && params.model !== baseModelId) {
+        try {
+          const alternateParams: OpenAICompletionRequest = {
+            ...params,
+            model: baseModelId,
+          };
+          return await super.makeAPIRequest(alternateParams);
+        } catch (alternateError) {
+          const alternateStatus =
+            alternateError instanceof ServiceAPIError
+              ? alternateError.statusCode
+              : undefined;
+          if (
+            !alternateStatus ||
+            ![401, 403, 404].includes(alternateStatus)
+          ) {
+            throw alternateError;
+          }
+        }
+      }
+      if (retryableStatus && this.baseUrlFallbacks.length > 0) {
         const fallbackUrls = [...this.baseUrlFallbacks];
         this.baseUrlFallbacks = [];
         for (const baseURL of fallbackUrls) {
@@ -134,8 +155,12 @@ export class QwenService extends OpenAICompatibleService {
           }
           this.baseURL = baseURL;
           this.client = this.createClientWithBaseUrl(apiKey, baseURL);
+          const retryParams: OpenAICompletionRequest = {
+            ...params,
+            model: this.getModel(),
+          };
           try {
-            return await super.makeAPIRequest(params);
+            return await super.makeAPIRequest(retryParams);
           } catch (retryError) {
             const retryStatus =
               retryError instanceof ServiceAPIError
