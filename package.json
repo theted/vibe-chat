@@ -1,7 +1,7 @@
 {
   "name": "ai-chat",
   "version": "1.0.0",
-  "description": "AI chat application with multiple AI personalities and CLI tools",
+  "description": "Vibe chat application with multiple AI personalities and CLI tools",
   "private": true,
   "type": "module",
   "workspaces": [

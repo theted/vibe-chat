@@ -1,6 +1,6 @@
 /**
  * CLI Argument Parser
- * Handles parsing of command line arguments for the AI chat CLI
+ * Handles parsing of command line arguments for the Vibe chat CLI
  */
 
 import { AI_PROVIDERS } from "@ai-chat/core";

@@ -9,7 +9,7 @@ export const DEFAULTS = {
   MAX_CONCURRENT_RESPONSES: 2, // Hard limit on simultaneous AI responses
   MIN_USER_RESPONSE_DELAY: 4000, // 4 seconds - delay before AI responds to user
   MAX_USER_RESPONSE_DELAY: 22000, // 22 seconds
-  MIN_BACKGROUND_DELAY: 30000, // 30 seconds - delay for background AI chatter
+  MIN_BACKGROUND_DELAY: 30000, // 30 seconds - delay for background Vibe chatter
   MAX_BACKGROUND_DELAY: 90000, // 90 seconds
   MIN_DELAY_BETWEEN_AI: 6000, // 6 seconds - stagger between AI responses
   MAX_DELAY_BETWEEN_AI: 18000, // 18 seconds

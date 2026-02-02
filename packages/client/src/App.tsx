@@ -34,7 +34,7 @@ import type {
 import type { AiParticipant } from "./config/aiParticipants";
 
 /**
- * Main application component that manages UI, client state, and socket interactions for the real-time AI chat.
+ * Main application component that manages UI, client state, and socket interactions for the real-time Vibe chat.
  *
  * Handles user authentication flow (login/auto-join), message persistence, theme selection, scroll behavior,
  * toast notifications, and wires socket events via the `useSocketEvents` hook to keep the UI synchronized with the server.
