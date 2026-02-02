@@ -105,6 +105,16 @@ export const AI_EMOJI_LOOKUP: Record<string, string> = {
   "sonar-reasoning-pro": "🎛️",
   "sonar-research": "🔬",
   "sonar-deep-research": "🔬",
+
+  // Qwen
+  qwen: "🐉",
+  alibaba: "🐉",
+  "qwen-turbo": "🐉",
+  "qwen-plus": "🏮",
+  "qwen-max": "🐲",
+  "qwen-flash": "🎋",
+  "qwen-coder": "🧧",
+  "qwen-coder-plus": "🧧",
 };
 
 /**
@@ -217,6 +227,18 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   "sonar-reasoning-pro": "sonar-reasoning-pro",
   "sonar-research": "sonar-research",
   "sonar-deep-research": "sonar-research",
+
+  // Qwen
+  qwen: "qwen-plus",
+  alibaba: "qwen-plus",
+  "qwen-turbo": "qwen-turbo",
+  "qwen-flash": "qwen-flash",
+  "qwen-plus": "qwen-plus",
+  "qwen-max": "qwen-max",
+  "qwen-coder": "qwen-coder-plus",
+  "qwen-coder-plus": "qwen-coder-plus",
+  qwen25: "qwen-plus",
+  "qwen-2.5": "qwen-plus",
 };
 
 /**
