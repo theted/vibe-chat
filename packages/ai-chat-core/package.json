@@ -26,7 +26,7 @@
     "test:grok": "npm run -s test:integration:prepare && node dist-tests/tests/integration-ok-grok.js",
     "test:openai": "npm run -s test:integration:prepare && node dist-tests/tests/integration-ok-openai.js",
     "test:mistral": "npm run -s test:integration:prepare && node dist-tests/tests/integration-ok-mistral.js",
-    "test:gemini": "npm run -s test:integration:prepare && node dist-tests/tests/integration-ok-gemini.js",
+    "test:gemini": "npm run -s test:integration:prepare && node dist-tests/tests/integration-gemini-comprehensive.js",
     "test:anthropic": "npm run -s test:integration:prepare && node dist-tests/tests/integration-ok-anthropic.js",
     "test:deepseek": "npm run -s test:integration:prepare && node dist-tests/tests/integration-ok-deepseek.js",
     "test:qwen": "npm run -s test:integration:prepare && node dist-tests/tests/integration-ok-qwen.js",
