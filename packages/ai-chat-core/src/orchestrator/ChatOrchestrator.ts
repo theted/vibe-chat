@@ -73,6 +73,38 @@ type GenerateResponseOptions = {
   triggerMessage?: { id?: string; sender?: string };
 };
 
+const MAX_PARALLEL_AI_INITIALIZATIONS = 8;
+
+/**
+ * Run async tasks with a concurrency limit.
+ */
+const runWithConcurrencyLimit = async (
+  tasks: Array<() => Promise<void>>,
+  limit: number,
+): Promise<void> => {
+  if (tasks.length === 0) {
+    return;
+  }
+
+  const concurrency = Math.max(1, limit);
+  let nextIndex = 0;
+  const workerCount = Math.min(concurrency, tasks.length);
+
+  const workers = Array.from({ length: workerCount }, async () => {
+    while (true) {
+      const currentIndex = nextIndex;
+      nextIndex += 1;
+      const task = tasks[currentIndex];
+      if (!task) {
+        return;
+      }
+      await task();
+    }
+  });
+
+  await Promise.all(workers);
+};
+
 /**
  * Orchestrates multi-AI conversations and background scheduling.
  */
@@ -184,7 +216,7 @@ export class ChatOrchestrator extends EventEmitter {
     const skipHealthCheck = parseBooleanEnvFlag(
       getEnvFlag("AI_CHAT_SKIP_HEALTHCHECK"),
     );
-    for (const config of aiConfigs) {
+    const tasks = aiConfigs.map((config) => async () => {
       try {
         const service = AIServiceFactory.createServiceByName(
           config.providerKey,
@@ -226,7 +258,9 @@ export class ChatOrchestrator extends EventEmitter {
           alias: config.alias,
         });
       }
-    }
+    });
+
+    await runWithConcurrencyLimit(tasks, MAX_PARALLEL_AI_INITIALIZATIONS);
 
     console.log(`Initialized ${this.aiServices.size} AI services`);
 
