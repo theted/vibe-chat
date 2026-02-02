@@ -6,17 +6,17 @@
 export const DEFAULTS = {
   MAX_MESSAGES: 100,
   MAX_AI_MESSAGES: 10,
-  MAX_CONCURRENT_RESPONSES: 3, // Hard limit on simultaneous AI responses
-  MIN_USER_RESPONSE_DELAY: 3000, // 3 seconds - delay before AI responds to user
-  MAX_USER_RESPONSE_DELAY: 18000, // 18 seconds
-  MIN_BACKGROUND_DELAY: 20000, // 20 seconds - delay for background AI chatter
-  MAX_BACKGROUND_DELAY: 60000, // 60 seconds
-  MIN_DELAY_BETWEEN_AI: 4000, // 4 seconds - stagger between AI responses
-  MAX_DELAY_BETWEEN_AI: 12000, // 12 seconds
+  MAX_CONCURRENT_RESPONSES: 2, // Hard limit on simultaneous AI responses
+  MIN_USER_RESPONSE_DELAY: 4000, // 4 seconds - delay before AI responds to user
+  MAX_USER_RESPONSE_DELAY: 22000, // 22 seconds
+  MIN_BACKGROUND_DELAY: 30000, // 30 seconds - delay for background AI chatter
+  MAX_BACKGROUND_DELAY: 90000, // 90 seconds
+  MIN_DELAY_BETWEEN_AI: 6000, // 6 seconds - stagger between AI responses
+  MAX_DELAY_BETWEEN_AI: 18000, // 18 seconds
   TOPIC_CHANGE_CHANCE: 0.1, // 10% chance
   // First AI responder delay - gives conversation breathing room
-  MIN_FIRST_RESPONDER_DELAY: 1500, // 1.5 seconds
-  MAX_FIRST_RESPONDER_DELAY: 3000, // 3 seconds
+  MIN_FIRST_RESPONDER_DELAY: 2500, // 2.5 seconds
+  MAX_FIRST_RESPONDER_DELAY: 4500, // 4.5 seconds
 } as const;
 
 // Context and message limits
