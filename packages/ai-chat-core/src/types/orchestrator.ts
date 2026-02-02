@@ -456,6 +456,7 @@ export interface ContextMessage extends Message {
   alias?: string;
   normalizedAlias?: string;
   aiId?: string;
+  providerKey?: string;
   modelKey?: string;
   mentions?: string[];
   mentionsNormalized?: string[];

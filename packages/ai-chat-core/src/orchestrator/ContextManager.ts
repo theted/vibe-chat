@@ -48,6 +48,7 @@ export class ContextManager implements IContextManager {
       alias,
       normalizedAlias,
       aiId: (message as any).aiId,
+      providerKey: (message as any).providerKey,
       modelKey: (message as any).modelKey,
       mentions,
       mentionsNormalized: normalized,

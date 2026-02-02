@@ -17,4 +17,12 @@ describe("mentions utilities", () => {
 
     expect(mentions).toEqual(["claude 3.5 haiku", "gpt-4o"]);
   });
+
+  it("matches @mentions from extra candidates", () => {
+    const text = "Hello @Skylar welcome back.";
+    const matches = findMentionMatches(text, [], ["Skylar"]);
+
+    expect(matches).toHaveLength(1);
+    expect(matches[0]?.text).toBe("@Skylar");
+  });
 });
