@@ -40,6 +40,10 @@ services:
     build:
       context: .
       dockerfile: packages/server/Dockerfile.dev
+      cache_from:
+        - type=local,src=/tmp/.buildx-cache
+      cache_to:
+        - type=local,dest=/tmp/.buildx-cache,mode=max
     container_name: ai-chat-server-dev
     ports:
       - "3001:3001"

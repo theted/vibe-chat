@@ -4,6 +4,7 @@
  */
 
 import { AI_PROVIDERS } from "@ai-chat/core";
+import type { AIModel } from "@ai-chat/core";
 import {
   DEFAULT_TOPIC,
   CLI_ALIASES,
@@ -28,9 +29,11 @@ export const displayUsage = (): void => {
   console.log("\nSupported providers and models:");
   Object.entries(AI_PROVIDERS).forEach(([providerKey, provider]) => {
     console.log(`\n${provider.name} (${providerKey.toLowerCase()}):`);
-    Object.entries(provider.models).forEach(([modelKey, model]) => {
+    Object.entries(provider.models as Record<string, AIModel>).forEach(
+      ([modelKey, model]) => {
       console.log(`  - ${modelKey} (${model.id})`);
-    });
+      },
+    );
   });
 
   console.log("\nEnvironment variables required in .env file:");

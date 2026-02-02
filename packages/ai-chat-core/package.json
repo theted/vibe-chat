@@ -16,8 +16,8 @@
   ],
   "scripts": {
     "prebuild": "npm --prefix ../ai-configs run build",
-    "build": "tsc && node ../../scripts/resolve-path-aliases.mjs .",
-    "build:watch": "tsc --watch --preserveWatchOutput",
+    "build": "tsc --emitDeclarationOnly --outDir dist && swc src -d dist",
+    "build:watch": "swc src -d dist --watch & tsc --noEmit --watch",
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run clean && npm run build",
     "test": "npm run -s test:integration:mocked",
@@ -56,6 +56,8 @@
     "openai": "^4.89.0"
   },
   "devDependencies": {
+    "@swc/cli": "^0.3.0",
+    "@swc/core": "^1.4.0",
     "@types/node": "^24.10.1",
     "eslint": "^8.56.0",
     "typescript": "^5.9.3"

@@ -1,57 +1,39 @@
+# syntax=docker/dockerfile:1.4
 # Client Dockerfile - Multi-stage build
-FROM node:22-alpine as builder
+FROM node:22-alpine AS deps
 
 WORKDIR /app
 
-# Copy and build AI configs package
-COPY packages/ai-configs ./ai-configs
-WORKDIR /app/ai-configs
-RUN npm install && npm run build
+COPY package.json package-lock.json ./
+COPY packages/*/package*.json ./packages/
 
-# Ensure workspace-relative file dependency can resolve from /app
-RUN ln -s /app/ai-configs /ai-configs
+RUN --mount=type=cache,target=/root/.npm npm ci --workspace=@ai-chat/client
 
-# Copy package files and install dependencies
+FROM deps AS builder
+
 WORKDIR /app
-COPY packages/client/package.json ./
-RUN npm install react-markdown@^9.1.0 && npm install
 
-# Copy source files
-COPY packages/client/src ./src
-COPY packages/client/index.html ./
-COPY packages/client/vite.config.js ./
-COPY packages/client/tailwind.config.mjs ./
-COPY packages/client/postcss.config.js ./
+COPY . .
 
-# Set build-time environment variables
 ARG VITE_SERVER_URL=http://localhost:3001
 ENV VITE_SERVER_URL=$VITE_SERVER_URL
 
-# Build the application
-RUN npm run build
+RUN npm --workspace @ai-chat/ai-configs run build
+RUN npm --workspace @ai-chat/client run build
 
-# Production stage - serve with nginx
-FROM nginx:alpine
+FROM nginx:alpine AS runner
 
-# Install curl for health checks
 RUN apk add --no-cache curl
 
-# Copy built assets
-COPY --from=builder /app/dist /usr/share/nginx/html
-
-# Copy nginx configuration
+COPY --from=builder /app/packages/client/dist /usr/share/nginx/html
 COPY packages/client/nginx.conf /etc/nginx/nginx.conf
 
-# Create nginx directories and set permissions
 RUN mkdir -p /var/log/nginx /var/cache/nginx /tmp/nginx && \
     chown -R nginx:nginx /var/log/nginx /var/cache/nginx /tmp/nginx /usr/share/nginx/html
 
-# Expose port
 EXPOSE 80
 
-# Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD curl -f http://localhost/ || exit 1
 
-# Start nginx
 CMD ["nginx", "-g", "daemon off;"]

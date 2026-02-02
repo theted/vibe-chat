@@ -4,6 +4,7 @@
   "description": "Vibe chat application with multiple AI personalities and CLI tools",
   "private": true,
   "type": "module",
+  "packageManager": "pnpm@9.15.0",
   "workspaces": [
     "packages/*"
   ],
@@ -14,9 +15,10 @@
     "build:core": "npm run build:configs && npm --workspace @ai-chat/core run build",
     "build:cli": "npm run build:core && npm --workspace @ai-chat/cli run build",
     "build:server": "npm --workspace @ai-chat/server run build",
+    "build:server:turbo": "turbo run build --filter=@ai-chat/server",
     "build:client": "npm --workspace @ai-chat/client run build",
-    "build": "npm run build:core && npm run build:server && npm run build:client",
-    "test": "npm run test:configs && npm run test:core && npm run test:client && npm run test:cli && npm run test:server",
+    "build": "turbo run build",
+    "test": "turbo run test",
     "test:configs": "npm --workspace @ai-chat/ai-configs run test",
     "test:core": "npm --workspace @ai-chat/core run test",
     "test:client": "npm --workspace @ai-chat/client run test",
@@ -42,7 +44,7 @@
     "test:huggingface": "npm --workspace @ai-chat/core run test:huggingface",
     "test:perplexity": "npm --workspace @ai-chat/core run test:perplexity",
     "test:all": "npm --workspace @ai-chat/core run test:all",
-    "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
+    "lint": "turbo run lint",
     "lint:fix": "eslint . --fix",
     "format": "prettier --check .",
     "format:fix": "prettier --write .",
@@ -65,6 +67,7 @@
     "eslint-plugin-react-refresh": "^0.4.5",
     "globals": "^13.24.0",
     "prettier": "^3.3.3",
+    "turbo": "^2.3.0",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   },

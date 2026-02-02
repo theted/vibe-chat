@@ -5,9 +5,9 @@
   "main": "dist/app.js",
   "type": "module",
   "scripts": {
-    "build": "npm --prefix ../ai-chat-core run build && tsc && node ../../scripts/resolve-path-aliases.mjs .",
+    "build": "tsc --noEmit && swc src -d dist",
     "start": "npm run build && node dist/app.js",
-    "dev": "npm run build && (tsc --watch & node ../../scripts/watch-resolve-aliases.mjs . & nodemon --delay 1 --watch dist --watch ../ai-chat-core/src --ext js dist/app.js)",
+    "dev": "npm run build && (swc src -d dist --watch & tsc --noEmit --watch & nodemon --delay 1 --watch dist --watch ../ai-chat-core/src --ext js dist/app.js)",
     "test": "node --import tsx --test \"src/**/*.test.ts\"",
     "lint": "eslint . --ext js --report-unused-disable-directives --max-warnings 0",
     "lint:fix": "eslint . --ext js --fix"
@@ -25,6 +25,8 @@
     "socket.io": "^4.8.1"
   },
   "devDependencies": {
+    "@swc/cli": "^0.3.0",
+    "@swc/core": "^1.4.0",
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.23",
     "@types/node": "^24.10.1",

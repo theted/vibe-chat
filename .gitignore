@@ -30,6 +30,9 @@ coverage
 # Optional npm cache directory
 .npm
 
+# Turborepo cache
+.turbo
+
 # Optional eslint cache
 .eslintcache
 
