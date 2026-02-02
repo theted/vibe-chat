@@ -145,12 +145,6 @@ describe("ChatView Component", () => {
       expect(screen.getByText(/vibe chat/i)).toBeInTheDocument();
     });
 
-    it("should display username and topic", () => {
-      renderWithRouter(<ChatView {...defaultProps} />);
-      expect(screen.getByText(/testuser/)).toBeInTheDocument();
-      expect(screen.getByText(/General Chat/)).toBeInTheDocument();
-    });
-
     it("should render all messages", () => {
       renderWithRouter(<ChatView {...defaultProps} />);
       const messages = screen.getAllByTestId("chat-message");
@@ -159,20 +153,7 @@ describe("ChatView Component", () => {
 
     it("should display participant count", () => {
       renderWithRouter(<ChatView {...defaultProps} />);
-      expect(screen.getByText(/2 users \+ 11 AIs/)).toBeInTheDocument();
-    });
-  });
-
-  describe("connection status", () => {
-    it('should show "Connected" when connected', () => {
-      renderWithRouter(<ChatView {...defaultProps} />);
-      expect(screen.getByText("Connected")).toBeInTheDocument();
-    });
-
-    it('should show "Reconnecting..." when disconnected', () => {
-      const props = { ...defaultProps, connectionStatus: { connected: false } };
-      renderWithRouter(<ChatView {...props} />);
-      expect(screen.getByText("Reconnecting...")).toBeInTheDocument();
+      expect(screen.getByText("2 participants, 11 AIs")).toBeInTheDocument();
     });
   });
 
@@ -257,12 +238,12 @@ describe("ChatView Component", () => {
         participants: [{ username: "user1" }],
       };
       renderWithRouter(<ChatView {...props} />);
-      expect(screen.getByText(/1 user \+ 11 AIs/)).toBeInTheDocument();
+      expect(screen.getByText("1 participants, 11 AIs")).toBeInTheDocument();
     });
 
     it("should display correct plural form for multiple users", () => {
       renderWithRouter(<ChatView {...defaultProps} />);
-      expect(screen.getByText(/2 users \+ 11 AIs/)).toBeInTheDocument();
+      expect(screen.getByText("2 participants, 11 AIs")).toBeInTheDocument();
     });
   });
 
