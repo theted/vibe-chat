@@ -53,13 +53,6 @@ const outputAliasDir = path.relative(normalizedRootDir, normalizedAliasTarget);
 const outDirPath = path.resolve(packageDir, outDir);
 const aliasPattern = /(["'])@\/([^"']+)\1/g;
 
-// Read path mappings and rootDir from tsconfig
-const paths = tsconfig.compilerOptions?.paths || {};
-const aliasMapping = paths["@/*"]?.[0] || "@/*";
-const aliasPrefix = aliasMapping.replace("/*", "");
-const rootDir = tsconfig.compilerOptions?.rootDir || ".";
-const rootDirNormalized = rootDir.replace(/^\.\//, "");
-
 const rewriteFile = async (filePath) => {
   const contents = await readFile(filePath, "utf8");
   if (!contents.includes("@/")) {
