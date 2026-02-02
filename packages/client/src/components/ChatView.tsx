@@ -94,7 +94,7 @@ const ChatView = ({
   return (
     <div className="min-h-screen flex items-center justify-center p-6">
       <div className="flex bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl max-w-7xl w-full max-h-[95vh] overflow-hidden animate-fade-in border border-white/30 dark:bg-slate-900/90 dark:border-slate-800">
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
           <div className="bg-gradient-to-r from-slate-600/90 to-slate-700/90 backdrop-blur-sm text-white p-6 rounded-tl-3xl border-b border-white/10 dark:from-slate-800/90 dark:to-slate-900/90 dark:border-slate-800/60">
             <div className="flex justify-between items-stretch gap-6 flex-wrap">
               <div className="flex items-center gap-4 self-stretch">
@@ -329,7 +329,7 @@ const ChatView = ({
           )}
 
           <div
-            className="flex-1 overflow-y-auto no-scrollbar p-8 space-y-7 bg-gradient-to-b from-slate-50/30 to-white/40 dark:from-slate-900/50 dark:to-slate-900/20"
+            className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar p-8 space-y-7 bg-gradient-to-b from-slate-50/30 to-white/40 dark:from-slate-900/50 dark:to-slate-900/20"
             ref={messagesContainerRef}
           >
             {messages.map((message) => (
