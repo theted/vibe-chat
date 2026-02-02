@@ -105,10 +105,9 @@ export const ENABLED_AI_MODELS: string[] = [
 
   // Qwen/Alibaba Models
   "QWEN_QWEN_TURBO",
+  "QWEN_QWEN_FLASH",
   "QWEN_QWEN_PLUS",
   "QWEN_QWEN_MAX",
-  "QWEN_QWEN25_TURBO",
-  "QWEN_QWEN25_PLUS",
   "QWEN_QWEN_CODER_PLUS",
 ];
 

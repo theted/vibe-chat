@@ -331,6 +331,11 @@ export const AI_DISPLAY_INFO: AiDisplayInfoMap = {
     alias: "qwen-turbo",
     emoji: "🐉",
   },
+  QWEN_QWEN_FLASH: {
+    displayName: "Qwen Flash",
+    alias: "qwen-flash",
+    emoji: "🎋",
+  },
   QWEN_QWEN_PLUS: {
     displayName: "Qwen Plus",
     alias: "qwen-plus",
@@ -341,19 +346,9 @@ export const AI_DISPLAY_INFO: AiDisplayInfoMap = {
     alias: "qwen-max",
     emoji: "🐲",
   },
-  QWEN_QWEN25_TURBO: {
-    displayName: "Qwen 2.5 Turbo",
-    alias: "qwen-2.5-turbo",
-    emoji: "🎋",
-  },
-  QWEN_QWEN25_PLUS: {
-    displayName: "Qwen 2.5 Plus",
-    alias: "qwen-2.5-plus",
-    emoji: "🎍",
-  },
   QWEN_QWEN_CODER_PLUS: {
-    displayName: "Qwen Coder",
-    alias: "qwen-coder",
+    displayName: "Qwen 3 Coder Plus",
+    alias: "qwen-coder-plus",
     emoji: "🧧",
   },
 };
