@@ -91,12 +91,12 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   "deepseek-r1": "deepseek-r1",
 
   // Moonshot/Kimi
-  kimi: "kimi-8k",
+  kimi: "kimi-k2.5",
   "kimi-8k": "kimi-8k",
   "kimi-k2": "kimi-k2",
   "kimi-k2-thinking": "kimi-k2-thinking",
   "kimi-k2.5": "kimi-k2.5",
-  moonshot: "kimi-k2",
+  moonshot: "kimi-k2.5",
 
   // Z.ai
   "z.ai": "z.ai",
@@ -118,8 +118,8 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   "sonar-deep-research": "sonar-research",
 
   // Qwen/Alibaba
-  qwen: "qwen-plus",
-  alibaba: "qwen-plus",
+  qwen: "qwen-turbo",
+  alibaba: "qwen-turbo",
   "qwen-turbo": "qwen-turbo",
   "qwen-plus": "qwen-plus",
   "qwen-max": "qwen-max",

@@ -47,9 +47,24 @@ export const findAIFromContextMessage = (
     return aiServices.get(message.aiId);
   }
 
+  if (message.providerKey && message.modelKey) {
+    const providerKey = normalizeAlias(message.providerKey);
+    const modelKey = normalizeAlias(message.modelKey);
+    for (const ai of aiServices.values()) {
+      if (!ai?.config) continue;
+      if (
+        normalizeAlias(ai.config.providerKey) === providerKey &&
+        normalizeAlias(ai.config.modelKey) === modelKey
+      ) {
+        return ai;
+      }
+    }
+  }
+
   const candidates = [
     message.alias,
     message.normalizedAlias,
+    message.modelKey,
     message.displayName,
     message.sender,
   ].filter(Boolean);

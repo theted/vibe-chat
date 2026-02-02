@@ -87,8 +87,8 @@ describe("chat constants", () => {
     });
 
     it("should map Kimi/Moonshot to moon emojis", () => {
-      expect(AI_EMOJI_LOOKUP.kimi).toBe("🎯");
-      expect(AI_EMOJI_LOOKUP.moonshot).toBe("🌓");
+      expect(AI_EMOJI_LOOKUP.kimi).toBe("🌕");
+      expect(AI_EMOJI_LOOKUP.moonshot).toBe("🌕");
     });
 
     it("should map Z.AI variants to brightness emoji", () => {
@@ -126,7 +126,7 @@ describe("chat constants", () => {
         "cohere",
         "mistral",
         "sonar-pro",
-        "qwen-plus",
+        "qwen-turbo",
       ];
       const mappingValues = Object.values(AI_MENTION_MAPPINGS);
       requiredProviders.forEach((provider) => {

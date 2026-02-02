@@ -30,6 +30,7 @@ const baseMentionCandidates = (() => {
 
 const buildMentionCandidates = (
   aiParticipants: AiParticipant[] = [],
+  extraCandidates: Array<string | null | undefined> = [],
 ): string[] => {
   const participantValues = aiParticipants.flatMap((participant) => [
     participant.name,
@@ -37,7 +38,13 @@ const buildMentionCandidates = (
     participant.id,
   ]);
 
-  return Array.from(new Set([...baseMentionCandidates, ...participantValues]))
+  const extraValues = extraCandidates
+    .map((value) => value?.trim())
+    .filter((value): value is string => Boolean(value));
+
+  return Array.from(
+    new Set([...baseMentionCandidates, ...participantValues, ...extraValues]),
+  )
     .map((value) => value?.trim())
     .filter((value): value is string => Boolean(value))
     .sort((a, b) => b.length - a.length);
@@ -51,10 +58,11 @@ const hasBoundary = (value: string | undefined): boolean => {
 export const findMentionMatches = (
   text: string,
   aiParticipants: AiParticipant[] = [],
+  extraCandidates: Array<string | null | undefined> = [],
 ): MentionMatch[] => {
   if (!text.includes("@")) return [];
 
-  const candidates = buildMentionCandidates(aiParticipants);
+  const candidates = buildMentionCandidates(aiParticipants, extraCandidates);
   const matches: MentionMatch[] = [];
 
   for (let index = 0; index < text.length; index += 1) {

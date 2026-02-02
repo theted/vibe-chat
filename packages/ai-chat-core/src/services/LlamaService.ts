@@ -1,7 +1,7 @@
 /**
  * Llama Service
  *
- * This service handles interactions with the Llama API.
+ * This service handles interactions with Meta Llama via the Llama API.
  * Llama uses an OpenAI-compatible API format.
  */
 
@@ -13,7 +13,7 @@ import OpenAI from "openai";
 
 export class LlamaService extends OpenAICompatibleService {
   constructor(config: AIServiceConfig) {
-    super(config, "Llama");
+    super(config, "Meta");
   }
 
   protected createClient(
