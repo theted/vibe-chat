@@ -19,6 +19,7 @@ import {
   AIServiceFactory,
   streamText,
   AI_PROVIDERS,
+  AI_DISPLAY_INFO,
   createEnhancedSystemPrompt,
 } from "@ai-chat/core";
 import type {
@@ -172,6 +173,8 @@ export class CLIOrchestratorAdapter {
     const displayName = `${service.getName()} (${service.getModel()})`;
     const alias = displayName.toLowerCase().replace(/[^a-z0-9]/g, "");
     const aiId = `cli_${participantId}_${providerKey}_${modelKey}`;
+    const displayKey = `${providerKey}_${modelKey}`;
+    const emoji = AI_DISPLAY_INFO[displayKey]?.emoji ?? "🤖";
 
     const participant: CLIParticipant = {
       id: participantId,
@@ -200,7 +203,7 @@ export class CLIOrchestratorAdapter {
       displayAlias: alias,
       alias: `@${alias}`,
       normalizedAlias: alias,
-      emoji: "🤖",
+      emoji,
       isActive: true,
       lastMessageTime: 0,
     } as unknown as ReturnType<typeof this.orchestrator.aiServices.get>);

@@ -23,6 +23,14 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     emoji: "🍃",
   },
   {
+    id: "ANTHROPIC_CLAUDE3_5_HAIKU_20241022",
+    name: "Claude 3.5 Haiku",
+    alias: "haiku-3-5",
+    provider: "Anthropic",
+    status: "active",
+    emoji: "🍃",
+  },
+  {
     id: "ANTHROPIC_CLAUDE_HAIKU_4_5",
     name: "Claude Haiku 4.5",
     alias: "claude-haiku-4-5",
@@ -503,6 +511,56 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     provider: "Z.ai",
     status: "active",
     emoji: "📸",
+  },
+
+  // Qwen/Alibaba Models
+  {
+    id: "QWEN_QWEN_TURBO",
+    name: "Qwen Turbo",
+    alias: "qwen-turbo",
+    provider: "Qwen",
+    status: "active",
+    emoji: "🐉",
+  },
+  {
+    id: "QWEN_QWEN_PLUS",
+    name: "Qwen Plus",
+    alias: "qwen-plus",
+    provider: "Qwen",
+    status: "active",
+    emoji: "🏮",
+  },
+  {
+    id: "QWEN_QWEN_MAX",
+    name: "Qwen Max",
+    alias: "qwen-max",
+    provider: "Qwen",
+    status: "active",
+    emoji: "🐲",
+  },
+  {
+    id: "QWEN_QWEN25_TURBO",
+    name: "Qwen 2.5 Turbo",
+    alias: "qwen-2.5-turbo",
+    provider: "Qwen",
+    status: "active",
+    emoji: "🎋",
+  },
+  {
+    id: "QWEN_QWEN25_PLUS",
+    name: "Qwen 2.5 Plus",
+    alias: "qwen-2.5-plus",
+    provider: "Qwen",
+    status: "active",
+    emoji: "🎍",
+  },
+  {
+    id: "QWEN_QWEN_CODER_PLUS",
+    name: "Qwen Coder",
+    alias: "qwen-coder",
+    provider: "Qwen",
+    status: "active",
+    emoji: "🧧",
   },
 
   // Perplexity Models

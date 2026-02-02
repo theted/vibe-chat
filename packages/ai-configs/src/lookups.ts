@@ -1,121 +1,10 @@
+import { DEFAULT_AI_PARTICIPANTS } from "./participants.js";
+
 /**
- * Emoji lookup by normalized alias/provider name.
- * Used for quick emoji resolution from user mentions.
+ * Normalize an alias string for lookup
  */
-export const AI_EMOJI_LOOKUP: Record<string, string> = {
-  // Anthropic/Claude
-  claude: "🎹",
-  anthropic: "🎹",
-  "claude-3-7-sonnet": "🎵",
-  "claude-3-5-haiku": "🍃",
-  "claude-haiku-4-5": "🌸",
-  "claude-sonnet-4": "🎼",
-  "claude-sonnet-4-5": "🎹",
-  "claude-opus-4": "🎭",
-  "opus-4-5": "🎻",
-  "claude-opus-4-1": "🎺",
-  haiku: "🌸",
-  sonnet: "🎼",
-  opus: "🎭",
-
-  // OpenAI/GPT
-  gpt: "🧠",
-  gpt4: "🧠",
-  "gpt-4o": "🧠",
-  "gpt-4.1": "🧩",
-  gpt35: "💡",
-  "gpt-3-5": "💡",
-  openai: "🧠",
-  chatgpt: "✨",
-  "gpt-5": "🚀",
-  "gpt-5.1": "✨",
-  "gpt-5.1-mini": "💫",
-  "gpt-5.2": "🌀",
-  o3: "🧪",
-  "o3-mini": "🧮",
-  "o4-mini": "🛰️",
-
-  // xAI/Grok
-  grok: "🦾",
-  xai: "🦾",
-  "grok-3-mini": "⚙️",
-  "grok-4": "🛸",
-  "grok-4-fast": "🏎️",
-  "grok-4-reasoning": "🧭",
-  "grok-4-heavy": "🏋️",
-  "grok-code": "💻",
-
-  // Google/Gemini
-  gemini: "💎",
-  "gemini-3": "🔷",
-  gemini3: "🔷",
-  gemini30: "🔷",
-  "gemini-flash": "⚡",
-  "gemini-2.5": "💠",
-  google: "💎",
-  bard: "💎",
-
-  // Cohere
-  cohere: "🔮",
-  command: "🔮",
-  commandr: "🔮",
-  "cohere-reasoning": "🎱",
-  "cohere-translate": "🌐",
-  "command-r-plus": "🌟",
-  "command-r": "🌙",
-
-  // Mistral AI
-  mistral: "🌪️",
-  "mistral-medium": "🌬️",
-  "mistral-small": "💨",
-  "magistral-small": "📐",
-  "magistral-medium": "📏",
-  codestral: "🖥️",
-  "ministral-8b": "🪶",
-
-  // DeepSeek
-  deepseek: "🔍",
-  "deepseek-v3": "🔬",
-  "deepseek-v3.2": "🧬",
-  "deepseek-r1": "🔭",
-
-  // Moonshot/Kimi
-  kimi: "🎯",
-  "kimi-8k": "🎯",
-  "kimi-k2": "🌓",
-  "kimi-k2-thinking": "💭",
-  "kimi-k2.5": "🌕",
-  moonshot: "🌓",
-
-  // Z.ai
-  zai: "🔆",
-  z: "🔆",
-  "z.ai": "🔆",
-  "glm-4.5": "🔶",
-  "glm-4.5-air": "🪁",
-  "glm-4.6": "🔹",
-  "glm-4.7": "🚄",
-  "glm-4.7-flash": "📸",
-
-  // Perplexity
-  perplexity: "🔊",
-  pplx: "🔊",
-  sonar: "🔊",
-  "sonar-pro": "📡",
-  "sonar-reasoning-pro": "🎛️",
-  "sonar-research": "🔬",
-  "sonar-deep-research": "🔬",
-
-  // Qwen
-  qwen: "🐉",
-  alibaba: "🐉",
-  "qwen-turbo": "🐉",
-  "qwen-plus": "🏮",
-  "qwen-max": "🐲",
-  "qwen-flash": "🎋",
-  "qwen-coder": "🧧",
-  "qwen-coder-plus": "🧧",
-};
+export const normalizeAlias = (alias: string): string =>
+  alias.toLowerCase().trim().replace(/\s+/g, "-");
 
 /**
  * Mention mappings from various aliases to canonical names.
@@ -228,24 +117,49 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   "sonar-research": "sonar-research",
   "sonar-deep-research": "sonar-research",
 
-  // Qwen
-  qwen: "qwen-plus",
-  alibaba: "qwen-plus",
+  // Qwen/Alibaba
+  qwen: "qwen-turbo",
+  alibaba: "qwen-turbo",
   "qwen-turbo": "qwen-turbo",
-  "qwen-flash": "qwen-flash",
   "qwen-plus": "qwen-plus",
   "qwen-max": "qwen-max",
-  "qwen-coder": "qwen-coder-plus",
-  "qwen-coder-plus": "qwen-coder-plus",
-  qwen25: "qwen-plus",
-  "qwen-2.5": "qwen-plus",
+  "qwen-2.5-turbo": "qwen-2.5-turbo",
+  "qwen-2.5-plus": "qwen-2.5-plus",
+  "qwen-coder": "qwen-coder",
+};
+
+const buildEmojiLookup = (): Record<string, string> => {
+  const lookup: Record<string, string> = {};
+  const emojiByAlias = new Map(
+    DEFAULT_AI_PARTICIPANTS.map((participant) => [
+      normalizeAlias(participant.alias),
+      participant.emoji,
+    ]),
+  );
+
+  const addEntry = (key: string, canonicalAlias: string) => {
+    const emoji = emojiByAlias.get(normalizeAlias(canonicalAlias));
+    if (emoji) {
+      lookup[normalizeAlias(key)] = emoji;
+    }
+  };
+
+  for (const [alias, canonical] of Object.entries(AI_MENTION_MAPPINGS)) {
+    addEntry(alias, canonical);
+  }
+
+  for (const participant of DEFAULT_AI_PARTICIPANTS) {
+    lookup[normalizeAlias(participant.alias)] = participant.emoji;
+  }
+
+  return lookup;
 };
 
 /**
- * Normalize an alias string for lookup
+ * Emoji lookup by normalized alias/provider name.
+ * Used for quick emoji resolution from user mentions.
  */
-export const normalizeAlias = (alias: string): string =>
-  alias.toLowerCase().trim().replace(/\s+/g, "-");
+export const AI_EMOJI_LOOKUP: Record<string, string> = buildEmojiLookup();
 
 /**
  * Resolve emoji from alias
