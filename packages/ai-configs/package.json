@@ -20,9 +20,11 @@
     "clean": "rm -rf dist",
     "prepare": "npm run build",
     "prepublishOnly": "npm run clean && npm run build",
+    "test": "npx tsx --test tests/**/*.test.ts",
     "type-check": "tsc --noEmit"
   },
   "devDependencies": {
+    "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   },
   "keywords": [
