@@ -3,6 +3,11 @@ import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import AISelectionDialog from "./AISelectionDialog";
 import type { ReactNode } from "react";
 
+const stripMotionProps = (props: Record<string, unknown>) => {
+  const { whileHover, whileTap, ...rest } = props;
+  return rest;
+};
+
 vi.mock("framer-motion", () => ({
   motion: {
     div: ({
@@ -11,14 +16,14 @@ vi.mock("framer-motion", () => ({
     }: {
       children: ReactNode;
       [key: string]: unknown;
-    }) => <div {...props}>{children}</div>,
+    }) => <div {...stripMotionProps(props)}>{children}</div>,
     button: ({
       children,
       ...props
     }: {
       children: ReactNode;
       [key: string]: unknown;
-    }) => <button {...props}>{children}</button>,
+    }) => <button {...stripMotionProps(props)}>{children}</button>,
   },
   AnimatePresence: ({ children }: { children: ReactNode }) => <>{children}</>,
 }));
