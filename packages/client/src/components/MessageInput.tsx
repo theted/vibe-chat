@@ -40,6 +40,9 @@ const MessageInput = ({
     const selectionStart = target?.selectionStart;
     const selectionEnd = target?.selectionEnd;
     if (typeof selectionStart === "number") {
+      if (typeof selectionEnd === "number" && selectionEnd > selectionStart) {
+        return selectionEnd;
+      }
       return selectionStart;
     }
     if (typeof selectionEnd === "number") {
