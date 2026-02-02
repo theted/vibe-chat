@@ -32,7 +32,7 @@ const LoadingOverlay = ({
             {message}
           </p>
           <p className="text-sm text-slate-500 dark:text-slate-400 animate-pulse-soft [animation-duration:3200ms]">
-            Preparing your AI chat experience...
+            Preparing your Vibe chat experience...
           </p>
         </div>
       </div>

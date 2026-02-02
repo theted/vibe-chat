@@ -118,6 +118,74 @@ export const ICON_PATHS: Record<IconName, IconDefinition> = {
       ],
     },
   },
+  cog: {
+    classic: {
+      strokeWidth: 2,
+      paths: [
+        "M11.983 7.25a4.75 4.75 0 100 9.5 4.75 4.75 0 000-9.5z",
+        "M3.5 12h1.75",
+        "M18.75 12H20.5",
+        "M12 3.5v1.75",
+        "M12 18.75V20.5",
+        "M5.7 5.7l1.25 1.25",
+        "M17.05 17.05l1.25 1.25",
+        "M5.7 18.3l1.25-1.25",
+        "M17.05 6.95l1.25-1.25",
+      ],
+    },
+    modern: {
+      strokeWidth: 1.4,
+      paths: [
+        "M12 7.5a4.5 4.5 0 100 9 4.5 4.5 0 000-9z",
+        "M4.25 12h1.5",
+        "M18.25 12h1.5",
+        "M12 4.25v1.5",
+        "M12 18.25v1.5",
+        "M6.35 6.35l1.05 1.05",
+        "M16.6 16.6l1.05 1.05",
+        "M6.35 17.65l1.05-1.05",
+        "M16.6 7.4l1.05-1.05",
+      ],
+    },
+  },
+  dashboard: {
+    classic: {
+      strokeWidth: 2,
+      paths: [
+        "M3 13h8V3H3v10z",
+        "M13 21h8v-6h-8v6z",
+        "M13 3h8v8h-8V3z",
+        "M3 21h8v-6H3v6z",
+      ],
+    },
+    modern: {
+      strokeWidth: 1.4,
+      paths: [
+        "M4.5 12.5h7v-7h-7v7z",
+        "M12.5 19.5h7v-5h-7v5z",
+        "M12.5 5.5h7v6h-7v-6z",
+        "M4.5 19.5h7v-5h-7v5z",
+      ],
+    },
+  },
+  logout: {
+    classic: {
+      strokeWidth: 2,
+      paths: [
+        "M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4",
+        "M10 17l5-5-5-5",
+        "M15 12H3",
+      ],
+    },
+    modern: {
+      strokeWidth: 1.4,
+      paths: [
+        "M15.5 5.5h3.25a1.75 1.75 0 011.75 1.75v9.5a1.75 1.75 0 01-1.75 1.75H15.5",
+        "M10.5 8.75l3.75 3.25-3.75 3.25",
+        "M14.25 12H4.5",
+      ],
+    },
+  },
   "chevron-right": {
     classic: {
       strokeWidth: 2,

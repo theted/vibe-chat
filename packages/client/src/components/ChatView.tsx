@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { DEFAULT_AI_PARTICIPANTS } from "@/config/aiParticipants";
 import ChatMessage from "./ChatMessage";
@@ -32,6 +33,25 @@ const ChatView = ({
   const aiParticipantList =
     aiParticipants.length > 0 ? aiParticipants : DEFAULT_AI_PARTICIPANTS;
   const aiParticipantCount = aiParticipantList.length;
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  useEffect(() => {
+    if (!isMenuOpen) {
+      return undefined;
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsMenuOpen(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isMenuOpen]);
 
   return (
     <div className="min-h-screen flex items-center justify-center p-6">
@@ -55,38 +75,27 @@ const ChatView = ({
                   </div>
                 </div>
               </div>
-              <div className="flex items-center gap-3 self-stretch flex-wrap justify-end">
-                <div className="flex items-center gap-2">
+              <div className="flex flex-col items-end gap-2 self-stretch">
+                <div className="flex items-center gap-3 flex-wrap justify-end">
                   <button
                     type="button"
-                    onClick={toggleTheme}
-                    className="bg-white/10 hover:bg-white/20 text-white/80 px-3 py-1 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 dark:bg-slate-900/60 dark:hover:bg-slate-900/80 dark:text-slate-200 dark:border dark:border-slate-700"
-                    title={`Switch to ${
-                      theme === "dark" ? "light" : "dark"
-                    } mode`}
+                    onClick={() => setIsMenuOpen(true)}
+                    className="bg-white/10 hover:bg-white/20 text-white/80 px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 dark:bg-slate-900/60 dark:hover:bg-slate-900/80 dark:text-slate-200 dark:border dark:border-slate-700"
+                    aria-label="Open settings menu"
+                    title="Open settings menu"
                   >
-                    <Icon
-                      name={theme === "dark" ? "sun" : "moon"}
-                      className="w-4 h-4"
-                    />
-                    <span className="hidden sm:inline">
-                      {theme === "dark" ? "Light mode" : "Dark mode"}
-                    </span>
+                    <Icon name="cog" className="w-4 h-4" />
+                    <span className="hidden sm:inline">Settings</span>
                   </button>
+                  <div className="text-primary-200 text-xs dark:text-slate-300">
+                    {`${participants.length} user${
+                      participants.length !== 1 ? "s" : ""
+                    } + ${aiParticipantCount} AI${
+                      aiParticipantCount !== 1 ? "s" : ""
+                    }`}
+                  </div>
                 </div>
-                <Link
-                  to="/dashboard"
-                  className="bg-primary-800 hover:bg-primary-900 text-primary-100 hover:text-white px-3 py-1 rounded-lg text-sm font-medium transition-colors"
-                >
-                  Dashboard
-                </Link>
-                <button
-                  onClick={onLogout}
-                  className="bg-primary-800 hover:bg-primary-900 text-primary-100 hover:text-white px-3 py-1 rounded-lg text-sm font-medium transition-colors"
-                >
-                  Logout
-                </button>
-                <div className="flex items-center gap-2 text-sm">
+                <div className="flex items-center gap-2 text-sm text-slate-100/80 dark:text-slate-200/80">
                   <div
                     className={`w-2 h-2 rounded-full transition-colors ${
                       connectionStatus.connected
@@ -100,16 +109,86 @@ const ChatView = ({
                       : "Reconnecting..."}
                   </span>
                 </div>
-                <div className="text-primary-200 text-xs dark:text-slate-300">
-                  {`${participants.length} user${
-                    participants.length !== 1 ? "s" : ""
-                  } + ${aiParticipantCount} AI${
-                    aiParticipantCount !== 1 ? "s" : ""
-                  }`}
-                </div>
               </div>
             </div>
           </div>
+          {isMenuOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center">
+              <div
+                className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm animate-fade-in"
+                role="button"
+                tabIndex={-1}
+                aria-label="Close settings menu"
+                onClick={() => setIsMenuOpen(false)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    setIsMenuOpen(false);
+                  }
+                }}
+              />
+              <div
+                role="dialog"
+                aria-modal="true"
+                aria-label="Settings"
+                className="relative w-full max-w-sm rounded-2xl bg-white/95 p-6 shadow-2xl border border-white/40 backdrop-blur-xl animate-fade-in animate-scale-in dark:bg-slate-900/95 dark:border-slate-700/60"
+              >
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="w-10 h-10 rounded-xl bg-primary-500/20 flex items-center justify-center">
+                    <Icon name="cog" className="w-5 h-5 text-primary-500" />
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
+                      Quick actions
+                    </p>
+                    <p className="text-lg font-semibold text-slate-800 dark:text-slate-100">
+                      Settings
+                    </p>
+                  </div>
+                </div>
+                <div className="flex flex-col gap-3">
+                  <button
+                    type="button"
+                    onClick={toggleTheme}
+                    className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-3 rounded-xl text-sm font-medium transition-colors flex items-center justify-between gap-3 dark:bg-slate-800/80 dark:hover:bg-slate-800 dark:text-slate-100"
+                    title={`Switch to ${
+                      theme === "dark" ? "light" : "dark"
+                    } mode`}
+                  >
+                    <span className="flex items-center gap-2">
+                      <Icon
+                        name={theme === "dark" ? "sun" : "moon"}
+                        className="w-4 h-4"
+                      />
+                      {theme === "dark" ? "Light mode" : "Dark mode"}
+                    </span>
+                    <span className="text-xs text-slate-500 dark:text-slate-400">
+                      Toggle
+                    </span>
+                  </button>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Link
+                      to="/dashboard"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="flex items-center justify-center gap-2 rounded-xl border border-primary-200/70 bg-primary-50 px-4 py-3 text-sm font-semibold text-primary-700 transition-colors hover:bg-primary-100 dark:border-primary-500/40 dark:bg-primary-500/10 dark:text-primary-200 dark:hover:bg-primary-500/20"
+                      title="Dashboard"
+                      aria-label="Dashboard"
+                    >
+                      <Icon name="dashboard" className="w-5 h-5" />
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={onLogout}
+                      className="flex items-center justify-center gap-2 rounded-xl border border-rose-200/70 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-600 transition-colors hover:bg-rose-100 dark:border-rose-500/40 dark:bg-rose-500/10 dark:text-rose-200 dark:hover:bg-rose-500/20"
+                      title="Logout"
+                      aria-label="Logout"
+                    >
+                      <Icon name="logout" className="w-5 h-5" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div
             className="flex-1 overflow-y-auto no-scrollbar p-8 space-y-7 bg-gradient-to-b from-slate-50/30 to-white/40 dark:from-slate-900/50 dark:to-slate-900/20"

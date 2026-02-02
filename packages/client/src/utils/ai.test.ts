@@ -55,6 +55,7 @@ describe("resolveEmoji", () => {
     expect(resolveEmoji("cohere")).toBe("🔮");
     expect(resolveEmoji("kimi")).toBe("🎯");
     expect(resolveEmoji("perplexity")).toBe("🔊");
+    expect(resolveEmoji("qwen")).toBe("🐉");
   });
 
   it("should handle case insensitivity", () => {
@@ -100,9 +101,15 @@ describe("resolveEmoji", () => {
 
 describe("mapMentionsToAiNames", () => {
   it("should map mentions to canonical AI names", () => {
-    const mentions = ["claude", "gpt", "gemini", "perplexity"];
+    const mentions = ["claude", "gpt", "gemini", "perplexity", "qwen"];
     const result = mapMentionsToAiNames(mentions);
-    expect(result).toEqual(["claude-sonnet-4-5", "gpt-4o", "gemini", "sonar-pro"]);
+    expect(result).toEqual([
+      "claude-sonnet-4-5",
+      "gpt-4o",
+      "gemini",
+      "sonar-pro",
+      "qwen-plus",
+    ]);
   });
 
   it("should handle aliases correctly", () => {

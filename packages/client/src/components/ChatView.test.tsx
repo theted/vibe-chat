@@ -176,6 +176,7 @@ describe("ChatView Component", () => {
   describe("theme toggle", () => {
     it("should call toggleTheme when theme button clicked", () => {
       renderWithRouter(<ChatView {...defaultProps} />);
+      fireEvent.click(screen.getByLabelText("Open settings menu"));
       const themeButton = screen.getByTitle(/Switch to dark mode/);
       fireEvent.click(themeButton);
       expect(defaultProps.toggleTheme).toHaveBeenCalledTimes(1);
@@ -183,12 +184,14 @@ describe("ChatView Component", () => {
 
     it("should show moon icon in light mode", () => {
       renderWithRouter(<ChatView {...defaultProps} />);
+      fireEvent.click(screen.getByLabelText("Open settings menu"));
       expect(screen.getByTestId("icon-moon")).toBeInTheDocument();
     });
 
     it("should show sun icon in dark mode", () => {
       const props = { ...defaultProps, theme: "dark" as const };
       renderWithRouter(<ChatView {...props} />);
+      fireEvent.click(screen.getByLabelText("Open settings menu"));
       expect(screen.getByTestId("icon-sun")).toBeInTheDocument();
     });
   });
@@ -196,14 +199,16 @@ describe("ChatView Component", () => {
   describe("user actions", () => {
     it("should call onLogout when logout button clicked", () => {
       renderWithRouter(<ChatView {...defaultProps} />);
-      const logoutButton = screen.getByText("Logout");
+      fireEvent.click(screen.getByLabelText("Open settings menu"));
+      const logoutButton = screen.getByLabelText("Logout");
       fireEvent.click(logoutButton);
       expect(defaultProps.onLogout).toHaveBeenCalledTimes(1);
     });
 
     it("should navigate to dashboard when dashboard link clicked", () => {
       renderWithRouter(<ChatView {...defaultProps} />);
-      const dashboardLink = screen.getByText("Dashboard");
+      fireEvent.click(screen.getByLabelText("Open settings menu"));
+      const dashboardLink = screen.getByLabelText("Dashboard");
       expect(dashboardLink).toHaveAttribute("href", "/dashboard");
     });
   });

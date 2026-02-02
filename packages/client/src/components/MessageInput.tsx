@@ -33,6 +33,24 @@ const MessageInput = ({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const resolveCursorPosition = (
+    value: string,
+    target: HTMLTextAreaElement | null,
+  ) => {
+    const selectionStart = target?.selectionStart;
+    const selectionEnd = target?.selectionEnd;
+    if (typeof selectionStart === "number") {
+      if (typeof selectionEnd === "number" && selectionEnd > selectionStart) {
+        return selectionEnd;
+      }
+      return selectionStart;
+    }
+    if (typeof selectionEnd === "number") {
+      return selectionEnd;
+    }
+    return value.length;
+  };
+
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (message.trim() && !disabled) {
@@ -95,10 +113,7 @@ const MessageInput = ({
     }
 
     // Check for @ trigger to show AI selection
-    const cursorPosition =
-      typeof e.target.selectionStart === "number"
-        ? e.target.selectionStart
-        : value.length;
+    const cursorPosition = resolveCursorPosition(value, e.target);
     const textBeforeCursor = value.substring(0, cursorPosition);
     const mentionMatch = textBeforeCursor.match(/@([^\s@]*)$/);
 

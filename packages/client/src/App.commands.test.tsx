@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeAll, beforeEach } from "vitest";
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import { act } from "react-dom/test-utils";
 import type { ReactNode } from "react";
+import { getParticipantById } from "./config/aiParticipants";
 import type { AiParticipant } from "./config/aiParticipants";
 import type { Message } from "./types";
 
@@ -162,18 +163,14 @@ describe("App command handling", () => {
   it("uses server AI participants for chat view", async () => {
     render(<App />);
 
+    const gpt5Participant = getParticipantById("OPENAI_GPT5");
+    if (!gpt5Participant) {
+      throw new Error("Missing OPENAI_GPT5 participant fixture");
+    }
+
     await joinRoomWithMessages(
       [],
-      [
-        {
-          id: "OPENAI_GPT5",
-          name: "GPT-5",
-          alias: "gpt-5",
-          provider: "OpenAI",
-          status: "active",
-          emoji: "🧠",
-        },
-      ],
+      [gpt5Participant],
     );
 
     await waitFor(() => {

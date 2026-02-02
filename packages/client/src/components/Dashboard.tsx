@@ -6,10 +6,9 @@ import { useState, useEffect, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { useSocket } from "@/hooks/useSocket";
 import StatusCard from "./StatusCard";
+import { SERVER_URL } from "@/constants/chat";
 import type { DashboardMetrics, ConnectionStatus } from "@/types";
 import type { AiParticipant } from "@/config/aiParticipants";
-
-const SERVER_URL = import.meta.env.VITE_SERVER_URL || "http://localhost:3001";
 
 interface MetricCardProps {
   title: string;

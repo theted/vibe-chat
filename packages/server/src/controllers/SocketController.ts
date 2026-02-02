@@ -10,6 +10,13 @@ import type { MetricsService } from "@/services/MetricsService.js";
 import type { RedisClient } from "@/services/RedisClient.js";
 import { getClientIp } from "@/utils/httpUtils.js";
 import { transformAIServicesToParticipants } from "@/utils/aiServiceUtils.js";
+import {
+  USER_MESSAGE_LIMIT,
+  USER_MESSAGE_WINDOW_MS,
+  USERNAME_MAX_LENGTH,
+  MESSAGE_MAX_LENGTH,
+  TOPIC_MAX_LENGTH,
+} from "@/config/serverConfig.js";
 import type {
   ActiveAIParticipant,
   ChatAssistantMetadata,
@@ -22,11 +29,6 @@ import type {
   TriggerChatAssistantPayload,
   UserMessagePayload,
 } from "@/types.js";
-
-const USER_MESSAGE_LIMIT = 10;
-45
-
-const USER_MESSAGE_WINDOW_MS = 10 * 60 * 1000;
 
 /**
  * Handles Socket.IO events and chat state for each room.
@@ -339,10 +341,10 @@ export class SocketController {
       }
 
       // Validate username
-      if (username.length > 50 || !/^[a-zA-Z0-9_-]+$/.test(username)) {
+      if (username.length > USERNAME_MAX_LENGTH || !/^[a-zA-Z0-9_-]+$/.test(username)) {
         socket.emit("error", {
           message:
-            "Username must be 1-50 characters, letters, numbers, dash, underscore only",
+            `Username must be 1-${USERNAME_MAX_LENGTH} characters, letters, numbers, dash, underscore only`,
         });
         return;
       }
@@ -428,9 +430,9 @@ export class SocketController {
         return;
       }
 
-      if (content.length > 1000) {
+      if (content.length > MESSAGE_MAX_LENGTH) {
         socket.emit("error", {
-          message: "Message too long (max 1000 characters)",
+          message: `Message too long (max ${MESSAGE_MAX_LENGTH} characters)`,
         });
         return;
       }
@@ -551,9 +553,9 @@ export class SocketController {
         return;
       }
 
-      if (topic.length > 100) {
+      if (topic.length > TOPIC_MAX_LENGTH) {
         socket.emit("error", {
-          message: "Topic too long (max 100 characters)",
+          message: `Topic too long (max ${TOPIC_MAX_LENGTH} characters)`,
         });
         return;
       }
