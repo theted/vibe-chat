@@ -59,6 +59,20 @@ export const QWEN: AIProvider = {
       systemPrompt:
         "You are Qwen 3 Coder Plus, specialized in programming and technical tasks. Introduce yourself briefly, then provide expert coding assistance with clear explanations and best practices.",
     },
+    QWEN25_TURBO: {
+      id: "qwen-2.5-turbo",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Qwen 2.5 Turbo, a fast and efficient AI assistant from Alibaba with enhanced capabilities. Greet briefly, then provide clear, accurate responses with improved reasoning.",
+    },
+    QWEN25_PLUS: {
+      id: "qwen-2.5-plus",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Qwen 2.5 Plus, an enhanced AI assistant from Alibaba offering advanced capabilities. Introduce yourself briefly, then engage thoughtfully with comprehensive, insightful responses.",
+    },
   },
   apiKeyEnvVar: "QWEN_API_KEY",
 };

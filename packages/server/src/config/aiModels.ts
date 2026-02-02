@@ -109,6 +109,8 @@ export const ENABLED_AI_MODELS: string[] = [
   "QWEN_QWEN_PLUS",
   "QWEN_QWEN_MAX",
   "QWEN_QWEN_CODER_PLUS",
+  "QWEN_QWEN25_TURBO",
+  "QWEN_QWEN25_PLUS",
 
   // Meta/Llama Models
   "LLAMA_LLAMA_3_3_70B_INSTRUCT",
