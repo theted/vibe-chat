@@ -685,13 +685,13 @@ export class ChatOrchestrator extends EventEmitter {
    * @param {string} roomId - Room identifier.
    * @param {string[]} aiIds - Allowed AI IDs for the room.
    */
-  setRoomAllowedAIs(roomId, aiIds) {
+  setRoomAllowedAIs(roomId: string, aiIds: string[]): void {
     if (!roomId) {
       return;
     }
 
     const uniqueIds = Array.from(
-      new Set(aiIds.filter((aiId) => Boolean(aiId))),
+      new Set<string>(aiIds.filter((aiId) => Boolean(aiId))),
     );
 
     if (uniqueIds.length === 0) {
@@ -699,18 +699,18 @@ export class ChatOrchestrator extends EventEmitter {
       return;
     }
 
-    this.roomAllowedAIs.set(roomId, new Set(uniqueIds));
+    this.roomAllowedAIs.set(roomId, new Set<string>(uniqueIds));
   }
 
   /**
    * Clear any AI restrictions for a room.
    * @param {string} roomId - Room identifier.
    */
-  clearRoomAllowedAIs(roomId) {
+  clearRoomAllowedAIs(roomId: string): void {
     this.roomAllowedAIs.delete(roomId);
   }
 
-  filterAIsForRoom(roomId, aiIds) {
+  filterAIsForRoom(roomId: string, aiIds: string[]): string[] {
     const allowed = this.roomAllowedAIs.get(roomId);
     if (!allowed || allowed.size === 0) {
       return aiIds;
