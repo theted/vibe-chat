@@ -198,9 +198,9 @@ const ParticipantsList = ({
                             >
                               {ai.displayName || ai.name}
                             </div>
-                            <div className="text-xs text-slate-500 truncate dark:text-slate-400">
+                            {/* <div className="text-xs text-slate-500 truncate dark:text-slate-400">
                               {ai.provider}
-                            </div>
+                            </div> */}
                           </div>
                           {generating ? (
                             <span className="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full font-medium flex items-center gap-1 dark:bg-purple-500/20 dark:text-purple-200">

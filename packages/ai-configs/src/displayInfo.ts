@@ -4,6 +4,7 @@ import type { AiDisplayInfoMap } from "./types.js";
 /**
  * Display metadata for AI providers/models.
  * Shared across packages to ensure consistent labels and emoji.
+ * New models are automatically included via DEFAULT_AI_PARTICIPANTS.
  */
 export const AI_DISPLAY_INFO: AiDisplayInfoMap = DEFAULT_AI_PARTICIPANTS.reduce(
   (acc, participant) => {

@@ -30,6 +30,13 @@ export { DEEPSEEK } from "./providers/deepseek.js";
 export { QWEN } from "./providers/qwen.js";
 export { KIMI } from "./providers/kimi.js";
 export { LLAMA } from "./providers/llama.js";
+export { AMAZON } from "./providers/amazon.js";
+export { NVIDIA } from "./providers/nvidia.js";
+export { XIAOMI } from "./providers/xiaomi.js";
+export { MINIMAX } from "./providers/minimax.js";
+export { BAIDU } from "./providers/baidu.js";
+export { BYTEDANCE } from "./providers/bytedance.js";
+export { HUGGINGFACE } from "./providers/huggingface.js";
 export { PERPLEXITY } from "./providers/perplexity.js";
 
 // Import all providers for the main collection
@@ -44,6 +51,13 @@ import { DEEPSEEK } from "./providers/deepseek.js";
 import { QWEN } from "./providers/qwen.js";
 import { KIMI } from "./providers/kimi.js";
 import { LLAMA } from "./providers/llama.js";
+import { AMAZON } from "./providers/amazon.js";
+import { NVIDIA } from "./providers/nvidia.js";
+import { XIAOMI } from "./providers/xiaomi.js";
+import { MINIMAX } from "./providers/minimax.js";
+import { BAIDU } from "./providers/baidu.js";
+import { BYTEDANCE } from "./providers/bytedance.js";
+import { HUGGINGFACE } from "./providers/huggingface.js";
 import { PERPLEXITY } from "./providers/perplexity.js";
 
 /**
@@ -61,6 +75,13 @@ export const AI_PROVIDERS = {
   QWEN,
   KIMI,
   LLAMA,
+  AMAZON,
+  NVIDIA,
+  XIAOMI,
+  MINIMAX,
+  BAIDU,
+  BYTEDANCE,
+  HUGGINGFACE,
   PERPLEXITY,
 } as const;
 

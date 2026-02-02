@@ -5,8 +5,9 @@
  */
 
 import { OpenAICompatibleService } from "./base/OpenAICompatibleService.js";
-import { OpenAIClient } from "@/types/services.js";
-import {
+import { PROVIDER_BASE_URLS } from "@/config/aiProviders/constants.js";
+import type { OpenAIClient } from "@/types/services.js";
+import type {
   AIServiceConfig,
   ServiceInitOptions,
   OpenAIMessage,
@@ -18,35 +19,25 @@ export class MistralService extends OpenAICompatibleService {
     super(config, "Mistral");
   }
 
-  /**
-   * Create the Mistral client (which is OpenAI-compatible)
-   */
   protected createClient(
     apiKey: string,
     options?: ServiceInitOptions,
   ): OpenAIClient {
-    const baseURL = options?.baseURL || "https://api.mistral.ai/v1";
-
     return new OpenAI({
       apiKey,
-      baseURL,
+      baseURL: options?.baseURL || this.getBaseURL() || PROVIDER_BASE_URLS.MISTRAL,
     }) as OpenAIClient;
   }
 
   /**
-   * Process messages for Mistral-specific requirements
-   * Mistral requires: system messages first, then alternating user/assistant
-   * Last message must be from user or tool, not assistant
+   * Mistral requires system messages first, and last message must be from user
    */
   protected processMessages(messages: OpenAIMessage[]): OpenAIMessage[] {
-    // Ensure system messages are at the beginning
     const systemMessages = messages.filter((m) => m.role === "system");
     const nonSystemMessages = messages.filter((m) => m.role !== "system");
     const orderedMessages = [...systemMessages, ...nonSystemMessages];
 
     const lastMessage = orderedMessages[orderedMessages.length - 1];
-
-    // If last message is assistant, append user message to satisfy Mistral requirements
     if (lastMessage?.role === "assistant") {
       orderedMessages.push({
         role: "user",

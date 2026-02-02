@@ -529,6 +529,182 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     emoji: "📸",
   },
 
+  // Meta/Llama Models
+  {
+    id: "LLAMA_LLAMA_3_3_70B_INSTRUCT",
+    name: "Llama 3.3 70B Instruct",
+    alias: "llama-3.3-70b",
+    provider: "Meta",
+    status: "active",
+    emoji: "🦙",
+  },
+  {
+    id: "LLAMA_LLAMA_3_3_70B_INSTRUCT_FREE",
+    name: "Llama 3.3 70B Instruct (Free)",
+    alias: "llama-3.3-70b-free",
+    provider: "Meta",
+    status: "active",
+    emoji: "🦙",
+  },
+  {
+    id: "LLAMA_LLAMA_4_MAVERICK",
+    name: "Llama 4 Maverick",
+    alias: "llama-4-maverick",
+    provider: "Meta",
+    status: "active",
+    emoji: "🦙",
+  },
+  {
+    id: "LLAMA_LLAMA_4_SCOUT",
+    name: "Llama 4 Scout",
+    alias: "llama-4-scout",
+    provider: "Meta",
+    status: "active",
+    emoji: "🦙",
+  },
+
+  // Amazon Models
+  {
+    id: "AMAZON_NOVA_2_LITE_V1",
+    name: "Nova 2 Lite",
+    alias: "nova-2-lite",
+    provider: "Amazon",
+    status: "active",
+    emoji: "📦",
+  },
+  {
+    id: "AMAZON_NOVA_PRO_V1",
+    name: "Nova Pro",
+    alias: "nova-pro",
+    provider: "Amazon",
+    status: "active",
+    emoji: "📦",
+  },
+
+  // NVIDIA Models
+  {
+    id: "NVIDIA_NEMOTRON_3_NANO_30B_A3B",
+    name: "Nemotron 3 Nano 30B A3B",
+    alias: "nemotron-3-nano-30b-a3b",
+    provider: "NVIDIA",
+    status: "active",
+    emoji: "⚡",
+  },
+  {
+    id: "NVIDIA_NEMOTRON_3_NANO_30B_A3B_FREE",
+    name: "Nemotron 3 Nano 30B A3B (Free)",
+    alias: "nemotron-3-nano-30b-a3b-free",
+    provider: "NVIDIA",
+    status: "active",
+    emoji: "⚡",
+  },
+  {
+    id: "NVIDIA_NEMOTRON_3_NANO_2_VL",
+    name: "Nemotron 3 Nano 2 VL",
+    alias: "nemotron-3-nano-2-vl",
+    provider: "NVIDIA",
+    status: "active",
+    emoji: "⚡",
+  },
+
+  // Xiaomi Models
+  {
+    id: "XIAOMI_MIMO_V2_FLASH",
+    name: "MiMo-V2-Flash",
+    alias: "mimo-v2-flash",
+    provider: "Xiaomi",
+    status: "active",
+    emoji: "🚀",
+  },
+
+  // MiniMax Models
+  {
+    id: "MINIMAX_MINIMAX_M2_1",
+    name: "MiniMax M2.1",
+    alias: "minimax-m2.1",
+    provider: "MiniMax",
+    status: "active",
+    emoji: "🎯",
+  },
+  {
+    id: "MINIMAX_MINIMAX_M2",
+    name: "MiniMax M2",
+    alias: "minimax-m2",
+    provider: "MiniMax",
+    status: "active",
+    emoji: "🎯",
+  },
+  {
+    id: "MINIMAX_MINIMAX_M1",
+    name: "MiniMax M1",
+    alias: "minimax-m1",
+    provider: "MiniMax",
+    status: "active",
+    emoji: "🎯",
+  },
+
+  // Baidu Models
+  {
+    id: "BAIDU_ERNIE_4_5_21B_A3B_THINKING",
+    name: "ERNIE 4.5 21B A3B Thinking",
+    alias: "ernie-4.5-21b-thinking",
+    provider: "Baidu",
+    status: "active",
+    emoji: "🔴",
+  },
+  {
+    id: "BAIDU_ERNIE_4_5_21B_A3B",
+    name: "ERNIE 4.5 21B A3B",
+    alias: "ernie-4.5-21b",
+    provider: "Baidu",
+    status: "active",
+    emoji: "🔴",
+  },
+  {
+    id: "BAIDU_ERNIE_4_5_300B_A47B",
+    name: "ERNIE 4.5 300B A47B",
+    alias: "ernie-4.5-300b",
+    provider: "Baidu",
+    status: "active",
+    emoji: "🔴",
+  },
+
+  // ByteDance Models
+  {
+    id: "BYTEDANCE_SEED_1_6_FLASH",
+    name: "Seed 1.6 Flash",
+    alias: "seed-1.6-flash",
+    provider: "ByteDance",
+    status: "active",
+    emoji: "⚡",
+  },
+  {
+    id: "BYTEDANCE_SEED_1_6",
+    name: "Seed 1.6",
+    alias: "seed-1.6",
+    provider: "ByteDance",
+    status: "active",
+    emoji: "⚡",
+  },
+
+  // Hugging Face Models
+  {
+    id: "HUGGINGFACE_ZEPHYR_141B_A35B",
+    name: "Zephyr 141B-A35B",
+    alias: "zephyr-141b",
+    provider: "Hugging Face",
+    status: "active",
+    emoji: "🤗",
+  },
+  {
+    id: "HUGGINGFACE_ZEPHYR_7B_BETA",
+    name: "Zephyr 7B Beta",
+    alias: "zephyr-7b-beta",
+    provider: "Hugging Face",
+    status: "active",
+    emoji: "🤗",
+  },
+
   // Perplexity Models
   {
     id: "PERPLEXITY_SONAR",

@@ -69,7 +69,13 @@ describe("AIServiceFactory", () => {
       assert.equal(AIServiceFactory.isProviderSupported("Kimi"), true);
       assert.equal(AIServiceFactory.isProviderSupported("Z.ai"), true);
       assert.equal(AIServiceFactory.isProviderSupported("Cohere"), true);
-      assert.equal(AIServiceFactory.isProviderSupported("Llama"), true);
+      assert.equal(AIServiceFactory.isProviderSupported("Meta"), true);
+      assert.equal(AIServiceFactory.isProviderSupported("NVIDIA"), true);
+      assert.equal(AIServiceFactory.isProviderSupported("Xiaomi"), true);
+      assert.equal(AIServiceFactory.isProviderSupported("MiniMax"), true);
+      assert.equal(AIServiceFactory.isProviderSupported("Baidu"), true);
+      assert.equal(AIServiceFactory.isProviderSupported("ByteDance"), true);
+      assert.equal(AIServiceFactory.isProviderSupported("Hugging Face"), true);
       assert.equal(AIServiceFactory.isProviderSupported("Perplexity"), true);
     });
 

@@ -168,6 +168,24 @@ export const ICON_PATHS: Record<IconName, IconDefinition> = {
       ],
     },
   },
+  login: {
+    classic: {
+      strokeWidth: 2,
+      paths: [
+        "M10 17l5-5-5-5",
+        "M15 12H3",
+        "M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4",
+      ],
+    },
+    modern: {
+      strokeWidth: 1.4,
+      paths: [
+        "M10.75 8.75l3.75 3.25-3.75 3.25",
+        "M14.5 12H4.75",
+        "M15.5 5.5h3.25a1.75 1.75 0 011.75 1.75v9.5a1.75 1.75 0 01-1.75 1.75H15.5",
+      ],
+    },
+  },
   logout: {
     classic: {
       strokeWidth: 2,
