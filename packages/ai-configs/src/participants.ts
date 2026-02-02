@@ -421,6 +421,48 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     emoji: "🌕",
   },
 
+  // Qwen/Alibaba Models
+  {
+    id: "QWEN_QWEN_TURBO",
+    name: "Qwen Turbo",
+    alias: "qwen-turbo",
+    provider: "Qwen",
+    status: "active",
+    emoji: "🐉",
+  },
+  {
+    id: "QWEN_QWEN_FLASH",
+    name: "Qwen Flash",
+    alias: "qwen-flash",
+    provider: "Qwen",
+    status: "active",
+    emoji: "🎋",
+  },
+  {
+    id: "QWEN_QWEN_PLUS",
+    name: "Qwen Plus",
+    alias: "qwen-plus",
+    provider: "Qwen",
+    status: "active",
+    emoji: "🏮",
+  },
+  {
+    id: "QWEN_QWEN_MAX",
+    name: "Qwen Max",
+    alias: "qwen-max",
+    provider: "Qwen",
+    status: "active",
+    emoji: "🐲",
+  },
+  {
+    id: "QWEN_QWEN_CODER_PLUS",
+    name: "Qwen 3 Coder Plus",
+    alias: "qwen-coder-plus",
+    provider: "Qwen",
+    status: "active",
+    emoji: "🧧",
+  },
+
   // Z.ai Models
   {
     id: "ZAI_ZAI_DEFAULT",
