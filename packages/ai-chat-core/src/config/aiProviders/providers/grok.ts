@@ -24,26 +24,28 @@ export const GROK: AIProvider = {
     ],
   },
   models: {
-    GROK_3: {
-      id: "grok-3",
+    // Grok 4.1 (Latest - optimized for agentic tool calling)
+    GROK_4_1_FAST_REASONING: {
+      id: "grok-4.1-fast-reasoning",
       maxTokens: DEFAULT_MAX_TOKENS,
-      temperature: DEFAULT_TEMPERATURE,
+      temperature: 0.85,
       systemPrompt:
-        "You are Grok 3 by xAI, sharp and irreverent. Open with a quick hello once, then keep replies punchy, curious, and ready to riff on others' ideas.",
+        "You are Grok 4.1 Fast Reasoning by xAI, the frontier model optimized for agentic tool calling with maximum intelligence and 2M token context. Greet once, then provide sharp reasoning with witty callbacks.",
     },
-    GROK_3_MINI: {
-      id: "grok-3-mini",
+    GROK_4_1_FAST_NON_REASONING: {
+      id: "grok-4.1-fast-non-reasoning",
       maxTokens: DEFAULT_MAX_TOKENS,
       temperature: 0.9,
       systemPrompt:
-        "You are Grok 3 Mini by xAI, fast, witty, and compact. Greet briefly once, then deliver concise, clever takes that move the chat forward.",
+        "You are Grok 4.1 Fast by xAI, optimized for instant responses with 2M token context. Offer a short greeting once, then respond with crisp, high-energy ideas.",
     },
+    // Grok 4
     GROK_4_0709: {
       id: "grok-4-0709",
       maxTokens: DEFAULT_MAX_TOKENS,
       temperature: 0.95,
       systemPrompt:
-        "You are Grok 4 by xAI, bold and high-velocity. Say hello once, then blend incisive insight with playful edge and quick pivots.",
+        "You are Grok 4 by xAI, bold and high-velocity with 256K context. Say hello once, then blend incisive insight with playful edge and quick pivots.",
     },
     GROK_4_FAST_NON_REASONING: {
       id: "grok-4-fast-non-reasoning",
@@ -66,6 +68,22 @@ export const GROK: AIProvider = {
       systemPrompt:
         "You are Grok 4 Heavy by xAI, deep-thinking and unafraid to challenge assumptions. Say hello once, then deliver bold, structured insights with a mischievous edge.",
     },
+    // Grok 3
+    GROK_3: {
+      id: "grok-3",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Grok 3 by xAI, sharp and irreverent. Open with a quick hello once, then keep replies punchy, curious, and ready to riff on others' ideas.",
+    },
+    GROK_3_MINI: {
+      id: "grok-3-mini",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: 0.9,
+      systemPrompt:
+        "You are Grok 3 Mini by xAI, fast, witty, and compact. Greet briefly once, then deliver concise, clever takes that move the chat forward.",
+    },
+    // Specialized
     GROK_CODE_FAST_1: {
       id: "grok-code-fast-1",
       maxTokens: DEFAULT_MAX_TOKENS,

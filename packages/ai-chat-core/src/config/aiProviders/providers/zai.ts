@@ -25,19 +25,43 @@ export const ZAI: AIProvider = {
     ],
   },
   models: {
-    ZAI_DEFAULT: {
-      id: process.env.Z_MODEL_ID || "glm-4.6",
+    // GLM-4.7 (Latest - flagship thinking model)
+    ZAI_GLM_4_7: {
+      id: "glm-4.7",
       maxTokens: DEFAULT_MAX_TOKENS,
       temperature: DEFAULT_TEMPERATURE,
       systemPrompt:
-        "You are Z.ai, an AI assistant engaging in a conversation with other AI systems. Be precise, friendly, and concise.",
+        "You are GLM-4.7 by Z.ai, the flagship open-foundation model with 200K context, 128K max output, and enhanced coding/agentic capabilities. Greet once, then demonstrate deep analytical thinking and systematic problem-solving.",
     },
+    ZAI_GLM_4_7_FLASH: {
+      id: "glm-4.7-flash",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are GLM-4.7-Flash by Z.ai, a speed-focused MoE model with ~30B parameters (3B active). Say a quick hello, then keep responses focused and energetic.",
+    },
+    // GLM-4.6
+    ZAI_GLM_4_6: {
+      id: "glm-4.6",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are GLM-4.6 by Z.ai, a frontier-scale 355B parameter model with MIT licensing and 200K context. Offer a brief greeting, then provide insightful analysis with careful attention to detail.",
+    },
+    ZAI_GLM_4_6V: {
+      id: "glm-4.6v",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are GLM-4.6V by Z.ai, an open-source 106B vision-language model with native tool-calling capabilities. Greet briefly, then provide insightful multimodal analysis.",
+    },
+    // GLM-4.5
     ZAI_GLM_4_5: {
       id: "glm-4.5",
       maxTokens: DEFAULT_MAX_TOKENS,
       temperature: DEFAULT_TEMPERATURE,
       systemPrompt:
-        "You are GLM-4.5 by Z.ai, a foundation model optimized for agentic tasks with 128k context. Greet briefly once, then contribute thorough analysis and methodical reasoning to the conversation.",
+        "You are GLM-4.5 by Z.ai, a foundation model optimized for agentic tasks with 128K context. Greet briefly once, then contribute thorough analysis and methodical reasoning to the conversation.",
     },
     ZAI_GLM_4_5_AIR: {
       id: "glm-4.5-air",
@@ -46,26 +70,13 @@ export const ZAI: AIProvider = {
       systemPrompt:
         "You are GLM-4.5-Air by Z.ai, a fast and efficient model for everyday tasks. Say hello briefly, then engage with quick, practical insights and helpful suggestions.",
     },
-    ZAI_GLM_4_6: {
-      id: "glm-4.6",
+    // Default
+    ZAI_DEFAULT: {
+      id: process.env.Z_MODEL_ID || "glm-4.7",
       maxTokens: DEFAULT_MAX_TOKENS,
       temperature: DEFAULT_TEMPERATURE,
       systemPrompt:
-        "You are GLM-4.6 by Z.ai, featuring 200K context window and advanced agentic capabilities. Offer a brief greeting, then provide insightful analysis with careful attention to detail.",
-    },
-    ZAI_GLM_4_7: {
-      id: "glm-4.7",
-      maxTokens: DEFAULT_MAX_TOKENS,
-      temperature: DEFAULT_TEMPERATURE,
-      systemPrompt:
-        "You are GLM-4.7 by Z.ai, the flagship model with enhanced coding and multi-step reasoning. Greet once, then demonstrate deep analytical thinking and systematic problem-solving in your responses.",
-    },
-    ZAI_GLM_4_7_FLASH: {
-      id: "glm-4.7-flash",
-      maxTokens: DEFAULT_MAX_TOKENS,
-      temperature: DEFAULT_TEMPERATURE,
-      systemPrompt:
-        "You are GLM-4.7-Flash by Z.ai, optimized for lightweight deployment with balanced performance and efficiency. Say a quick hello, then keep responses focused and energetic.",
+        "You are Z.ai, an AI assistant engaging in a conversation with other AI systems. Be precise, friendly, and concise.",
     },
   },
   apiKeyEnvVar: "Z_API_KEY",
