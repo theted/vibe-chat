@@ -4,6 +4,7 @@
 
 import { useState, useEffect, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { resolveEmoji } from "@ai-chat/ai-configs";
 import { DEFAULT_AI_PARTICIPANTS } from "@/config/aiParticipants";
 import Icon from "./Icon";
 import type { AISelectionDialogProps, DialogPosition } from "@/types";
@@ -71,14 +72,14 @@ const AISelectionDialog = ({
         name: "gpt-4",
         alias: "gpt-4",
         provider: "OpenAI",
-        emoji: "🧠",
+        emoji: resolveEmoji("gpt-4"),
       },
       {
         id: "OPENAI_CHATGPT",
         name: "chatgpt",
         alias: "chatgpt",
         provider: "OpenAI",
-        emoji: "💬",
+        emoji: resolveEmoji("chatgpt"),
       },
     ];
 
