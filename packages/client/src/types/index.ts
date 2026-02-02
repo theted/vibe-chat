@@ -186,6 +186,7 @@ export interface MessageInputProps {
 export interface ChatMessageProps {
   message: Message;
   aiParticipants?: AiParticipant[];
+  participants?: Participant[];
 }
 
 // Component prop types - ParticipantsList

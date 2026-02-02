@@ -12,14 +12,26 @@ import { findMentionMatches } from "@/utils/mentions";
 import type { ChatMessageProps, Message, SenderType } from "@/types";
 import type { AiParticipant } from "@/config/aiParticipants";
 
-const ChatMessage = ({ message, aiParticipants = [] }: ChatMessageProps) => {
+const ChatMessage = ({
+  message,
+  aiParticipants = [],
+  participants = [],
+}: ChatMessageProps) => {
+  const participantMentions = useMemo(
+    () => participants.map((participant) => participant.username),
+    [participants],
+  );
   // Format @mentions as bold text in code blocks for markdown
   const formatMentionsForMarkdown = useCallback(
     (content: string): string => {
       if (typeof content !== "string") return content;
       if (!content.includes("@")) return content;
 
-      const matches = findMentionMatches(content, aiParticipants);
+      const matches = findMentionMatches(
+        content,
+        aiParticipants,
+        participantMentions,
+      );
       if (matches.length === 0) return content;
 
       let formatted = "";
@@ -34,7 +46,7 @@ const ChatMessage = ({ message, aiParticipants = [] }: ChatMessageProps) => {
       formatted += content.slice(lastIndex);
       return formatted;
     },
-    [aiParticipants],
+    [aiParticipants, participantMentions],
   );
 
   const highlightMentions = useCallback(
@@ -54,7 +66,11 @@ const ChatMessage = ({ message, aiParticipants = [] }: ChatMessageProps) => {
 
       if (!stringValue.includes("@")) return stringValue;
 
-      const matches = findMentionMatches(stringValue, aiParticipants);
+      const matches = findMentionMatches(
+        stringValue,
+        aiParticipants,
+        participantMentions,
+      );
       if (matches.length === 0) return stringValue;
 
       const nodes: ReactNode[] = [];
@@ -89,7 +105,7 @@ const ChatMessage = ({ message, aiParticipants = [] }: ChatMessageProps) => {
 
       return nodes;
     },
-    [aiParticipants],
+    [aiParticipants, participantMentions],
   );
 
   const renderPlainContent = useCallback(
@@ -332,6 +348,26 @@ const ChatMessage = ({ message, aiParticipants = [] }: ChatMessageProps) => {
                   className || "",
                 );
                 const normalizedChildren = String(children).replace(/\n$/, "");
+                const trimmedChildren = normalizedChildren.trim();
+                const mentionMatches = findMentionMatches(
+                  trimmedChildren,
+                  aiParticipants,
+                  participantMentions,
+                );
+                const mentionMatch = mentionMatches.find(
+                  (match) =>
+                    match.start === 0 && match.end === trimmedChildren.length,
+                );
+
+                if (
+                  mentionMatch ||
+                  (trimmedChildren.startsWith("@") &&
+                    !normalizedChildren.includes("\n"))
+                ) {
+                  return (
+                    <span className="mention-chip">{trimmedChildren}</span>
+                  );
+                }
 
                 if (inline) {
                   return (
