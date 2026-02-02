@@ -8,6 +8,11 @@ import TypingIndicator from "./TypingIndicator";
 import Icon from "./Icon";
 import type { ChatViewProps } from "@/types";
 
+const styles = {
+  modalBackdrop: "absolute inset-0 bg-slate-950/60 backdrop-blur-sm animate-fade-in",
+  primaryIconButton: "flex items-center justify-center gap-2 rounded-xl border border-primary-200/70 bg-primary-50 px-4 py-3 text-sm font-semibold text-primary-700 transition-colors hover:bg-primary-100 dark:border-primary-500/40 dark:bg-primary-500/10 dark:text-primary-200 dark:hover:bg-primary-500/20",
+};
+
 const ChatView = ({
   theme,
   toggleTheme,
@@ -169,7 +174,7 @@ const ChatView = ({
           {isMenuOpen && (
             <div className="fixed inset-0 z-50 flex items-center justify-center">
               <div
-                className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm animate-fade-in"
+                className={styles.modalBackdrop}
                 role="button"
                 tabIndex={-1}
                 aria-label="Close settings menu"
@@ -223,7 +228,7 @@ const ChatView = ({
                     <Link
                       to="/dashboard"
                       onClick={() => setIsMenuOpen(false)}
-                      className="flex items-center justify-center gap-2 rounded-xl border border-primary-200/70 bg-primary-50 px-4 py-3 text-sm font-semibold text-primary-700 transition-colors hover:bg-primary-100 dark:border-primary-500/40 dark:bg-primary-500/10 dark:text-primary-200 dark:hover:bg-primary-500/20"
+                      className={styles.primaryIconButton}
                       title="Dashboard"
                       aria-label="Dashboard"
                     >
@@ -246,7 +251,7 @@ const ChatView = ({
                           setIsMenuOpen(false);
                           setIsLoginOpen(true);
                         }}
-                        className="flex items-center justify-center gap-2 rounded-xl border border-primary-200/70 bg-primary-50 px-4 py-3 text-sm font-semibold text-primary-700 transition-colors hover:bg-primary-100 dark:border-primary-500/40 dark:bg-primary-500/10 dark:text-primary-200 dark:hover:bg-primary-500/20"
+                        className={styles.primaryIconButton}
                         title="Log in"
                         aria-label="Log in"
                       >
@@ -261,7 +266,7 @@ const ChatView = ({
           {isLoginOpen && (
             <div className="fixed inset-0 z-50 flex items-center justify-center">
               <div
-                className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm animate-fade-in"
+                className={styles.modalBackdrop}
                 role="button"
                 tabIndex={-1}
                 aria-label="Close login dialog"
