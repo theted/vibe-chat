@@ -1,14 +1,14 @@
 /**
- * Llama Service
+ * Baidu Service
  *
- * This service handles interactions with Meta Llama via OpenRouter.
+ * This service handles interactions with Baidu models via OpenRouter.
  */
 
 import { OpenRouterCompatibleService } from "./base/OpenRouterCompatibleService.js";
 import type { AIServiceConfig } from "@/types/index.js";
 
-export class LlamaService extends OpenRouterCompatibleService {
+export class BaiduService extends OpenRouterCompatibleService {
   constructor(config: AIServiceConfig) {
-    super(config, "Meta");
+    super(config, "Baidu");
   }
 }

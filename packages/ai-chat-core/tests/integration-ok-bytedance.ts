@@ -1,15 +1,15 @@
 /**
- * Integration OK test for Meta (Llama) models
+ * Integration OK test for ByteDance models
  *
  * Sends a strict system instruction to return exactly "OK" and asserts it.
- * Usage: npm run test:llama
+ * Usage: npm run test:bytedance
  */
 
 import { runIntegrationOkTest } from "./helpers/runIntegrationOkTest.js";
 
 runIntegrationOkTest({
-  providerKey: "LLAMA",
-  displayName: "Meta",
+  providerKey: "BYTEDANCE",
+  displayName: "ByteDance",
 }).catch((err) => {
   console.error(err);
   process.exit(1);

@@ -4,7 +4,7 @@ A monorepo project that enables multi-AI conversations through a CLI tool, real-
 
 ## Overview
 
-This project provides a platform where different AI models (OpenAI, Anthropic, Mistral, Gemini, DeepSeek, Grok, Cohere, Kimi, Z.ai, Qwen, Llama, Perplexity) can engage in conversations with each other or respond to prompts. The system manages conversation flow, handles API interactions, and logs conversation history.
+This project provides a platform where different AI models (OpenAI, Anthropic, Mistral, Gemini, DeepSeek, Grok, Cohere, Kimi, Z.ai, Qwen, Meta (Llama), NVIDIA, Xiaomi, MiniMax, Baidu, ByteDance, Hugging Face, Perplexity) can engage in conversations with each other or respond to prompts. The system manages conversation flow, handles API interactions, and logs conversation history.
 
 ## Features
 
@@ -197,6 +197,49 @@ Current defaults and IDs (see `packages/ai-chat-core/src/config/aiProviders`):
 - `KIMI_K2` → `kimi-k2-0905-preview`
 - `KIMI_K2_THINKING` → `kimi-k2-thinking`
 
+### OpenRouter (Meta, NVIDIA, Xiaomi, MiniMax, Baidu, ByteDance, Hugging Face) ([API keys](https://openrouter.ai/keys))
+
+These providers are accessed through OpenRouter's OpenAI-compatible API. Create an OpenRouter account, generate an API key from the Keys page, and set `OPENROUTER_API_KEY` to unlock all models below.
+
+#### Meta (Llama)
+
+- `LLAMA_3_3_70B_INSTRUCT` → `meta-llama/llama-3.3-70b-instruct`
+- `LLAMA_3_3_70B_INSTRUCT_FREE` → `meta-llama/llama-3.3-70b-instruct:free`
+- `LLAMA_4_MAVERICK` → `meta-llama/llama-4-maverick`
+- `LLAMA_4_SCOUT` → `meta-llama/llama-4-scout`
+
+#### NVIDIA
+
+- `NEMOTRON_3_NANO_30B_A3B` → `nvidia/nemotron-3-nano-30b-a3b`
+- `NEMOTRON_3_NANO_30B_A3B_FREE` → `nvidia/nemotron-3-nano-30b-a3b:free`
+- `NEMOTRON_3_NANO_2_VL` → `nvidia/nemotron-3-nano-2-vl`
+
+#### Xiaomi
+
+- `MIMO_V2_FLASH` → `xiaomi/mimo-v2-flash`
+
+#### MiniMax
+
+- `MINIMAX_M2_1` → `minimax/minimax-m2.1`
+- `MINIMAX_M2` → `minimax/minimax-m2`
+- `MINIMAX_M1` → `minimax/minimax-m1`
+
+#### Baidu
+
+- `ERNIE_4_5_21B_A3B_THINKING` → `baidu/ernie-4.5-21b-a3b-thinking`
+- `ERNIE_4_5_21B_A3B` → `baidu/ernie-4.5-21b-a3b`
+- `ERNIE_4_5_300B_A47B` → `baidu/ernie-4.5-300b-a47b`
+
+#### ByteDance
+
+- `SEED_1_6_FLASH` → `bytedance/seed-1.6-flash`
+- `SEED_1_6` → `bytedance/seed-1.6`
+
+#### Hugging Face
+
+- `ZEPHYR_141B_A35B` → `huggingface/zephyr-141b-a35b`
+- `ZEPHYR_7B_BETA` → `huggingface/zephyr-7b-beta`
+
 ## Environment Variables
 
 Define these in `.env` (see `.env.example`):
@@ -214,6 +257,7 @@ Define these in `.env` (see `.env.example`):
 - `KIMI_API_KEY`
 - `Z_API_KEY`
 - `TOGETHER_API_KEY`
+- `OPENROUTER_API_KEY` (Meta, NVIDIA, Xiaomi, MiniMax, Baidu, ByteDance, Hugging Face)
 
 ### Server Configuration
 
@@ -241,6 +285,11 @@ Define these in `.env` (see `.env.example`):
 - `Z_BASE_URL` or `ZAI_BASE_URL` (default `https://api.z.ai/v1`)
 - `COHERE_BASE_URL` (default `https://api.cohere.ai/v1`)
 - `TOGETHER_BASE_URL` (default `https://api.together.xyz/v1`)
+
+### Optional OpenRouter Metadata
+
+- `OPENROUTER_APP_NAME` (displayed in OpenRouter dashboard)
+- `OPENROUTER_APP_URL` (sent as HTTP referer)
 
 ## Tests
 

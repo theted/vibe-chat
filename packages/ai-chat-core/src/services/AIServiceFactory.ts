@@ -16,6 +16,12 @@ import { ZaiService } from "./ZaiService.js";
 import { CohereService } from "./CohereService.js";
 import { LlamaService } from "./LlamaService.js";
 import { PerplexityService } from "./PerplexityService.js";
+import { NvidiaService } from "./NvidiaService.js";
+import { XiaomiService } from "./XiaomiService.js";
+import { MinimaxService } from "./MinimaxService.js";
+import { BaiduService } from "./BaiduService.js";
+import { BytedanceService } from "./BytedanceService.js";
+import { HuggingFaceService } from "./HuggingFaceService.js";
 import { AI_PROVIDERS } from "@/config/aiProviders/index.js";
 import type { AIServiceConfig, IAIService } from "@/types/index.js";
 import type {
@@ -37,6 +43,12 @@ export class AIServiceFactory {
     [AI_PROVIDERS.ZAI.name]: ZaiService,
     [AI_PROVIDERS.COHERE.name]: CohereService,
     [AI_PROVIDERS.LLAMA.name]: LlamaService,
+    [AI_PROVIDERS.NVIDIA.name]: NvidiaService,
+    [AI_PROVIDERS.XIAOMI.name]: XiaomiService,
+    [AI_PROVIDERS.MINIMAX.name]: MinimaxService,
+    [AI_PROVIDERS.BAIDU.name]: BaiduService,
+    [AI_PROVIDERS.BYTEDANCE.name]: BytedanceService,
+    [AI_PROVIDERS.HUGGINGFACE.name]: HuggingFaceService,
     [AI_PROVIDERS.PERPLEXITY.name]: PerplexityService,
   };
 
