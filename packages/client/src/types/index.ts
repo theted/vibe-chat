@@ -143,6 +143,7 @@ export interface ChatViewProps {
   connectionStatus: ConnectionStatus;
   roomInfo: RoomInfo;
   username: string;
+  isAuthenticated: boolean;
   participants: Participant[];
   aiParticipants?: AiParticipant[];
   messages: Message[];
@@ -151,6 +152,8 @@ export interface ChatViewProps {
   showScrollButton: boolean;
   onScrollToBottom: () => void;
   onLogout: () => void;
+  onJoin: (event: FormEvent<HTMLFormElement>) => void;
+  onUsernameChange: (username: string) => void;
   onSendMessage: (content: string) => void;
   onAIMention: (mentions: string[], message: string) => void;
   onTypingStart: () => void;
@@ -289,6 +292,7 @@ export type IconName =
   | "info"
   | "cog"
   | "dashboard"
+  | "login"
   | "logout"
   | "chevron-right"
   | "x-mark"

@@ -23,6 +23,7 @@ Check these official sources for model updates:
 | Qwen/Alibaba | https://help.aliyun.com/zh/model-studio/getting-started/models |
 | Moonshot/Kimi | https://platform.moonshot.cn/docs/intro |
 | Z.ai (Zhipu) | https://open.bigmodel.cn/dev/howuse/model |
+| OpenRouter | https://openrouter.ai/api/v1/models |
 
 ## Files to Update
 
@@ -75,6 +76,15 @@ Update if new model should be default:
 ```typescript
 [PROVIDER.name]: PROVIDER.models.NEW_MODEL_KEY,
 ```
+
+### OpenRouter-Backed Providers
+
+When adding models via OpenRouter:
+
+1. Use `https://openrouter.ai/api/v1/models` to discover current model IDs.
+2. Create provider configs under `packages/ai-chat-core/src/config/aiProviders/providers/` with `OPENROUTER_API_KEY`.
+3. Group participants by the actual provider name (e.g., Meta, NVIDIA) rather than "OpenRouter".
+4. Add/refresh participants and display metadata as usual.
 
 ## Naming Conventions
 
@@ -195,3 +205,4 @@ ANTHROPIC_CLAUDE_OPUS_5: {
 - Provider personas (in provider files) rarely need updates
 - Constants like `DEFAULT_MAX_TOKENS` are in `constants.ts`
 - Type definitions are in `packages/ai-chat-core/src/types/index.ts`
+- OpenRouter uses an OpenAI-compatible API. Keep provider grouping aligned to the original vendor for UI clarity.

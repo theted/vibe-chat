@@ -6,11 +6,10 @@
  */
 
 import { OpenAICompatibleService } from "./base/OpenAICompatibleService.js";
-import { OpenAIClient } from "@/types/services.js";
-import { AIServiceConfig, ServiceInitOptions } from "@/types/index.js";
+import { PROVIDER_BASE_URLS } from "@/config/aiProviders/constants.js";
+import type { OpenAIClient } from "@/types/services.js";
+import type { AIServiceConfig, ServiceInitOptions } from "@/types/index.js";
 import OpenAI from "openai";
-
-const GROK_BASE_URL = "https://api.x.ai/v1";
 
 export class GrokService extends OpenAICompatibleService {
   constructor(config: AIServiceConfig) {
@@ -23,7 +22,7 @@ export class GrokService extends OpenAICompatibleService {
   ): OpenAIClient {
     return new OpenAI({
       apiKey,
-      baseURL: options?.baseURL || GROK_BASE_URL,
+      baseURL: options?.baseURL || this.getBaseURL() || PROVIDER_BASE_URLS.GROK,
     }) as OpenAIClient;
   }
 }

@@ -12,7 +12,6 @@ import {
 import { useSocket } from "./hooks/useSocket";
 import { useSocketEvents } from "./hooks/useSocketEvents";
 import ToastContainer from "./components/ToastContainer";
-import LoginView from "./components/LoginView";
 import ChatView from "./components/ChatView";
 import LoadingOverlay from "./components/LoadingOverlay";
 import { ThemeContext } from "./context/ThemeContext";
@@ -392,49 +391,33 @@ function App() {
   return (
     <ThemeContext.Provider value={{ theme, setTheme, toggleTheme }}>
       <LoadingOverlay visible={isAuthLoading} />
-      {!isAuthLoading &&
-        (isJoined ? (
-          <ChatView
-            theme={theme}
-            toggleTheme={toggleTheme}
-            connectionStatus={connectionStatus}
-            roomInfo={roomInfo}
-            username={username}
-            participants={participants}
-            messages={messages}
-            typingUsers={typingUsers}
-            typingAIs={typingAIs}
-            showScrollButton={showScrollButton}
-            onScrollToBottom={scrollToBottom}
-            onLogout={handleLogout}
-            onSendMessage={handleSendMessage}
-            onAIMention={handleAIMention}
-            onTypingStart={startTyping}
-            onTypingStop={stopTyping}
-            onPrivateConversationStart={
-              PRIVATE_CONVERSATIONS_ENABLED
-                ? handlePrivateConversationStart
-                : undefined
-            }
-            error={error}
-            messagesEndRef={messagesEndRef}
-            messagesContainerRef={messagesContainerRef}
-            aiParticipants={aiParticipants}
-          />
-        ) : (
-          <LoginView
-            connectionStatus={connectionStatus}
-            toggleTheme={toggleTheme}
-            theme={theme}
-            username={username}
-            onUsernameChange={setUsername}
-            onJoin={handleJoinRoom}
-            error={error}
-            previewMessages={previewMessages}
-            previewParticipants={previewParticipants}
-            previewAiParticipants={previewAiParticipants}
-          />
-        ))}
+      {!isAuthLoading && (
+        <ChatView
+          theme={theme}
+          toggleTheme={toggleTheme}
+          connectionStatus={connectionStatus}
+          roomInfo={roomInfo}
+          username={username}
+          isAuthenticated={isJoined}
+          participants={isJoined ? participants : previewParticipants}
+          messages={messages}
+          typingUsers={typingUsers}
+          typingAIs={typingAIs}
+          showScrollButton={showScrollButton}
+          onScrollToBottom={scrollToBottom}
+          onLogout={handleLogout}
+          onJoin={handleJoinRoom}
+          onUsernameChange={setUsername}
+          onSendMessage={handleSendMessage}
+          onAIMention={handleAIMention}
+          onTypingStart={startTyping}
+          onTypingStop={stopTyping}
+          error={error}
+          messagesEndRef={messagesEndRef}
+          messagesContainerRef={messagesContainerRef}
+          aiParticipants={isJoined ? aiParticipants : previewAiParticipants}
+        />
+      )}
       <ToastContainer toasts={toasts} />
     </ThemeContext.Provider>
   );

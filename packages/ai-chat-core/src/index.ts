@@ -57,6 +57,13 @@ export { KimiService } from "./services/KimiService.js";
 export { ZaiService } from "./services/ZaiService.js";
 export { LlamaService } from "./services/LlamaService.js";
 export { PerplexityService } from "./services/PerplexityService.js";
+export { AmazonService } from "./services/AmazonService.js";
+export { NvidiaService } from "./services/NvidiaService.js";
+export { XiaomiService } from "./services/XiaomiService.js";
+export { MinimaxService } from "./services/MinimaxService.js";
+export { BaiduService } from "./services/BaiduService.js";
+export { BytedanceService } from "./services/BytedanceService.js";
+export { HuggingFaceService } from "./services/HuggingFaceService.js";
 
 // AI provider configuration helpers
 export {
@@ -108,6 +115,7 @@ export {
   loadConversationFromFile,
   listConversations,
 } from "./utils/logger.js";
+export { fetchOpenRouterModels } from "./utils/openrouterUtils.js";
 
 // Orchestrator utilities (for CLI/consumer usage)
 export { createEnhancedSystemPrompt } from "./utils/orchestrator/promptBuilder.js";
