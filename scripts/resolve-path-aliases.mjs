@@ -20,6 +20,11 @@ if (!outDir) {
 const outDirPath = path.resolve(packageDir, outDir);
 const aliasPattern = /(["'])@\/([^"']+)\1/g;
 
+// Read path mappings from tsconfig
+const paths = tsconfig.compilerOptions?.paths || {};
+const aliasMapping = paths["@/*"]?.[0] || "@/*";
+const aliasPrefix = aliasMapping.replace("/*", "");
+
 const rewriteFile = async (filePath) => {
   const contents = await readFile(filePath, "utf8");
   if (!contents.includes("@/")) {
@@ -27,7 +32,11 @@ const rewriteFile = async (filePath) => {
   }
 
   const updated = contents.replace(aliasPattern, (_match, quote, aliasPath) => {
-    const targetPath = path.join(outDirPath, aliasPath);
+    // Apply the path mapping from tsconfig (e.g., @/* -> src/*)
+    const mappedPath = aliasPrefix !== "@"
+      ? path.join(aliasPrefix, aliasPath)
+      : aliasPath;
+    const targetPath = path.join(outDirPath, mappedPath);
     let relativePath = path.relative(path.dirname(filePath), targetPath);
     if (!relativePath.startsWith(".")) {
       relativePath = `./${relativePath}`;
