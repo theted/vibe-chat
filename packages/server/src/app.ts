@@ -1,6 +1,6 @@
 /**
  * AI Chat Real-time Server
- * Express + Socket.IO server for real-time AI chat
+ * Express + Socket.IO server for real-time Vibe chat
  */
 
 import express from "express";
