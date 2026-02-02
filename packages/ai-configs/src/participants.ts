@@ -456,11 +456,27 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
   },
   {
     id: "QWEN_QWEN_CODER_PLUS",
-    name: "Qwen 3 Coder Plus",
-    alias: "qwen-coder-plus",
+    name: "Qwen Coder Plus",
+    alias: "qwen-coder",
     provider: "Qwen",
     status: "active",
     emoji: "🧧",
+  },
+  {
+    id: "QWEN_QWEN25_TURBO",
+    name: "Qwen 2.5 Turbo",
+    alias: "qwen-2.5-turbo",
+    provider: "Qwen",
+    status: "active",
+    emoji: "🎋",
+  },
+  {
+    id: "QWEN_QWEN25_PLUS",
+    name: "Qwen 2.5 Plus",
+    alias: "qwen-2.5-plus",
+    provider: "Qwen",
+    status: "active",
+    emoji: "🎍",
   },
 
   // Z.ai Models
@@ -511,56 +527,6 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     provider: "Z.ai",
     status: "active",
     emoji: "📸",
-  },
-
-  // Qwen/Alibaba Models
-  {
-    id: "QWEN_QWEN_TURBO",
-    name: "Qwen Turbo",
-    alias: "qwen-turbo",
-    provider: "Qwen",
-    status: "active",
-    emoji: "🐉",
-  },
-  {
-    id: "QWEN_QWEN_PLUS",
-    name: "Qwen Plus",
-    alias: "qwen-plus",
-    provider: "Qwen",
-    status: "active",
-    emoji: "🏮",
-  },
-  {
-    id: "QWEN_QWEN_MAX",
-    name: "Qwen Max",
-    alias: "qwen-max",
-    provider: "Qwen",
-    status: "active",
-    emoji: "🐲",
-  },
-  {
-    id: "QWEN_QWEN25_TURBO",
-    name: "Qwen 2.5 Turbo",
-    alias: "qwen-2.5-turbo",
-    provider: "Qwen",
-    status: "active",
-    emoji: "🎋",
-  },
-  {
-    id: "QWEN_QWEN25_PLUS",
-    name: "Qwen 2.5 Plus",
-    alias: "qwen-2.5-plus",
-    provider: "Qwen",
-    status: "active",
-    emoji: "🎍",
-  },
-  {
-    id: "QWEN_QWEN_CODER_PLUS",
-    name: "Qwen Coder",
-    alias: "qwen-coder",
-    provider: "Qwen",
-    status: "active",
-    emoji: "🧧",
   },
 
   // Perplexity Models
