@@ -324,7 +324,7 @@ const ChatMessage = ({
         </div>
       )}
       <div
-        className={`${message.senderType === "ai" ? "markdown-content" : ""} leading-relaxed`}
+        className={`${message.senderType === "ai" ? "markdown-content" : ""} leading-relaxed break-words`}
       >
         {message.senderType === "ai" ? (
           <ReactMarkdown
