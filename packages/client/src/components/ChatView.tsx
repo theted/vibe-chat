@@ -104,7 +104,7 @@ const ChatView = ({
                   <h1 className="header-title header-title--compact">
                     Vibe Chat
                   </h1>
-                  <div className="text-slate-300/90 text-xs uppercase tracking-[0.24em] mt-2 flex items-center gap-2">
+                  {/* <div className="text-slate-300/90 text-xs uppercase tracking-[0.24em] mt-2 flex items-center gap-2">
                     <Icon name="topic" className="w-4 h-4" />
                     <span>{roomInfo.topic}</span>
                     <span aria-hidden="true">•</span>
@@ -114,7 +114,7 @@ const ChatView = ({
                         Guest
                       </span>
                     )}
-                  </div>
+                  </div> */}
                 </div>
               </div>
               <div className="flex flex-col items-end gap-2 self-stretch">
@@ -138,17 +138,17 @@ const ChatView = ({
                     title="Open settings menu"
                   >
                     <Icon name="cog" className="w-4 h-4" />
-                    <span className="hidden sm:inline">Settings</span>
                   </button>
-                  <div className="text-primary-200 text-xs dark:text-slate-300">
+                  {/* <div className="text-primary-200 text-xs dark:text-slate-300">
                     {`${participants.length} user${
                       participants.length !== 1 ? "s" : ""
                     } + ${aiParticipantCount} AI${
                       aiParticipantCount !== 1 ? "s" : ""
                     }`}
-                  </div>
+                  </div> */}
                 </div>
-                <div className="flex items-center gap-2 text-sm text-slate-100/80 dark:text-slate-200/80">
+                {/* connection indicator */}
+                {/* <div className="flex items-center gap-2 text-sm text-slate-100/80 dark:text-slate-200/80">
                   <div
                     className={`w-2 h-2 rounded-full transition-colors ${
                       connectionStatus.connected
@@ -161,7 +161,7 @@ const ChatView = ({
                       ? "Connected"
                       : "Reconnecting..."}
                   </span>
-                </div>
+                </div> */}
               </div>
             </div>
           </div>
@@ -367,9 +367,7 @@ const ChatView = ({
                 <div className="flex items-center gap-3">
                   <Icon name="login" className="w-5 h-5 text-primary-500" />
                   <div>
-                    <p className="font-semibold">
-                      You are viewing as a guest.
-                    </p>
+                    <p className="font-semibold">You are viewing as a guest.</p>
                     <p className="text-xs text-primary-700/80 dark:text-primary-200/80">
                       Log in to send messages and mention the AIs.
                     </p>

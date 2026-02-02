@@ -231,12 +231,12 @@ const ChatMessage = ({
 
   const getSenderLabelClasses = (senderType: SenderType): string => {
     const baseClasses =
-      "text-sm font-bold mb-3 flex items-center gap-2 underline decoration-2 underline-offset-4 transition-colors";
+      "text-md font-bold mb-3 flex items-center gap-2 transition-colors";
     switch (senderType) {
       case "user":
         return `${baseClasses} text-white/90 decoration-white/60 dark:text-primary-100 dark:decoration-primary-200/70`;
       case "ai":
-        return `${baseClasses} text-slate-700 decoration-primary-300 dark:text-slate-200 dark:decoration-primary-400`;
+        return `${baseClasses} text-slate-700 dark:text-slate-200 `;
       case "system":
         return `${baseClasses} text-amber-800 decoration-amber-500 dark:text-amber-200 dark:decoration-amber-400`;
       default:
