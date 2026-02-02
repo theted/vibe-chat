@@ -20,10 +20,12 @@ if (!outDir) {
 const outDirPath = path.resolve(packageDir, outDir);
 const aliasPattern = /(["'])@\/([^"']+)\1/g;
 
-// Read path mappings from tsconfig
+// Read path mappings and rootDir from tsconfig
 const paths = tsconfig.compilerOptions?.paths || {};
 const aliasMapping = paths["@/*"]?.[0] || "@/*";
 const aliasPrefix = aliasMapping.replace("/*", "");
+const rootDir = tsconfig.compilerOptions?.rootDir || ".";
+const rootDirNormalized = rootDir.replace(/^\.\//, "");
 
 const rewriteFile = async (filePath) => {
   const contents = await readFile(filePath, "utf8");
@@ -33,9 +35,15 @@ const rewriteFile = async (filePath) => {
 
   const updated = contents.replace(aliasPattern, (_match, quote, aliasPath) => {
     // Apply the path mapping from tsconfig (e.g., @/* -> src/*)
-    const mappedPath = aliasPrefix !== "@"
-      ? path.join(aliasPrefix, aliasPath)
-      : aliasPath;
+    // But if rootDir matches the aliasPrefix, TypeScript already stripped it during compilation
+    let mappedPath;
+    if (aliasPrefix !== "@" && rootDirNormalized !== aliasPrefix) {
+      // rootDir is different from alias prefix, so we need to add the prefix
+      mappedPath = path.join(aliasPrefix, aliasPath);
+    } else {
+      // rootDir matches alias prefix, TypeScript already handled the mapping
+      mappedPath = aliasPath;
+    }
     const targetPath = path.join(outDirPath, mappedPath);
     let relativePath = path.relative(path.dirname(filePath), targetPath);
     if (!relativePath.startsWith(".")) {
