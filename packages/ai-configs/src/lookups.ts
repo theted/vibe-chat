@@ -91,12 +91,12 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   "deepseek-r1": "deepseek-r1",
 
   // Moonshot/Kimi
-  kimi: "kimi-k2.5",
+  kimi: "kimi-8k",
   "kimi-8k": "kimi-8k",
   "kimi-k2": "kimi-k2",
   "kimi-k2-thinking": "kimi-k2-thinking",
   "kimi-k2.5": "kimi-k2.5",
-  moonshot: "kimi-k2.5",
+  moonshot: "kimi-k2",
 
   // Z.ai
   "z.ai": "z.ai",
@@ -118,8 +118,8 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   "sonar-deep-research": "sonar-research",
 
   // Qwen/Alibaba
-  qwen: "qwen-turbo",
-  alibaba: "qwen-turbo",
+  qwen: "qwen-plus",
+  alibaba: "qwen-plus",
   "qwen-turbo": "qwen-turbo",
   "qwen-plus": "qwen-plus",
   "qwen-max": "qwen-max",
@@ -136,6 +136,11 @@ const buildEmojiLookup = (): Record<string, string> => {
       participant.emoji,
     ]),
   );
+  const emojiAliasOverrides = new Map<string, string>([
+    ["perplexity", "sonar"],
+    ["pplx", "sonar"],
+    ["qwen", "qwen-turbo"],
+  ]);
 
   const addEntry = (key: string, canonicalAlias: string) => {
     const emoji = emojiByAlias.get(normalizeAlias(canonicalAlias));
@@ -150,6 +155,10 @@ const buildEmojiLookup = (): Record<string, string> => {
 
   for (const participant of DEFAULT_AI_PARTICIPANTS) {
     lookup[normalizeAlias(participant.alias)] = participant.emoji;
+  }
+
+  for (const [alias, canonical] of emojiAliasOverrides.entries()) {
+    addEntry(alias, canonical);
   }
 
   return lookup;
