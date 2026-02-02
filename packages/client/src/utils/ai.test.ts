@@ -53,7 +53,7 @@ describe("resolveEmoji", () => {
     expect(resolveEmoji("gemini")).toBe("💎");
     expect(resolveEmoji("mistral")).toBe("🌪️");
     expect(resolveEmoji("cohere")).toBe("🔮");
-    expect(resolveEmoji("kimi")).toBe("🎯");
+    expect(resolveEmoji("kimi")).toBe("🌕");
     expect(resolveEmoji("perplexity")).toBe("🔊");
     expect(resolveEmoji("qwen")).toBe("🐉");
   });
@@ -95,7 +95,7 @@ describe("resolveEmoji", () => {
     expect(resolveEmoji("xai")).toBe("🦾");
     expect(resolveEmoji("google")).toBe("💎");
     expect(resolveEmoji("bard")).toBe("💎");
-    expect(resolveEmoji("moonshot")).toBe("🌓");
+    expect(resolveEmoji("moonshot")).toBe("🌕");
   });
 });
 
@@ -108,7 +108,7 @@ describe("mapMentionsToAiNames", () => {
       "gpt-4o",
       "gemini",
       "sonar-pro",
-      "qwen-plus",
+      "qwen-turbo",
     ]);
   });
 
