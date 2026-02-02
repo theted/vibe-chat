@@ -25,6 +25,13 @@ interface ProgressBarProps {
   color?: string;
 }
 
+// Shared style constants
+const styles = {
+  card: "bg-white rounded-2xl p-6 shadow-md border border-gray-200",
+  cardTitle: "text-xl font-semibold text-gray-900 mb-6",
+  headerPill: "bg-white rounded-lg px-4 py-2 shadow-sm",
+};
+
 const Dashboard = () => {
   const [metrics, setMetrics] = useState<DashboardMetrics>({
     totalAIMessages: 0,
@@ -122,32 +129,86 @@ const Dashboard = () => {
     return Math.round((value / total) * 100);
   };
 
+  const metricCardStyles: Record<
+    string,
+    { container: string; title: string; icon: string }
+  > = {
+    blue: {
+      container:
+        "bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200",
+      title: "text-blue-600",
+      icon: "text-blue-500",
+    },
+    purple: {
+      container:
+        "bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200",
+      title: "text-purple-600",
+      icon: "text-purple-500",
+    },
+    green: {
+      container:
+        "bg-gradient-to-br from-green-50 to-green-100 border-green-200",
+      title: "text-green-600",
+      icon: "text-green-500",
+    },
+    orange: {
+      container:
+        "bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200",
+      title: "text-orange-600",
+      icon: "text-orange-500",
+    },
+    teal: {
+      container:
+        "bg-gradient-to-br from-teal-50 to-teal-100 border-teal-200",
+      title: "text-teal-600",
+      icon: "text-teal-500",
+    },
+    indigo: {
+      container:
+        "bg-gradient-to-br from-indigo-50 to-indigo-100 border-indigo-200",
+      title: "text-indigo-600",
+      icon: "text-indigo-500",
+    },
+  };
+
   const MetricCard = ({
     title,
     value,
     subtitle,
     icon,
     color = "blue",
-  }: MetricCardProps): ReactNode => (
-    <div
-      className={`bg-gradient-to-br from-${color}-50 to-${color}-100 border border-${color}-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-300`}
-    >
-      <div className="flex items-center justify-between">
-        <div>
-          <p
-            className={`text-${color}-600 text-sm font-medium uppercase tracking-wide`}
-          >
-            {title}
-          </p>
-          <p className="text-3xl font-bold text-gray-900 mt-2">
-            {typeof value === "number" ? value.toLocaleString() : value}
-          </p>
-          {subtitle && <p className="text-gray-600 text-sm mt-1">{subtitle}</p>}
+  }: MetricCardProps): ReactNode => {
+    const styles = metricCardStyles[color] || metricCardStyles.blue;
+    return (
+      <div
+        className={`${styles.container} border rounded-2xl p-6 shadow-md hover:shadow-lg transition-all duration-300`}
+      >
+        <div className="flex items-center justify-between">
+          <div>
+            <p
+              className={`${styles.title} text-sm font-medium uppercase tracking-wide`}
+            >
+              {title}
+            </p>
+            <p className="text-3xl font-bold text-gray-900 mt-2">
+              {typeof value === "number" ? value.toLocaleString() : value}
+            </p>
+            {subtitle && <p className="text-gray-600 text-sm mt-1">{subtitle}</p>}
+          </div>
+          <div className={`${styles.icon} text-4xl`}>{icon}</div>
         </div>
-        <div className={`text-${color}-500 text-4xl`}>{icon}</div>
       </div>
-    </div>
-  );
+    );
+  };
+
+  const progressBarStyles: Record<string, string> = {
+    blue: "bg-gradient-to-r from-blue-400 to-blue-600",
+    purple: "bg-gradient-to-r from-purple-400 to-purple-600",
+    green: "bg-gradient-to-r from-green-400 to-green-600",
+    orange: "bg-gradient-to-r from-orange-400 to-orange-600",
+    teal: "bg-gradient-to-r from-teal-400 to-teal-600",
+    indigo: "bg-gradient-to-r from-indigo-400 to-indigo-600",
+  };
 
   const ProgressBar = ({
     value,
@@ -156,6 +217,7 @@ const Dashboard = () => {
     color = "blue",
   }: ProgressBarProps): ReactNode => {
     const percentage = max > 0 ? (value / max) * 100 : 0;
+    const barStyle = progressBarStyles[color] || progressBarStyles.blue;
     return (
       <div className="mb-4">
         <div className="flex justify-between items-center mb-2">
@@ -166,7 +228,7 @@ const Dashboard = () => {
         </div>
         <div className="w-full bg-gray-200 rounded-full h-3">
           <div
-            className={`bg-gradient-to-r from-${color}-400 to-${color}-600 h-3 rounded-full transition-all duration-500 ease-out`}
+            className={`${barStyle} h-3 rounded-full transition-all duration-500 ease-out`}
             style={{ width: `${Math.min(percentage, 100)}%` }}
           ></div>
         </div>
@@ -207,7 +269,7 @@ const Dashboard = () => {
               ← Back to Chat
             </Link>
 
-            <div className="flex items-center gap-2 text-sm bg-white rounded-lg px-4 py-2 shadow-sm">
+            <div className={`flex items-center gap-2 text-sm ${styles.headerPill}`}>
               <div
                 className={`w-3 h-3 rounded-full ${connectionStatus.connected ? "bg-green-500" : "bg-red-500 animate-pulse"}`}
               ></div>
@@ -216,7 +278,7 @@ const Dashboard = () => {
               </span>
             </div>
 
-            <div className="text-sm text-gray-500 bg-white rounded-lg px-4 py-2 shadow-sm">
+            <div className={`text-sm text-gray-500 ${styles.headerPill}`}>
               Last updated: {formatTime(metrics.timestamp)}
             </div>
           </div>
@@ -276,10 +338,8 @@ const Dashboard = () => {
         {/* Detailed Analytics */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           {/* Message Distribution */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
-            <h3 className="text-xl font-semibold text-gray-900 mb-6">
-              Message Distribution
-            </h3>
+          <div className={styles.card}>
+            <h3 className={styles.cardTitle}>Message Distribution</h3>
 
             <ProgressBar
               value={metrics.totalAIMessages}
@@ -335,10 +395,8 @@ const Dashboard = () => {
           </div>
 
           {/* Recent Activity */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
-            <h3 className="text-xl font-semibold text-gray-900 mb-6">
-              System Status
-            </h3>
+          <div className={styles.card}>
+            <h3 className={styles.cardTitle}>System Status</h3>
 
             <div className="space-y-4">
               <StatusCard
@@ -372,10 +430,8 @@ const Dashboard = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
-            <h3 className="text-xl font-semibold text-gray-900 mb-6">
-              Provider Performance
-            </h3>
+          <div className={styles.card}>
+            <h3 className={styles.cardTitle}>Provider Performance</h3>
             <div className="overflow-x-auto">
               <table className="min-w-full text-left text-sm">
                 <thead>
@@ -423,10 +479,8 @@ const Dashboard = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
-            <h3 className="text-xl font-semibold text-gray-900 mb-6">
-              Recent AI Errors
-            </h3>
+          <div className={styles.card}>
+            <h3 className={styles.cardTitle}>Recent AI Errors</h3>
             <div className="space-y-4 max-h-96 overflow-y-auto">
               {(metrics.errorLogs || []).length === 0 ? (
                 <p className="text-gray-500 text-sm">No recent AI errors.</p>
@@ -454,7 +508,7 @@ const Dashboard = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 mb-8">
+        <div className={`${styles.card} mb-8`}>
           <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
             <h3 className="text-xl font-semibold text-gray-900">
               Enabled AI Participants
