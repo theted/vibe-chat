@@ -33,6 +33,14 @@ import type {
 } from "./types";
 import type { AiParticipant } from "./config/aiParticipants";
 
+/**
+ * Main application component that manages UI, client state, and socket interactions for the real-time AI chat.
+ *
+ * Handles user authentication flow (login/auto-join), message persistence, theme selection, scroll behavior,
+ * toast notifications, and wires socket events via the `useSocketEvents` hook to keep the UI synchronized with the server.
+ *
+ * @returns The root JSX element rendering the theme provider, loading overlay, either the LoginView or ChatView (depending on auth state), and the ToastContainer.
+ */
 function App() {
   // State
   const [username, setUsername] = useState("");
