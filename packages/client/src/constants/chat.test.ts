@@ -45,6 +45,7 @@ describe("chat constants", () => {
         "grok",
         "mistral",
         "cohere",
+        "perplexity",
       ];
       requiredProviders.forEach((provider) => {
         expect(AI_EMOJI_LOOKUP).toHaveProperty(provider);
@@ -123,6 +124,7 @@ describe("chat constants", () => {
         "gemini",
         "cohere",
         "mistral",
+        "sonar-pro",
       ];
       const mappingValues = Object.values(AI_MENTION_MAPPINGS);
       requiredProviders.forEach((provider) => {

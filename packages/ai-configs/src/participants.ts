@@ -462,6 +462,40 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     status: "active",
     emoji: "📸",
   },
+
+  // Perplexity Models
+  {
+    id: "PERPLEXITY_SONAR",
+    name: "Perplexity Sonar",
+    alias: "sonar",
+    provider: "Perplexity",
+    status: "active",
+    emoji: "🔊",
+  },
+  {
+    id: "PERPLEXITY_SONAR_PRO",
+    name: "Perplexity Sonar Pro",
+    alias: "sonar-pro",
+    provider: "Perplexity",
+    status: "active",
+    emoji: "📡",
+  },
+  {
+    id: "PERPLEXITY_SONAR_REASONING_PRO",
+    name: "Sonar Reasoning Pro",
+    alias: "sonar-reasoning-pro",
+    provider: "Perplexity",
+    status: "active",
+    emoji: "🎛️",
+  },
+  {
+    id: "PERPLEXITY_SONAR_DEEP_RESEARCH",
+    name: "Sonar Deep Research",
+    alias: "sonar-research",
+    provider: "Perplexity",
+    status: "active",
+    emoji: "🔬",
+  },
 ];
 
 /**

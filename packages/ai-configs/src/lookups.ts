@@ -96,6 +96,15 @@ export const AI_EMOJI_LOOKUP: Record<string, string> = {
   "glm-4.6": "🔹",
   "glm-4.7": "🚄",
   "glm-4.7-flash": "📸",
+
+  // Perplexity
+  perplexity: "🔊",
+  pplx: "🔊",
+  sonar: "🔊",
+  "sonar-pro": "📡",
+  "sonar-reasoning-pro": "🎛️",
+  "sonar-research": "🔬",
+  "sonar-deep-research": "🔬",
 };
 
 /**
@@ -199,6 +208,15 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   "glm-4.6": "glm-4.6",
   "glm-4.7": "glm-4.7",
   "glm-4.7-flash": "glm-4.7-flash",
+
+  // Perplexity
+  perplexity: "sonar-pro",
+  pplx: "sonar-pro",
+  sonar: "sonar",
+  "sonar-pro": "sonar-pro",
+  "sonar-reasoning-pro": "sonar-reasoning-pro",
+  "sonar-research": "sonar-research",
+  "sonar-deep-research": "sonar-research",
 };
 
 /**

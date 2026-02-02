@@ -1,16 +1,43 @@
 import dotenv from "dotenv";
+import fs from "node:fs";
+import path from "node:path";
 import { AIServiceFactory, AI_PROVIDERS } from "@ai-chat/core";
 import type { Message } from "@ai-chat/core";
+import type { ServiceInitOptions } from "@/types/index.js";
 
-dotenv.config();
+const loadEnvForKey = (envVar: string): void => {
+  if (process.env[envVar]) {
+    return;
+  }
+
+  let currentDir = process.cwd();
+  while (true) {
+    const envPath = path.join(currentDir, ".env");
+    if (fs.existsSync(envPath)) {
+      dotenv.config({ path: envPath });
+      if (process.env[envVar]) {
+        return;
+      }
+    }
+
+    const parentDir = path.dirname(currentDir);
+    if (parentDir === currentDir) {
+      return;
+    }
+    currentDir = parentDir;
+  }
+};
 
 type BuildMessages =
   | Message[]
   | ((modelKey: string, providerKey: string) => Message[]);
 
 type NormalizeResponse = (text: string) => string;
+type IsPassingResponse = (text: string, rawResponse: unknown) => boolean;
 
 const baseNormalize: NormalizeResponse = (text) => (text || "").trim();
+const baseIsPassingResponse: IsPassingResponse = (text) =>
+  text.startsWith("OK") || text.startsWith("Pong");
 
 type ResponseLike = { content?: string };
 
@@ -43,11 +70,17 @@ export async function runIntegrationOkTest({
   displayName = providerKey,
   buildMessages = defaultMessages,
   normalizeResponse = baseNormalize,
+  isPassingResponse = baseIsPassingResponse,
+  initOptions,
+  requestContext,
 }: {
   providerKey: string;
   displayName?: string;
   buildMessages?: BuildMessages;
   normalizeResponse?: NormalizeResponse;
+  isPassingResponse?: IsPassingResponse;
+  initOptions?: ServiceInitOptions;
+  requestContext?: Record<string, unknown>;
 }): Promise<void> {
   const providerConfig = AI_PROVIDERS[providerKey];
   if (!providerConfig) {
@@ -55,6 +88,7 @@ export async function runIntegrationOkTest({
   }
 
   const { apiKeyEnvVar, models } = providerConfig;
+  loadEnvForKey(apiKeyEnvVar);
 
   if (!process.env[apiKeyEnvVar]) {
     console.error(
@@ -77,16 +111,16 @@ export async function runIntegrationOkTest({
         providerKey,
         modelKey,
       );
-      await service.initialize();
+      await service.initialize(initOptions);
 
       const messages =
         typeof buildMessages === "function"
           ? buildMessages(modelKey, providerKey)
           : buildMessages;
 
-      const response = await service.generateResponse(messages);
+      const response = await service.generateResponse(messages, requestContext);
       const got = normalizeResponse(unwrapResponse(response));
-      const pass = got.startsWith("OK") || got.startsWith("Pong");
+      const pass = isPassingResponse(got, response);
 
       if (pass) {
         console.log("PASS");
@@ -107,5 +141,5 @@ export async function runIntegrationOkTest({
     process.exit(1);
   }
 
-  console.log(`\nAll ${displayName} models returned OK.`);
+  console.log(`\nAll ${displayName} models passed.`);
 }
