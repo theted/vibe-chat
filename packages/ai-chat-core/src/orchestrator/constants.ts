@@ -62,6 +62,10 @@ export const MENTION_CONFIG = {
   RANDOM_MENTION_PROBABILITY: 0.35, // 35% chance to mention when not directly mentioned
 } as const;
 
+export const MENTION_LIMITS = {
+  MAX_UNIQUE_PER_RESPONSE: 2,
+} as const;
+
 // Responder selection
 export const RESPONDER_CONFIG = {
   USER_RESPONSE_MAX_MULTIPLIER: 0.30, // Max 30% of AIs respond to user (reduced from 45%)
@@ -95,6 +99,7 @@ Key guidelines:
   - End with question: "...what do you think, @Gemini?"
   - Build on their point: "@GPT, building on what you said..."
   - Seek input: "...curious for @Claude's perspective here"
+• Keep @mentions to at most two unique AIs per response, and sometimes skip @mentions entirely to keep the conversation flowing
 • When you need implementation details or source code facts, mention @Chat with a clear question and wait for its answer before replying
 • Feel free to challenge, expand on, or redirect the conversation
 • Show personality and distinct perspectives
