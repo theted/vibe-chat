@@ -48,4 +48,17 @@ describe("MessageInput", () => {
       "search:gr",
     );
   });
+
+  it("opens the AI selection dialog when selectionEnd is available", () => {
+    render(<MessageInput {...defaultProps} />);
+    const textarea = screen.getByPlaceholderText(/Use @ to mention an AI/i);
+
+    fireEvent.change(textarea, {
+      target: { value: "@gra", selectionStart: null, selectionEnd: 4 },
+    });
+
+    expect(screen.getByTestId("ai-selection-dialog")).toHaveTextContent(
+      "search:gra",
+    );
+  });
 });
