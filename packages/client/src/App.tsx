@@ -15,9 +15,9 @@ import ToastContainer from "./components/ToastContainer";
 import ChatView from "./components/ChatView";
 import LoadingOverlay from "./components/LoadingOverlay";
 import { ThemeContext } from "./context/ThemeContext";
-import { SERVER_URL } from "./constants/chat";
+import { PRIVATE_CONVERSATIONS_ENABLED, SERVER_URL } from "./constants/chat";
 import { LOCAL_STORAGE_MESSAGES_LIMIT } from "./constants/storage";
-import { mapMentionsToAiNames } from "./utils/ai";
+import { mapMentionsToAiNames, normalizeAlias } from "./utils/ai";
 import type {
   Theme,
   Message,
@@ -350,6 +350,14 @@ function App() {
     }
   }
 
+  /**
+   * Trigger AI processing for any AI mentions found in a message, supplying recent chat context.
+   *
+   * Maps raw mention tokens to AI names and, if any are resolved, calls the AI trigger with the message and the last 10 chat messages as context.
+   *
+   * @param mentions - Array of raw mention strings extracted from the message (e.g., ["@ai-name"])
+   * @param message - The message text that triggered the AI mention
+   */
   function handleAIMention(mentions: string[], message: string) {
     const aiNames = mapMentionsToAiNames(mentions);
 
@@ -359,6 +367,34 @@ function App() {
       triggerAI(aiNames as string[], message, recentMessages);
     }
   }
+
+  const handlePrivateConversationStart = useCallback(
+    (ai: AiParticipant) => {
+      if (!PRIVATE_CONVERSATIONS_ENABLED) {
+        return;
+      }
+
+      const resolvedUsername = usernameRef.current.trim();
+      if (!resolvedUsername) {
+        return;
+      }
+
+      const aiIdentifier =
+        ai.id || normalizeAlias(ai.alias || ai.name || "");
+      if (!aiIdentifier) {
+        return;
+      }
+
+      const roomId = `private:${resolvedUsername}:${aiIdentifier}`;
+      setIsAuthLoading(true);
+      setPreviewMessages([]);
+      setMessages([]);
+      setTypingUsers([]);
+      setTypingAIs([]);
+      joinRoom(resolvedUsername, roomId);
+    },
+    [joinRoom],
+  );
 
   return (
     <ThemeContext.Provider value={{ theme, setTheme, toggleTheme }}>

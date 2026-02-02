@@ -69,6 +69,7 @@ export interface ConnectionStatus {
 // Room types
 export interface RoomInfo {
   topic: string;
+  roomId?: string;
   participants?: Participant[];
   aiParticipants?: AiParticipant[];
 }
@@ -157,6 +158,7 @@ export interface ChatViewProps {
   onAIMention: (mentions: string[], message: string) => void;
   onTypingStart: () => void;
   onTypingStop: () => void;
+  onPrivateConversationStart?: (ai: AiParticipant) => void;
   error: string | null;
   messagesEndRef: RefObject<HTMLDivElement | null>;
   messagesContainerRef: RefObject<HTMLDivElement | null>;
@@ -199,6 +201,7 @@ export interface ParticipantsListProps {
   typingUsers?: TypingUser[];
   typingAIs?: TypingAI[];
   isVisible?: boolean;
+  onAISelect?: (ai: AiParticipant) => void;
 }
 
 // Component prop types - TypingIndicator

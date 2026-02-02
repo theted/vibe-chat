@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import ParticipantsList from "./ParticipantsList";
 import type { ReactNode } from "react";
 import type { AiParticipant } from "@/config/aiParticipants";
@@ -90,5 +90,33 @@ describe("ParticipantsList", () => {
     ).map((node) => node.textContent);
 
     expect(modelNames).toEqual(["Alpha", "Delta", "Beta", "Gamma"]);
+  });
+
+  it("calls onAISelect when clicking an AI name", () => {
+    const aiParticipants: AiParticipant[] = [
+      {
+        id: "OPENAI_TEST",
+        name: "Test AI",
+        alias: "test-ai",
+        provider: "OpenAI",
+        status: "active",
+        emoji: "✨",
+      },
+    ];
+    const onAISelect = vi.fn();
+
+    render(
+      <ParticipantsList
+        participants={[]}
+        aiParticipants={aiParticipants}
+        onAISelect={onAISelect}
+      />,
+    );
+
+    fireEvent.click(screen.getByTestId("ai-name-OPENAI_TEST"));
+
+    expect(onAISelect).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "OPENAI_TEST" }),
+    );
   });
 });

@@ -29,6 +29,7 @@ const ChatView = ({
   onAIMention,
   onTypingStart,
   onTypingStop,
+  onPrivateConversationStart,
   error,
   messagesEndRef,
   messagesContainerRef,
@@ -402,6 +403,7 @@ const ChatView = ({
           typingUsers={typingUsers}
           typingAIs={typingAIs}
           isVisible={true}
+          onAISelect={onPrivateConversationStart}
         />
       </div>
     </div>

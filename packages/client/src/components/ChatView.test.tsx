@@ -127,6 +127,7 @@ describe("ChatView Component", () => {
     onAIMention: vi.fn(),
     onTypingStart: vi.fn(),
     onTypingStop: vi.fn(),
+    onPrivateConversationStart: vi.fn(),
     error: null,
     messagesEndRef: { current: null } as RefObject<HTMLDivElement | null>,
     messagesContainerRef: { current: null } as RefObject<HTMLDivElement | null>,

@@ -30,6 +30,25 @@ import type {
   UserMessagePayload,
 } from "@/types.js";
 
+const PRIVATE_ROOM_PREFIX = "private:";
+
+const getPrivateRoomAiId = (roomId: string): string | null => {
+  if (!roomId.startsWith(PRIVATE_ROOM_PREFIX)) {
+    return null;
+  }
+
+  const parts = roomId.split(":");
+  if (parts.length < 3) {
+    return null;
+  }
+
+  const aiId = parts.slice(2).join(":").trim();
+  return aiId || null;
+};
+
+const normalizeRoomAiToken = (value: string): string =>
+  value.toLowerCase().replace(/[^a-z0-9]/g, "");
+
 /**
  * Handles Socket.IO events and chat state for each room.
  */
@@ -366,6 +385,27 @@ export class SocketController {
 
       // Join Socket.IO room
       socket.join(roomId);
+
+      const privateAiId = getPrivateRoomAiId(roomId);
+      if (privateAiId) {
+        const directMatch = this.chatOrchestrator.aiServices.has(privateAiId)
+          ? privateAiId
+          : null;
+        const normalizedMatch = directMatch
+          ? null
+          : this.chatOrchestrator.findAIByNormalizedAlias(
+              normalizeRoomAiToken(privateAiId),
+            );
+        const resolvedAiId = directMatch || normalizedMatch?.id || null;
+
+        if (resolvedAiId) {
+          this.chatOrchestrator.setRoomAllowedAIs(roomId, [resolvedAiId]);
+        } else {
+          this.chatOrchestrator.clearRoomAllowedAIs(roomId);
+        }
+      } else {
+        this.chatOrchestrator.clearRoomAllowedAIs(roomId);
+      }
 
       // Store user data
       this.connectedUsers.set(socket.id, { ...userData, roomId });

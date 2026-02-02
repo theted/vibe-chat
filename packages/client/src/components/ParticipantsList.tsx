@@ -23,6 +23,7 @@ const ParticipantsList = ({
   typingUsers = [],
   typingAIs = [],
   isVisible = true,
+  onAISelect,
 }: ParticipantsListProps) => {
   if (!isVisible) return null;
 
@@ -92,6 +93,8 @@ const ParticipantsList = ({
       return false;
     });
   };
+
+  const canStartPrivateConversation = Boolean(onAISelect);
 
   return (
     <div className="w-80 bg-gradient-to-b from-slate-50/50 to-white/70 backdrop-blur-sm border-l border-transparent flex flex-col rounded-tr-3xl rounded-br-3xl lg:flex hidden dark:from-slate-950/40 dark:to-slate-950/20 dark:border-slate-800/60">
@@ -192,15 +195,27 @@ const ParticipantsList = ({
                             {ai.emoji || "🤖"}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <div
-                              className="font-medium text-slate-700 truncate dark:text-slate-200"
-                              data-testid={`ai-name-${ai.id || ai.alias || itemIndex}`}
-                            >
-                              {ai.displayName || ai.name}
-                            </div>
-                            {/* <div className="text-xs text-slate-500 truncate dark:text-slate-400">
+                            {canStartPrivateConversation ? (
+                              <button
+                                type="button"
+                                onClick={() => onAISelect?.(ai)}
+                                className="font-medium text-slate-700 truncate text-left hover:text-purple-700 hover:underline dark:text-slate-200 dark:hover:text-purple-200"
+                                data-testid={`ai-name-${ai.id || ai.alias || itemIndex}`}
+                                title={`Start private chat with ${ai.displayName || ai.name}`}
+                              >
+                                {ai.displayName || ai.name}
+                              </button>
+                            ) : (
+                              <div
+                                className="font-medium text-slate-700 truncate dark:text-slate-200"
+                                data-testid={`ai-name-${ai.id || ai.alias || itemIndex}`}
+                              >
+                                {ai.displayName || ai.name}
+                              </div>
+                            )}
+                            <div className="text-xs text-slate-500 truncate dark:text-slate-400">
                               {ai.provider}
-                            </div> */}
+                            </div>
                           </div>
                           {generating ? (
                             <span className="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full font-medium flex items-center gap-1 dark:bg-purple-500/20 dark:text-purple-200">

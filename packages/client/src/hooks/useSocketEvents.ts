@@ -99,6 +99,7 @@ export const useSocketEvents = (
         messages?: Message[];
         participants?: Participant[];
         aiParticipants?: AiParticipant[];
+        roomId?: string;
       };
       const incomingMessages = Array.isArray(typedPayload.messages)
         ? typedPayload.messages
@@ -115,7 +116,7 @@ export const useSocketEvents = (
       setPreviewAiParticipants(incomingAiParticipants);
       setAiParticipants(incomingAiParticipants);
 
-      if (!isJoinedRef.current) {
+      if (!isJoinedRef.current || typedPayload.roomId) {
         setMessages(incomingMessages);
       }
     });
@@ -156,6 +157,7 @@ export const useSocketEvents = (
       const typedData = data as RoomInfo & {
         participants?: Participant[];
         aiParticipants?: AiParticipant[];
+        roomId?: string;
       };
       setIsJoined(true);
       setRoomInfo(typedData);
