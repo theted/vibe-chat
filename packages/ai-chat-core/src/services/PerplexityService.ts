@@ -6,6 +6,7 @@
  */
 
 import { OpenAICompatibleService } from "./base/OpenAICompatibleService.js";
+import { PROVIDER_BASE_URLS } from "@/config/aiProviders/constants.js";
 import type { OpenAIClient, OpenAICompletionRequest } from "@/types/services.js";
 import type {
   AIServiceConfig,
@@ -13,8 +14,6 @@ import type {
   ServiceInitOptions,
 } from "@/types/index.js";
 import OpenAI from "openai";
-
-const PERPLEXITY_BASE_URL = "https://api.perplexity.ai";
 
 export class PerplexityService extends OpenAICompatibleService {
   constructor(config: AIServiceConfig) {
@@ -27,17 +26,19 @@ export class PerplexityService extends OpenAICompatibleService {
   ): OpenAIClient {
     return new OpenAI({
       apiKey,
-      baseURL: options?.baseURL || PERPLEXITY_BASE_URL,
+      baseURL: options?.baseURL || this.getBaseURL() || PROVIDER_BASE_URLS.PERPLEXITY,
     }) as OpenAIClient;
   }
 
+  /**
+   * sonar-reasoning-pro model requires max_tokens to be omitted
+   */
   protected prepareRequestParams(
     formattedMessages: OpenAIMessage[],
     context?: Record<string, unknown>,
   ): OpenAICompletionRequest {
     const params = super.prepareRequestParams(formattedMessages, context);
     if (this.getModel() === "sonar-reasoning-pro") {
-      // Empirically avoids empty responses for this model.
       delete params.max_tokens;
     }
     return params;

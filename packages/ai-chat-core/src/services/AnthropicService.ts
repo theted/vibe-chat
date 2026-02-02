@@ -6,7 +6,7 @@
 
 import { BaseAIService } from "./base/BaseAIService.js";
 import Anthropic from "@anthropic-ai/sdk";
-import {
+import type {
   Message,
   ServiceResponse,
   AnthropicServiceConfig,
@@ -27,9 +27,6 @@ export class AnthropicService extends BaseAIService {
     super(config, "Anthropic");
   }
 
-  /**
-   * Initialize the Anthropic client
-   */
   protected async performInitialization(
     _options?: ServiceInitOptions,
   ): Promise<void> {
@@ -38,9 +35,6 @@ export class AnthropicService extends BaseAIService {
     });
   }
 
-  /**
-   * Generate a response using Anthropic
-   */
   protected async performGenerateResponse(
     messages: Message[],
     _context?: Record<string, unknown>,
@@ -57,33 +51,15 @@ export class AnthropicService extends BaseAIService {
       );
     }
 
-    // Extract system message if present
-    let systemPrompt = this.getEnhancedSystemPrompt();
-    let formattedMessages: AnthropicMessage[] = [];
+    const systemMessage = messages.find((msg) => msg.role === "system");
+    const systemPrompt = systemMessage?.content || this.getEnhancedSystemPrompt();
 
-    // Find and extract system message
-    const systemMessageIndex = messages.findIndex(
-      (msg) => msg.role === "system",
-    );
-
-    if (systemMessageIndex !== -1) {
-      systemPrompt = messages[systemMessageIndex].content;
-      // Remove system message from the array
-      formattedMessages = messages
-        .filter((_, index) => index !== systemMessageIndex)
-        .map((msg) => ({
-          role: msg.role === "user" ? "user" : "assistant",
-          content: msg.content.trim(),
-        }));
-    } else {
-      // No system message found, use default formatting
-      formattedMessages = messages
-        .filter((msg) => msg.role !== "system")
-        .map((msg) => ({
-          role: msg.role === "user" ? "user" : "assistant",
-          content: msg.content.trim(),
-        }));
-    }
+    const formattedMessages: AnthropicMessage[] = messages
+      .filter((msg) => msg.role !== "system")
+      .map((msg) => ({
+        role: msg.role === "user" ? "user" : "assistant",
+        content: msg.content.trim(),
+      }));
 
     const response = await this.client.messages.create({
       model: this.config.model.id,
@@ -93,95 +69,66 @@ export class AnthropicService extends BaseAIService {
       system: systemPrompt,
     });
 
-    // Handle the response structure properly
-    if (response?.content && Array.isArray(response.content)) {
-      // Handle empty content array
-      if (response.content.length === 0) {
-        return {
-          content: "",
-          usage: {
-            promptTokens: response.usage?.input_tokens || 0,
-            completionTokens: response.usage?.output_tokens || 0,
-            totalTokens:
-              (response.usage?.input_tokens || 0) +
-              (response.usage?.output_tokens || 0),
-          },
-          model: this.config.model.id,
-          finishReason: response.stop_reason || "completed",
-        };
-      }
-
-      const contentItem = response.content[0];
-      let responseText = "";
-
-      // Check for different possible structures
-      if (contentItem.type === "text" && "text" in contentItem) {
-        responseText = contentItem.text as string;
-      } else if ("text" in contentItem) {
-        responseText = (contentItem as any).text;
-      } else if ("value" in contentItem) {
-        responseText = (contentItem as any).value;
-      }
-
-      return {
-        content: responseText,
-        usage: {
-          promptTokens: response.usage?.input_tokens || 0,
-          completionTokens: response.usage?.output_tokens || 0,
-          totalTokens:
-            (response.usage?.input_tokens || 0) +
-            (response.usage?.output_tokens || 0),
-        },
-        model: this.config.model.id,
-        finishReason: response.stop_reason || "completed",
-      };
+    if (!response?.content || !Array.isArray(response.content)) {
+      throw new ServiceError(
+        "Failed to parse Anthropic response: unexpected response structure",
+        "response_parsing",
+        this.name,
+      );
     }
 
-    throw new ServiceError(
-      "Failed to parse Anthropic response: unexpected response structure",
-      "response_parsing",
-      this.name,
-    );
+    const responseText = this.extractResponseText(response.content);
+    const usage = {
+      promptTokens: response.usage?.input_tokens || 0,
+      completionTokens: response.usage?.output_tokens || 0,
+      totalTokens:
+        (response.usage?.input_tokens || 0) +
+        (response.usage?.output_tokens || 0),
+    };
+
+    return {
+      content: responseText,
+      usage,
+      model: this.config.model.id,
+      finishReason: response.stop_reason || "completed",
+    };
   }
 
-  /**
-   * Health check for the Anthropic service
-   */
+  private extractResponseText(content: Anthropic.ContentBlock[]): string {
+    if (content.length === 0) return "";
+
+    const contentItem = content[0];
+    if (contentItem.type === "text") {
+      return contentItem.text;
+    }
+    return "";
+  }
+
   protected async performHealthCheck(): Promise<boolean> {
     if (!this.client) {
       await this.performInitialization();
     }
-    // Simple test call with minimal tokens
-    const testMessages: Message[] = [{ role: "user", content: "Hi" }];
+
     const payload = {
       model: this.config.model.id,
-      messages: testMessages.map((message) => ({
-        role: (message.role === "user" ? "user" : "assistant") as
-          | "user"
-          | "assistant",
-        content: message.content.trim(),
-      })),
+      messages: [{ role: "user" as const, content: "Hi" }],
       max_tokens: this.config.model.maxTokens || DEFAULT_MAX_TOKENS,
       temperature: this.config.model.temperature,
       system: this.getEnhancedSystemPrompt(),
     };
     const url = "https://api.anthropic.com/v1/messages";
     this.logHealthCheckDetails("request", { url, payload });
+
     const response = await this.client?.messages.create(payload);
     this.logHealthCheckDetails("response", { url, response });
+
     return Array.isArray(response?.content);
   }
 
-  /**
-   * Shutdown the service
-   */
   protected async performShutdown(): Promise<void> {
     this.client = null;
   }
 
-  /**
-   * Reset the connection
-   */
   protected async performConnectionReset(): Promise<void> {
     this.client = null;
     await this.performInitialization();
