@@ -1,6 +1,68 @@
-import { MENTION_FORMATS } from "@/orchestrator/constants.js";
+import {
+  MENTION_FORMATS,
+  MENTION_LIMITS,
+} from "@/orchestrator/constants.js";
 import { normalizeAlias, toMentionAlias } from "@/utils/stringUtils.js";
 import { findAIByNormalizedAlias, getMentionTokenForAI } from "./aiLookup.js";
+
+const mentionRegex = /@([^\s@]+)/g;
+
+const getUniqueMentions = (content = ""): Set<string> => {
+  const uniqueMentions = new Set<string>();
+  if (!content) {
+    return uniqueMentions;
+  }
+
+  mentionRegex.lastIndex = 0;
+  let match;
+  while ((match = mentionRegex.exec(content)) !== null) {
+    const token = match[1];
+    if (!token) continue;
+    const normalizedToken = normalizeAlias(token);
+    if (normalizedToken) {
+      uniqueMentions.add(normalizedToken);
+    }
+  }
+
+  return uniqueMentions;
+};
+
+export const limitMentionsInResponse = (
+  response = "",
+  maxUniqueMentions: number = MENTION_LIMITS.MAX_UNIQUE_PER_RESPONSE,
+): string => {
+  if (!response || maxUniqueMentions < 1) {
+    return response;
+  }
+
+  const seenMentions = new Set<string>();
+  let uniqueCount = 0;
+
+  mentionRegex.lastIndex = 0;
+  return response.replace(mentionRegex, (match, token: string) => {
+    if (!token) {
+      return match;
+    }
+
+    const normalizedToken = normalizeAlias(token);
+    if (!normalizedToken) {
+      return match;
+    }
+
+    if (seenMentions.has(normalizedToken)) {
+      return match;
+    }
+
+    seenMentions.add(normalizedToken);
+    uniqueCount += 1;
+
+    if (uniqueCount > maxUniqueMentions) {
+      return token;
+    }
+
+    return match;
+  });
+};
 
 export const addMentionToResponse = (aiServices, response, targetAI) => {
   if (!targetAI) {
@@ -39,6 +101,11 @@ export const addMentionToResponse = (aiServices, response, targetAI) => {
   }
 
   if (!mentionHandle.trim()) {
+    return response;
+  }
+
+  const existingMentions = getUniqueMentions(response);
+  if (existingMentions.size >= MENTION_LIMITS.MAX_UNIQUE_PER_RESPONSE) {
     return response;
   }
 

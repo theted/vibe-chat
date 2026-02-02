@@ -25,7 +25,10 @@ import {
   enhanceContextForTopicChange,
 } from "@/utils/orchestrator/contextEnhancers.js";
 import { logAIContext } from "@/utils/orchestrator/logging.js";
-import { addMentionToResponse } from "@/utils/orchestrator/mentionUtils.js";
+import {
+  addMentionToResponse,
+  limitMentionsInResponse,
+} from "@/utils/orchestrator/mentionUtils.js";
 import { createEnhancedSystemPrompt } from "@/utils/orchestrator/promptBuilder.js";
 import {
   calculateResponseDelay,
@@ -556,6 +559,8 @@ export class ChatOrchestrator extends EventEmitter {
         );
       }
 
+      processedResponse = limitMentionsInResponse(processedResponse);
+
       console.log(
         `✨ ${aiService.name} ${responseType}: ${processedResponse.substring(
           0,
@@ -715,6 +720,10 @@ export class ChatOrchestrator extends EventEmitter {
 
   addMentionToResponse(response, targetAI) {
     return addMentionToResponse(this.aiServices, response, targetAI);
+  }
+
+  limitMentionsInResponse(response) {
+    return limitMentionsInResponse(response);
   }
 
   /**

@@ -76,4 +76,19 @@ describe("ChatOrchestrator user mention behavior", () => {
     );
     assert.ok(!updated.includes("@bob"), "mention should preserve casing");
   });
+
+  it("limits unique @mentions to two per response", () => {
+    orchestrator = new ChatOrchestrator({
+      minBackgroundDelay: 1_000_000,
+      maxBackgroundDelay: 1_000_000,
+    });
+
+    const message = "@Claude and @GPT should weigh in, plus @Gemini too.";
+    const updated = orchestrator.limitMentionsInResponse(message);
+
+    assert.equal(
+      updated,
+      "@Claude and @GPT should weigh in, plus Gemini too.",
+    );
+  });
 });
