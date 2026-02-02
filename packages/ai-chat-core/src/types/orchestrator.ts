@@ -237,6 +237,11 @@ export interface IChatOrchestrator extends EventEmitter {
   putParticipantsToSleep(participants: AIParticipant[]): void;
   wakeUpParticipants(participants: AIParticipant[]): void;
 
+  // Room-scoped AI restrictions
+  setRoomAllowedAIs(roomId: string, aiIds: string[]): void;
+  clearRoomAllowedAIs(roomId: string): void;
+  filterAIsForRoom(roomId: string, aiIds: string[]): string[];
+
   // State and lifecycle
   getState(): OrchestratorState;
   shutdown(): Promise<void>;
