@@ -6,8 +6,12 @@
  */
 
 import { OpenAICompatibleService } from "./base/OpenAICompatibleService.js";
-import { OpenAIClient } from "@/types/services.js";
-import { AIServiceConfig, ServiceInitOptions } from "@/types/index.js";
+import type { OpenAIClient, OpenAICompletionRequest } from "@/types/services.js";
+import type {
+  AIServiceConfig,
+  OpenAIMessage,
+  ServiceInitOptions,
+} from "@/types/index.js";
 import OpenAI from "openai";
 
 const PERPLEXITY_BASE_URL = "https://api.perplexity.ai";
@@ -25,5 +29,17 @@ export class PerplexityService extends OpenAICompatibleService {
       apiKey,
       baseURL: options?.baseURL || PERPLEXITY_BASE_URL,
     }) as OpenAIClient;
+  }
+
+  protected prepareRequestParams(
+    formattedMessages: OpenAIMessage[],
+    context?: Record<string, unknown>,
+  ): OpenAICompletionRequest {
+    const params = super.prepareRequestParams(formattedMessages, context);
+    if (this.getModel() === "sonar-reasoning-pro") {
+      // Empirically avoids empty responses for this model.
+      delete params.max_tokens;
+    }
+    return params;
   }
 }
