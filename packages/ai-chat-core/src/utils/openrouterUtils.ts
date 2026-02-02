@@ -51,16 +51,18 @@ const normalizeModalities = (model: OpenRouterModelRecord): string[] => {
 };
 
 const hasChatSupport = (model: OpenRouterModelRecord): boolean => {
-  const type = model.type?.toLowerCase();
-  if (type === "chat") return true;
-  if (type && type !== "text") return false;
-
   const supported = model.supported_parameters ?? [];
-  if (supported.includes("messages") || supported.includes("chat")) {
+  if (supported.includes("messages")) {
     return true;
   }
 
-  return true;
+  // Optionally check architecture.modality for chat support
+  const modalities = normalizeModalities(model);
+  if (modalities.some((m) => m.toLowerCase().includes("chat"))) {
+    return true;
+  }
+
+  return false;
 };
 
 export async function fetchOpenRouterModels(options?: {
