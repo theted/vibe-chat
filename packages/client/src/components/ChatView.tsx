@@ -199,6 +199,7 @@ const ChatView = ({
                 key={message.id}
                 message={message}
                 aiParticipants={aiParticipantList}
+                participants={participants}
               />
             ))}
             <div ref={messagesEndRef} />
