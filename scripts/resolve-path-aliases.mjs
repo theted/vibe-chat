@@ -1,17 +1,17 @@
 import { readdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
-const [packageDirArg] = process.argv.slice(2);
+const [packageDirArg, customOutDir] = process.argv.slice(2);
 
 if (!packageDirArg) {
-  throw new Error("Usage: node scripts/resolve-path-aliases.mjs <package-dir>");
+  throw new Error("Usage: node scripts/resolve-path-aliases.mjs <package-dir> [outDir]");
 }
 
 const packageDir = path.resolve(process.cwd(), packageDirArg);
 const tsconfigPath = path.join(packageDir, "tsconfig.json");
 
 const tsconfig = JSON.parse(await readFile(tsconfigPath, "utf8"));
-const outDir = tsconfig.compilerOptions?.outDir;
+const outDir = customOutDir || tsconfig.compilerOptions?.outDir;
 
 if (!outDir) {
   throw new Error(`Missing compilerOptions.outDir in ${tsconfigPath}`);
