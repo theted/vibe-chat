@@ -613,6 +613,24 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     emoji: "🦙",
   },
 
+  // Amazon Models
+  {
+    id: "AMAZON_NOVA_2_LITE_V1",
+    name: "Nova 2 Lite",
+    alias: "nova-2-lite",
+    provider: "Amazon",
+    status: "active",
+    emoji: "📦",
+  },
+  {
+    id: "AMAZON_NOVA_PRO_V1",
+    name: "Nova Pro",
+    alias: "nova-pro",
+    provider: "Amazon",
+    status: "active",
+    emoji: "📦",
+  },
+
   // NVIDIA Models
   {
     id: "NVIDIA_NEMOTRON_3_NANO_30B_A3B",

@@ -110,11 +110,15 @@ export const ENABLED_AI_MODELS: string[] = [
   "QWEN_QWEN_MAX",
   "QWEN_QWEN_CODER_PLUS",
 
-  // Meta/Llama Models (OpenRouter)
+  // Meta/Llama Models
   "LLAMA_LLAMA_3_3_70B_INSTRUCT",
   "LLAMA_LLAMA_3_3_70B_INSTRUCT_FREE",
   "LLAMA_LLAMA_4_MAVERICK",
   "LLAMA_LLAMA_4_SCOUT",
+
+  // Amazon Models (OpenRouter)
+  "AMAZON_NOVA_2_LITE_V1",
+  "AMAZON_NOVA_PRO_V1",
 
   // NVIDIA Models (OpenRouter)
   "NVIDIA_NEMOTRON_3_NANO_30B_A3B",
@@ -162,7 +166,8 @@ export const PROVIDER_ENV_VARS: Record<string, string> = {
   KIMI: "KIMI_API_KEY",
   ZAI: "Z_API_KEY",
   QWEN: "QWEN_API_KEY",
-  LLAMA: "OPENROUTER_API_KEY",
+  LLAMA: "LLAMA_API_KEY",
+  AMAZON: "OPENROUTER_API_KEY",
   NVIDIA: "OPENROUTER_API_KEY",
   XIAOMI: "OPENROUTER_API_KEY",
   MINIMAX: "OPENROUTER_API_KEY",

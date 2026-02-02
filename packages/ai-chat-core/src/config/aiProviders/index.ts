@@ -30,6 +30,7 @@ export { DEEPSEEK } from "./providers/deepseek.js";
 export { QWEN } from "./providers/qwen.js";
 export { KIMI } from "./providers/kimi.js";
 export { LLAMA } from "./providers/llama.js";
+export { AMAZON } from "./providers/amazon.js";
 export { NVIDIA } from "./providers/nvidia.js";
 export { XIAOMI } from "./providers/xiaomi.js";
 export { MINIMAX } from "./providers/minimax.js";
@@ -50,6 +51,7 @@ import { DEEPSEEK } from "./providers/deepseek.js";
 import { QWEN } from "./providers/qwen.js";
 import { KIMI } from "./providers/kimi.js";
 import { LLAMA } from "./providers/llama.js";
+import { AMAZON } from "./providers/amazon.js";
 import { NVIDIA } from "./providers/nvidia.js";
 import { XIAOMI } from "./providers/xiaomi.js";
 import { MINIMAX } from "./providers/minimax.js";
@@ -73,6 +75,7 @@ export const AI_PROVIDERS = {
   QWEN,
   KIMI,
   LLAMA,
+  AMAZON,
   NVIDIA,
   XIAOMI,
   MINIMAX,

@@ -4,7 +4,7 @@ A monorepo project that enables multi-AI conversations through a CLI tool, real-
 
 ## Overview
 
-This project provides a platform where different AI models (OpenAI, Anthropic, Mistral, Gemini, DeepSeek, Grok, Cohere, Kimi, Z.ai, Qwen, Meta (Llama), NVIDIA, Xiaomi, MiniMax, Baidu, ByteDance, Hugging Face, Perplexity) can engage in conversations with each other or respond to prompts. The system manages conversation flow, handles API interactions, and logs conversation history.
+This project provides a platform where different AI models (OpenAI, Anthropic, Mistral, Gemini, DeepSeek, Grok, Cohere, Kimi, Z.ai, Qwen, Meta (Llama), Amazon, NVIDIA, Xiaomi, MiniMax, Baidu, ByteDance, Hugging Face, Perplexity) can engage in conversations with each other or respond to prompts. The system manages conversation flow, handles API interactions, and logs conversation history.
 
 ## Features
 
@@ -197,16 +197,23 @@ Current defaults and IDs (see `packages/ai-chat-core/src/config/aiProviders`):
 - `KIMI_K2` → `kimi-k2-0905-preview`
 - `KIMI_K2_THINKING` → `kimi-k2-thinking`
 
-### OpenRouter (Meta, NVIDIA, Xiaomi, MiniMax, Baidu, ByteDance, Hugging Face) ([API keys](https://openrouter.ai/keys))
+### Meta (Llama)
 
-These providers are accessed through OpenRouter's OpenAI-compatible API. Create an OpenRouter account, generate an API key from the Keys page, and set `OPENROUTER_API_KEY` to unlock all models below.
-
-#### Meta (Llama)
+Uses the Llama API OpenAI-compatible endpoint (default `https://api.llama.com/compat/v1`).
 
 - `LLAMA_3_3_70B_INSTRUCT` → `meta-llama/llama-3.3-70b-instruct`
 - `LLAMA_3_3_70B_INSTRUCT_FREE` → `meta-llama/llama-3.3-70b-instruct:free`
 - `LLAMA_4_MAVERICK` → `meta-llama/llama-4-maverick`
 - `LLAMA_4_SCOUT` → `meta-llama/llama-4-scout`
+
+### OpenRouter (Amazon, NVIDIA, Xiaomi, MiniMax, Baidu, ByteDance, Hugging Face) ([API keys](https://openrouter.ai/keys))
+
+These providers are accessed through OpenRouter's OpenAI-compatible API. Create an OpenRouter account, generate an API key from the Keys page, and set `OPENROUTER_API_KEY` to unlock all models below.
+
+#### Amazon
+
+- `NOVA_2_LITE_V1` → `amazon/nova-2-lite-v1`
+- `NOVA_PRO_V1` → `amazon/nova-pro-v1`
 
 #### NVIDIA
 
@@ -255,9 +262,10 @@ Define these in `.env` (see `.env.example`):
 - `COHERE_API_KEY`
 - `QWEN_API_KEY`
 - `KIMI_API_KEY`
+- `LLAMA_API_KEY`
 - `Z_API_KEY`
 - `TOGETHER_API_KEY`
-- `OPENROUTER_API_KEY` (Meta, NVIDIA, Xiaomi, MiniMax, Baidu, ByteDance, Hugging Face)
+- `OPENROUTER_API_KEY` (Amazon, NVIDIA, Xiaomi, MiniMax, Baidu, ByteDance, Hugging Face)
 
 ### Server Configuration
 

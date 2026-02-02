@@ -57,6 +57,7 @@ export { KimiService } from "./services/KimiService.js";
 export { ZaiService } from "./services/ZaiService.js";
 export { LlamaService } from "./services/LlamaService.js";
 export { PerplexityService } from "./services/PerplexityService.js";
+export { AmazonService } from "./services/AmazonService.js";
 export { NvidiaService } from "./services/NvidiaService.js";
 export { XiaomiService } from "./services/XiaomiService.js";
 export { MinimaxService } from "./services/MinimaxService.js";

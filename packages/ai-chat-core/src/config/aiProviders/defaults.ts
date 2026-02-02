@@ -14,6 +14,7 @@ import { DEEPSEEK } from "./providers/deepseek.js";
 import { QWEN } from "./providers/qwen.js";
 import { KIMI } from "./providers/kimi.js";
 import { LLAMA } from "./providers/llama.js";
+import { AMAZON } from "./providers/amazon.js";
 import { NVIDIA } from "./providers/nvidia.js";
 import { XIAOMI } from "./providers/xiaomi.js";
 import { MINIMAX } from "./providers/minimax.js";
@@ -38,6 +39,7 @@ export const DEFAULT_MODELS: Record<string, AIModel> = {
   [QWEN.name]: QWEN.models.QWEN_PLUS,
   [KIMI.name]: KIMI.models.KIMI_K2,
   [LLAMA.name]: LLAMA.models.LLAMA_4_MAVERICK,
+  [AMAZON.name]: AMAZON.models.NOVA_PRO_V1,
   [NVIDIA.name]: NVIDIA.models.NEMOTRON_3_NANO_30B_A3B,
   [XIAOMI.name]: XIAOMI.models.MIMO_V2_FLASH,
   [MINIMAX.name]: MINIMAX.models.MINIMAX_M2_1,

@@ -4,7 +4,7 @@ import {
 } from "@/config/aiProviders/constants.js";
 import type { AIProvider } from "@/types/index.js";
 
-// Accessed via OpenRouter API: https://openrouter.ai/api/v1
+// Accessed via Llama API (OpenAI-compatible endpoint).
 
 export const LLAMA: AIProvider = {
   name: "Meta",
@@ -55,5 +55,5 @@ export const LLAMA: AIProvider = {
         "You are Llama 4 Scout by Meta, a nimble model designed to explore options quickly. Greet once, then share succinct observations, quick alternatives, and useful next steps.",
     },
   },
-  apiKeyEnvVar: "OPENROUTER_API_KEY",
+  apiKeyEnvVar: "LLAMA_API_KEY",
 };

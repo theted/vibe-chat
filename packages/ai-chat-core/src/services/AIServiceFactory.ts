@@ -16,6 +16,7 @@ import { ZaiService } from "./ZaiService.js";
 import { CohereService } from "./CohereService.js";
 import { LlamaService } from "./LlamaService.js";
 import { PerplexityService } from "./PerplexityService.js";
+import { AmazonService } from "./AmazonService.js";
 import { NvidiaService } from "./NvidiaService.js";
 import { XiaomiService } from "./XiaomiService.js";
 import { MinimaxService } from "./MinimaxService.js";
@@ -43,6 +44,7 @@ export class AIServiceFactory {
     [AI_PROVIDERS.ZAI.name]: ZaiService,
     [AI_PROVIDERS.COHERE.name]: CohereService,
     [AI_PROVIDERS.LLAMA.name]: LlamaService,
+    [AI_PROVIDERS.AMAZON.name]: AmazonService,
     [AI_PROVIDERS.NVIDIA.name]: NvidiaService,
     [AI_PROVIDERS.XIAOMI.name]: XiaomiService,
     [AI_PROVIDERS.MINIMAX.name]: MinimaxService,
