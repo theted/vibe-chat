@@ -12,6 +12,16 @@ import AnimatedListItem from "./AnimatedListItem";
 import SectionHeader from "./SectionHeader";
 import type { ParticipantsListProps, TypingUser, TypingAI } from "@/types";
 
+const BADGE_BASE = "text-xs px-2 py-1 rounded-full font-medium";
+
+const badgeStyles = {
+  typing: `${BADGE_BASE} bg-yellow-100 text-yellow-800 flex items-center gap-1 dark:bg-yellow-500/20 dark:text-yellow-200`,
+  online: `${BADGE_BASE} bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-200`,
+  generating: `${BADGE_BASE} bg-purple-100 text-purple-800 flex items-center gap-1 dark:bg-purple-500/20 dark:text-purple-200`,
+  active: `${BADGE_BASE} bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-200`,
+  inactive: `${BADGE_BASE} bg-orange-100 text-orange-800 dark:bg-orange-500/20 dark:text-orange-200`,
+};
+
 interface NormalizedAiParticipant extends AiParticipant {
   displayName: string;
   normalizedAlias: string;
@@ -138,12 +148,12 @@ const ParticipantsList = ({
                       {participant.username}
                     </span>
                     {typing ? (
-                      <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium flex items-center gap-1 dark:bg-yellow-500/20 dark:text-yellow-200">
+                      <span className={badgeStyles.typing}>
                         <div className="w-1.5 h-1.5 bg-yellow-600 rounded-full animate-bounce dark:bg-yellow-300"></div>
                         typing...
                       </span>
                     ) : (
-                      <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-medium dark:bg-green-500/20 dark:text-green-200">
+                      <span className={badgeStyles.online}>
                         online
                       </span>
                     )}
@@ -218,17 +228,13 @@ const ParticipantsList = ({
                             </div>
                           </div>
                           {generating ? (
-                            <span className="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full font-medium flex items-center gap-1 dark:bg-purple-500/20 dark:text-purple-200">
+                            <span className={badgeStyles.generating}>
                               <div className="w-1.5 h-1.5 bg-purple-600 rounded-full animate-bounce dark:bg-purple-300"></div>
                               typing...
                             </span>
                           ) : (
                             <span
-                              className={`text-xs px-2 py-1 rounded-full font-medium ${
-                                ai.status === "active"
-                                  ? "bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-200"
-                                  : "bg-orange-100 text-orange-800 dark:bg-orange-500/20 dark:text-orange-200"
-                              }`}
+                              className={ai.status === "active" ? badgeStyles.active : badgeStyles.inactive}
                             >
                               {ai.status}
                             </span>
