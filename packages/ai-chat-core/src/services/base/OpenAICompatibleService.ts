@@ -198,7 +198,7 @@ export abstract class OpenAICompatibleService extends BaseAIService {
     }
 
     try {
-      const timeoutMs = this.config.timeout || 30000;
+      const timeoutMs = this.config.timeout || 150_000;
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
