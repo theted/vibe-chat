@@ -81,24 +81,6 @@ interface Dependencies {
 }
 
 // Helper builders extracted for readability
-const summarizeParticipantTopics = (
-  messages: ConversationMessage[],
-  participants: Participant[],
-): Record<string, string> => {
-  const topics: Record<string, string> = {};
-  participants.forEach((p) => {
-    const responses = messages
-      .filter((msg) => msg.participantId === p.id)
-      .map((msg) => msg.content);
-    if (responses.length > 0) {
-      topics[p.name] = responses
-        .map((r) => r.substring(0, 150) + (r.length > 150 ? "..." : ""))
-        .join("\n");
-    }
-  });
-  return topics;
-};
-
 const buildSystemMessage = (
   cm: ConversationManager,
   participant: Participant,
@@ -390,9 +372,6 @@ export class ConversationManager {
    * @returns The generated response
    */
   async generateResponse(participant: Participant): Promise<string> {
-    // Optionally summarize prior topics (reserved for future prompts)
-    summarizeParticipantTopics(this._messages, this.participants);
-
     const systemMessage = buildSystemMessage(this, participant);
     const formattedMessages = [
       systemMessage,
