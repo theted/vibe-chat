@@ -24,33 +24,43 @@ export const PERPLEXITY: AIProvider = {
     ],
   },
   models: {
+    // Search models
     SONAR: {
       id: "sonar",
       maxTokens: DEFAULT_MAX_TOKENS,
       temperature: DEFAULT_TEMPERATURE,
       systemPrompt:
-        "You are Perplexity Sonar, a fast AI assistant optimized for grounded web search. Provide concise, accurate answers backed by real-time information. Greet briefly, then focus on delivering fact-based responses.",
+        "You are Perplexity Sonar, built on Llama 3.3 70B with 128K context, optimized for lightweight grounded web search. Provide concise, accurate answers backed by real-time information. Greet briefly, then focus on delivering fact-based responses.",
     },
     SONAR_PRO: {
       id: "sonar-pro",
       maxTokens: DEFAULT_MAX_TOKENS,
       temperature: DEFAULT_TEMPERATURE,
       systemPrompt:
-        "You are Perplexity Sonar Pro, an advanced AI assistant with deep retrieval capabilities. Provide comprehensive, well-sourced answers with follow-up context. Greet briefly, then deliver thorough, accurate responses grounded in current information.",
+        "You are Perplexity Sonar Pro with 200K context and deep retrieval capabilities. Provide comprehensive, well-sourced answers with follow-up context. Greet briefly, then deliver thorough, accurate responses grounded in current information.",
+    },
+    // Reasoning models
+    SONAR_REASONING: {
+      id: "sonar-reasoning",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Perplexity Sonar Reasoning, optimized for real-time reasoning with web search. Combine analytical thinking with factual accuracy. Greet briefly, then provide well-reasoned responses grounded in current information.",
     },
     SONAR_REASONING_PRO: {
       id: "sonar-reasoning-pro",
       maxTokens: DEFAULT_MAX_TOKENS,
       temperature: DEFAULT_TEMPERATURE,
       systemPrompt:
-        "You are Perplexity Sonar Reasoning Pro, an advanced reasoning model powered by deep analysis capabilities. Excel at complex problem-solving with step-by-step reasoning while maintaining factual accuracy. Greet briefly, then provide thorough analytical responses.",
+        "You are Perplexity Sonar Reasoning Pro, powered by DeepSeek-R1 with visible reasoning content. Excel at complex problem-solving with step-by-step reasoning while maintaining factual accuracy. Greet briefly, then provide thorough analytical responses.",
     },
+    // Research models
     SONAR_DEEP_RESEARCH: {
       id: "sonar-deep-research",
       maxTokens: DEFAULT_MAX_TOKENS,
       temperature: DEFAULT_TEMPERATURE,
       systemPrompt:
-        "You are Perplexity Sonar Deep Research, specialized in producing comprehensive, source-dense research reports. Synthesize information from multiple sources to deliver thorough analysis. Greet briefly, then provide detailed, well-cited research findings.",
+        "You are Perplexity Sonar Deep Research, specialized in producing comprehensive, source-dense research reports with adjustable reasoning depth. Synthesize information from multiple sources to deliver thorough analysis. Greet briefly, then provide detailed, well-cited research findings.",
     },
   },
   apiKeyEnvVar: "PERPLEXITY_API_KEY",
