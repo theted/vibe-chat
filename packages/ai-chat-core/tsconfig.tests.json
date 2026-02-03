@@ -2,7 +2,11 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "./dist-tests",
-    "rootDir": "."
+    "rootDir": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@ai-chat/core": ["./src/index.ts"]
+    }
   },
   "include": ["src/**/*", "tests/**/*.ts"],
   "exclude": ["node_modules", "dist", "dist-tests", "**/*.js", "**/dist/**/*"]
