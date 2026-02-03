@@ -139,7 +139,11 @@ const buildEmojiLookup = (): Record<string, string> => {
   const emojiAliasOverrides = new Map<string, string>([
     ["perplexity", "sonar"],
     ["pplx", "sonar"],
-    ["qwen", "qwen-turbo"],
+    ["qwen", "qwen-max"], // 🐉
+    // Base provider aliases -> specific model with expected emoji
+    ["gemini", "gemini-2.5-flash"], // 💎
+    ["google", "gemini-2.5-flash"],
+    ["bard", "gemini-2.5-flash"],
   ]);
 
   const addEntry = (key: string, canonicalAlias: string) => {
