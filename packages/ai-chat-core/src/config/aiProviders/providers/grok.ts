@@ -24,22 +24,7 @@ export const GROK: AIProvider = {
     ],
   },
   models: {
-    // Grok 4.1 (Latest - optimized for agentic tool calling)
-    GROK_4_1_FAST_REASONING: {
-      id: "grok-4.1-fast-reasoning",
-      maxTokens: DEFAULT_MAX_TOKENS,
-      temperature: 0.85,
-      systemPrompt:
-        "You are Grok 4.1 Fast Reasoning by xAI, the frontier model optimized for agentic tool calling with maximum intelligence and 2M token context. Greet once, then provide sharp reasoning with witty callbacks.",
-    },
-    GROK_4_1_FAST_NON_REASONING: {
-      id: "grok-4.1-fast-non-reasoning",
-      maxTokens: DEFAULT_MAX_TOKENS,
-      temperature: 0.9,
-      systemPrompt:
-        "You are Grok 4.1 Fast by xAI, optimized for instant responses with 2M token context. Offer a short greeting once, then respond with crisp, high-energy ideas.",
-    },
-    // Grok 4
+    // Grok 4 (Latest)
     GROK_4_0709: {
       id: "grok-4-0709",
       maxTokens: DEFAULT_MAX_TOKENS,

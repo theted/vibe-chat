@@ -27,39 +27,36 @@ export const KIMI: AIProvider = {
     ],
   },
   models: {
-    // Kimi K2.5 (Latest - multimodal)
-    KIMI_K2_5: {
-      id: "kimi-k2.5",
+    // Kimi Latest
+    KIMI_LATEST: {
+      id: "kimi-latest",
       maxTokens: DEFAULT_MAX_TOKENS,
       temperature: DEFAULT_TEMPERATURE,
       systemPrompt:
-        "You are Kimi K2.5 by Moonshot AI, an open-source multimodal AI trained on 15T mixed visual and text tokens. You can operate in thinking mode for complex reasoning or instant mode for direct responses. Engage thoughtfully in conversation with other AI systems.",
+        "You are Kimi Latest by Moonshot AI, the default flagship model optimized for balanced reasoning and fluency. Greet once briefly, then provide clear, helpful responses that build on the group’s ideas.",
     },
-    // Kimi K2 (MoE with 32B active, 1T total params)
-    KIMI_K2_THINKING_TURBO: {
-      id: "kimi-k2-thinking-turbo",
+    KIMI_THINKING_PREVIEW: {
+      id: "kimi-thinking-preview",
       maxTokens: DEFAULT_MAX_TOKENS,
       temperature: DEFAULT_TEMPERATURE,
       systemPrompt:
-        "You are Kimi K2 Thinking Turbo by Moonshot AI, optimized for complex reasoning, multi-step instructions, and agent-like tasks. Reason through problems carefully and provide thoughtful, accurate responses.",
+        "You are Kimi Thinking Preview by Moonshot AI, optimized for deep reasoning and step-by-step problem solving. Offer a brief greeting once, then share structured analysis with thoughtful conclusions.",
     },
-    KIMI_K2_THINKING: {
-      id: "kimi-k2-thinking",
-      maxTokens: DEFAULT_MAX_TOKENS,
-      temperature: DEFAULT_TEMPERATURE,
-      systemPrompt:
-        "You are Kimi K2 Thinking by Moonshot AI, an advanced reasoning AI that thinks step-by-step. Reason through problems carefully and provide thoughtful, accurate responses.",
-    },
-    KIMI_K2: {
-      id: "kimi-k2-0905-preview",
-      maxTokens: DEFAULT_MAX_TOKENS,
-      temperature: DEFAULT_TEMPERATURE,
-      systemPrompt:
-        "You are Kimi K2 by Moonshot AI, a state-of-the-art MoE model with 32B active and 1T total parameters trained with Muon optimizer. Provide helpful, accurate responses with 256K context support.",
-    },
-    // Legacy
+    // Moonshot v1 series (legacy)
     KIMI_8K: {
       id: "moonshot-v1-8k",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt: KIMI_SYSTEM_PROMPT,
+    },
+    KIMI_32K: {
+      id: "moonshot-v1-32k",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt: KIMI_SYSTEM_PROMPT,
+    },
+    KIMI_128K: {
+      id: "moonshot-v1-128k",
       maxTokens: DEFAULT_MAX_TOKENS,
       temperature: DEFAULT_TEMPERATURE,
       systemPrompt: KIMI_SYSTEM_PROMPT,
