@@ -8,7 +8,12 @@ RUN corepack enable pnpm
 WORKDIR /app
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-COPY packages/*/package.json ./packages/
+
+# Copy each package.json to preserve directory structure (glob doesn't work in Docker)
+COPY packages/server/package.json ./packages/server/
+COPY packages/ai-chat-core/package.json ./packages/ai-chat-core/
+COPY packages/ai-configs/package.json ./packages/ai-configs/
+COPY packages/mcp-assistant/package.json ./packages/mcp-assistant/
 
 RUN --mount=type=cache,target=/root/.local/share/pnpm/store pnpm install --frozen-lockfile --filter=@ai-chat/server...
 
