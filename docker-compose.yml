@@ -1,6 +1,4 @@
 # Development Docker Compose
-version: "3.8"
-
 services:
   redis:
     image: redis:7.4-alpine
@@ -70,11 +68,8 @@ services:
     restart: unless-stopped
     networks:
       - ai-chat-network
-    depends_on:
-      redis:
-        condition: service_started
-      chroma:
-        condition: service_healthy
+    # Note: depends_on removed - handled by network + health checks in code
+    # When using external redis/chroma via profiles, they won't be in this compose file
 
   ai-chat-client:
     build:
