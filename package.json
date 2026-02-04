@@ -76,14 +76,14 @@
     "realtime",
     "websocket",
     "react",
-    "nodejs",
+    "bun",
     "openai",
     "anthropic"
   ],
   "author": "AI Chat Team",
   "license": "MIT",
   "engines": {
-    "node": ">=22.0.0"
+    "bun": ">=1.1.0"
   },
   "overrides": {
     "react": "^19.0.0",

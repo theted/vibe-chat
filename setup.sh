@@ -3,22 +3,21 @@ set -euo pipefail
 
 echo "🚀 Setting up AI Chat Realtime..."
 
-# Check if Node.js is installed
-if ! command -v node &> /dev/null; then
-    echo "❌ Node.js is not installed. Please install Node.js 18+ first."
+# Check if Bun is installed
+if ! command -v bun &> /dev/null; then
+    echo "❌ Bun is not installed. Please install Bun 1.1+ first."
     exit 1
 fi
 
-NODE_VERSION_RAW=$(node -v)
-NODE_VERSION="${NODE_VERSION_RAW#v}"
-IFS='.' read -r NODE_MAJOR NODE_MINOR NODE_PATCH <<< "${NODE_VERSION}"
+BUN_VERSION_RAW=$(bun --version)
+IFS='.' read -r BUN_MAJOR BUN_MINOR BUN_PATCH <<< "${BUN_VERSION_RAW}"
 
-if [ "${NODE_MAJOR:-0}" -lt 18 ]; then
-    echo "❌ Node.js 18 or higher is required. Detected version: ${NODE_VERSION_RAW}"
+if [ "${BUN_MAJOR:-0}" -lt 1 ] || { [ "${BUN_MAJOR:-0}" -eq 1 ] && [ "${BUN_MINOR:-0}" -lt 1 ]; }; then
+    echo "❌ Bun 1.1 or higher is required. Detected version: ${BUN_VERSION_RAW}"
     exit 1
 fi
 
-echo "✅ Node.js version detected: ${NODE_VERSION_RAW}"
+echo "✅ Bun version detected: ${BUN_VERSION_RAW}"
 
 # Check if Docker Compose is available
 DOCKER_AVAILABLE=false
@@ -201,48 +200,48 @@ case $choice in
         # Install core dependencies
         echo "Installing ai-chat-core dependencies..."
         cd packages/ai-chat-core || exit 1
-        npm install
+        bun install
         cd ../.. || exit 1
         
         # Install MCP assistant dependencies
         echo "Installing MCP assistant dependencies..."
         cd packages/mcp-assistant || exit 1
-        npm install
+        bun install
         cd ../.. || exit 1
         
         # Install server dependencies
         echo "Installing server dependencies..."
         cd packages/server || exit 1
-        npm install
+        bun install
         cd ../.. || exit 1
         
         # Install client dependencies
         echo "Installing client dependencies..."
         cd packages/client || exit 1
-        npm install
+        bun install
         cd ../.. || exit 1
         
         echo "✅ Dependencies installed!"
         echo ""
         echo "To start the application:"
-        echo "1. Terminal 1: cd packages/server && npm run dev"
-        echo "2. Terminal 2: cd packages/client && npm run dev"
+        echo "1. Terminal 1: cd packages/server && bun run dev"
+        echo "2. Terminal 2: cd packages/client && bun run dev"
         echo "3. Open http://localhost:3000"
         ;;
     3)
         echo "📦 Installing dependencies only..."
         
         cd packages/ai-chat-core || exit 1
-        npm install
+        bun install
         cd ../.. || exit 1
         cd packages/mcp-assistant || exit 1
-        npm install
+        bun install
         cd ../.. || exit 1
         cd packages/server || exit 1
-        npm install
+        bun install
         cd ../.. || exit 1
         cd packages/client || exit 1
-        npm install
+        bun install
         cd ../.. || exit 1
         
         echo "✅ All dependencies installed!"

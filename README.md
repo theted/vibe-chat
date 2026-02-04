@@ -32,7 +32,7 @@ ai-chat/
 
 ## Prerequisites
 
-- Node.js (v22 or higher)
+- Bun (v1.1 or higher)
 - API keys for the AI providers you want to use
 - Docker (optional, for containerized deployment)
 

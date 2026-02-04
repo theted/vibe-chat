@@ -58,13 +58,13 @@ npm run cli gemini grok "What is your favorite book?"
 Plays a saved conversation JSON file as a live chat with typing animation in the terminal.
 
 ```bash
-node dist/play.js <path-to-conversation.json>
+bun dist/play.js <path-to-conversation.json>
 ```
 
 **Example:**
 
 ```bash
-node dist/play.js conversations/2025-09-10T17-44-19-366Z-we-re-stoned-bro-s.json
+bun dist/play.js conversations/2025-09-10T17-44-19-366Z-we-re-stoned-bro-s.json
 ```
 
 **Features:**
@@ -84,7 +84,7 @@ node dist/play.js conversations/2025-09-10T17-44-19-366Z-we-re-stoned-bro-s.json
 Continuously plays random conversation files from the `conversations/` directory.
 
 ```bash
-node dist/play-screensaver.js
+bun dist/play-screensaver.js
 ```
 
 **Controls:**
@@ -108,10 +108,10 @@ The CLI includes a built-in `@Chat` code assistant powered by RAG (Retrieval-Aug
 docker compose -f docker-compose.dev.yml up chroma
 
 # Index the codebase
-node dist/scripts/index-mcp-chat.js --chroma-url http://localhost:8000
+bun dist/scripts/index-mcp-chat.js --chroma-url http://localhost:8000
 
 # Query the index
-node dist/scripts/run-mcp-chat.js --question "How are messages styled?"
+bun dist/scripts/run-mcp-chat.js --question "How are messages styled?"
 ```
 
 ### Environment Variables

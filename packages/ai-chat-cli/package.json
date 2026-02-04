@@ -8,9 +8,9 @@
     "ai-chat": "./dist/index.js"
   },
   "scripts": {
-    "build": "tsc && node ../../scripts/resolve-path-aliases.mjs .",
-    "start": "npm run build && node dist/index.js",
-    "dev": "tsc --watch & node --watch dist/index.js",
+    "build": "tsc && bun ../../scripts/resolve-path-aliases.mjs .",
+    "start": "npm run build && bun dist/index.js",
+    "dev": "tsc --watch & bun --watch dist/index.js",
     "test": "npx tsx --test tests/integration/*.test.ts"
   },
   "dependencies": {
