@@ -5,9 +5,9 @@
   "main": "dist/app.js",
   "type": "module",
   "scripts": {
-    "build": "tsc --noEmit && swc src -d dist --strip-leading-paths",
+    "build": "tsc --noEmit && swc src -d dist --strip-leading-paths && node ../../scripts/resolve-path-aliases.mjs .",
     "start": "npm run build && node dist/app.js",
-    "dev": "npm run build && (swc src -d dist --strip-leading-paths --watch & tsc --noEmit --watch & nodemon --delay 1 --watch dist --watch ../ai-chat-core/src --ext js dist/app.js)",
+    "dev": "nodemon --watch src --watch ../ai-chat-core/src --ext ts,js --exec 'npm run build && node dist/app.js'",
     "test": "node --import tsx --test \"src/**/*.test.ts\"",
     "lint": "eslint . --ext js --report-unused-disable-directives --max-warnings 0",
     "lint:fix": "eslint . --ext js --fix"
