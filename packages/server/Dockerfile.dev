@@ -15,19 +15,17 @@ COPY packages/ai-configs ./ai-configs
 WORKDIR /app/ai-configs
 RUN pnpm install && pnpm run build
 
-# Copy and install core package first
+# Copy and build core package
 WORKDIR /app
 COPY packages/ai-chat-core ./ai-chat-core
 WORKDIR /app/ai-chat-core
-RUN pnpm install
+RUN pnpm install && pnpm run build
 
-# Copy MCP assistant package
+# Copy and build MCP assistant package
 WORKDIR /app
 COPY packages/mcp-assistant ./mcp-assistant
-
-# Install MCP assistant dependencies (shared via workspace links)
 WORKDIR /app/mcp-assistant
-RUN pnpm install
+RUN pnpm install && pnpm run build
 
 # Switch to server directory and copy package files
 WORKDIR /app/server
