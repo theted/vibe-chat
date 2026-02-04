@@ -45,7 +45,7 @@ jobs:
             ${{ runner.os }}-build-
 
       - name: Build packages
-        run: pnpm run builds
+        run: pnpm run build
 
       - name: Run tests
         run: pnpm test

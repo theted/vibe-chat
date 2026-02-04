@@ -2,12 +2,15 @@
 # Client Dockerfile - Multi-stage build
 FROM node:22-alpine AS deps
 
+# Enable pnpm via corepack
+RUN corepack enable pnpm
+
 WORKDIR /app
 
-COPY package.json package-lock.json ./
-COPY packages/*/package*.json ./packages/
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY packages/*/package.json ./packages/
 
-RUN --mount=type=cache,target=/root/.npm npm ci --workspace=@ai-chat/client
+RUN --mount=type=cache,target=/root/.local/share/pnpm/store pnpm install --frozen-lockfile --filter=@ai-chat/client...
 
 FROM deps AS builder
 
@@ -18,8 +21,8 @@ COPY . .
 ARG VITE_SERVER_URL=http://localhost:3001
 ENV VITE_SERVER_URL=$VITE_SERVER_URL
 
-RUN npm --workspace @ai-chat/ai-configs run build
-RUN npm --workspace @ai-chat/client run build
+RUN pnpm run build:configs
+RUN pnpm run build:client
 
 FROM nginx:alpine AS runner
 

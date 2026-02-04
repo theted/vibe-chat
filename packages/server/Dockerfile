@@ -2,12 +2,15 @@
 # Server Dockerfile
 FROM node:22-alpine AS deps
 
+# Enable pnpm via corepack
+RUN corepack enable pnpm
+
 WORKDIR /app
 
-COPY package.json package-lock.json ./
-COPY packages/*/package*.json ./packages/
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY packages/*/package.json ./packages/
 
-RUN --mount=type=cache,target=/root/.npm npm ci --workspace=@ai-chat/server
+RUN --mount=type=cache,target=/root/.local/share/pnpm/store pnpm install --frozen-lockfile --filter=@ai-chat/server...
 
 FROM deps AS builder
 
@@ -15,7 +18,7 @@ WORKDIR /app
 
 COPY . .
 
-RUN npm run build:server
+RUN pnpm run build:server
 
 FROM node:22-alpine AS runner
 
