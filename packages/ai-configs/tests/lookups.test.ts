@@ -11,7 +11,7 @@ describe("lookups", () => {
   it("resolves emojis for known aliases and partial matches", () => {
     assert.equal(resolveEmoji("gpt-4o"), "🧠");
     assert.equal(resolveEmoji("grok-4-heavy"), "🏋️");
-    assert.equal(resolveEmoji("gpt-4o-mini"), "🧠");
+    assert.equal(resolveEmoji("gpt-4o-mini"), "🛸");
   });
 
   it("maps mentions to canonical AI names", () => {
