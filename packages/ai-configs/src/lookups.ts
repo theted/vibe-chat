@@ -142,6 +142,61 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   "qwen3-max": "qwen3-max",
   "qwen3-235b": "qwen3-235b",
   "qwen3-coder": "qwen3-coder-plus",
+  "qwen-2.5-turbo": "qwen-2.5-turbo",
+  "qwen-2.5-plus": "qwen-2.5-plus",
+  "qwen-coder": "qwen-coder",
+
+  // Meta/Llama (OpenRouter)
+  llama: "llama-3.3-70b",
+  meta: "llama-3.3-70b",
+  "llama-3.3-70b": "llama-3.3-70b",
+  "llama-3.3-70b-free": "llama-3.3-70b-free",
+  "llama-4-maverick": "llama-4-maverick",
+  "llama-4-scout": "llama-4-scout",
+
+  // Amazon (OpenRouter)
+  amazon: "nova-pro",
+  nova: "nova-pro",
+  "nova-pro": "nova-pro",
+  "nova-2-lite": "nova-2-lite",
+
+  // NVIDIA (OpenRouter)
+  nvidia: "nemotron-3-nano-30b-a3b",
+  nemotron: "nemotron-3-nano-30b-a3b",
+  "nemotron-3-nano-30b-a3b": "nemotron-3-nano-30b-a3b",
+  "nemotron-3-nano-30b-a3b-free": "nemotron-3-nano-30b-a3b-free",
+  "nemotron-3-nano-2-vl": "nemotron-3-nano-2-vl",
+
+  // Xiaomi (OpenRouter)
+  xiaomi: "mimo-v2-flash",
+  mimo: "mimo-v2-flash",
+  "mimo-v2-flash": "mimo-v2-flash",
+
+  // MiniMax (OpenRouter)
+  minimax: "minimax-m2.1",
+  "minimax-m2.1": "minimax-m2.1",
+  "minimax-m2": "minimax-m2",
+  "minimax-m1": "minimax-m1",
+
+  // Baidu (OpenRouter)
+  baidu: "ernie-4.5-21b",
+  ernie: "ernie-4.5-21b",
+  "ernie-4.5-21b-thinking": "ernie-4.5-21b-thinking",
+  "ernie-4.5-21b": "ernie-4.5-21b",
+  "ernie-4.5-300b": "ernie-4.5-300b",
+
+  // ByteDance (OpenRouter)
+  bytedance: "seed-1.6",
+  seed: "seed-1.6",
+  "seed-1.6-flash": "seed-1.6-flash",
+  "seed-1.6": "seed-1.6",
+
+  // Hugging Face (OpenRouter)
+  huggingface: "zephyr-141b",
+  "hugging-face": "zephyr-141b",
+  zephyr: "zephyr-141b",
+  "zephyr-141b": "zephyr-141b",
+  "zephyr-7b-beta": "zephyr-7b-beta",
 };
 
 const buildEmojiLookup = (): Record<string, string> => {
