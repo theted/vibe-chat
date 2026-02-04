@@ -1,6 +1,14 @@
 node_modules
 npm-debug.log
 dist
+.git
+.github
+*.md
+tests
+**/*.test.ts
+**/*.test.tsx
+.env*
+!.env.example
 ai-chat-realtime/packages/client/node_modules
 ai-chat-realtime/packages/client/dist
 ai-chat-realtime/packages/server/node_modules
