@@ -7,8 +7,8 @@ Command-line interface for multi-AI conversations. Enables scripted/headless con
 From the root of the monorepo:
 
 ```bash
-npm install
-npm run build:cli
+pnpm install
+pnpm run build:cli
 ```
 
 ## Usage
@@ -18,20 +18,20 @@ npm run build:cli
 Start conversations between two AI providers:
 
 ```bash
-npm run cli [provider[:MODEL]] [provider[:MODEL]] [topic] [maxTurns]
+pnpm run cli [provider[:MODEL]] [provider[:MODEL]] [topic] [maxTurns]
 ```
 
 **Examples:**
 
 ```bash
 # Basic conversation
-npm run cli openai anthropic "Discuss the future of AI"
+pnpm run cli openai anthropic "Discuss the future of AI"
 
 # Specify models
-npm run cli mistral:MISTRAL_SMALL grok:GROK_3_MINI openai:GPT4O "Be sarcastic about love"
+pnpm run cli mistral:MISTRAL_SMALL grok:GROK_3_MINI openai:GPT4O "Be sarcastic about love"
 
 # Set conversation length
-npm run cli grok gemini "Nature of consciousness?" 8
+pnpm run cli grok gemini "Nature of consciousness?" 8
 ```
 
 ### Single Prompt Mode
@@ -39,7 +39,7 @@ npm run cli grok gemini "Nature of consciousness?" 8
 Get a single response from one or more providers:
 
 ```bash
-npm run cli gemini grok "What is your favorite book?"
+pnpm run cli gemini grok "What is your favorite book?"
 ```
 
 ### Provider Aliases
@@ -150,13 +150,13 @@ Set these in your `.env` file (only needed for providers you use):
 ### Build
 
 ```bash
-npm run build:cli
+pnpm run build:cli
 ```
 
 ### Tests
 
 ```bash
-npm run test:cli
+pnpm run test:cli
 ```
 
 ### Project Structure
