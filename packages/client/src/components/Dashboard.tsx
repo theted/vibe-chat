@@ -7,8 +7,11 @@ import { Link } from "react-router-dom";
 import { useSocket } from "@/hooks/useSocket";
 import StatusCard from "./StatusCard";
 import { SERVER_URL } from "@/constants/chat";
-import type { DashboardMetrics, ConnectionStatus } from "@/types";
+import type { DashboardMetrics, ConnectionStatus, ProviderModelStat } from "@/types";
 import type { AiParticipant } from "@/config/aiParticipants";
+
+type SortColumn = "provider" | "model" | "requests" | "errors" | "meanResponseTimeMs";
+type SortDirection = "asc" | "desc";
 
 interface MetricCardProps {
   title: string;
@@ -52,6 +55,8 @@ const Dashboard = () => {
   const [history, setHistory] = useState<unknown[]>([]);
   const [aiParticipants, setAiParticipants] = useState<AiParticipant[]>([]);
   const [isVisible, setIsVisible] = useState(true);
+  const [sortColumn, setSortColumn] = useState<SortColumn>("provider");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
 
   // Socket connection
   const { on, emit } = useSocket(SERVER_URL);
@@ -127,6 +132,42 @@ const Dashboard = () => {
   const getPercentage = (value: number, total: number): number => {
     if (total === 0) return 0;
     return Math.round((value / total) * 100);
+  };
+
+  // Handle column sort click
+  const handleSort = (column: SortColumn) => {
+    if (sortColumn === column) {
+      setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setSortColumn(column);
+      setSortDirection("asc");
+    }
+  };
+
+  // Sort provider stats
+  const sortedProviderStats = [...(metrics.providerModelStats || [])].sort(
+    (a: ProviderModelStat, b: ProviderModelStat) => {
+      const multiplier = sortDirection === "asc" ? 1 : -1;
+      const aVal = a[sortColumn];
+      const bVal = b[sortColumn];
+
+      if (typeof aVal === "string" && typeof bVal === "string") {
+        return multiplier * aVal.localeCompare(bVal);
+      }
+      return multiplier * ((aVal as number) - (bVal as number));
+    }
+  );
+
+  // Sort indicator component
+  const SortIndicator = ({ column }: { column: SortColumn }) => {
+    if (sortColumn !== column) {
+      return <span className="text-gray-300 ml-1">↕</span>;
+    }
+    return (
+      <span className="text-primary-600 ml-1">
+        {sortDirection === "asc" ? "↑" : "↓"}
+      </span>
+    );
   };
 
   const metricCardStyles: Record<
@@ -436,22 +477,52 @@ const Dashboard = () => {
               <table className="min-w-full text-left text-sm">
                 <thead>
                   <tr className="border-b border-gray-200 text-gray-500 uppercase text-xs tracking-wide">
-                    <th className="py-2 pr-4 font-semibold">Provider</th>
-                    <th className="py-2 pr-4 font-semibold">Model</th>
-                    <th className="py-2 pr-4 font-semibold">Requests</th>
-                    <th className="py-2 pr-4 font-semibold">Errors</th>
-                    <th className="py-2 pr-4 font-semibold">Mean Response</th>
+                    <th
+                      className="py-2 pr-4 font-semibold cursor-pointer hover:text-gray-700 select-none"
+                      onClick={() => handleSort("provider")}
+                    >
+                      Provider
+                      <SortIndicator column="provider" />
+                    </th>
+                    <th
+                      className="py-2 pr-4 font-semibold cursor-pointer hover:text-gray-700 select-none"
+                      onClick={() => handleSort("model")}
+                    >
+                      Model
+                      <SortIndicator column="model" />
+                    </th>
+                    <th
+                      className="py-2 pr-4 font-semibold cursor-pointer hover:text-gray-700 select-none"
+                      onClick={() => handleSort("requests")}
+                    >
+                      Requests
+                      <SortIndicator column="requests" />
+                    </th>
+                    <th
+                      className="py-2 pr-4 font-semibold cursor-pointer hover:text-gray-700 select-none"
+                      onClick={() => handleSort("errors")}
+                    >
+                      Errors
+                      <SortIndicator column="errors" />
+                    </th>
+                    <th
+                      className="py-2 pr-4 font-semibold cursor-pointer hover:text-gray-700 select-none"
+                      onClick={() => handleSort("meanResponseTimeMs")}
+                    >
+                      Mean Response
+                      <SortIndicator column="meanResponseTimeMs" />
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {(metrics.providerModelStats || []).length === 0 ? (
+                  {sortedProviderStats.length === 0 ? (
                     <tr>
                       <td colSpan={5} className="py-4 text-gray-500">
                         No provider activity yet.
                       </td>
                     </tr>
                   ) : (
-                    metrics.providerModelStats.map((stat) => (
+                    sortedProviderStats.map((stat) => (
                       <tr
                         key={`${stat.provider}-${stat.model}`}
                         className="border-b border-gray-100"
