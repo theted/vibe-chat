@@ -22,7 +22,7 @@
     "prepublishOnly": "bun run clean && bun run build",
     "test": "bun run test:integration:mocked",
     "test:integration:prepare": "bun run build && tsc -p tsconfig.tests.json && bun ../../scripts/resolve-test-aliases.mjs .",
-    "test:integration:mocked": "bun run test:integration:prepare && bun --test dist-tests/tests/**/*.test.js",
+    "test:integration:mocked": "bun run test:integration:prepare && bun test dist-tests/tests/**/*.test.js",
     "test:grok": "bun run test:integration:prepare && bun dist-tests/tests/integration-ok-grok.js",
     "test:openai": "bun run test:integration:prepare && bun dist-tests/tests/integration-ok-openai.js",
     "test:mistral": "bun run test:integration:prepare && bun dist-tests/tests/integration-ok-mistral.js",
