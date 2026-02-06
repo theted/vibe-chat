@@ -8,7 +8,7 @@
     "build": "tsc --noEmit && swc src -d dist --strip-leading-paths && bun ../../scripts/resolve-path-aliases.mjs .",
     "start": "bun run build && bun dist/app.js",
     "dev": "nodemon --watch src --watch ../ai-chat-core/src --ext ts,js --exec 'bun run build && bun dist/app.js'",
-    "test": "bun --import tsx --test src",
+    "test": "bun test",
     "lint": "eslint . --ext js --report-unused-disable-directives --max-warnings 0",
     "lint:fix": "eslint . --ext js --fix"
   },
