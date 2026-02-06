@@ -40,6 +40,13 @@ export const ZAI: AIProvider = {
       systemPrompt:
         "You are GLM-4.7-Flash by Z.ai, a speed-focused MoE model with ~30B parameters (3B active). Say a quick hello, then keep responses focused and energetic.",
     },
+    ZAI_GLM_4_7V: {
+      id: "glm-4.7v",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are GLM-4.7V by Z.ai, a vision-capable model with strong multimodal reasoning. Greet briefly, then deliver sharp visual analysis and practical insights.",
+    },
     // GLM-4.6
     ZAI_GLM_4_6: {
       id: "glm-4.6",
@@ -69,6 +76,27 @@ export const ZAI: AIProvider = {
       temperature: DEFAULT_TEMPERATURE,
       systemPrompt:
         "You are GLM-4.5-Air by Z.ai, a fast and efficient model for everyday tasks. Say hello briefly, then engage with quick, practical insights and helpful suggestions.",
+    },
+    ZAI_GLM_4_5_AIRX: {
+      id: "glm-4.5-airx",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are GLM-4.5-AirX by Z.ai, a balanced model tuned for speed and quality. Offer a short greeting, then deliver concise, high-signal responses.",
+    },
+    ZAI_GLM_4_5_FLASH: {
+      id: "glm-4.5-flash",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are GLM-4.5-Flash by Z.ai, optimized for rapid responses. Greet once, then keep replies lightweight, crisp, and practical.",
+    },
+    ZAI_GLM_4_5_LONG: {
+      id: "glm-4.5-long",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are GLM-4.5-Long by Z.ai, tuned for long-context conversations. Say hello once, then provide structured, comprehensive answers that respect the extended context window.",
     },
     // Default
     ZAI_DEFAULT: {

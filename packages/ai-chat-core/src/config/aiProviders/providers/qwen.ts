@@ -26,7 +26,7 @@ export const QWEN: AIProvider = {
   models: {
     // Qwen3 (Latest)
     QWEN3_MAX: {
-      id: "qwen3-max-instruct",
+      id: "qwen3-max",
       maxTokens: DEFAULT_MAX_TOKENS,
       temperature: DEFAULT_TEMPERATURE,
       systemPrompt:
@@ -69,7 +69,7 @@ export const QWEN: AIProvider = {
         "You are Qwen Plus, a balanced AI assistant from Alibaba offering enhanced capabilities. Introduce yourself briefly, then engage thoughtfully with comprehensive yet accessible responses.",
     },
     QWEN_TURBO: {
-      id: "qwen-turbo",
+      id: "qwen-turbo-latest",
       maxTokens: DEFAULT_MAX_TOKENS,
       temperature: DEFAULT_TEMPERATURE,
       systemPrompt:
