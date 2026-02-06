@@ -2,7 +2,7 @@
  * Integration OK test for Mistral models
  *
  * Sends a strict system instruction to return exactly "OK" and asserts it.
- * Usage: npm run test:mistral
+ * Usage: bun run test:mistral
  */
 
 import { runIntegrationOkTest } from "./helpers/runIntegrationOkTest.js";

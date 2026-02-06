@@ -144,6 +144,8 @@ const buildEmojiLookup = (): Record<string, string> => {
     ["gemini", "gemini-2.5-flash"], // 💎
     ["google", "gemini-2.5-flash"],
     ["bard", "gemini-2.5-flash"],
+    ["kimi", "kimi-k2.5"], // 🌕
+    ["moonshot", "kimi-k2.5"],
   ]);
 
   const addEntry = (key: string, canonicalAlias: string) => {
