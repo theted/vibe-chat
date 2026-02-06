@@ -20,7 +20,7 @@
   ],
   "scripts": {
     "build": "tsc",
-    "prepare": "npm run build"
+    "prepare": "bun run build"
   },
   "license": "MIT",
   "dependencies": {

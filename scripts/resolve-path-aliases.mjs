@@ -5,7 +5,7 @@ const [packageDirArg, tsconfigArg] = process.argv.slice(2);
 
 if (!packageDirArg) {
   throw new Error(
-    "Usage: node scripts/resolve-path-aliases.mjs <package-dir> [tsconfig-file]",
+    "Usage: bun scripts/resolve-path-aliases.mjs <package-dir> [tsconfig-file]",
   );
 }
 

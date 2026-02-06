@@ -1,6 +1,6 @@
 /**
  * Integration OK test for Anthropic models
- * Usage: npm run test:anthropic
+ * Usage: bun run test:anthropic
  */
 
 import { runIntegrationOkTest } from "./helpers/runIntegrationOkTest.js";

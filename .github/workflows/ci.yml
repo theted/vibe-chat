@@ -23,6 +23,11 @@ jobs:
           cache: "pnpm"
           cache-dependency-path: pnpm-lock.yaml
 
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "latest"
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
@@ -33,16 +38,6 @@ jobs:
           key: ${{ runner.os }}-turbo-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-turbo-
-
-      - name: Cache build outputs
-        uses: actions/cache@v4
-        with:
-          path: |
-            packages/*/dist
-            packages/*/build
-          key: ${{ runner.os }}-build-${{ hashFiles('packages/*/src/**') }}
-          restore-keys: |
-            ${{ runner.os }}-build-
 
       - name: Build packages
         run: pnpm run build

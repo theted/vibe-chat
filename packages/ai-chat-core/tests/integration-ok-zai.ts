@@ -2,7 +2,7 @@
  * Integration OK test for Z.ai models
  *
  * Sends a strict system instruction to return exactly "OK" and asserts it.
- * Usage: npm run test:zai
+ * Usage: bun run test:zai
  */
 
 import { runIntegrationOkTest } from "./helpers/runIntegrationOkTest.js";
