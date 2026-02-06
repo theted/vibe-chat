@@ -5,7 +5,15 @@ import type { AiParticipant } from "./types.js";
  * Organized by provider for maintainability.
  */
 export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
-  // Anthropic Models (Latest 4.5 recommended)
+  // Anthropic Models (Opus 4.6 latest)
+  {
+    id: "ANTHROPIC_CLAUDE_OPUS_4_6",
+    name: "Claude Opus 4.6",
+    alias: "claude-opus-4-6",
+    provider: "Anthropic",
+    status: "active",
+    emoji: "🎶",
+  },
   {
     id: "ANTHROPIC_CLAUDE_SONNET_4_5",
     name: "Claude 4.5 Sonnet",
@@ -27,7 +35,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     name: "Claude 4.5 Opus",
     alias: "opus-4-5",
     provider: "Anthropic",
-    status: "active",
+    status: "inactive",
     emoji: "🎻",
   },
   {
@@ -219,6 +227,22 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     emoji: "🏋️",
   },
   {
+    id: "GROK_GROK_4_1_FAST_NON_REASONING",
+    name: "Grok 4.1 Fast",
+    alias: "grok-4.1-fast",
+    provider: "xAI",
+    status: "active",
+    emoji: "🚄",
+  },
+  {
+    id: "GROK_GROK_4_1_FAST_REASONING",
+    name: "Grok 4.1 Fast Reasoning",
+    alias: "grok-4.1-reasoning",
+    provider: "xAI",
+    status: "active",
+    emoji: "🔮",
+  },
+  {
     id: "GROK_GROK_3",
     name: "Grok 3",
     alias: "grok",
@@ -385,6 +409,14 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     emoji: "🛠️",
   },
   {
+    id: "MISTRAL_DEVSTRAL_SMALL",
+    name: "Devstral Small 2",
+    alias: "devstral-small",
+    provider: "Mistral AI",
+    status: "active",
+    emoji: "🔧",
+  },
+  {
     id: "MISTRAL_MINISTRAL_8B",
     name: "Ministral 8B",
     alias: "ministral-8b",
@@ -411,7 +443,15 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     emoji: "🔭",
   },
 
-  // Moonshot/Kimi Models (Kimi Latest)
+  // Moonshot/Kimi Models (Kimi K2.5 Latest)
+  {
+    id: "KIMI_KIMI_K2_5",
+    name: "Kimi K2.5",
+    alias: "kimi-k2.5",
+    provider: "Moonshot AI",
+    status: "active",
+    emoji: "🌑",
+  },
   {
     id: "KIMI_KIMI_LATEST",
     name: "Kimi Latest",

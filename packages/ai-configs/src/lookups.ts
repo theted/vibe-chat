@@ -16,7 +16,8 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   anthropic: "claude-sonnet-4-5",
   haiku: "claude-haiku-4-5",
   sonnet: "claude-sonnet-4-5",
-  opus: "opus-4-5",
+  opus: "claude-opus-4-6",
+  "claude-opus-4-6": "claude-opus-4-6",
   "claude-3-7-sonnet": "claude-3-7-sonnet",
   "claude-3-5-haiku": "haiku-3-5",
   "claude-haiku-4-5": "claude-haiku-4-5",
@@ -24,6 +25,7 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   "claude-sonnet-4-5": "claude-sonnet-4-5",
   "claude-opus-4": "claude-opus-4",
   "opus-4-5": "opus-4-5",
+  "claude-opus-4-5": "opus-4-5",
   "claude-opus-4-1": "claude-opus-4-1",
 
   // OpenAI/GPT
@@ -60,6 +62,9 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   "grok-4-fast": "grok-4-fast",
   "grok-4-reasoning": "grok-4-reasoning",
   "grok-4-heavy": "grok-4-heavy",
+  "grok-4.1": "grok-4.1-fast",
+  "grok-4.1-fast": "grok-4.1-fast",
+  "grok-4.1-reasoning": "grok-4.1-reasoning",
   "grok-code": "grok-code",
 
   // Google/Gemini
@@ -89,6 +94,7 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   "magistral-small": "magistral-small",
   "magistral-medium": "magistral-medium",
   codestral: "codestral",
+  "devstral-small": "devstral-small",
   "ministral-8b": "ministral-8b",
 
   // DeepSeek
@@ -98,12 +104,14 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   "deepseek-r1": "deepseek-r1",
 
   // Moonshot/Kimi
-  kimi: "kimi-latest",
+  kimi: "kimi-k2.5",
+  "kimi-k2.5": "kimi-k2.5",
+  "kimi-k2": "kimi-k2.5",
   "kimi-8k": "moonshot-v1-8k",
   "kimi-latest": "kimi-latest",
   "kimi-thinking": "kimi-thinking-preview",
   "kimi-thinking-preview": "kimi-thinking-preview",
-  moonshot: "kimi-latest",
+  moonshot: "kimi-k2.5",
   "moonshot-8k": "moonshot-v1-8k",
   "moonshot-32k": "moonshot-v1-32k",
   "moonshot-128k": "moonshot-v1-128k",

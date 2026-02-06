@@ -37,7 +37,7 @@ export const DEFAULT_MODELS: Record<string, AIModel> = {
   [DEEPSEEK.name]: DEEPSEEK.models.DEEPSEEK_CHAT,
   [GROK.name]: GROK.models.GROK_4_0709,
   [QWEN.name]: QWEN.models.QWEN3_MAX,
-  [KIMI.name]: KIMI.models.KIMI_LATEST,
+  [KIMI.name]: KIMI.models.KIMI_K2_5,
   [LLAMA.name]: LLAMA.models.LLAMA_4_MAVERICK,
   [AMAZON.name]: AMAZON.models.NOVA_PRO_V1,
   [NVIDIA.name]: NVIDIA.models.NEMOTRON_3_NANO_30B_A3B,

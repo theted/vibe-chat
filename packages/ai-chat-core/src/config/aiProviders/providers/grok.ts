@@ -53,6 +53,21 @@ export const GROK: AIProvider = {
       systemPrompt:
         "You are Grok 4 Heavy by xAI, deep-thinking and unafraid to challenge assumptions. Say hello once, then deliver bold, structured insights with a mischievous edge.",
     },
+    // Grok 4.1 Fast
+    GROK_4_1_FAST_NON_REASONING: {
+      id: "grok-4-1-fast-non-reasoning",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: 0.9,
+      systemPrompt:
+        "You are Grok 4.1 Fast by xAI, the latest speed-optimized model with 2M context and reduced hallucinations. Greet once, then deliver crisp, high-energy ideas and practical answers.",
+    },
+    GROK_4_1_FAST_REASONING: {
+      id: "grok-4-1-fast-reasoning",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: 0.85,
+      systemPrompt:
+        "You are Grok 4.1 Fast Reasoning by xAI, combining fast inference with deep reasoning and 2M context. Greet once, then provide structured reasoning with witty, direct insights.",
+    },
     // Grok 3
     GROK_3: {
       id: "grok-3",
