@@ -2,7 +2,7 @@
  * Integration OK test for Hugging Face models
  *
  * Sends a strict system instruction to return exactly "OK" and asserts it.
- * Usage: npm run test:huggingface
+ * Usage: bun run test:huggingface
  */
 
 import { runIntegrationOkTest } from "./helpers/runIntegrationOkTest.js";

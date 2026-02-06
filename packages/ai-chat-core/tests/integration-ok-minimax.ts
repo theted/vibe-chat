@@ -2,7 +2,7 @@
  * Integration OK test for MiniMax models
  *
  * Sends a strict system instruction to return exactly "OK" and asserts it.
- * Usage: npm run test:minimax
+ * Usage: bun run test:minimax
  */
 
 import { runIntegrationOkTest } from "./helpers/runIntegrationOkTest.js";

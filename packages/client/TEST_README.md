@@ -38,19 +38,19 @@ npm test
 ### Run Tests in Watch Mode
 
 ```bash
-npm test -- --watch
+bun run test -- --watch
 ```
 
 ### Run Tests with UI
 
 ```bash
-npm run test:ui
+bun run test:ui
 ```
 
 ### Generate Coverage Report
 
 ```bash
-npm run test:coverage
+bun run test:coverage
 ```
 
 ## Test Framework

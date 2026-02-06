@@ -1,7 +1,7 @@
 /**
  * Comprehensive integration test for Gemini models
  *
- * Usage: npm run test:gemini
+ * Usage: bun run test:gemini
  */
 
 import { runIntegrationOkTest } from "./helpers/runIntegrationOkTest.js";

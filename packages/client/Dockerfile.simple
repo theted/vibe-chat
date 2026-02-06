@@ -1,16 +1,13 @@
 # syntax=docker/dockerfile:1.4
 # Simplified Client Dockerfile for debugging
-FROM node:22-alpine
-
-# Enable pnpm via corepack
-RUN corepack enable pnpm
+FROM oven/bun:latest-alpine
 
 WORKDIR /app
 
 # Copy and build AI configs package
 COPY packages/ai-configs ./ai-configs
 WORKDIR /app/ai-configs
-RUN pnpm install && pnpm run build
+RUN bun install && bun run build
 
 # Ensure workspace-relative file dependency can resolve from /app
 RUN ln -s /app/ai-configs /ai-configs
@@ -18,16 +15,16 @@ RUN ln -s /app/ai-configs /ai-configs
 # Copy package files
 WORKDIR /app
 COPY packages/client/package.json ./
-RUN pnpm install
+RUN bun install
 
 # Copy all client files
 COPY packages/client/ ./
 
 # Build the app
-RUN pnpm run build
+RUN bun run build
 
 # Install serve to serve the built files
-RUN pnpm add -g serve
+RUN bun add -g serve
 
 # Expose port
 EXPOSE 3000

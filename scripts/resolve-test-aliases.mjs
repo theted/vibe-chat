@@ -4,7 +4,7 @@ import path from "node:path";
 const [packageDirArg] = process.argv.slice(2);
 
 if (!packageDirArg) {
-  throw new Error("Usage: node scripts/resolve-test-aliases.mjs <package-dir>");
+  throw new Error("Usage: bun scripts/resolve-test-aliases.mjs <package-dir>");
 }
 
 const packageDir = path.resolve(process.cwd(), packageDirArg);

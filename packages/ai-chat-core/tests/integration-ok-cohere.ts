@@ -2,7 +2,7 @@
  * Integration OK test for Cohere models
  *
  * Sends a strict system instruction to return exactly "OK" and asserts it.
- * Usage: npm run test:cohere
+ * Usage: bun run test:cohere
  */
 
 import { runIntegrationOkTest } from "./helpers/runIntegrationOkTest.js";
