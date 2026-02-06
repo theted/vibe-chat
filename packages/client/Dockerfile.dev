@@ -1,16 +1,13 @@
 # syntax=docker/dockerfile:1.4
 # Development Client Dockerfile with Live Reloading
-FROM node:22-alpine
-
-# Enable pnpm via corepack
-RUN corepack enable pnpm
+FROM oven/bun:latest-alpine
 
 WORKDIR /app
 
 # Copy and build AI configs package
 COPY packages/ai-configs ./ai-configs
 WORKDIR /app/ai-configs
-RUN pnpm install && pnpm run build
+RUN bun install && bun run build
 
 # Ensure workspace-relative file dependency can resolve from /app
 RUN ln -s /app/ai-configs /ai-configs
@@ -18,7 +15,7 @@ RUN ln -s /app/ai-configs /ai-configs
 # Copy package files
 WORKDIR /app
 COPY packages/client/package.json ./
-RUN pnpm install
+RUN bun install
 
 # Copy static files (will be overridden by volumes for live files)
 COPY packages/client/vite.config.js ./
@@ -32,4 +29,4 @@ COPY constants.ts ./
 EXPOSE 3000
 
 # Start Vite dev server with host binding for Docker
-CMD ["pnpm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "3000"]
+CMD ["bun", "run", "dev", "--", "--host", "0.0.0.0", "--port", "3000"]

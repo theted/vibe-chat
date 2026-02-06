@@ -1,5 +1,16 @@
 import { describe, it, expect } from "vitest";
+import { DEFAULT_AI_PARTICIPANTS } from "@/config/aiParticipants";
 import { normalizeAlias, resolveEmoji, mapMentionsToAiNames } from "./ai.ts";
+
+const resolveParticipantEmoji = (alias: string): string => {
+  const participant = DEFAULT_AI_PARTICIPANTS.find(
+    (entry) => entry.alias === alias,
+  );
+  if (!participant) {
+    throw new Error(`Missing AI participant alias: ${alias}`);
+  }
+  return participant.emoji;
+};
 
 describe("normalizeAlias", () => {
   it("should convert string to lowercase and remove non-alphanumeric characters", () => {
@@ -44,6 +55,7 @@ describe("resolveEmoji", () => {
   });
 
   it("should resolve direct matches for AI providers", () => {
+    const kimiEmoji = resolveParticipantEmoji("kimi-k2.5");
     expect(resolveEmoji("claude")).toBe("🎹");
     expect(resolveEmoji("anthropic")).toBe("🎹");
     expect(resolveEmoji("gpt")).toBe("🧠");
@@ -53,7 +65,7 @@ describe("resolveEmoji", () => {
     expect(resolveEmoji("gemini")).toBe("💎");
     expect(resolveEmoji("mistral")).toBe("🌪️");
     expect(resolveEmoji("cohere")).toBe("🔮");
-    expect(resolveEmoji("kimi")).toBe("🌕");
+    expect(resolveEmoji("kimi")).toBe(kimiEmoji);
     expect(resolveEmoji("perplexity")).toBe("🔊");
     expect(resolveEmoji("qwen")).toBe("🐉");
   });
@@ -92,10 +104,11 @@ describe("resolveEmoji", () => {
   });
 
   it("should handle aliases correctly", () => {
+    const kimiEmoji = resolveParticipantEmoji("kimi-k2.5");
     expect(resolveEmoji("xai")).toBe("🦾");
     expect(resolveEmoji("google")).toBe("💎");
     expect(resolveEmoji("bard")).toBe("💎");
-    expect(resolveEmoji("moonshot")).toBe("🌕");
+    expect(resolveEmoji("moonshot")).toBe(kimiEmoji);
   });
 });
 

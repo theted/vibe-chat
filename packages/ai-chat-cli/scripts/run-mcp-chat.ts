@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 
 import path from "path";
 import process from "process";
@@ -77,7 +77,7 @@ const main = async (): Promise<void> => {
       );
     } else {
       console.error(
-        `MCP embedding store missing or unreadable. Run 'npm run build && node dist/scripts/index-mcp-chat.js' first. (${error?.message || error})`,
+        `MCP embedding store missing or unreadable. Run 'bun run build && bun dist/scripts/index-mcp-chat.js' first. (${error?.message || error})`,
       );
     }
     process.exit(1);
