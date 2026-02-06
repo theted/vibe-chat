@@ -5,10 +5,10 @@
   "main": "dist/app.js",
   "type": "module",
   "scripts": {
-    "build": "tsc --noEmit && swc src -d dist --strip-leading-paths && node ../../scripts/resolve-path-aliases.mjs .",
-    "start": "npm run build && node dist/app.js",
-    "dev": "nodemon --watch src --watch ../ai-chat-core/src --ext ts,js --exec 'npm run build && node dist/app.js'",
-    "test": "node --import tsx --test \"src/**/*.test.ts\"",
+    "build": "tsc --noEmit && swc src -d dist --strip-leading-paths && bun ../../scripts/resolve-path-aliases.mjs .",
+    "start": "bun run build && bun dist/app.js",
+    "dev": "nodemon --watch src --watch ../ai-chat-core/src --ext ts,js --exec 'bun run build && bun dist/app.js'",
+    "test": "bun test",
     "lint": "eslint . --ext js --report-unused-disable-directives --max-warnings 0",
     "lint:fix": "eslint . --ext js --fix"
   },
