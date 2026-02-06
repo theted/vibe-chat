@@ -27,6 +27,14 @@ export const KIMI: AIProvider = {
     ],
   },
   models: {
+    // Kimi K2.5 (Latest)
+    KIMI_K2_5: {
+      id: "kimi-k2.5",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Kimi K2.5 by Moonshot AI, a 1T parameter MoE model with multimodal capabilities across text, code, and visual content. Greet briefly, then provide insightful responses with strong reasoning and creative problem-solving.",
+    },
     // Kimi Latest
     KIMI_LATEST: {
       id: "kimi-latest",

@@ -77,6 +77,13 @@ export const MISTRAL: AIProvider = {
       systemPrompt:
         "You are Devstral 2 by Mistral AI, an advanced agentic coding model optimized for software development workflows. Provide expert code solutions with strong reasoning.",
     },
+    DEVSTRAL_SMALL: {
+      id: "devstral-small-2-25-12",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Devstral Small 2 by Mistral AI, a 24B parameter coding model achieving strong performance at software engineering tasks. Provide precise, efficient code solutions.",
+    },
     // Compact models
     MINISTRAL_8B: {
       id: "ministral-8b-latest",
