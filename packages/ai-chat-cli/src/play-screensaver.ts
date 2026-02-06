@@ -3,7 +3,7 @@
  *
  * Continuously plays random conversation files using play.js.
  * Usage:
- *   node dist/play-screensaver.js
+ *   bun dist/play-screensaver.js
  *
  * Env overrides:
  *   SCREENSAVER_DELAY_MS   delay between replays (default: 1500)
@@ -36,7 +36,7 @@ let skipRequested = false;
 
 const playFile = (filePath: string): Promise<void> =>
   new Promise((resolve) => {
-    currentChild = spawn("node", [PLAY_SCRIPT, filePath], { stdio: "inherit" });
+    currentChild = spawn("bun", [PLAY_SCRIPT, filePath], { stdio: "inherit" });
     currentChild.on("exit", () => {
       currentChild = null;
       resolve();
@@ -50,7 +50,7 @@ const playFile = (filePath: string): Promise<void> =>
 const main = async (): Promise<void> => {
   console.log("Screensaver starting. Press Enter to skip, Ctrl+C to stop.\n");
   if (!fs.existsSync(PLAY_SCRIPT)) {
-    console.error(`Missing ${PLAY_SCRIPT}. Run "npm run build" first.`);
+    console.error(`Missing ${PLAY_SCRIPT}. Run "bun run build" first.`);
     process.exit(1);
   }
 

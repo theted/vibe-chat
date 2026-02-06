@@ -2,7 +2,7 @@
  * Conversation Playback (Terminal)
  *
  * Usage:
- *   node dist/play.js conversations/2025-09-10T17-44-19-366Z-we-re-stoned-bro-s.json
+ *   bun dist/play.js conversations/2025-09-10T17-44-19-366Z-we-re-stoned-bro-s.json
  *
  * Plays a saved conversation JSON as a live chat with typing animation.
  * - Small delay between keystrokes (typing simulation)
@@ -118,7 +118,7 @@ async function playConversation(filePath: string) {
 async function main(): Promise<void> {
   const fileArg = process.argv[2];
   if (!fileArg) {
-    console.error("Usage: node dist/play.js <path-to-conversation.json>");
+    console.error("Usage: bun dist/play.js <path-to-conversation.json>");
     process.exit(1);
   }
 
