@@ -7,7 +7,7 @@
  * Uses AI_PROVIDERS from @ai-chat/core as source of truth for available models.
  */
 
-import { AI_PROVIDERS, AI_DISPLAY_INFO } from "@ai-chat/core";
+import { AI_PROVIDERS, AI_DISPLAY_INFO, getParticipantById } from "@ai-chat/core";
 
 export type AIConfig = {
   providerKey: string;
@@ -35,27 +35,30 @@ export const ENABLED_AI_MODELS: string[] = [
   "OPENAI_GPT4_1_NANO",
   "OPENAI_O3",
   "OPENAI_O4_MINI",
-  // "OPENAI_GPT5",
-  // "OPENAI_GPT5_1",
-  // "OPENAI_GPT35_TURBO",
+  // inactive: "OPENAI_GPT5",
+  // inactive: "OPENAI_GPT5_1",
+  // inactive: "OPENAI_GPT35_TURBO",
 
   // Anthropic Models
-  "ANTHROPIC_CLAUDE3_7_SONNET",
-  "ANTHROPIC_CLAUDE3_5_HAIKU_20241022",
-  "ANTHROPIC_CLAUDE_HAIKU_4_5",
-  "ANTHROPIC_CLAUDE_SONNET_4",
+  "ANTHROPIC_CLAUDE_OPUS_4_6",
   "ANTHROPIC_CLAUDE_SONNET_4_5",
-  "ANTHROPIC_CLAUDE_OPUS_4_5",
-  "ANTHROPIC_CLAUDE_OPUS_4",
+  "ANTHROPIC_CLAUDE_HAIKU_4_5",
   "ANTHROPIC_CLAUDE_OPUS_4_1",
+  // inactive: "ANTHROPIC_CLAUDE_OPUS_4_5",
+  // inactive: "ANTHROPIC_CLAUDE_SONNET_4",
+  // inactive: "ANTHROPIC_CLAUDE_OPUS_4",
+  // inactive: "ANTHROPIC_CLAUDE3_7_SONNET",
+  // inactive: "ANTHROPIC_CLAUDE3_5_HAIKU_20241022",
 
   // xAI/Grok Models
-  "GROK_GROK_3",
-  "GROK_GROK_3_MINI",
   "GROK_GROK_4_0709",
   "GROK_GROK_4_FAST_NON_REASONING",
   "GROK_GROK_4_FAST_REASONING",
   "GROK_GROK_4_HEAVY",
+  "GROK_GROK_4_1_FAST_NON_REASONING",
+  "GROK_GROK_4_1_FAST_REASONING",
+  "GROK_GROK_3",
+  "GROK_GROK_3_MINI",
   "GROK_GROK_CODE_FAST_1",
 
   // Google/Gemini Models
@@ -79,6 +82,8 @@ export const ENABLED_AI_MODELS: string[] = [
   // "MISTRAL_MAGISTRAL_SMALL",
   // "MISTRAL_MAGISTRAL_MEDIUM",
   "MISTRAL_CODESTRAL",
+  "MISTRAL_DEVSTRAL",
+  "MISTRAL_DEVSTRAL_SMALL",
   "MISTRAL_MINISTRAL_8B",
 
   // DeepSeek Models
@@ -86,11 +91,12 @@ export const ENABLED_AI_MODELS: string[] = [
   "DEEPSEEK_DEEPSEEK_R1",
 
   // Moonshot/Kimi Models
+  "KIMI_KIMI_K2_5",
   "KIMI_KIMI_LATEST",
   "KIMI_KIMI_THINKING_PREVIEW",
-  // "KIMI_KIMI_8K",
-  // "KIMI_KIMI_32K",
-  // "KIMI_KIMI_128K",
+  // inactive: "KIMI_KIMI_8K",
+  // inactive: "KIMI_KIMI_32K",
+  // inactive: "KIMI_KIMI_128K",
 
   // Z.ai Models
   "ZAI_ZAI_DEFAULT",
@@ -119,7 +125,7 @@ export const ENABLED_AI_MODELS: string[] = [
   "QWEN_QWEN_PLUS",
   "QWEN_QWEN_TURBO",
   "QWEN_QWEN_FLASH",
-  // "QWEN_QWEN_MAX",
+  // inactive: "QWEN_QWEN_MAX",
 
   // Meta/Llama Models
   "LLAMA_LLAMA_3_3_70B_INSTRUCT",
@@ -162,6 +168,15 @@ const ENABLED_AI_MODEL_SET = new Set(ENABLED_AI_MODELS);
 
 const isModelEnabled = (providerKey: string, modelKey: string): boolean =>
   ENABLED_AI_MODEL_SET.has(`${providerKey}_${modelKey}`);
+
+/**
+ * Checks whether a model's participant entry is active.
+ * Models with status "inactive" in participants.ts are excluded from initialization.
+ */
+const isParticipantActive = (providerKey: string, modelKey: string): boolean => {
+  const participant = getParticipantById(`${providerKey}_${modelKey}`);
+  return participant?.status !== "inactive";
+};
 
 /**
  * Maps provider keys to their environment variable names
@@ -225,6 +240,7 @@ export const getAvailableAIConfigs = (): AIConfig[] => {
     const models = getProviderModels(providerKey);
     models.forEach((modelKey) => {
       if (!isModelEnabled(providerKey, modelKey)) return;
+      if (!isParticipantActive(providerKey, modelKey)) return;
       // Only add models that have display info configured
       const displayKey = `${providerKey}_${modelKey}`;
       if (AI_DISPLAY_INFO[displayKey]) {
@@ -281,6 +297,7 @@ export const getProviderAIConfigs = (
 
   return selectedModels
     .filter((modelKey) => isModelEnabled(providerKey, modelKey))
+    .filter((modelKey) => isParticipantActive(providerKey, modelKey))
     .filter((modelKey) => {
       const displayKey = `${providerKey}_${modelKey}`;
       return AI_DISPLAY_INFO[displayKey] !== undefined;
