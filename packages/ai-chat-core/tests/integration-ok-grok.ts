@@ -2,7 +2,7 @@
  * Integration OK test for Grok models
  *
  * Sends a strict system instruction to return exactly "OK" and asserts it.
- * Usage: npm run test:grok
+ * Usage: bun run test:grok
  */
 
 import { runIntegrationOkTest } from "./helpers/runIntegrationOkTest.js";

@@ -220,6 +220,8 @@ const buildEmojiLookup = (): Record<string, string> => {
     ["pplx", "sonar"],
     ["qwen", "qwen3-max"], // 🐲
     // Base provider aliases -> specific model with expected emoji
+    ["kimi", "kimi-k2.5"], // 🌕
+    ["moonshot", "kimi-k2.5"],
     ["gemini", "gemini-3-pro"], // 🔷
     ["google", "gemini-3-pro"],
     ["bard", "gemini-3-pro"],

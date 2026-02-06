@@ -6,7 +6,7 @@ const [packageDirArg] = process.argv.slice(2);
 
 if (!packageDirArg) {
   throw new Error(
-    "Usage: node scripts/watch-resolve-aliases.mjs <package-dir>",
+    "Usage: bun scripts/watch-resolve-aliases.mjs <package-dir>",
   );
 }
 

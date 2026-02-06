@@ -2,7 +2,7 @@
  * Integration OK test for Kimi models
  *
  * Sends a strict system instruction to return exactly "OK" and asserts it.
- * Usage: npm run test:kimi
+ * Usage: bun run test:kimi
  */
 
 import { runIntegrationOkTest } from "./helpers/runIntegrationOkTest.js";
