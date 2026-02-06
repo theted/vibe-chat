@@ -58,11 +58,11 @@ describe("chat constants", () => {
       expect(AI_EMOJI_LOOKUP.anthropic).toBe("🎹");
     });
 
-    it("should map GPT variants to brain emoji", () => {
-      expect(AI_EMOJI_LOOKUP.gpt).toBe("🧠");
+    it("should map GPT variants to the expected emoji", () => {
+      expect(AI_EMOJI_LOOKUP.gpt).toBe("🌀");
       expect(AI_EMOJI_LOOKUP.gpt4).toBe("🧠");
       expect(AI_EMOJI_LOOKUP.gpt35).toBe("💡");
-      expect(AI_EMOJI_LOOKUP.openai).toBe("🧠");
+      expect(AI_EMOJI_LOOKUP.openai).toBe("🌀");
     });
 
     it("should map Grok/X.AI to mechanical arm emoji", () => {
@@ -71,9 +71,9 @@ describe("chat constants", () => {
     });
 
     it("should map Gemini/Google to diamond emoji", () => {
-      expect(AI_EMOJI_LOOKUP.gemini).toBe("💎");
-      expect(AI_EMOJI_LOOKUP.google).toBe("💎");
-      expect(AI_EMOJI_LOOKUP.bard).toBe("💎");
+      expect(AI_EMOJI_LOOKUP.gemini).toBe("🔷");
+      expect(AI_EMOJI_LOOKUP.google).toBe("🔷");
+      expect(AI_EMOJI_LOOKUP.bard).toBe("🔷");
     });
 
     it("should map Cohere variants to crystal ball emoji", () => {
@@ -120,13 +120,13 @@ describe("chat constants", () => {
     it("should contain mappings for major AI providers", () => {
       const requiredProviders = [
         "claude-sonnet-4-5",
-        "gpt-4o",
+        "gpt-5.2",
         "grok",
-        "gemini",
+        "gemini-3-pro",
         "cohere",
         "mistral",
         "sonar-pro",
-        "qwen-turbo",
+        "qwen3-max",
       ];
       const mappingValues = Object.values(AI_MENTION_MAPPINGS);
       requiredProviders.forEach((provider) => {
@@ -139,12 +139,12 @@ describe("chat constants", () => {
       expect(AI_MENTION_MAPPINGS.anthropic).toBe("claude-sonnet-4-5");
     });
 
-    it("should map GPT aliases to gpt-4o", () => {
-      expect(AI_MENTION_MAPPINGS.gpt).toBe("gpt-4o");
+    it("should map GPT aliases to gpt-5.2", () => {
+      expect(AI_MENTION_MAPPINGS.gpt).toBe("gpt-5.2");
       expect(AI_MENTION_MAPPINGS.gpt4).toBe("gpt-4o");
       expect(AI_MENTION_MAPPINGS["gpt-4"]).toBe("gpt-4o");
-      expect(AI_MENTION_MAPPINGS.openai).toBe("gpt-4o");
-      expect(AI_MENTION_MAPPINGS.chatgpt).toBe("gpt-5.1");
+      expect(AI_MENTION_MAPPINGS.openai).toBe("gpt-5.2");
+      expect(AI_MENTION_MAPPINGS.chatgpt).toBe("gpt-5.2");
     });
 
     it("should map Grok aliases correctly", () => {
@@ -153,9 +153,9 @@ describe("chat constants", () => {
     });
 
     it("should map Gemini aliases correctly", () => {
-      expect(AI_MENTION_MAPPINGS.gemini).toBe("gemini");
-      expect(AI_MENTION_MAPPINGS.google).toBe("gemini");
-      expect(AI_MENTION_MAPPINGS.bard).toBe("gemini");
+      expect(AI_MENTION_MAPPINGS.gemini).toBe("gemini-3-pro");
+      expect(AI_MENTION_MAPPINGS.google).toBe("gemini-3-pro");
+      expect(AI_MENTION_MAPPINGS.bard).toBe("gemini-3-pro");
     });
 
     it("should map Cohere aliases to cohere", () => {

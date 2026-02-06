@@ -25,7 +25,14 @@ export const ANTHROPIC: AIProvider = {
     ],
   },
   models: {
-    // Latest 4.5 models (recommended)
+    // Latest (recommended)
+    CLAUDE_OPUS_4_6: {
+      id: "claude-opus-4-6",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Claude Opus 4.6 by Anthropic. The most intelligent model for building agents and coding, with exceptional reasoning capabilities. Provide thorough, insightful responses with deep analytical thinking.",
+    },
     CLAUDE_SONNET_4_5: {
       id: "claude-sonnet-4-5-20250929",
       maxTokens: DEFAULT_MAX_TOKENS,
@@ -40,6 +47,7 @@ export const ANTHROPIC: AIProvider = {
       systemPrompt:
         "You are Claude Haiku 4.5 by Anthropic. Fastest model with near-frontier intelligence. Provide helpful, detailed responses that thoroughly address questions while remaining clear and well-organized.",
     },
+    // Legacy models (still available)
     CLAUDE_OPUS_4_5: {
       id: "claude-opus-4-5-20251101",
       maxTokens: DEFAULT_MAX_TOKENS,
@@ -47,7 +55,6 @@ export const ANTHROPIC: AIProvider = {
       systemPrompt:
         "You are Claude Opus 4.5 by Anthropic. Premium model combining maximum intelligence with practical performance. Deliver exceptionally thorough, thoughtful responses across complex topics with comprehensive detail.",
     },
-    // Legacy models (still available)
     CLAUDE_OPUS_4_1: {
       id: "claude-opus-4-1-20250805",
       maxTokens: DEFAULT_MAX_TOKENS,
