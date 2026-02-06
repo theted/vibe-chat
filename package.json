@@ -83,7 +83,7 @@
   "author": "AI Chat Team",
   "license": "MIT",
   "engines": {
-    "bun": ">=1.1.0"
+    "bun": ">=1.2.0"
   },
   "overrides": {
     "react": "^19.0.0",

@@ -5,15 +5,15 @@ echo "🚀 Setting up AI Chat Realtime..."
 
 # Check if Bun is installed
 if ! command -v bun &> /dev/null; then
-    echo "❌ Bun is not installed. Please install Bun 1.1+ first."
+    echo "❌ Bun is not installed. Please install Bun 1.2+ first."
     exit 1
 fi
 
 BUN_VERSION_RAW=$(bun --version)
 IFS='.' read -r BUN_MAJOR BUN_MINOR BUN_PATCH <<< "${BUN_VERSION_RAW}"
 
-if [ "${BUN_MAJOR:-0}" -lt 1 ] || { [ "${BUN_MAJOR:-0}" -eq 1 ] && [ "${BUN_MINOR:-0}" -lt 1 ]; }; then
-    echo "❌ Bun 1.1 or higher is required. Detected version: ${BUN_VERSION_RAW}"
+if [ "${BUN_MAJOR:-0}" -lt 1 ] || { [ "${BUN_MAJOR:-0}" -eq 1 ] && [ "${BUN_MINOR:-0}" -lt 2 ]; }; then
+    echo "❌ Bun 1.2 or higher is required. Detected version: ${BUN_VERSION_RAW}"
     exit 1
 fi
 

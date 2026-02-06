@@ -9,9 +9,9 @@
   },
   "scripts": {
     "build": "tsc && bun ../../scripts/resolve-path-aliases.mjs .",
-    "start": "npm run build && bun dist/index.js",
+    "start": "bun run build && bun dist/index.js",
     "dev": "tsc --watch & bun --watch dist/index.js",
-    "test": "npx tsx --test tests/integration/*.test.ts"
+    "test": "bunx tsx --test tests/integration/*.test.ts"
   },
   "dependencies": {
     "@ai-chat/core": "file:../ai-chat-core",

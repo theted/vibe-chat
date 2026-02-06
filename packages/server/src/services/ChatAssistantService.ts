@@ -181,7 +181,7 @@ export class ChatAssistantService {
         );
         console.warn(`[ChatAssistant] To create the collection, either:`);
         console.warn(
-          `[ChatAssistant]   1. Run: npm run build && bun dist/scripts/index-mcp-chat.js`,
+          `[ChatAssistant]   1. Run: bun run build && bun dist/scripts/index-mcp-chat.js`,
         );
         console.warn(
           `[ChatAssistant]   2. Set CHAT_ASSISTANT_AUTO_INDEX=true and restart`,
@@ -312,7 +312,7 @@ export class ChatAssistantService {
           question,
           answer: [
             "I can't reach the shared knowledge index right now.",
-            `Check that the Chroma service is running at ${this.chromaUrl} and try re-indexing with \`npm run build && bun dist/scripts/index-mcp-chat.js\`.`,
+            `Check that the Chroma service is running at ${this.chromaUrl} and try re-indexing with \`bun run build && bun dist/scripts/index-mcp-chat.js\`.`,
           ].join(" "),
         };
       }

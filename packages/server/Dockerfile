@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.4
 # Server Dockerfile
-FROM oven/bun:1.1.38-alpine AS deps
+FROM oven/bun:latest-alpine AS deps
 
 WORKDIR /app
 
@@ -22,7 +22,7 @@ COPY . .
 
 RUN bun run build:server
 
-FROM oven/bun:1.1.38-alpine AS runner
+FROM oven/bun:latest-alpine AS runner
 
 WORKDIR /app
 
