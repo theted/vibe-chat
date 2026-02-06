@@ -90,71 +90,94 @@ npm run docker:clean  # Clean up containers and volumes
 
 Current defaults and IDs (see `packages/ai-chat-core/src/config/aiProviders`):
 
+> Models marked with `(default)` are the provider default. Models are controlled via `participants.ts` (status) and `ENABLED_AI_MODELS` in the server config. See `AGENTS.md` for model management guidelines.
+
 ### OpenAI ([API keys](https://platform.openai.com/api-keys))
 
+- `GPT5_2` (default) -> `gpt-5.2` (flagship reasoning)
+- `GPT5_2_PRO` -> `gpt-5.2-pro` (extended compute)
+- `GPT5_MINI` -> `gpt-5-mini` (fast brainstorming)
+- `GPT5_NANO` -> `gpt-5-nano` (lightweight)
 - `GPT4O` -> `gpt-4o`
 - `GPT4_1` -> `gpt-4.1` (specialized for coding)
-- `GPT5` -> `gpt-5` (most advanced with multimodal)
-- `O3` -> `o3-2025-04-16` (intelligent reasoning)
-- `O3_MINI` -> `o3-mini` (cost-efficient reasoning)
+- `O3` -> `o3` (intelligent reasoning)
 - `O4_MINI` -> `o4-mini` (fast reasoning for math/coding)
-- `GPT35_TURBO` -> `gpt-3.5-turbo`
 
 ### Anthropic ([API keys](https://console.anthropic.com/settings/keys))
 
-- `CLAUDE3_7_SONNET` -> `claude-3-7-sonnet-20250219` (hybrid reasoning)
-- `CLAUDE_SONNET_4_5` (default) -> `claude-sonnet-4-5` (best coding model)
-- `CLAUDE_OPUS_4_5` -> `claude-opus-4-5`
-- `CLAUDE_OPUS_4_1` -> `claude-opus-4-1` (industry leader for coding/agents)
+- `CLAUDE_OPUS_4_6` -> `claude-opus-4-6` (most intelligent, agents/coding)
+- `CLAUDE_SONNET_4_5` (default) -> `claude-sonnet-4-5-20250929` (best balance)
+- `CLAUDE_HAIKU_4_5` -> `claude-haiku-4-5-20251001` (fastest)
+- `CLAUDE_OPUS_4_1` -> `claude-opus-4-1-20250805`
 
 ### Mistral ([API keys](https://console.mistral.ai/api-keys))
 
-- `MISTRAL_LARGE` -> `mistral-large-latest`
-- `MISTRAL_MEDIUM` -> `mistral-medium-latest`
-- `MISTRAL_SMALL` -> `mistral-small-latest`
-- `MAGISTRAL_SMALL` -> `magistral-small-2506`
-- `MAGISTRAL_MEDIUM` -> `magistral-medium-2506`
+- `MISTRAL_LARGE` (default) -> `mistral-large-latest` (Mistral Large 3, MoE 41B active)
+- `MISTRAL_MEDIUM` -> `mistral-medium-2508`
+- `MISTRAL_SMALL` -> `mistral-small-2503`
 - `CODESTRAL` -> `codestral-latest`
+- `DEVSTRAL` -> `devstral-latest` (agentic coding)
+- `DEVSTRAL_SMALL` -> `devstral-small-2-25-12` (24B coding)
 
 ### Gemini ([API keys](https://aistudio.google.com/app/apikey))
 
-- `GEMINI_PRO` -> `gemini-2.0-flash-exp`
-- `GEMINI_FLASH` -> `gemini-2.0-flash`
-- `GEMINI_25` (default) -> `gemini-2.5-pro`
-- `GEMINI_3` -> `gemini-3.0-pro`
+- `GEMINI_3_PRO` (default) -> `gemini-3-pro-preview` (reasoning + agentic)
+- `GEMINI_3_FLASH` -> `gemini-3-flash-preview`
+- `GEMINI_2_5_PRO` -> `gemini-2.5-pro`
+- `GEMINI_2_5_FLASH` -> `gemini-2.5-flash`
+- `GEMINI_2_5_FLASH_LITE` -> `gemini-2.5-flash-lite`
 
 ### DeepSeek ([API keys](https://platform.deepseek.com/api_keys))
 
-- `DEEPSEEK_CHAT` -> `deepseek-chat`
-- `DEEPSEEK_V3` -> `deepseek-v3`
-- `DEEPSEEK_V3_2` -> `deepseek-v3.2`
+- `DEEPSEEK_CHAT` (default) -> `deepseek-chat` (V3.1)
 - `DEEPSEEK_R1` -> `deepseek-reasoner`
 
 ### Grok ([API keys](https://console.x.ai/keys))
 
-- `GROK_3` (default) -> `grok-3`
-- `GROK_3_MINI` -> `grok-3-mini`
-- `GROK_4_0709` -> `grok-4-0709`
+- `GROK_4_0709` (default) -> `grok-4-0709` (256K context)
 - `GROK_4_FAST_NON_REASONING` -> `grok-4-fast-non-reasoning` (2M context)
-- `GROK_4_HEAVY` -> `grok-4-heavy` (enhanced capabilities)
+- `GROK_4_FAST_REASONING` -> `grok-4-fast-reasoning` (2M context)
+- `GROK_4_HEAVY` -> `grok-4-heavy`
+- `GROK_4_1_FAST_NON_REASONING` -> `grok-4-1-fast-non-reasoning` (2M context)
+- `GROK_4_1_FAST_REASONING` -> `grok-4-1-fast-reasoning` (2M context)
+- `GROK_3` -> `grok-3`
 - `GROK_CODE_FAST_1` -> `grok-code-fast-1` (agentic coding)
 
 ### Cohere ([API keys](https://dashboard.cohere.com/api-keys))
 
 - `COMMAND_A_03_2025` (default) -> `command-a-03-2025`
 - `COMMAND_A_REASONING_08_2025` -> `command-a-reasoning-08-2025`
+- `COMMAND_A_TRANSLATE_08_2025` -> `command-a-translate-08-2025`
 - `COMMAND_R_PLUS_08_2024` -> `command-r-plus-08-2024`
+- `COMMAND_R_08_2024` -> `command-r-08-2024`
 
 ### Z.ai ([API keys](https://z.ai/manage-apikey/apikey-list))
 
-- `ZAI_DEFAULT` (default) -> `glm-4.6`
-- `ZAI_GLM_4_7` -> `glm-4.7`
+- `ZAI_GLM_4_7` -> `glm-4.7` (flagship, 200K context)
 - `ZAI_GLM_4_7_FLASH` -> `glm-4.7-flash`
+- `ZAI_GLM_4_7V` -> `glm-4.7v` (vision)
+- `ZAI_GLM_4_6` -> `glm-4.6`
+- `ZAI_DEFAULT` (default) -> configurable via `Z_MODEL_ID` env var
 
 ### Kimi (Moonshot) ([API keys](https://platform.moonshot.ai/console/api-keys))
-- `KIMI_8K` (default) -> `moonshot-v1-8k`
-- `KIMI_K2` -> `kimi-k2-0905-preview`
-- `KIMI_K2_THINKING` -> `kimi-k2-thinking`
+
+- `KIMI_K2_5` (default) -> `kimi-k2.5` (1T MoE, multimodal)
+- `KIMI_LATEST` -> `kimi-latest`
+- `KIMI_THINKING_PREVIEW` -> `kimi-thinking-preview`
+
+### Perplexity ([API keys](https://docs.perplexity.ai))
+
+- `SONAR_PRO` (default) -> `sonar-pro` (deep retrieval, 200K context)
+- `SONAR` -> `sonar` (lightweight search)
+- `SONAR_REASONING_PRO` -> `sonar-reasoning-pro`
+- `SONAR_DEEP_RESEARCH` -> `sonar-deep-research`
+
+### Qwen/Alibaba ([API keys](https://dashscope.console.aliyun.com))
+
+- `QWEN3_MAX` (default) -> `qwen3-max`
+- `QWEN3_235B` -> `qwen3-235b-a22b`
+- `QWEN3_CODER_PLUS` -> `qwen3-coder-plus`
+- `QWEN_PLUS` -> `qwen-plus-latest`
 
 ### Meta (Llama)
 
