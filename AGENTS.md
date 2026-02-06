@@ -42,6 +42,45 @@ If you add new folders, extend this list so future contributors (and agents) sta
 - **Styling**: Follow Prettier defaults (2 spaces, double quotes, trailing commas where valid). Use template literals for complex strings.
 - **Testing**: Every behavior change should include or update a test whenever feasible. Each package owns its tests.
 
+## AI model management
+
+This project supports 19+ AI providers. Model lifecycle is controlled through two layers that must stay in sync.
+
+### How model activation works
+
+A model must pass **three gates** before the server initializes it:
+
+1. **Provider config** (`packages/ai-chat-core/src/config/aiProviders/providers/{provider}.ts`) – model must be defined in the provider's `models` object.
+2. **Participants list** (`packages/ai-configs/src/participants.ts`) – model must have `status: "active"`. Models with `status: "inactive"` are blocked from initialization at the server layer, regardless of other settings.
+3. **Enabled models list** (`packages/server/src/config/aiModels.ts`) – model ID must be present (uncommented) in `ENABLED_AI_MODELS`.
+
+The server's `getProviderAIConfigs()` checks all three. If any gate rejects the model, it is not loaded.
+
+### Adding a new model
+
+1. Add model definition in the provider config file (with `id`, `maxTokens`, `temperature`, `systemPrompt`).
+2. Add participant entry in `participants.ts` with `status: "active"` and a unique emoji.
+3. Add mention mappings in `lookups.ts` (alias -> canonical name).
+4. Add the `PROVIDER_MODEL_KEY` string to `ENABLED_AI_MODELS` in `packages/server/src/config/aiModels.ts`.
+5. Update `defaults.ts` if the new model should become the provider default.
+6. **Do not** edit `displayInfo.ts` – it auto-derives from participants.
+
+### Deprecating a model
+
+1. Set `status: "inactive"` in `participants.ts`. This is the single source of truth for model lifecycle.
+2. Comment out the entry in `ENABLED_AI_MODELS` (prefix with `// inactive:` for clarity).
+3. Keep the model definition in the provider config for historical reference.
+4. Update `defaults.ts` if the deprecated model was the provider default.
+5. Update mention mappings in `lookups.ts` if generic aliases (e.g., `opus`, `kimi`) pointed to it.
+
+### Conventions
+
+- **Participant ID format**: `PROVIDER_MODEL_KEY` (e.g., `ANTHROPIC_CLAUDE_OPUS_4_6`).
+- **Model key format**: `UPPER_SNAKE_CASE` in provider files.
+- **Aliases**: lowercase with hyphens (e.g., `claude-opus-4-6`).
+- **Emojis**: unique per model within a provider; reuse across providers is fine.
+- **Commented-out models**: use `// inactive:` prefix in `ENABLED_AI_MODELS` to distinguish from temporarily disabled models (plain `//`).
+
 ## Git & review workflow
 
 - Keep commits scoped and descriptive. Explain the intent and mention affected modules.

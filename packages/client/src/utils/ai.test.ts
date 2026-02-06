@@ -46,22 +46,22 @@ describe("resolveEmoji", () => {
   it("should resolve direct matches for AI providers", () => {
     expect(resolveEmoji("claude")).toBe("🎹");
     expect(resolveEmoji("anthropic")).toBe("🎹");
-    expect(resolveEmoji("gpt")).toBe("🧠");
+    expect(resolveEmoji("gpt")).toBe("🌀");
     expect(resolveEmoji("gpt4")).toBe("🧠");
-    expect(resolveEmoji("openai")).toBe("🧠");
+    expect(resolveEmoji("openai")).toBe("🌀");
     expect(resolveEmoji("grok")).toBe("🦾");
-    expect(resolveEmoji("gemini")).toBe("💎");
+    expect(resolveEmoji("gemini")).toBe("🔷");
     expect(resolveEmoji("mistral")).toBe("🌪️");
     expect(resolveEmoji("cohere")).toBe("🔮");
     expect(resolveEmoji("kimi")).toBe("🌕");
     expect(resolveEmoji("perplexity")).toBe("🔊");
-    expect(resolveEmoji("qwen")).toBe("🐉");
+    expect(resolveEmoji("qwen")).toBe("🐲");
   });
 
   it("should handle case insensitivity", () => {
     expect(resolveEmoji("CLAUDE")).toBe("🎹");
-    expect(resolveEmoji("GPT")).toBe("🧠");
-    expect(resolveEmoji("Gemini")).toBe("💎");
+    expect(resolveEmoji("GPT")).toBe("🌀");
+    expect(resolveEmoji("Gemini")).toBe("🔷");
   });
 
   it("should handle special characters in input", () => {
@@ -76,7 +76,7 @@ describe("resolveEmoji", () => {
     expect(resolveEmoji("claude-opus")).toBe("🎹");
     // "gpt-3.5-turbo" normalizes to "gpt35turbo", matches "gpt35" prefix -> 💡
     expect(resolveEmoji("gpt-3.5-turbo")).toBe("💡");
-    expect(resolveEmoji("gemini-pro")).toBe("💎");
+    expect(resolveEmoji("gemini-pro")).toBe("🔷");
     expect(resolveEmoji("mistral-large")).toBe("🌪️");
   });
 
@@ -93,8 +93,8 @@ describe("resolveEmoji", () => {
 
   it("should handle aliases correctly", () => {
     expect(resolveEmoji("xai")).toBe("🦾");
-    expect(resolveEmoji("google")).toBe("💎");
-    expect(resolveEmoji("bard")).toBe("💎");
+    expect(resolveEmoji("google")).toBe("🔷");
+    expect(resolveEmoji("bard")).toBe("🔷");
     expect(resolveEmoji("moonshot")).toBe("🌕");
   });
 });
@@ -105,17 +105,21 @@ describe("mapMentionsToAiNames", () => {
     const result = mapMentionsToAiNames(mentions);
     expect(result).toEqual([
       "claude-sonnet-4-5",
-      "gpt-4o",
-      "gemini",
+      "gpt-5.2",
+      "gemini-3-pro",
       "sonar-pro",
-      "qwen-turbo",
+      "qwen3-max",
     ]);
   });
 
   it("should handle aliases correctly", () => {
     const mentions = ["anthropic", "openai", "google"];
     const result = mapMentionsToAiNames(mentions);
-    expect(result).toEqual(["claude-sonnet-4-5", "gpt-4o", "gemini"]);
+    expect(result).toEqual([
+      "claude-sonnet-4-5",
+      "gpt-5.2",
+      "gemini-3-pro",
+    ]);
   });
 
   it("should remove duplicate mentions", () => {
@@ -135,26 +139,30 @@ describe("mapMentionsToAiNames", () => {
   it("should preserve unknown mentions", () => {
     const mentions = ["claude", "unknown-ai", "gpt"];
     const result = mapMentionsToAiNames(mentions);
-    expect(result).toEqual(["claude-sonnet-4-5", "unknown-ai", "gpt-4o"]);
+    expect(result).toEqual(["claude-sonnet-4-5", "unknown-ai", "gpt-5.2"]);
   });
 
   it("should handle case variations", () => {
     const mentions = ["CLAUDE", "OpenAI", "GeMiNi"];
     const result = mapMentionsToAiNames(mentions);
-    expect(result).toEqual(["claude-sonnet-4-5", "gpt-4o", "gemini"]);
+    expect(result).toEqual([
+      "claude-sonnet-4-5",
+      "gpt-5.2",
+      "gemini-3-pro",
+    ]);
   });
 
   it("should map display names with spaces", () => {
     const mentions = ["Claude 3.5 Haiku", "ChatGPT 5.1 Mini"];
     const result = mapMentionsToAiNames(mentions);
-    expect(result).toEqual(["claude-3-5-haiku", "gpt-5.1-mini"]);
+    expect(result).toEqual(["haiku-3-5", "gpt-5-mini"]);
   });
 
   it("should handle null values in array", () => {
     const mentions = ["claude", null, "gpt", undefined];
     const result = mapMentionsToAiNames(mentions);
     expect(result).toContain("claude-sonnet-4-5");
-    expect(result).toContain("gpt-4o");
+    expect(result).toContain("gpt-5.2");
   });
 
   it("should map all supported providers correctly", () => {
@@ -172,9 +180,9 @@ describe("mapMentionsToAiNames", () => {
     const result = mapMentionsToAiNames(mentions);
     expect(result).toEqual([
       "gpt-4o",
-      "gpt-5.1",
+      "gpt-5.2",
       "grok",
-      "gemini",
+      "gemini-3-pro",
       "cohere",
       "command-r",
       "z.ai",
@@ -187,9 +195,9 @@ describe("mapMentionsToAiNames", () => {
     expect(result).toEqual([
       "claude-sonnet-4-5",
       "invalid1",
-      "gpt-4o",
+      "gpt-5.2",
       "invalid2",
-      "gemini",
+      "gemini-3-pro",
     ]);
   });
 

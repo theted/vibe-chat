@@ -197,6 +197,14 @@ ANTHROPIC_CLAUDE_OPUS_5: {
 | Qwen | `qwen.ts` | 6 models |
 | Moonshot/Kimi | `kimi.ts` | 4 models |
 | Z.ai | `zai.ts` | 6 models |
+| Meta/Llama | `llama.ts` | 4 models (OpenRouter) |
+| Amazon | `amazon.ts` | 2 models (OpenRouter) |
+| NVIDIA | `nvidia.ts` | 3 models (OpenRouter) |
+| Xiaomi | `xiaomi.ts` | 1 model (OpenRouter) |
+| MiniMax | `minimax.ts` | 3 models (OpenRouter) |
+| Baidu | `baidu.ts` | 3 models (OpenRouter) |
+| ByteDance | `bytedance.ts` | 2 models (OpenRouter) |
+| Hugging Face | `huggingface.ts` | 2 models (OpenRouter) |
 
 ## Notes
 

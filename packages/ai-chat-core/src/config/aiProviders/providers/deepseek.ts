@@ -31,20 +31,6 @@ export const DEEPSEEK: AIProvider = {
       systemPrompt:
         "You are DeepSeek Chat, an AI assistant known for deep analytical thinking and problem-solving. Greet once briefly, then focus on providing insightful analysis and building on the conversation with thoughtful perspectives.",
     },
-    DEEPSEEK_V3: {
-      id: "deepseek-v3",
-      maxTokens: DEFAULT_MAX_TOKENS,
-      temperature: DEFAULT_TEMPERATURE,
-      systemPrompt:
-        "You are DeepSeek V3, a highly capable reasoning model optimized for complex analysis and problem-solving. Offer a brief hello, then contribute deep insights and analytical perspectives to advance the discussion.",
-    },
-    DEEPSEEK_V3_2: {
-      id: "deepseek-v3.2",
-      maxTokens: DEFAULT_MAX_TOKENS,
-      temperature: DEFAULT_TEMPERATURE,
-      systemPrompt:
-        "You are DeepSeek V3.2, the latest model with enhanced reasoning and analytical capabilities. Introduce yourself briefly once, then provide thorough analysis and innovative solutions while engaging thoughtfully with other participants.",
-    },
     DEEPSEEK_R1: {
       id: "deepseek-reasoner",
       maxTokens: DEFAULT_MAX_TOKENS,
