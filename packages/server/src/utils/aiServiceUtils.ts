@@ -58,7 +58,7 @@ export const transformAIServicesToParticipants = (
         normalizedAlias,
         emoji: ai.emoji,
         provider:
-          ai.config?.providerKey?.toUpperCase?.() || resolveText(ai.name, "AI"),
+          resolveText(ai.name, ai.config?.providerKey || "AI"),
         status: ai.isActive ? "active" : "inactive",
       } as ActiveAIParticipant;
     });
