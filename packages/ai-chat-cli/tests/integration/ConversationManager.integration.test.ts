@@ -1,5 +1,4 @@
-import { beforeEach, describe, it, mock } from "node:test";
-import assert from "node:assert/strict";
+import { beforeEach, describe, it, expect, mock } from "bun:test";
 import type { AIServiceConfig } from "@ai-chat/core";
 import { ConversationManager } from "@/conversation/ConversationManager.js";
 
@@ -49,16 +48,16 @@ class MockContextManager {
 }
 
 describe("ConversationManager integration", () => {
-  let recordMessageMock;
-  let statsTracker;
+  let recordMessageMock: ReturnType<typeof mock>;
+  let statsTracker: { recordMessage: ReturnType<typeof mock> };
   let streamCalls: StreamCall[];
   let responsesByModel: Record<string, string[]>;
-  let createServiceMock;
-  let getRandomConfigMock;
-  let dependencies;
+  let createServiceMock: ReturnType<typeof mock>;
+  let getRandomConfigMock: ReturnType<typeof mock>;
+  let dependencies: Record<string, unknown>;
 
   beforeEach(() => {
-    recordMessageMock = mock.fn(async () => {});
+    recordMessageMock = mock(async () => {});
     statsTracker = { recordMessage: recordMessageMock };
     streamCalls = [];
     responsesByModel = {
@@ -66,17 +65,17 @@ describe("ConversationManager integration", () => {
       "model-b": ["Response B1", "Response B2"],
     };
 
-    createServiceMock = mock.fn((aiConfig: ParticipantConfig) => ({
+    createServiceMock = mock((aiConfig: ParticipantConfig) => ({
       getName: () => aiConfig.provider.name,
       getModel: () => aiConfig.model.id,
-      generateResponse: mock.fn(async () => {
+      generateResponse: mock(async () => {
         const queue = responsesByModel[aiConfig.model.id] || [];
         const content = queue.shift() || "No response";
         return { content };
       }),
     }));
 
-    getRandomConfigMock = mock.fn(
+    getRandomConfigMock = mock(
       (): ParticipantConfig => ({
         provider: {
           name: "RandomProvider",
@@ -118,34 +117,36 @@ describe("ConversationManager integration", () => {
 
     await manager.startConversation("Hello everyone");
 
-    assert.strictEqual(manager.isActive, false);
-    assert.strictEqual(manager.turnCount, 2);
-    assert.strictEqual(manager.messages.length, 3);
+    expect(manager.isActive).toBe(false);
+    expect(manager.turnCount).toBe(2);
+    expect(manager.messages.length).toBe(3);
 
     const [userMessage, firstReply, secondReply] = manager.messages;
-    assert.strictEqual(userMessage.role, "user");
-    assert.strictEqual(userMessage.participantId, null);
-    assert.strictEqual(firstReply.participantId, 0);
-    assert.strictEqual(firstReply.content, "Response A1");
-    assert.strictEqual(secondReply.participantId, 1);
-    assert.strictEqual(secondReply.content, "Response B1");
+    expect(userMessage.role).toBe("user");
+    expect(userMessage.participantId).toBe(null);
+    expect(firstReply.participantId).toBe(0);
+    expect(firstReply.content).toBe("Response A1");
+    expect(secondReply.participantId).toBe(1);
+    expect(secondReply.content).toBe("Response B1");
 
-    assert.strictEqual(streamCalls.length, 3);
-    assert.deepStrictEqual(
+    expect(streamCalls.length).toBe(3);
+    expect(
       streamCalls.map((call) => call.prefix),
+    ).toEqual(
       ["[User]: ", "[ProviderA (model-a)]: ", "[ProviderB (model-b)]: "],
     );
 
-    assert.strictEqual(recordMessageMock.mock.callCount(), 3);
+    expect(recordMessageMock.mock.calls.length).toBe(3);
     const recordCalls = recordMessageMock.mock.calls.map(
-      ({ arguments: [payload] }) => payload,
+      ([payload]) => payload,
     );
-    assert.deepStrictEqual(
+    expect(
       recordCalls.map(({ role, provider, model }) => ({
         role,
         provider,
         model,
       })),
+    ).toEqual(
       [
         { role: "user", provider: "User", model: null },
         { role: "assistant", provider: "ProviderA", model: "model-a" },
@@ -154,8 +155,9 @@ describe("ConversationManager integration", () => {
     );
 
     const history = manager.getConversationHistory();
-    assert.deepStrictEqual(
+    expect(
       history.map(({ from, content }) => ({ from, content })),
+    ).toEqual(
       [
         { from: "User", content: "Hello everyone" },
         { from: "ProviderA (model-a)", content: "Response A1" },
@@ -184,30 +186,32 @@ describe("ConversationManager integration", () => {
 
     await manager.startConversation("Hello everyone");
 
-    assert.strictEqual(manager.turnCount, 2);
-    assert.strictEqual(manager.messages.length, 2);
+    expect(manager.turnCount).toBe(2);
+    expect(manager.messages.length).toBe(2);
 
     const [userMessage, reply] = manager.messages;
-    assert.strictEqual(userMessage.role, "user");
-    assert.strictEqual(reply.participantId, 1);
-    assert.strictEqual(reply.content, "Response B1");
+    expect(userMessage.role).toBe("user");
+    expect(reply.participantId).toBe(1);
+    expect(reply.content).toBe("Response B1");
 
-    assert.strictEqual(streamCalls.length, 2);
-    assert.deepStrictEqual(
+    expect(streamCalls.length).toBe(2);
+    expect(
       streamCalls.map((call) => call.prefix),
+    ).toEqual(
       ["[User]: ", "[ProviderB (model-b)]: "],
     );
 
-    assert.strictEqual(recordMessageMock.mock.callCount(), 2);
+    expect(recordMessageMock.mock.calls.length).toBe(2);
     const recordCalls = recordMessageMock.mock.calls.map(
-      ({ arguments: [payload] }) => payload,
+      ([payload]) => payload,
     );
-    assert.deepStrictEqual(
+    expect(
       recordCalls.map(({ role, provider, model }) => ({
         role,
         provider,
         model,
       })),
+    ).toEqual(
       [
         { role: "user", provider: "User", model: null },
         { role: "assistant", provider: "ProviderB", model: "model-b" },
@@ -224,18 +228,21 @@ describe("ConversationManager integration", () => {
     };
     manager.addParticipant(participant);
 
-    await assert.rejects(
-      manager.startConversation("Can anyone hear me?"),
-      /At least two participants/,
-    );
+    try {
+      await manager.startConversation("Can anyone hear me?");
+      expect(true).toBe(false);
+    } catch (error) {
+      expect(error).toBeInstanceOf(Error);
+      expect((error as Error).message).toMatch(/At least two participants/);
+    }
   });
 
   it("adds a random participant using the core configuration helper", async () => {
     const manager = new ConversationManager({}, dependencies);
 
     const id = manager.addRandomParticipant();
-    assert.strictEqual(id, 0);
-    assert.strictEqual(createServiceMock.mock.callCount(), 1);
-    assert.strictEqual(getRandomConfigMock.mock.callCount(), 1);
+    expect(id).toBe(0);
+    expect(createServiceMock.mock.calls.length).toBe(1);
+    expect(getRandomConfigMock.mock.calls.length).toBe(1);
   });
 });

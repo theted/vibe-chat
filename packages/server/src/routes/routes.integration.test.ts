@@ -1,6 +1,5 @@
 import express from "express";
-import assert from "node:assert/strict";
-import { describe, it } from "node:test";
+import { describe, it, expect } from "bun:test";
 import type { AddressInfo } from "node:net";
 import {
   createHealthRouter,
@@ -50,10 +49,10 @@ describe("server routes integration", () => {
       const response = await fetch(`${baseUrl}/health`);
       const body = await response.json();
 
-      assert.equal(response.status, 200);
-      assert.equal(body.status, "ok");
-      assert.equal(typeof body.timestamp, "number");
-      assert.equal(typeof body.uptime, "number");
+      expect(response.status).toBe(200);
+      expect(body.status).toBe("ok");
+      expect(typeof body.timestamp).toBe("number");
+      expect(typeof body.uptime).toBe("number");
     });
   });
 
@@ -73,8 +72,8 @@ describe("server routes integration", () => {
       const response = await fetch(`${baseUrl}/api/stats`);
       const body = await response.json();
 
-      assert.equal(response.status, 200);
-      assert.deepEqual(body, statsPayload);
+      expect(response.status).toBe(200);
+      expect(body).toEqual(statsPayload);
     });
   });
 
@@ -86,8 +85,8 @@ describe("server routes integration", () => {
       const response = await fetch(`${baseUrl}/api/stats`);
       const body = await response.json();
 
-      assert.equal(response.status, 503);
-      assert.deepEqual(body, { error: "Socket controller not ready" });
+      expect(response.status).toBe(503);
+      expect(body).toEqual({ error: "Socket controller not ready" });
     });
   });
 
@@ -109,8 +108,8 @@ describe("server routes integration", () => {
       const response = await fetch(`${baseUrl}/api/rooms`);
       const body = await response.json();
 
-      assert.equal(response.status, 200);
-      assert.deepEqual(body, roomsPayload);
+      expect(response.status).toBe(200);
+      expect(body).toEqual(roomsPayload);
     });
   });
 
@@ -124,7 +123,7 @@ describe("server routes integration", () => {
           ({
             getDetailedMetrics: () => metricsPayload,
             getMetricsHistory: (duration?: number) => {
-              assert.equal(duration, 60);
+              expect(duration).toBe(60);
               return historyPayload;
             },
           }) as unknown as MetricsService,
@@ -139,10 +138,10 @@ describe("server routes integration", () => {
       );
       const historyBody = await historyResponse.json();
 
-      assert.equal(metricsResponse.status, 200);
-      assert.deepEqual(metricsBody, metricsPayload);
-      assert.equal(historyResponse.status, 200);
-      assert.deepEqual(historyBody, historyPayload);
+      expect(metricsResponse.status).toBe(200);
+      expect(metricsBody).toEqual(metricsPayload);
+      expect(historyResponse.status).toBe(200);
+      expect(historyBody).toEqual(historyPayload);
     });
   });
 
@@ -154,8 +153,8 @@ describe("server routes integration", () => {
       const response = await fetch(`${baseUrl}/api/metrics`);
       const body = await response.json();
 
-      assert.equal(response.status, 503);
-      assert.deepEqual(body, { error: "Metrics service not ready" });
+      expect(response.status).toBe(503);
+      expect(body).toEqual({ error: "Metrics service not ready" });
     });
   });
 });

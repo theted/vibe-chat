@@ -1,5 +1,4 @@
-import { describe, it } from "node:test";
-import assert from "node:assert/strict";
+import { describe, it, expect } from "bun:test";
 import { findAIFromContextMessage } from "@/utils/orchestrator/aiLookup.js";
 
 describe("findAIFromContextMessage", () => {
@@ -38,9 +37,6 @@ describe("findAIFromContextMessage", () => {
 
     const resolved = findAIFromContextMessage(aiServices, message);
 
-    assert.equal(
-      resolved?.id,
-      "ANTHROPIC_CLAUDE_3_5_HAIKU_20241022",
-    );
+    expect(resolved?.id).toBe("ANTHROPIC_CLAUDE_3_5_HAIKU_20241022");
   });
 });

@@ -20,11 +20,10 @@
     "clean": "rm -rf dist",
     "prepare": "bun run build",
     "prepublishOnly": "bun run clean && bun run build",
-    "test": "bunx tsx --test tests/**/*.test.ts",
+    "test": "bun test",
     "type-check": "tsc --noEmit"
   },
   "devDependencies": {
-    "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   },
   "keywords": [

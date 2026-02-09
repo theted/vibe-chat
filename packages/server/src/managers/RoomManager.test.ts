@@ -1,5 +1,4 @@
-import { describe, it, beforeEach } from "node:test";
-import assert from "node:assert/strict";
+import { describe, it, beforeEach, expect } from "bun:test";
 import { RoomManager } from "./RoomManager.js";
 
 describe("RoomManager", () => {
@@ -13,13 +12,13 @@ describe("RoomManager", () => {
     it("creates room with default options", () => {
       const room = roomManager.createRoom("test-room");
 
-      assert.equal(room.id, "test-room");
-      assert.equal(room.name, "Room test-room");
-      assert.equal(room.topic, "General discussion");
-      assert.equal(room.maxParticipants, 50);
-      assert.equal(room.isActive, true);
-      assert.equal(room.participants.size, 0);
-      assert.ok(room.createdAt > 0);
+      expect(room.id).toBe("test-room");
+      expect(room.name).toBe("Room test-room");
+      expect(room.topic).toBe("General discussion");
+      expect(room.maxParticipants).toBe(50);
+      expect(room.isActive).toBe(true);
+      expect(room.participants.size).toBe(0);
+      expect(room.createdAt).toBeGreaterThan(0);
     });
 
     it("creates room with custom options", () => {
@@ -29,24 +28,24 @@ describe("RoomManager", () => {
         maxParticipants: 10,
       });
 
-      assert.equal(room.name, "Custom Room");
-      assert.equal(room.topic, "Custom topic");
-      assert.equal(room.maxParticipants, 10);
+      expect(room.name).toBe("Custom Room");
+      expect(room.topic).toBe("Custom topic");
+      expect(room.maxParticipants).toBe(10);
     });
   });
 
   describe("getRoom", () => {
     it("returns null for non-existent room", () => {
       const room = roomManager.getRoom("non-existent");
-      assert.equal(room, null);
+      expect(room).toBe(null);
     });
 
     it("returns room after creation", () => {
       roomManager.createRoom("test-room");
       const room = roomManager.getRoom("test-room");
 
-      assert.ok(room);
-      assert.equal(room.id, "test-room");
+      expect(room).toBeTruthy();
+      expect(room!.id).toBe("test-room");
     });
   });
 
@@ -55,9 +54,9 @@ describe("RoomManager", () => {
       const userData = { username: "testuser", joinedAt: Date.now() };
       const room = roomManager.joinRoom("socket-1", "new-room", userData);
 
-      assert.ok(room);
-      assert.equal(room.id, "new-room");
-      assert.equal(room.participants.size, 1);
+      expect(room).toBeTruthy();
+      expect(room!.id).toBe("new-room");
+      expect(room!.participants.size).toBe(1);
     });
 
     it("adds user to existing room", () => {
@@ -66,11 +65,11 @@ describe("RoomManager", () => {
 
       const room = roomManager.joinRoom("socket-1", "test-room", userData);
 
-      assert.ok(room);
-      assert.equal(room.participants.size, 1);
-      const participant = room.participants.get("socket-1");
-      assert.ok(participant);
-      assert.equal(participant.username, "testuser");
+      expect(room).toBeTruthy();
+      expect(room!.participants.size).toBe(1);
+      const participant = room!.participants.get("socket-1");
+      expect(participant).toBeTruthy();
+      expect(participant!.username).toBe("testuser");
     });
 
     it("returns null when room is full", () => {
@@ -81,7 +80,7 @@ describe("RoomManager", () => {
       roomManager.joinRoom("socket-1", "small-room", user1);
       const result = roomManager.joinRoom("socket-2", "small-room", user2);
 
-      assert.equal(result, null);
+      expect(result).toBe(null);
     });
 
     it("removes user from previous room when joining new room", () => {
@@ -94,9 +93,9 @@ describe("RoomManager", () => {
       const room2 = roomManager.getRoom("room-2");
 
       // room-1 should be deleted (empty and not default)
-      assert.equal(room1, null);
-      assert.ok(room2);
-      assert.equal(room2.participants.size, 1);
+      expect(room1).toBe(null);
+      expect(room2).toBeTruthy();
+      expect(room2!.participants.size).toBe(1);
     });
 
     it("preserves default room when empty", () => {
@@ -106,15 +105,15 @@ describe("RoomManager", () => {
       roomManager.joinRoom("socket-1", "other-room", userData);
 
       const defaultRoom = roomManager.getRoom("default");
-      assert.ok(defaultRoom);
-      assert.equal(defaultRoom.participants.size, 0);
+      expect(defaultRoom).toBeTruthy();
+      expect(defaultRoom!.participants.size).toBe(0);
     });
   });
 
   describe("leaveCurrentRoom", () => {
     it("returns null if user not in any room", () => {
       const result = roomManager.leaveCurrentRoom("unknown-socket");
-      assert.equal(result, null);
+      expect(result).toBe(null);
     });
 
     it("removes user from room and returns room id", () => {
@@ -123,8 +122,8 @@ describe("RoomManager", () => {
 
       const result = roomManager.leaveCurrentRoom("socket-1");
 
-      assert.equal(result, "test-room");
-      assert.equal(roomManager.isUserInRoom("socket-1"), false);
+      expect(result).toBe("test-room");
+      expect(roomManager.isUserInRoom("socket-1")).toBe(false);
     });
 
     it("deletes empty non-default rooms", () => {
@@ -133,14 +132,14 @@ describe("RoomManager", () => {
 
       roomManager.leaveCurrentRoom("socket-1");
 
-      assert.equal(roomManager.getRoom("temp-room"), null);
+      expect(roomManager.getRoom("temp-room")).toBe(null);
     });
   });
 
   describe("getUserRoom", () => {
     it("returns null if user not in room", () => {
       const room = roomManager.getUserRoom("unknown-socket");
-      assert.equal(room, null);
+      expect(room).toBe(null);
     });
 
     it("returns room data for user in room", () => {
@@ -149,15 +148,15 @@ describe("RoomManager", () => {
 
       const room = roomManager.getUserRoom("socket-1");
 
-      assert.ok(room);
-      assert.equal(room.id, "test-room");
+      expect(room).toBeTruthy();
+      expect(room!.id).toBe("test-room");
     });
   });
 
   describe("getRoomParticipants", () => {
     it("returns empty array for non-existent room", () => {
       const participants = roomManager.getRoomParticipants("unknown");
-      assert.deepEqual(participants, []);
+      expect(participants).toEqual([]);
     });
 
     it("returns all participants in room", () => {
@@ -169,10 +168,10 @@ describe("RoomManager", () => {
 
       const participants = roomManager.getRoomParticipants("test-room");
 
-      assert.equal(participants.length, 2);
+      expect(participants.length).toBe(2);
       const usernames = participants.map((p) => p.username);
-      assert.ok(usernames.includes("user1"));
-      assert.ok(usernames.includes("user2"));
+      expect(usernames).toContain("user1");
+      expect(usernames).toContain("user2");
     });
   });
 
@@ -183,7 +182,7 @@ describe("RoomManager", () => {
         "New topic",
         "admin"
       );
-      assert.equal(result, false);
+      expect(result).toBe(false);
     });
 
     it("updates topic and records change metadata", () => {
@@ -195,21 +194,21 @@ describe("RoomManager", () => {
         "admin"
       );
 
-      assert.equal(result, true);
+      expect(result).toBe(true);
       const room = roomManager.getRoom("test-room");
-      assert.ok(room);
-      assert.equal(room.topic, "New topic");
-      assert.ok(room.lastTopicChange);
-      assert.equal(room.lastTopicChange.topic, "New topic");
-      assert.equal(room.lastTopicChange.changedBy, "admin");
-      assert.ok(room.lastTopicChange.timestamp > 0);
+      expect(room).toBeTruthy();
+      expect(room!.topic).toBe("New topic");
+      expect(room!.lastTopicChange).toBeTruthy();
+      expect(room!.lastTopicChange!.topic).toBe("New topic");
+      expect(room!.lastTopicChange!.changedBy).toBe("admin");
+      expect(room!.lastTopicChange!.timestamp).toBeGreaterThan(0);
     });
   });
 
   describe("getRoomList", () => {
     it("returns empty array when no rooms", () => {
       const list = roomManager.getRoomList();
-      assert.deepEqual(list, []);
+      expect(list).toEqual([]);
     });
 
     it("returns summary info for all rooms", () => {
@@ -220,13 +219,13 @@ describe("RoomManager", () => {
 
       const list = roomManager.getRoomList();
 
-      assert.equal(list.length, 2);
+      expect(list.length).toBe(2);
 
       const room1 = list.find((r) => r.id === "room-1");
-      assert.ok(room1);
-      assert.equal(room1.name, "Room One");
-      assert.equal(room1.topic, "Topic 1");
-      assert.equal(room1.participantCount, 1);
+      expect(room1).toBeTruthy();
+      expect(room1!.name).toBe("Room One");
+      expect(room1!.topic).toBe("Topic 1");
+      expect(room1!.participantCount).toBe(1);
     });
   });
 
@@ -234,10 +233,10 @@ describe("RoomManager", () => {
     it("returns zero stats for empty manager", () => {
       const stats = roomManager.getStats();
 
-      assert.equal(stats.totalRooms, 0);
-      assert.equal(stats.activeRooms, 0);
-      assert.equal(stats.totalParticipants, 0);
-      assert.equal(stats.avgParticipantsPerRoom, 0);
+      expect(stats.totalRooms).toBe(0);
+      expect(stats.activeRooms).toBe(0);
+      expect(stats.totalParticipants).toBe(0);
+      expect(stats.avgParticipantsPerRoom).toBe(0);
     });
 
     it("calculates correct statistics", () => {
@@ -250,10 +249,10 @@ describe("RoomManager", () => {
 
       const stats = roomManager.getStats();
 
-      assert.equal(stats.totalRooms, 2);
-      assert.equal(stats.activeRooms, 2);
-      assert.equal(stats.totalParticipants, 2);
-      assert.equal(stats.avgParticipantsPerRoom, 1);
+      expect(stats.totalRooms).toBe(2);
+      expect(stats.activeRooms).toBe(2);
+      expect(stats.totalParticipants).toBe(2);
+      expect(stats.avgParticipantsPerRoom).toBe(1);
     });
   });
 
@@ -264,33 +263,33 @@ describe("RoomManager", () => {
 
       roomManager.cleanup("socket-1");
 
-      assert.equal(roomManager.isUserInRoom("socket-1"), false);
+      expect(roomManager.isUserInRoom("socket-1")).toBe(false);
     });
   });
 
   describe("isUserInRoom", () => {
     it("returns false for unknown socket", () => {
-      assert.equal(roomManager.isUserInRoom("unknown"), false);
+      expect(roomManager.isUserInRoom("unknown")).toBe(false);
     });
 
     it("returns true for user in room", () => {
       const userData = { username: "testuser", joinedAt: Date.now() };
       roomManager.joinRoom("socket-1", "test-room", userData);
 
-      assert.equal(roomManager.isUserInRoom("socket-1"), true);
+      expect(roomManager.isUserInRoom("socket-1")).toBe(true);
     });
   });
 
   describe("getUserRoomId", () => {
     it("returns null for unknown socket", () => {
-      assert.equal(roomManager.getUserRoomId("unknown"), null);
+      expect(roomManager.getUserRoomId("unknown")).toBe(null);
     });
 
     it("returns room id for user in room", () => {
       const userData = { username: "testuser", joinedAt: Date.now() };
       roomManager.joinRoom("socket-1", "test-room", userData);
 
-      assert.equal(roomManager.getUserRoomId("socket-1"), "test-room");
+      expect(roomManager.getUserRoomId("socket-1")).toBe("test-room");
     });
   });
 });

@@ -11,7 +11,7 @@
     "build": "tsc && bun ../../scripts/resolve-path-aliases.mjs .",
     "start": "bun run build && bun dist/index.js",
     "dev": "tsc --watch & bun --watch dist/index.js",
-    "test": "bunx tsx --test tests/integration/*.test.ts"
+    "test": "bun test"
   },
   "dependencies": {
     "@ai-chat/core": "file:../ai-chat-core",
@@ -21,7 +21,6 @@
   },
   "devDependencies": {
     "@types/node": "^24.10.1",
-    "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   }
 }

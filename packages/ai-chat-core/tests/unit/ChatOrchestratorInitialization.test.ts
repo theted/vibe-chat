@@ -1,5 +1,4 @@
-import { afterEach, beforeEach, describe, it } from "node:test";
-import assert from "node:assert/strict";
+import { afterEach, beforeEach, describe, it, expect } from "bun:test";
 import {
   AI_PROVIDERS,
   AIServiceFactory,
@@ -98,10 +97,7 @@ afterEach(() => {
 describe("ChatOrchestrator initialization", () => {
   it("limits parallel AI initialization to the concurrency cap", async () => {
     const configs = buildConfigs(10);
-    assert.ok(
-      configs.length >= 2,
-      "Expected at least two AI configs for concurrency test.",
-    );
+    expect(configs.length >= 2).toBeTruthy();
 
     const orchestrator = new ChatOrchestrator({
       minBackgroundDelay: 1_000_000,
@@ -110,12 +106,9 @@ describe("ChatOrchestrator initialization", () => {
 
     await orchestrator.initializeAIs(configs);
 
-    assert.equal(orchestrator.aiServices.size, configs.length);
-    assert.ok(maxConcurrentInitializations <= 8);
-    assert.ok(
-      maxConcurrentInitializations >= Math.min(2, configs.length),
-      "Expected at least two concurrent initializations.",
-    );
+    expect(orchestrator.aiServices.size).toBe(configs.length);
+    expect(maxConcurrentInitializations <= 8).toBeTruthy();
+    expect(maxConcurrentInitializations >= Math.min(2, configs.length)).toBeTruthy();
 
     orchestrator.cleanup();
   });

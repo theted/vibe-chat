@@ -7,7 +7,7 @@
   "scripts": {
     "build": "tsc --noEmit && swc src -d dist --strip-leading-paths && bun ../../scripts/resolve-path-aliases.mjs .",
     "start": "bun run build && bun dist/app.js",
-    "dev": "nodemon --watch src --watch ../ai-chat-core/src --ext ts,js --exec 'bun run build && bun dist/app.js'",
+    "dev": "bun --watch src/app.ts",
     "test": "bun test",
     "lint": "eslint . --ext js --report-unused-disable-directives --max-warnings 0",
     "lint:fix": "eslint . --ext js --fix"
@@ -19,7 +19,6 @@
     "cors": "^2.8.5",
     "dotenv": "^16.6.1",
     "express": "^4.21.2",
-    "nodemon": "^3.0.2",
     "openai": "^4.52.1",
     "redis": "^4.6.14",
     "socket.io": "^4.8.1"
@@ -31,7 +30,6 @@
     "@types/express": "^4.17.23",
     "@types/node": "^24.10.1",
     "eslint": "^8.56.0",
-    "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   },
   "keywords": [
