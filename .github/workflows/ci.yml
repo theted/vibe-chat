@@ -37,6 +37,20 @@ jobs:
       - name: Run tests
         run: pnpm test
 
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate Docker builds
+        run: |
+          docker build -f packages/server/Dockerfile -t ai-chat-server:ci .
+          docker build -f packages/server/Dockerfile.dev -t ai-chat-server-dev:ci .
+          docker build -f packages/client/Dockerfile -t ai-chat-client:ci .
+          docker build -f packages/client/Dockerfile.dev -t ai-chat-client-dev:ci .
+          docker build -f packages/client/Dockerfile.simple -t ai-chat-client-simple:ci .
+
   deploy:
     needs: test
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
