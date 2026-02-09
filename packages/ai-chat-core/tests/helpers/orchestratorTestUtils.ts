@@ -2,17 +2,17 @@
  * Orchestrator Test Utilities
  *
  * Reusable helpers for testing ChatOrchestrator timing behavior with
- * mocked AI services. Uses real timers with very short delays (10-50ms)
- * since Bun 1.0.x does not support jest.useFakeTimers().
+ * mocked AI services and fake timers (@sinonjs/fake-timers).
  *
  * Key concepts:
  * - MockAIService: Tracks call count and responds instantly (no real API calls)
  * - Event collectors: Capture orchestrator events for assertions
- * - waitFor(): Poll-based async helper for waiting on conditions
+ * - Fake clock: Replaces setTimeout, clearTimeout, Date.now so tests control time
+ * - tickUntil(): Advance fake clock in steps until a condition is met
  * - Each test AI uses a unique providerKey+modelKey so the orchestrator
  *   generates distinct aiIds (format: `${providerKey}_${modelKey}`)
  *
- * Always call orchestrator.cleanup() in afterEach to cancel pending timers.
+ * Always call orchestrator.cleanup() in afterEach, then clock.uninstall().
  */
 
 import {
@@ -24,6 +24,56 @@ import {
   type Message,
 } from "@ai-chat/core";
 import type { ServiceConstructor } from "@ai-chat/core";
+import FakeTimers from "@sinonjs/fake-timers";
+
+// ---------------------------------------------------------------------------
+// Fake Clock Helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Install a fake clock that replaces setTimeout, clearTimeout, and Date.
+ * Must be called BEFORE creating the orchestrator so all timers are captured.
+ */
+export const installFakeClock = (): FakeTimers.InstalledClock =>
+  FakeTimers.install({
+    toFake: ["setTimeout", "clearTimeout", "Date"],
+  });
+
+/**
+ * Advance the fake clock in steps until a condition is met.
+ * Replaces polling-based waitFor() — deterministic and instant.
+ */
+export const tickUntil = async (
+  clock: FakeTimers.InstalledClock,
+  condition: () => boolean,
+  maxMs = 10_000,
+  stepMs = 50,
+): Promise<void> => {
+  let elapsed = 0;
+  while (!condition() && elapsed < maxMs) {
+    await clock.tickAsync(stepMs);
+    elapsed += stepMs;
+  }
+  if (!condition()) {
+    throw new Error(`tickUntil: condition not met after ${maxMs}ms of fake time`);
+  }
+};
+
+/**
+ * Advance the fake clock until the orchestrator reaches the expected sleep state.
+ */
+export const tickUntilSleep = async (
+  clock: FakeTimers.InstalledClock,
+  orchestrator: ChatOrchestrator,
+  expected: boolean,
+  maxMs = 300_000,
+): Promise<void> => {
+  await tickUntil(
+    clock,
+    () => orchestrator.messageTracker.isAsleep === expected,
+    maxMs,
+  );
+};
 
 // ---------------------------------------------------------------------------
 // Mock AI Service
@@ -240,46 +290,6 @@ export const resetEventCollector = (events: CollectedEvents) => {
   events.generatingStart.length = 0;
   events.generatingStop.length = 0;
   events.errors.length = 0;
-};
-
-// ---------------------------------------------------------------------------
-// Async Wait Helpers
-// ---------------------------------------------------------------------------
-
-/** Sleep for `ms` milliseconds using real timers. */
-export const sleep = (ms: number): Promise<void> =>
-  new Promise((resolve) => setTimeout(resolve, ms));
-
-/**
- * Wait until a condition becomes true, polling every `intervalMs`.
- * Throws if the condition is not met within `timeoutMs`.
- */
-export const waitFor = async (
-  condition: () => boolean,
-  timeoutMs = 5_000,
-  intervalMs = 20,
-): Promise<void> => {
-  const start = Date.now();
-  while (!condition()) {
-    if (Date.now() - start > timeoutMs) {
-      throw new Error(`waitFor timed out after ${timeoutMs}ms`);
-    }
-    await sleep(intervalMs);
-  }
-};
-
-/**
- * Wait until the orchestrator enters the expected sleep state.
- */
-export const waitForSleepState = async (
-  orchestrator: ChatOrchestrator,
-  expected: boolean,
-  timeoutMs = 10_000,
-): Promise<void> => {
-  await waitFor(
-    () => orchestrator.messageTracker.isAsleep === expected,
-    timeoutMs,
-  );
 };
 
 // ---------------------------------------------------------------------------

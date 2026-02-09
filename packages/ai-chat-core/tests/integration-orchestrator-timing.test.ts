@@ -2,45 +2,50 @@
  * Integration Tests: ChatOrchestrator Timing Behavior
  *
  * Tests the orchestrator's scheduling, sleep/wake cycles, and concurrency
- * limiting using a mocked AI service and real timers with short delays.
+ * limiting using a mocked AI service and @sinonjs/fake-timers.
  *
  * Approach:
- * - All timing config overrides use very short delays (10-80ms) so the
- *   full scheduling pipeline exercises within a few seconds of real time.
+ * - A fake clock replaces setTimeout, clearTimeout, and Date so all timing
+ *   is controlled deterministically via clock.tickAsync().
  * - MockAIService responds instantly (no actual API calls).
- * - waitFor() polls for expected state changes instead of advancing fake clocks.
- * - The SILENCE_TIMEOUT constant (120s) is the one timing value we cannot
- *   override via config, so tests that depend on it manipulate
- *   `lastAIMessageTime` directly to simulate elapsed silence.
+ * - tickUntil() / tickUntilSleep() advance fake time in steps until the
+ *   expected condition is met — no real wall-clock waiting.
+ * - Silence-window and 5-minute scenarios are covered by advancing the fake
+ *   clock past SILENCE_TIMEOUT (120s) without mutating lastAIMessageTime.
  *
  * Adding new timing tests:
- * 1. Use createTestOrchestrator() with desired config overrides
- * 2. Attach an event collector via createEventCollector()
- * 3. Simulate user messages with simulateUserMessage()
- * 4. Use waitFor() / waitForSleepState() / sleep() for async assertions
- * 5. Assert on collected events and orchestrator.messageTracker state
+ * 1. The fake clock is installed in beforeEach (before orchestrator creation)
+ * 2. Use createTestOrchestrator() with desired config overrides
+ * 3. Attach an event collector via createEventCollector()
+ * 4. Simulate user messages with simulateUserMessage()
+ * 5. Advance time with tickUntil() / tickUntilSleep() / clock.tickAsync()
+ * 6. Assert on collected events and orchestrator.messageTracker state
+ * 7. The clock is uninstalled in afterEach (after orchestrator.cleanup())
  */
 
 import { afterEach, beforeEach, describe, it, expect } from "bun:test";
+import type FakeTimers from "@sinonjs/fake-timers";
 import {
+  installFakeClock,
   installMockRegistry,
   createTestOrchestrator,
   createEventCollector,
   resetEventCollector,
   simulateUserMessage,
   assertSleepState,
-  waitFor,
-  waitForSleepState,
-  sleep,
+  tickUntil,
+  tickUntilSleep,
   type CollectedEvents,
 } from "./helpers/orchestratorTestUtils.js";
 import type { ChatOrchestrator } from "@ai-chat/core";
 
+let clock: FakeTimers.InstalledClock;
 let restoreRegistry: () => void;
 let orchestrator: ChatOrchestrator;
 let events: CollectedEvents;
 
 beforeEach(() => {
+  clock = installFakeClock();
   restoreRegistry = installMockRegistry();
 });
 
@@ -49,6 +54,7 @@ afterEach(() => {
     orchestrator.cleanup();
   }
   restoreRegistry();
+  clock.uninstall();
 });
 
 // ---------------------------------------------------------------------------
@@ -73,8 +79,8 @@ describe("Single user message response limit", () => {
 
     simulateUserMessage(orchestrator, "room-1", "Hello everyone!");
 
-    // Wait until the orchestrator enters sleep (meaning it hit the limit)
-    await waitForSleepState(orchestrator, true, 15_000);
+    // Advance fake time until sleep (orchestrator hit the limit)
+    await tickUntilSleep(clock, orchestrator, true);
 
     // AI responses should have been generated
     expect(events.aiResponses.length).toBeGreaterThan(0);
@@ -86,7 +92,7 @@ describe("Single user message response limit", () => {
 
     // Sleep event should have fired
     expect(events.sleepEvents.length).toBeGreaterThanOrEqual(1);
-  }, 20_000);
+  });
 
   it("staggers responses over time (not all at once)", async () => {
     ({ orchestrator } = await createTestOrchestrator({
@@ -109,14 +115,15 @@ describe("Single user message response limit", () => {
     // (delays are >= 50ms)
     const earlyCount = events.aiResponses.length;
 
-    // Wait enough for all scheduled responses to arrive
-    await waitFor(
+    // Advance fake time enough for scheduled responses to arrive
+    await tickUntil(
+      clock,
       () => events.aiResponses.length > earlyCount,
       5_000,
     );
 
     expect(events.aiResponses.length).toBeGreaterThan(earlyCount);
-  }, 10_000);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -124,8 +131,8 @@ describe("Single user message response limit", () => {
 // ---------------------------------------------------------------------------
 
 describe("Multiple users high volume", () => {
-  it("controls total AI responses under high message volume", async () => {
-    const maxAIMessages = 10;
+  it("controls total AI responses under high message volume (10 users × 10 messages)", async () => {
+    const maxAIMessages = 20;
     ({ orchestrator } = await createTestOrchestrator({
       aiCount: 5,
       maxAIMessages,
@@ -140,30 +147,31 @@ describe("Multiple users high volume", () => {
     }));
     events = createEventCollector(orchestrator);
 
-    // Simulate 5 users each sending 3 messages (15 total user messages)
-    for (let user = 0; user < 5; user++) {
-      for (let msg = 0; msg < 3; msg++) {
+    // Simulate 10 users each sending 10 messages (100 total user messages)
+    for (let user = 0; user < 10; user++) {
+      for (let msg = 0; msg < 10; msg++) {
         simulateUserMessage(
           orchestrator,
           "room-1",
           `Message ${msg + 1} from user ${user + 1}`,
           `User-${user + 1}`,
         );
-        await sleep(30); // Small gap between user messages
+        // Small gap between user messages (advance fake time)
+        await clock.tickAsync(5);
       }
     }
 
-    // Wait until sleep or a reasonable timeout
-    await waitForSleepState(orchestrator, true, 15_000);
+    // Advance until orchestrator sleeps (hit the limit)
+    await tickUntilSleep(clock, orchestrator, true);
 
-    // Total AI messages should respect the limit
+    // Total AI messages should respect the ceiling
     expect(orchestrator.messageTracker.aiMessageCount).toBeLessThanOrEqual(
       maxAIMessages,
     );
 
     // Should have entered sleep
     expect(events.sleepEvents.length).toBeGreaterThanOrEqual(1);
-  }, 20_000);
+  });
 
   it("respects maxConcurrentResponses limit", async () => {
     const maxConcurrent = 2;
@@ -173,22 +181,39 @@ describe("Multiple users high volume", () => {
       maxConcurrentResponses: maxConcurrent,
       minUserResponseDelay: 10,
       maxUserResponseDelay: 20,
-      minBackgroundDelay: 10_000_000,
-      maxBackgroundDelay: 10_000_000,
+      // Short background delay so multiple response waves occur
+      minBackgroundDelay: 30,
+      maxBackgroundDelay: 50,
       minDelayBetweenAI: 5,
       maxDelayBetweenAI: 10,
     }));
     events = createEventCollector(orchestrator);
 
+    // Track peak concurrency via generating start/stop events
+    let currentConcurrent = 0;
+    let peakConcurrent = 0;
+    orchestrator.on("ai-generating-start", () => {
+      currentConcurrent++;
+      peakConcurrent = Math.max(peakConcurrent, currentConcurrent);
+    });
+    orchestrator.on("ai-generating-stop", () => {
+      currentConcurrent--;
+    });
+
+    // Send multiple messages to trigger many response waves
     simulateUserMessage(orchestrator, "room-1", "Everyone respond!");
-    await waitFor(() => events.aiResponses.length >= 1, 5_000);
+    simulateUserMessage(orchestrator, "room-1", "More discussion please!");
+    await tickUntil(clock, () => events.aiResponses.length >= 4, 10_000);
 
     // Responses were generated
-    expect(events.aiResponses.length).toBeGreaterThan(0);
+    expect(events.aiResponses.length).toBeGreaterThanOrEqual(4);
+
+    // Peak concurrent generations must not exceed the configured limit
+    expect(peakConcurrent).toBeLessThanOrEqual(maxConcurrent);
 
     // The orchestrator's internal counter should not go negative
     expect(orchestrator.activeResponseCount).toBeGreaterThanOrEqual(0);
-  }, 10_000);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -196,15 +221,18 @@ describe("Multiple users high volume", () => {
 // ---------------------------------------------------------------------------
 
 describe("Extended silence sleep behavior", () => {
-  it("stops background messages after silence period", async () => {
+  it("stops background messages after 2-minute silence window", async () => {
+    // Use background delays longer than SILENCE_TIMEOUT (120s) so silence
+    // triggers naturally when the background timer fires — no manual
+    // lastAIMessageTime mutation needed.
     ({ orchestrator } = await createTestOrchestrator({
       aiCount: 3,
       maxAIMessages: 50, // High limit so sleep isn't from message count
       maxConcurrentResponses: 2,
       minUserResponseDelay: 10,
       maxUserResponseDelay: 20,
-      minBackgroundDelay: 30,
-      maxBackgroundDelay: 50,
+      minBackgroundDelay: 150_000, // 2.5 min — fires after SILENCE_TIMEOUT
+      maxBackgroundDelay: 160_000,
       minDelayBetweenAI: 5,
       maxDelayBetweenAI: 10,
     }));
@@ -213,27 +241,56 @@ describe("Extended silence sleep behavior", () => {
     // Send a user message to start activity
     simulateUserMessage(orchestrator, "room-1", "Start talking!");
 
-    // Wait for some initial responses
-    await waitFor(() => events.aiResponses.length >= 1, 5_000);
+    // Advance until initial user responses arrive
+    await tickUntil(clock, () => events.aiResponses.length >= 1, 5_000);
     const responsesAfterInitial = events.aiResponses.length;
     expect(responsesAfterInitial).toBeGreaterThan(0);
 
-    // Simulate silence by pushing lastAIMessageTime into the past
-    // (beyond SILENCE_TIMEOUT = 120000ms)
-    // This avoids waiting 2 real minutes in the test
-    orchestrator.lastAIMessageTime = Date.now() - 130_000;
-
-    // Wait for background timer to fire and notice the silence
-    await sleep(300);
-
-    // Snapshot response count — no more should arrive
+    // Snapshot response count after user-response phase completes
+    // (all user-response timers are short, so a small extra advance drains them)
+    await clock.tickAsync(200);
     const snapshotCount = events.aiResponses.length;
-    await sleep(500);
-    const finalCount = events.aiResponses.length;
+
+    // Advance past SILENCE_TIMEOUT — background timer fires at ~150-160s
+    // and detects timeSinceLastMessage > 120s, so it does NOT generate
+    await clock.tickAsync(170_000);
 
     // No new responses should have been generated after silence
-    expect(finalCount).toBe(snapshotCount);
-  }, 10_000);
+    expect(events.aiResponses.length).toBe(snapshotCount);
+  });
+
+  it("covers the full 5-minute silence window", async () => {
+    ({ orchestrator } = await createTestOrchestrator({
+      aiCount: 3,
+      maxAIMessages: 50,
+      maxConcurrentResponses: 2,
+      minUserResponseDelay: 10,
+      maxUserResponseDelay: 20,
+      // Background delay > 5 minutes so it fires well after silence
+      minBackgroundDelay: 310_000,
+      maxBackgroundDelay: 320_000,
+      minDelayBetweenAI: 5,
+      maxDelayBetweenAI: 10,
+    }));
+    events = createEventCollector(orchestrator);
+
+    simulateUserMessage(orchestrator, "room-1", "Start talking!");
+
+    // Let initial responses complete
+    await tickUntil(clock, () => events.aiResponses.length >= 1, 5_000);
+    await clock.tickAsync(200);
+    const snapshotCount = events.aiResponses.length;
+
+    // Advance 5 full minutes of fake time
+    await clock.tickAsync(300_000);
+
+    // No background messages should have been generated during 5min silence
+    expect(events.aiResponses.length).toBe(snapshotCount);
+
+    // Background timer fires at ~310-320s and detects silence
+    await clock.tickAsync(30_000);
+    expect(events.aiResponses.length).toBe(snapshotCount);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -258,7 +315,7 @@ describe("Wake-sleep cycle", () => {
 
     // Phase 1: Send message, let AIs respond until sleep
     simulateUserMessage(orchestrator, "room-1", "First question");
-    await waitForSleepState(orchestrator, true, 15_000);
+    await tickUntilSleep(clock, orchestrator, true);
 
     expect(events.sleepEvents.length).toBeGreaterThanOrEqual(1);
     const sleepResponseCount = events.aiResponses.length;
@@ -268,23 +325,23 @@ describe("Wake-sleep cycle", () => {
     simulateUserMessage(orchestrator, "room-1", "Second question");
 
     // With very short delays the orchestrator can wake and re-sleep almost
-    // instantly. Instead of checking instantaneous isAsleep state, verify
-    // that a wake event was emitted (durable, order-preserving fact).
-    await waitFor(
+    // instantly. Verify that a wake event was emitted (durable fact).
+    await tickUntil(
+      clock,
       () => events.wakeEvents.length > wakeCountBefore,
-      5_000,
+      10_000,
     );
     expect(events.wakeEvents.length).toBeGreaterThan(wakeCountBefore);
 
     // Phase 3: Let AIs respond again until second sleep
-    await waitForSleepState(orchestrator, true, 15_000);
+    await tickUntilSleep(clock, orchestrator, true);
 
     // Should have generated new responses after waking
     expect(events.aiResponses.length).toBeGreaterThan(sleepResponseCount);
 
     // Should have slept at least twice (once per user message cycle)
     expect(events.sleepEvents.length).toBeGreaterThanOrEqual(2);
-  }, 30_000);
+  });
 
   it("handles rapid wake-sleep-wake cycles", async () => {
     const maxAIMessages = 3;
@@ -301,17 +358,17 @@ describe("Wake-sleep cycle", () => {
     }));
     events = createEventCollector(orchestrator);
 
-    // Rapid cycle: message → sleep → message → sleep → message
+    // Rapid cycle: message -> sleep -> message -> sleep -> message
     for (let cycle = 0; cycle < 3; cycle++) {
       simulateUserMessage(orchestrator, "room-1", `Cycle ${cycle + 1}`);
-      await waitForSleepState(orchestrator, true, 15_000);
+      await tickUntilSleep(clock, orchestrator, true);
     }
 
     // Should have gone through multiple sleep/wake cycles
     expect(events.sleepEvents.length).toBeGreaterThanOrEqual(3);
     expect(events.wakeEvents.length).toBeGreaterThanOrEqual(2); // First message doesn't wake (already awake)
     expect(events.aiResponses.length).toBeGreaterThan(0);
-  }, 30_000);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -334,7 +391,7 @@ describe("Configuration impact", () => {
     events = createEventCollector(orchestrator);
 
     simulateUserMessage(orchestrator, "room-1", "Test low limit");
-    await waitForSleepState(orchestrator, true, 15_000);
+    await tickUntilSleep(clock, orchestrator, true);
 
     const lowLimitCount = orchestrator.messageTracker.aiMessageCount;
     expect(lowLimitCount).toBeLessThanOrEqual(3);
@@ -354,14 +411,14 @@ describe("Configuration impact", () => {
     const highEvents = createEventCollector(orchestrator);
 
     simulateUserMessage(orchestrator, "room-1", "Test higher limit");
-    await waitForSleepState(orchestrator, true, 15_000);
+    await tickUntilSleep(clock, orchestrator, true);
 
     const highLimitCount = orchestrator.messageTracker.aiMessageCount;
 
     // Higher limit should produce more AI messages before sleeping
     expect(highLimitCount).toBeGreaterThanOrEqual(lowLimitCount);
     expect(highLimitCount).toBeLessThanOrEqual(10);
-  }, 30_000);
+  });
 
   it("maxConcurrentResponses=1 serializes all responses", async () => {
     ({ orchestrator } = await createTestOrchestrator({
@@ -377,14 +434,26 @@ describe("Configuration impact", () => {
     }));
     events = createEventCollector(orchestrator);
 
+    // Track peak concurrency to verify serialization
+    let currentConcurrent = 0;
+    let peakConcurrent = 0;
+    orchestrator.on("ai-generating-start", () => {
+      currentConcurrent++;
+      peakConcurrent = Math.max(peakConcurrent, currentConcurrent);
+    });
+    orchestrator.on("ai-generating-stop", () => {
+      currentConcurrent--;
+    });
+
     simulateUserMessage(orchestrator, "room-1", "Serial test");
-    await waitFor(() => events.aiResponses.length >= 1, 5_000);
+    await tickUntil(clock, () => events.aiResponses.length >= 1, 5_000);
 
     // Responses should have been generated
     expect(events.aiResponses.length).toBeGreaterThan(0);
-    // With maxConcurrentResponses=1, activeResponseCount should be <= 1
+    // With maxConcurrentResponses=1, peak should never exceed 1
+    expect(peakConcurrent).toBeLessThanOrEqual(1);
     expect(orchestrator.activeResponseCount).toBeLessThanOrEqual(1);
-  }, 10_000);
+  });
 
   it("disabling background delays prevents background messages", async () => {
     ({ orchestrator } = await createTestOrchestrator({
@@ -402,18 +471,17 @@ describe("Configuration impact", () => {
 
     // Send one message, get direct responses
     simulateUserMessage(orchestrator, "room-1", "Only direct responses");
-    await waitFor(() => events.aiResponses.length >= 1, 5_000);
+    await tickUntil(clock, () => events.aiResponses.length >= 1, 5_000);
 
     const directResponseCount = events.aiResponses.length;
     expect(directResponseCount).toBeGreaterThan(0);
 
-    // Wait and check for any background responses — none should arrive
+    // Advance time and check for background responses — none should arrive
     // since background delay is 10M ms
-    await sleep(500);
     resetEventCollector(events);
-    await sleep(500);
+    await clock.tickAsync(5_000);
 
     // No new responses from background conversation
     expect(events.aiResponses.length).toBe(0);
-  }, 10_000);
+  });
 });
