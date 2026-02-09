@@ -1,24 +1,24 @@
-import { describe, it } from "node:test";
-import assert from "node:assert/strict";
+import { describe, it, expect } from "bun:test";
 
 import { mapMentionsToAiNames, normalizeAlias, resolveEmoji } from "../src/lookups.js";
 
 describe("lookups", () => {
   it("normalizes aliases with lowercase, trim, and hyphens", () => {
-    assert.equal(normalizeAlias("  GPT 4o "), "gpt-4o");
+    expect(normalizeAlias("  GPT 4o ")).toBe("gpt-4o");
   });
 
   it("resolves emojis for known aliases and partial matches", () => {
-    assert.equal(resolveEmoji("gpt-4o"), "🧠");
-    assert.equal(resolveEmoji("grok-4-heavy"), "🏋️");
-    assert.equal(resolveEmoji("gpt-4o-mini"), "🛸");
+    expect(resolveEmoji("gpt-4o")).toBe("🧠");
+    expect(resolveEmoji("grok-4-heavy")).toBe("🏋️");
+    expect(resolveEmoji("gpt-4o-mini")).toBe("🛸");
   });
 
   it("maps mentions to canonical AI names", () => {
     const input = "Hello @Claude and @gpt-4o and @unknown";
 
-    assert.equal(
+    expect(
       mapMentionsToAiNames(input),
+    ).toBe(
       "Hello @claude-sonnet-4-5 and @gpt-4o and @unknown",
     );
   });

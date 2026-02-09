@@ -1,5 +1,16 @@
 import { describe, it, expect, afterEach } from "vitest";
+import { DEFAULT_AI_PARTICIPANTS } from "@/config/aiParticipants";
 import { SERVER_URL, AI_EMOJI_LOOKUP, AI_MENTION_MAPPINGS } from "./chat.ts";
+
+const resolveParticipantEmoji = (alias: string): string => {
+  const participant = DEFAULT_AI_PARTICIPANTS.find(
+    (entry) => entry.alias === alias,
+  );
+  if (!participant) {
+    throw new Error(`Missing AI participant alias: ${alias}`);
+  }
+  return participant.emoji;
+};
 
 const meta = import.meta as { env: Record<string, string> };
 
@@ -87,8 +98,9 @@ describe("chat constants", () => {
     });
 
     it("should map Kimi/Moonshot to moon emojis", () => {
-      expect(AI_EMOJI_LOOKUP.kimi).toBe("🌕");
-      expect(AI_EMOJI_LOOKUP.moonshot).toBe("🌕");
+      const kimiEmoji = resolveParticipantEmoji("kimi-k2.5");
+      expect(AI_EMOJI_LOOKUP.kimi).toBe(kimiEmoji);
+      expect(AI_EMOJI_LOOKUP.moonshot).toBe(kimiEmoji);
     });
 
     it("should map Z.AI variants to brightness emoji", () => {

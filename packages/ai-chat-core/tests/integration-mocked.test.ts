@@ -1,5 +1,4 @@
-import { afterEach, beforeEach, describe, it } from "node:test";
-import assert from "node:assert/strict";
+import { afterEach, beforeEach, describe, it, expect } from "bun:test";
 import {
   AI_PROVIDERS,
   AIServiceFactory,
@@ -85,8 +84,8 @@ describe("ai-chat-core integration with mocked providers", () => {
       { role: "user", content: "Ping" },
     ]);
 
-    assert.equal(response.content, "Mocked:Ping");
-    assert.equal(response.model, providerConfig.models[modelKey].id);
+    expect(response.content).toBe("Mocked:Ping");
+    expect(response.model).toBe(providerConfig.models[modelKey].id);
   });
 
   it("initializes ChatOrchestrator services with mocked provider", async () => {
@@ -104,12 +103,12 @@ describe("ai-chat-core integration with mocked providers", () => {
       },
     ]);
 
-    assert.equal(orchestrator.aiServices.size, 1);
-    assert.equal(orchestrator.activeAIs.length, 1);
+    expect(orchestrator.aiServices.size).toBe(1);
+    expect(orchestrator.activeAIs.length).toBe(1);
 
     const [serviceEntry] = Array.from(orchestrator.aiServices.values());
-    assert.equal(serviceEntry.displayName, "Mocky");
-    assert.equal(serviceEntry.service.getName(), "MockAIService");
+    expect(serviceEntry.displayName).toBe("Mocky");
+    expect(serviceEntry.service.getName()).toBe("MockAIService");
 
     orchestrator.cleanup();
   });

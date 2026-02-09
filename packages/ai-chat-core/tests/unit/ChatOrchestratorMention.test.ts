@@ -1,5 +1,4 @@
-import { afterEach, describe, it } from "node:test";
-import assert from "node:assert/strict";
+import { afterEach, describe, it, expect } from "bun:test";
 import { ChatOrchestrator } from "@ai-chat/core";
 
 describe("ChatOrchestrator user mention behavior", () => {
@@ -44,11 +43,11 @@ describe("ChatOrchestrator user mention behavior", () => {
       true,
     );
 
-    assert.equal(strategy.shouldMention, true);
-    assert.ok(strategy.targetAI, "expected a mention target");
-    assert.equal(strategy.targetAI.type, "user");
-    assert.equal(strategy.targetAI.alias, "Bob");
-    assert.equal(strategy.targetAI.displayName, "Bob");
+    expect(strategy.shouldMention).toBe(true);
+    expect(strategy.targetAI).toBeTruthy();
+    expect(strategy.targetAI.type).toBe("user");
+    expect(strategy.targetAI.alias).toBe("Bob");
+    expect(strategy.targetAI.displayName).toBe("Bob");
   });
 
   it("injects a user @mention preserving the original casing", () => {
@@ -69,12 +68,9 @@ describe("ChatOrchestrator user mention behavior", () => {
       mentionTarget as unknown as string,
     );
 
-    assert.notEqual(updated, message, "mention should modify the message");
-    assert.ok(
-      updated.includes("@Bob"),
-      "mention should include the user's name",
-    );
-    assert.ok(!updated.includes("@bob"), "mention should preserve casing");
+    expect(updated).not.toBe(message);
+    expect(updated.includes("@Bob")).toBeTruthy();
+    expect(!updated.includes("@bob")).toBeTruthy();
   });
 
   it("limits unique @mentions to two per response", () => {
@@ -86,8 +82,7 @@ describe("ChatOrchestrator user mention behavior", () => {
     const message = "@Claude and @GPT should weigh in, plus @Gemini too.";
     const updated = orchestrator.limitMentionsInResponse(message);
 
-    assert.equal(
-      updated,
+    expect(updated).toBe(
       "@Claude and @GPT should weigh in, plus Gemini too.",
     );
   });

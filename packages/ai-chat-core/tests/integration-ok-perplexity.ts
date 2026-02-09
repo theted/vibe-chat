@@ -2,7 +2,7 @@
  * Integration OK test for Perplexity models
  *
  * Sends a short prompt and asserts a non-empty response.
- * Usage: npm run test:perplexity
+ * Usage: bun run test:perplexity
  */
 
 import { runIntegrationOkTest } from "./helpers/runIntegrationOkTest.js";

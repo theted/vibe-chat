@@ -32,7 +32,7 @@ ai-chat/
 
 ## Prerequisites
 
-- Node.js (v22 or higher)
+- Bun (v1.2 or higher)
 - API keys for the AI providers you want to use
 - Docker (optional, for containerized deployment)
 
@@ -48,7 +48,7 @@ ai-chat/
 2. Install dependencies:
 
    ```bash
-   npm install
+   pnpm install
    ```
 
 3. Create a `.env` file based on `.env.example` and add your API keys:
@@ -60,7 +60,7 @@ ai-chat/
 
 4. Build the packages:
    ```bash
-   npm run build
+   pnpm run build
    ```
 
 ## Usage
@@ -69,11 +69,11 @@ ai-chat/
 
 ```bash
 # Using Docker (recommended)
-npm run docker:dev
+pnpm run docker:dev
 
 # Or run individually
-npm --workspace @ai-chat/server run dev
-npm --workspace @ai-chat/client run dev
+pnpm --workspace @ai-chat/server run dev
+pnpm --workspace @ai-chat/client run dev
 ```
 
 The client runs on `http://localhost:3000` and the server on `http://localhost:3001`.
@@ -81,9 +81,9 @@ The client runs on `http://localhost:3000` and the server on `http://localhost:3
 ### Docker Commands
 
 ```bash
-npm run docker:dev    # Development with live reload
-npm run docker:prod   # Production build
-npm run docker:clean  # Clean up containers and volumes
+pnpm run docker:dev    # Development with live reload
+pnpm run docker:prod   # Production build
+pnpm run docker:clean  # Clean up containers and volumes
 ```
 
 ## Supported Providers and Models
@@ -280,21 +280,21 @@ Integration tests verify each provider returns expected responses. They skip aut
 
 ```bash
 # Run all tests
-npm test
+pnpm test
 
 # Run specific workspace tests
-npm run test:core
-npm run test:client
-npm run test:cli
+pnpm run test:core
+pnpm run test:client
+pnpm run test:cli
 
 # Run provider-specific tests
-npm run test:openai
-npm run test:anthropic
-npm run test:mistral
-npm run test:gemini
-npm run test:deepseek
-npm run test:grok
-npm run test:all
+pnpm run test:openai
+pnpm run test:anthropic
+pnpm run test:mistral
+pnpm run test:gemini
+pnpm run test:deepseek
+pnpm run test:grok
+pnpm run test:all
 ```
 
 ## Extending the Project
@@ -309,11 +309,11 @@ npm run test:all
 ### Package Scripts
 
 ```bash
-npm run build:core    # Build core library
-npm run build:cli     # Build CLI (includes core)
-npm run build:server  # Build server
-npm run build:client  # Build client
-npm run build         # Build all packages
+pnpm run build:core    # Build core library
+pnpm run build:cli     # Build CLI (includes core)
+pnpm run build:server  # Build server
+pnpm run build:client  # Build client
+pnpm run build         # Build all packages
 ```
 
 ## License

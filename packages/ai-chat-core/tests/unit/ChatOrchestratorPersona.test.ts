@@ -1,5 +1,4 @@
-import { afterEach, describe, it } from "node:test";
-import assert from "node:assert/strict";
+import { afterEach, describe, it, expect } from "bun:test";
 import { AI_PROVIDERS, ChatOrchestrator } from "@ai-chat/core";
 
 describe("ChatOrchestrator persona prompt behavior", () => {
@@ -36,14 +35,10 @@ describe("ChatOrchestrator persona prompt behavior", () => {
 
     const prompt = orchestrator.createEnhancedSystemPrompt(aiService, [], true);
 
-    assert.ok(
-      prompt.includes("PERSONALITY CONTEXT"),
-      "expected persona context header in prompt",
-    );
-    assert.ok(
+    expect(prompt.includes("PERSONALITY CONTEXT")).toBeTruthy();
+    expect(
       prompt.includes(AI_PROVIDERS.OPENAI.persona?.basePersonality || ""),
-      "expected persona base personality in prompt",
-    );
+    ).toBeTruthy();
   });
 
   it("skips persona details when the personas flag is disabled", () => {
@@ -64,10 +59,7 @@ describe("ChatOrchestrator persona prompt behavior", () => {
 
     const prompt = orchestrator.createEnhancedSystemPrompt(aiService, [], true);
 
-    assert.ok(
-      !prompt.includes("PERSONALITY CONTEXT"),
-      "did not expect persona context header in prompt",
-    );
+    expect(!prompt.includes("PERSONALITY CONTEXT")).toBeTruthy();
   });
 
   it("injects persona details when only providerKey is available", () => {
@@ -86,13 +78,9 @@ describe("ChatOrchestrator persona prompt behavior", () => {
 
     const prompt = orchestrator.createEnhancedSystemPrompt(aiService, [], true);
 
-    assert.ok(
-      prompt.includes("PERSONALITY CONTEXT"),
-      "expected persona context header in prompt",
-    );
-    assert.ok(
+    expect(prompt.includes("PERSONALITY CONTEXT")).toBeTruthy();
+    expect(
       prompt.includes(AI_PROVIDERS.OPENAI.persona?.basePersonality || ""),
-      "expected persona base personality in prompt",
-    );
+    ).toBeTruthy();
   });
 });

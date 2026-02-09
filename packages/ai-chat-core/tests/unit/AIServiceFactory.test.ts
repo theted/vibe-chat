@@ -1,5 +1,4 @@
-import { afterEach, beforeEach, describe, it } from "node:test";
-import assert from "node:assert/strict";
+import { afterEach, beforeEach, describe, it, expect } from "bun:test";
 import { AIServiceFactory, type AIServiceConfig, type IAIService } from "@ai-chat/core";
 
 // Mock service class for testing
@@ -49,40 +48,40 @@ describe("AIServiceFactory", () => {
     it("returns list of registered provider names", () => {
       const providers = AIServiceFactory.getAvailableProviders();
 
-      assert.ok(Array.isArray(providers));
-      assert.ok(providers.length > 0);
-      assert.ok(providers.includes("Gemini"));
-      assert.ok(providers.includes("OpenAI"));
-      assert.ok(providers.includes("Anthropic"));
+      expect(Array.isArray(providers)).toBeTruthy();
+      expect(providers.length > 0).toBeTruthy();
+      expect(providers.includes("Gemini")).toBeTruthy();
+      expect(providers.includes("OpenAI")).toBeTruthy();
+      expect(providers.includes("Anthropic")).toBeTruthy();
     });
   });
 
   describe("isProviderSupported", () => {
     it("returns true for registered providers", () => {
-      assert.equal(AIServiceFactory.isProviderSupported("Gemini"), true);
-      assert.equal(AIServiceFactory.isProviderSupported("OpenAI"), true);
-      assert.equal(AIServiceFactory.isProviderSupported("Anthropic"), true);
-      assert.equal(AIServiceFactory.isProviderSupported("Mistral"), true);
-      assert.equal(AIServiceFactory.isProviderSupported("DeepSeek"), true);
-      assert.equal(AIServiceFactory.isProviderSupported("Grok"), true);
-      assert.equal(AIServiceFactory.isProviderSupported("Qwen"), true);
-      assert.equal(AIServiceFactory.isProviderSupported("Kimi"), true);
-      assert.equal(AIServiceFactory.isProviderSupported("Z.ai"), true);
-      assert.equal(AIServiceFactory.isProviderSupported("Cohere"), true);
-      assert.equal(AIServiceFactory.isProviderSupported("Meta"), true);
-      assert.equal(AIServiceFactory.isProviderSupported("NVIDIA"), true);
-      assert.equal(AIServiceFactory.isProviderSupported("Xiaomi"), true);
-      assert.equal(AIServiceFactory.isProviderSupported("MiniMax"), true);
-      assert.equal(AIServiceFactory.isProviderSupported("Baidu"), true);
-      assert.equal(AIServiceFactory.isProviderSupported("ByteDance"), true);
-      assert.equal(AIServiceFactory.isProviderSupported("Hugging Face"), true);
-      assert.equal(AIServiceFactory.isProviderSupported("Perplexity"), true);
+      expect(AIServiceFactory.isProviderSupported("Gemini")).toBe(true);
+      expect(AIServiceFactory.isProviderSupported("OpenAI")).toBe(true);
+      expect(AIServiceFactory.isProviderSupported("Anthropic")).toBe(true);
+      expect(AIServiceFactory.isProviderSupported("Mistral")).toBe(true);
+      expect(AIServiceFactory.isProviderSupported("DeepSeek")).toBe(true);
+      expect(AIServiceFactory.isProviderSupported("Grok")).toBe(true);
+      expect(AIServiceFactory.isProviderSupported("Qwen")).toBe(true);
+      expect(AIServiceFactory.isProviderSupported("Kimi")).toBe(true);
+      expect(AIServiceFactory.isProviderSupported("Z.ai")).toBe(true);
+      expect(AIServiceFactory.isProviderSupported("Cohere")).toBe(true);
+      expect(AIServiceFactory.isProviderSupported("Meta")).toBe(true);
+      expect(AIServiceFactory.isProviderSupported("NVIDIA")).toBe(true);
+      expect(AIServiceFactory.isProviderSupported("Xiaomi")).toBe(true);
+      expect(AIServiceFactory.isProviderSupported("MiniMax")).toBe(true);
+      expect(AIServiceFactory.isProviderSupported("Baidu")).toBe(true);
+      expect(AIServiceFactory.isProviderSupported("ByteDance")).toBe(true);
+      expect(AIServiceFactory.isProviderSupported("Hugging Face")).toBe(true);
+      expect(AIServiceFactory.isProviderSupported("Perplexity")).toBe(true);
     });
 
     it("returns false for unknown providers", () => {
-      assert.equal(AIServiceFactory.isProviderSupported("UnknownAI"), false);
-      assert.equal(AIServiceFactory.isProviderSupported(""), false);
-      assert.equal(AIServiceFactory.isProviderSupported("openai"), false); // case sensitive
+      expect(AIServiceFactory.isProviderSupported("UnknownAI")).toBe(false);
+      expect(AIServiceFactory.isProviderSupported("")).toBe(false);
+      expect(AIServiceFactory.isProviderSupported("openai")).toBe(false); // case sensitive
     });
   });
 
@@ -105,9 +104,9 @@ describe("AIServiceFactory", () => {
 
       const service = AIServiceFactory.createService(config);
 
-      assert.ok(service);
-      assert.equal(service.getName(), "MockAIService");
-      assert.equal(service.getModel(), "mock-model-v1");
+      expect(service).toBeTruthy();
+      expect(service.getName()).toBe("MockAIService");
+      expect(service.getModel()).toBe("mock-model-v1");
     });
 
     it("throws error for unsupported provider", () => {
@@ -121,14 +120,14 @@ describe("AIServiceFactory", () => {
         },
       };
 
-      assert.throws(
-        () => AIServiceFactory.createService(config),
-        (error: Error) => {
-          assert.ok(error.message.includes("Unsupported AI provider"));
-          assert.ok(error.message.includes("UnsupportedProvider"));
-          return true;
-        }
-      );
+      try {
+        AIServiceFactory.createService(config);
+        expect(true).toBe(false);
+      } catch (error) {
+        expect(error).toBeInstanceOf(Error);
+        expect((error as Error).message).toContain("Unsupported AI provider");
+        expect((error as Error).message).toContain("UnsupportedProvider");
+      }
     });
 
     it("includes supported providers in error message", () => {
@@ -149,11 +148,11 @@ describe("AIServiceFactory", () => {
 
       try {
         AIServiceFactory.createService(config);
-        assert.fail("Expected error to be thrown");
+        expect(true).toBe(false);
       } catch (error) {
-        assert.ok(error instanceof Error);
-        assert.ok(error.message.includes("Provider1"));
-        assert.ok(error.message.includes("Provider2"));
+        expect(error).toBeInstanceOf(Error);
+        expect((error as Error).message).toContain("Provider1");
+        expect((error as Error).message).toContain("Provider2");
       }
     });
 
@@ -184,34 +183,34 @@ describe("AIServiceFactory", () => {
 
       AIServiceFactory.createService(config);
 
-      assert.ok(receivedConfig);
-      assert.equal(receivedConfig!.provider.name, "ConfigCapture");
-      assert.equal(receivedConfig!.model.id, "test-model");
-      assert.equal(receivedConfig!.model.systemPrompt, "You are a test assistant");
+      expect(receivedConfig).toBeTruthy();
+      expect(receivedConfig!.provider.name).toBe("ConfigCapture");
+      expect(receivedConfig!.model.id).toBe("test-model");
+      expect(receivedConfig!.model.systemPrompt).toBe("You are a test assistant");
     });
   });
 
   describe("createServiceByName", () => {
     it("throws error for unknown provider key", () => {
-      assert.throws(
-        () => AIServiceFactory.createServiceByName("UNKNOWN", "MODEL"),
-        (error: Error) => {
-          assert.ok(error.message.includes("Provider not found"));
-          assert.ok(error.message.includes("UNKNOWN"));
-          return true;
-        }
-      );
+      try {
+        AIServiceFactory.createServiceByName("UNKNOWN", "MODEL");
+        expect(true).toBe(false);
+      } catch (error) {
+        expect(error).toBeInstanceOf(Error);
+        expect((error as Error).message).toContain("Provider not found");
+        expect((error as Error).message).toContain("UNKNOWN");
+      }
     });
 
     it("throws error for unknown model key", () => {
-      assert.throws(
-        () => AIServiceFactory.createServiceByName("OPENAI", "UNKNOWN_MODEL"),
-        (error: Error) => {
-          assert.ok(error.message.includes("Model not found"));
-          assert.ok(error.message.includes("UNKNOWN_MODEL"));
-          return true;
-        }
-      );
+      try {
+        AIServiceFactory.createServiceByName("OPENAI", "UNKNOWN_MODEL");
+        expect(true).toBe(false);
+      } catch (error) {
+        expect(error).toBeInstanceOf(Error);
+        expect((error as Error).message).toContain("Model not found");
+        expect((error as Error).message).toContain("UNKNOWN_MODEL");
+      }
     });
   });
 
@@ -221,11 +220,11 @@ describe("AIServiceFactory", () => {
 
       const previous = AIServiceFactory.__setServiceRegistryForTesting(newRegistry);
 
-      assert.ok(previous);
-      assert.ok(Object.keys(previous).length > 0);
+      expect(previous).toBeTruthy();
+      expect(Object.keys(previous).length > 0).toBeTruthy();
 
       const current = AIServiceFactory.__getServiceRegistryForTesting();
-      assert.deepEqual(current, newRegistry);
+      expect(current).toEqual(newRegistry);
     });
 
     it("allows testing with custom providers", () => {
@@ -248,7 +247,7 @@ describe("AIServiceFactory", () => {
       };
 
       const service = AIServiceFactory.createService(config);
-      assert.equal(service.getName(), "CustomTestService");
+      expect(service.getName()).toBe("CustomTestService");
     });
   });
 
@@ -257,8 +256,8 @@ describe("AIServiceFactory", () => {
       const registry1 = AIServiceFactory.__getServiceRegistryForTesting();
       const registry2 = AIServiceFactory.__getServiceRegistryForTesting();
 
-      assert.notEqual(registry1, registry2);
-      assert.deepEqual(registry1, registry2);
+      expect(registry1).not.toBe(registry2);
+      expect(registry1).toEqual(registry2);
     });
   });
 });

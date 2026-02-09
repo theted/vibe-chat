@@ -1,5 +1,4 @@
-import { afterEach, beforeEach, describe, it } from "node:test";
-import assert from "node:assert/strict";
+import { afterEach, beforeEach, describe, it, expect } from "bun:test";
 import { KimiService, type AIServiceConfig } from "@ai-chat/core";
 
 type KimiConfig = AIServiceConfig & { baseURL?: string };
@@ -48,7 +47,7 @@ describe("KimiService", () => {
     const service = new KimiService(config);
     await service.initialize({ validateOnInit: false });
 
-    assert.equal(getClientBaseUrl(service), config.baseURL);
+    expect(getClientBaseUrl(service)).toBe(config.baseURL);
   });
 
   it("prefers initialization baseURL override over config", async () => {
@@ -64,6 +63,6 @@ describe("KimiService", () => {
       baseURL: overrideBaseUrl,
     });
 
-    assert.equal(getClientBaseUrl(service), overrideBaseUrl);
+    expect(getClientBaseUrl(service)).toBe(overrideBaseUrl);
   });
 });

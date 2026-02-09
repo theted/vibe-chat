@@ -1,5 +1,4 @@
-import { describe, it, beforeEach } from "node:test";
-import assert from "node:assert/strict";
+import { describe, it, beforeEach, expect } from "bun:test";
 import { RateLimiter } from "./RateLimiter.js";
 
 describe("RateLimiter", () => {
@@ -16,18 +15,18 @@ describe("RateLimiter", () => {
     it("allows requests when under limit", async () => {
       const result = await rateLimiter.check("user-1");
 
-      assert.equal(result.allowed, true);
-      assert.equal(result.remaining, 2);
+      expect(result.allowed).toBe(true);
+      expect(result.remaining).toBe(2);
     });
 
     it("allows null/undefined identifiers (no rate limiting)", async () => {
       const nullResult = await rateLimiter.check(null);
       const undefinedResult = await rateLimiter.check(undefined);
 
-      assert.equal(nullResult.allowed, true);
-      assert.equal(nullResult.remaining, 3);
-      assert.equal(undefinedResult.allowed, true);
-      assert.equal(undefinedResult.remaining, 3);
+      expect(nullResult.allowed).toBe(true);
+      expect(nullResult.remaining).toBe(3);
+      expect(undefinedResult.allowed).toBe(true);
+      expect(undefinedResult.remaining).toBe(3);
     });
 
     it("decrements remaining count with each request", async () => {
@@ -35,9 +34,9 @@ describe("RateLimiter", () => {
       const result2 = await rateLimiter.check("user-1");
       const result3 = await rateLimiter.check("user-1");
 
-      assert.equal(result1.remaining, 2);
-      assert.equal(result2.remaining, 1);
-      assert.equal(result3.remaining, 0);
+      expect(result1.remaining).toBe(2);
+      expect(result2.remaining).toBe(1);
+      expect(result3.remaining).toBe(0);
     });
 
     it("blocks requests when limit exceeded", async () => {
@@ -47,11 +46,11 @@ describe("RateLimiter", () => {
 
       const result = await rateLimiter.check("user-1");
 
-      assert.equal(result.allowed, false);
-      assert.equal(result.remaining, 0);
-      assert.ok(result.retryAfterMs !== undefined);
-      assert.ok(result.retryAfterMs > 0);
-      assert.ok(result.retryAfterMs <= 1000);
+      expect(result.allowed).toBe(false);
+      expect(result.remaining).toBe(0);
+      expect(result.retryAfterMs).toBeDefined();
+      expect(result.retryAfterMs).toBeGreaterThan(0);
+      expect(result.retryAfterMs).toBeLessThanOrEqual(1000);
     });
 
     it("tracks different identifiers separately", async () => {
@@ -62,9 +61,9 @@ describe("RateLimiter", () => {
       const user1Result = await rateLimiter.check("user-1");
       const user2Result = await rateLimiter.check("user-2");
 
-      assert.equal(user1Result.allowed, false);
-      assert.equal(user2Result.allowed, true);
-      assert.equal(user2Result.remaining, 2);
+      expect(user1Result.allowed).toBe(false);
+      expect(user2Result.allowed).toBe(true);
+      expect(user2Result.remaining).toBe(2);
     });
 
     it("allows requests after window expires", async () => {
@@ -75,13 +74,13 @@ describe("RateLimiter", () => {
 
       await shortWindowLimiter.check("user-1");
       const blockedResult = await shortWindowLimiter.check("user-1");
-      assert.equal(blockedResult.allowed, false);
+      expect(blockedResult.allowed).toBe(false);
 
       // Wait for window to expire
       await new Promise((resolve) => setTimeout(resolve, 60));
 
       const allowedResult = await shortWindowLimiter.check("user-1");
-      assert.equal(allowedResult.allowed, true);
+      expect(allowedResult.allowed).toBe(true);
     });
 
     it("uses default options when not specified", async () => {
@@ -89,9 +88,9 @@ describe("RateLimiter", () => {
 
       const result = await defaultLimiter.check("user-1");
 
-      assert.equal(result.allowed, true);
+      expect(result.allowed).toBe(true);
       // Default is 10 max messages
-      assert.equal(result.remaining, 9);
+      expect(result.remaining).toBe(9);
     });
 
     it("cleans up old entries within sliding window", async () => {
@@ -109,7 +108,7 @@ describe("RateLimiter", () => {
 
       // Should be allowed as first entry expired
       const result = await shortWindowLimiter.check("user-1");
-      assert.equal(result.allowed, true);
+      expect(result.allowed).toBe(true);
     });
   });
 
@@ -122,7 +121,7 @@ describe("RateLimiter", () => {
       });
 
       const result = await rateLimiter.check("user-1");
-      assert.equal(result.allowed, true);
+      expect(result.allowed).toBe(true);
     });
   });
 
@@ -138,10 +137,10 @@ describe("RateLimiter", () => {
       const result2 = await rateLimiter.check("");
       const result3 = await rateLimiter.check("");
 
-      assert.equal(result1.allowed, true);
-      assert.equal(result1.remaining, 2);
-      assert.equal(result2.allowed, true);
-      assert.equal(result3.allowed, true);
+      expect(result1.allowed).toBe(true);
+      expect(result1.remaining).toBe(2);
+      expect(result2.allowed).toBe(true);
+      expect(result3.allowed).toBe(true);
     });
 
     it("handles special characters in identifier", async () => {
@@ -151,7 +150,7 @@ describe("RateLimiter", () => {
       });
 
       const result = await rateLimiter.check("192.168.1.1:8080");
-      assert.equal(result.allowed, true);
+      expect(result.allowed).toBe(true);
     });
 
     it("handles rapid concurrent requests", async () => {
@@ -173,8 +172,8 @@ describe("RateLimiter", () => {
       const allowedCount = results.filter((r) => r.allowed).length;
       const blockedCount = results.filter((r) => !r.allowed).length;
 
-      assert.equal(allowedCount, 5);
-      assert.equal(blockedCount, 2);
+      expect(allowedCount).toBe(5);
+      expect(blockedCount).toBe(2);
     });
 
     it("calculates retryAfterMs correctly", async () => {
@@ -186,11 +185,11 @@ describe("RateLimiter", () => {
       await rateLimiter.check("user-1");
       const blockedResult = await rateLimiter.check("user-1");
 
-      assert.equal(blockedResult.allowed, false);
-      assert.ok(blockedResult.retryAfterMs !== undefined);
+      expect(blockedResult.allowed).toBe(false);
+      expect(blockedResult.retryAfterMs).toBeDefined();
       // Should be close to windowMs since we just hit the limit
-      assert.ok(blockedResult.retryAfterMs > 900);
-      assert.ok(blockedResult.retryAfterMs <= 1000);
+      expect(blockedResult.retryAfterMs).toBeGreaterThan(900);
+      expect(blockedResult.retryAfterMs).toBeLessThanOrEqual(1000);
     });
   });
 });

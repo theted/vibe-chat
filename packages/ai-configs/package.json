@@ -18,13 +18,12 @@
     "build": "tsc",
     "build:watch": "tsc --watch --preserveWatchOutput",
     "clean": "rm -rf dist",
-    "prepare": "npm run build",
-    "prepublishOnly": "npm run clean && npm run build",
-    "test": "npx tsx --test tests/**/*.test.ts",
+    "prepare": "bun run build",
+    "prepublishOnly": "bun run clean && bun run build",
+    "test": "bun test",
     "type-check": "tsc --noEmit"
   },
   "devDependencies": {
-    "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   },
   "keywords": [
@@ -36,6 +35,6 @@
   "author": "AI Chat Team",
   "license": "MIT",
   "engines": {
-    "node": ">=22"
+    "bun": ">=1.2.0"
   }
 }

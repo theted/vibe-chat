@@ -1,5 +1,4 @@
-import { describe, it, beforeEach } from "node:test";
-import assert from "node:assert/strict";
+import { describe, it, beforeEach, expect } from "bun:test";
 import { MessageHistoryService } from "./MessageHistoryService.js";
 import type { ChatMessage } from "@/types.js";
 
@@ -69,17 +68,17 @@ describe("MessageHistoryService", () => {
     });
 
     it("returns false for isAvailable", () => {
-      assert.equal(service.isAvailable(), false);
+      expect(service.isAvailable()).toBe(false);
     });
 
     it("generates correct room message key", () => {
       const key = service.getRoomMessageKey("test-room");
-      assert.equal(key, "ai-chat:rooms:test-room:messages");
+      expect(key).toBe("ai-chat:rooms:test-room:messages");
     });
 
     it("uses default room id when not specified", () => {
       const key = service.getRoomMessageKey();
-      assert.equal(key, "ai-chat:rooms:default:messages");
+      expect(key).toBe("ai-chat:rooms:default:messages");
     });
 
     it("storeMessage is a no-op without Redis", async () => {
@@ -99,7 +98,7 @@ describe("MessageHistoryService", () => {
 
     it("getRecentMessages returns empty array without Redis and contextManager", async () => {
       const messages = await service.getRecentMessages("test-room");
-      assert.deepEqual(messages, []);
+      expect(messages).toEqual([]);
     });
 
     it("getRecentMessages uses contextManager fallback", async () => {
@@ -122,9 +121,9 @@ describe("MessageHistoryService", () => {
         mockContextManager
       );
 
-      assert.equal(messages.length, 1);
-      assert.equal(messages[0].content, "Hello from context");
-      assert.equal(messages[0].roomId, "test-room");
+      expect(messages.length).toBe(1);
+      expect(messages[0].content).toBe("Hello from context");
+      expect(messages[0].roomId).toBe("test-room");
     });
 
     it("handles missing fields in context entries", async () => {
@@ -141,10 +140,10 @@ describe("MessageHistoryService", () => {
         mockContextManager
       );
 
-      assert.equal(messages.length, 1);
-      assert.equal(messages[0].sender, "unknown");
-      assert.equal(messages[0].senderType, "user");
-      assert.ok(messages[0].id.startsWith("ctx-"));
+      expect(messages.length).toBe(1);
+      expect(messages[0].sender).toBe("unknown");
+      expect(messages[0].senderType).toBe("user");
+      expect(messages[0].id.startsWith("ctx-")).toBe(true);
     });
   });
 
@@ -164,7 +163,7 @@ describe("MessageHistoryService", () => {
     });
 
     it("returns true for isAvailable", () => {
-      assert.equal(service.isAvailable(), true);
+      expect(service.isAvailable()).toBe(true);
     });
 
     it("stores message in Redis", async () => {
@@ -184,13 +183,13 @@ describe("MessageHistoryService", () => {
       const key = "ai-chat:rooms:test-room:messages";
       const stored = storage.get(key);
 
-      assert.ok(stored);
-      assert.equal(stored.length, 1);
+      expect(stored).toBeTruthy();
+      expect(stored!.length).toBe(1);
 
-      const parsed = JSON.parse(stored[0]);
-      assert.equal(parsed.content, "Hello Redis");
-      assert.equal(parsed.roomId, "test-room");
-      assert.ok(parsed.storedAt);
+      const parsed = JSON.parse(stored![0]);
+      expect(parsed.content).toBe("Hello Redis");
+      expect(parsed.roomId).toBe("test-room");
+      expect(parsed.storedAt).toBeTruthy();
     });
 
     it("adds timestamp if not present", async () => {
@@ -209,8 +208,8 @@ describe("MessageHistoryService", () => {
       const stored = storage.get("ai-chat:rooms:test-room:messages");
       const parsed = JSON.parse(stored![0]);
 
-      assert.ok(parsed.timestamp);
-      assert.ok(parsed.storedAt);
+      expect(parsed.timestamp).toBeTruthy();
+      expect(parsed.storedAt).toBeTruthy();
     });
 
     it("retrieves recent messages from Redis", async () => {
@@ -240,9 +239,9 @@ describe("MessageHistoryService", () => {
       const messages = await service.getRecentMessages("test-room");
 
       // Messages should be reversed (oldest first)
-      assert.equal(messages.length, 2);
-      assert.equal(messages[0].content, "First");
-      assert.equal(messages[1].content, "Second");
+      expect(messages.length).toBe(2);
+      expect(messages[0].content).toBe("First");
+      expect(messages[1].content).toBe("Second");
     });
 
     it("respects message limit", async () => {
@@ -263,7 +262,7 @@ describe("MessageHistoryService", () => {
       const stored = storage.get("ai-chat:rooms:test-room:messages");
 
       // lTrim should keep only 5 messages (recentMessageLimit)
-      assert.equal(stored?.length, 5);
+      expect(stored?.length).toBe(5);
     });
 
     it("sets TTL on messages", async () => {
@@ -279,7 +278,7 @@ describe("MessageHistoryService", () => {
       const expirations = mockRedis._getExpirations();
       const ttl = expirations.get("ai-chat:rooms:test-room:messages");
 
-      assert.equal(ttl, 3600);
+      expect(ttl).toBe(3600);
     });
 
     it("handles malformed JSON in Redis gracefully", async () => {
@@ -294,7 +293,7 @@ describe("MessageHistoryService", () => {
       const messages = await service.getRecentMessages("test-room");
 
       // Should filter out invalid entries
-      assert.equal(messages.length, 2);
+      expect(messages.length).toBe(2);
     });
 
     it("uses default room id when not specified", async () => {
@@ -310,8 +309,8 @@ describe("MessageHistoryService", () => {
       const storage = mockRedis._getStorage();
       const stored = storage.get("ai-chat:rooms:default:messages");
 
-      assert.ok(stored);
-      assert.equal(stored.length, 1);
+      expect(stored).toBeTruthy();
+      expect(stored!.length).toBe(1);
     });
   });
 
@@ -321,7 +320,7 @@ describe("MessageHistoryService", () => {
 
       const mockContextManager = {
         getContextForAI: (limit: number) => {
-          assert.equal(limit, 20);
+          expect(limit).toBe(20);
           return [];
         },
       };
@@ -374,7 +373,7 @@ describe("MessageHistoryService", () => {
       });
 
       const messages = await service.getRecentMessages("test-room");
-      assert.deepEqual(messages, []);
+      expect(messages).toEqual([]);
     });
   });
 });
