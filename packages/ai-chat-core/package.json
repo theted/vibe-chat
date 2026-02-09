@@ -39,6 +39,7 @@
     "test:bytedance": "bun run build && bun tests/integration-ok-bytedance.ts",
     "test:huggingface": "bun run build && bun tests/integration-ok-huggingface.ts",
     "test:perplexity": "bun run build && bun tests/integration-ok-perplexity.ts",
+    "test:orchestrator-timing": "bun run build && bun test tests/integration-orchestrator-timing.test.ts",
     "test:all": "bun run build ; bun tests/integration-ok-openai.ts ; bun tests/integration-ok-mistral.ts ; bun tests/integration-ok-grok.ts ; bun tests/integration-gemini-comprehensive.ts ; bun tests/integration-ok-anthropic.ts ; bun tests/integration-ok-deepseek.ts ; bun tests/integration-ok-qwen.ts ; bun tests/integration-ok-kimi.ts ; bun tests/integration-ok-zai.ts ; bun tests/integration-ok-cohere.ts ; bun tests/integration-ok-llama.ts ; bun tests/integration-ok-nvidia.ts ; bun tests/integration-ok-xiaomi.ts ; bun tests/integration-ok-minimax.ts ; bun tests/integration-ok-baidu.ts ; bun tests/integration-ok-bytedance.ts ; bun tests/integration-ok-huggingface.ts ; bun tests/integration-ok-perplexity.ts",
     "lint": "eslint . --ext js,ts --report-unused-disable-directives --max-warnings 0",
     "lint:fix": "eslint . --ext js,ts --fix",
@@ -53,9 +54,11 @@
     "openai": "^4.89.0"
   },
   "devDependencies": {
+    "@sinonjs/fake-timers": "^15.1.0",
     "@swc/cli": "^0.3.0",
     "@swc/core": "^1.4.0",
     "@types/node": "^24.10.1",
+    "@types/sinonjs__fake-timers": "^15.0.1",
     "eslint": "^8.56.0",
     "typescript": "^5.9.3"
   },
