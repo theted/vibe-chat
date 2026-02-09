@@ -4,8 +4,6 @@ services:
     image: redis:7.4-alpine
     container_name: ai-chat-redis-prod
     command: redis-server --save 60 1 --appendonly yes --loglevel warning
-    profiles:
-      - internal-redis
     volumes:
       - redis-data:/data
     ports:
@@ -17,8 +15,6 @@ services:
   chroma:
     image: chromadb/chroma:latest
     container_name: ai-chat-chroma-prod
-    profiles:
-      - internal-chroma
     restart: always
     networks:
       - ai-chat-network
@@ -39,8 +35,8 @@ services:
   ai-chat-server:
     image: ${SERVER_IMAGE:?SERVER_IMAGE is required}
     container_name: ai-chat-server-prod
-    expose:
-      - "3001"
+    ports:
+      - "3001:3001"
     environment:
       - NODE_ENV=production
       - CLIENT_URL=${CLIENT_URL:-*}
@@ -78,8 +74,8 @@ services:
   ai-chat-client:
     image: ${CLIENT_IMAGE:?CLIENT_IMAGE is required}
     container_name: ai-chat-client-prod
-    expose:
-      - "80"
+    ports:
+      - "80:80"
     depends_on:
       - ai-chat-server
     restart: always
