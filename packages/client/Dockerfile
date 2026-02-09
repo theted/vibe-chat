@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.4
 # Client Dockerfile - Multi-stage build
-FROM oven/bun:latest-alpine AS deps
+FROM oven/bun:alpine AS deps
 
 WORKDIR /app
 

@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.4
 # Development Server Dockerfile with Live Reloading
-FROM oven/bun:latest-alpine
+FROM oven/bun:alpine
 
 WORKDIR /app
 
@@ -29,7 +29,7 @@ WORKDIR /app/server
 COPY packages/server/package.json ./
 COPY packages/server/tsconfig.json ./
 
-# Install server dependencies including nodemon
+# Install server dependencies
 RUN bun install
 
 # Expose node_modules for workspace packages

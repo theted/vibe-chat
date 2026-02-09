@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.4
 # Simplified Client Dockerfile for debugging
-FROM oven/bun:latest-alpine
+FROM oven/bun:alpine
 
 WORKDIR /app
 
