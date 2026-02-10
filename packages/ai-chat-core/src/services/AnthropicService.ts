@@ -54,12 +54,46 @@ export class AnthropicService extends BaseAIService {
     const systemMessage = messages.find((msg) => msg.role === "system");
     const systemPrompt = systemMessage?.content || this.getEnhancedSystemPrompt();
 
-    const formattedMessages: AnthropicMessage[] = messages
+    const mapped = messages
       .filter((msg) => msg.role !== "system")
       .map((msg) => ({
-        role: msg.role === "user" ? "user" : "assistant",
+        role: (msg.role === "user" ? "user" : "assistant") as
+          | "user"
+          | "assistant",
         content: msg.content.trim(),
+        sender: (msg as any).sender || (msg as any).displayName,
       }));
+
+    // Anthropic API requires alternating user/assistant roles and the
+    // conversation must end with a user message (no assistant prefill).
+    // In multi-AI chats, consecutive AI messages produce consecutive
+    // assistant entries, and the last message is often from an AI.
+    // Merge consecutive same-role messages and ensure a trailing user turn.
+    const formattedMessages: AnthropicMessage[] = [];
+    for (const msg of mapped) {
+      const last = formattedMessages[formattedMessages.length - 1];
+      if (last && last.role === msg.role) {
+        const prefix = msg.sender ? `[${msg.sender}] ` : "";
+        last.content += `\n\n${prefix}${msg.content}`;
+      } else {
+        const prefix = msg.role === "assistant" && msg.sender ? `[${msg.sender}] ` : "";
+        formattedMessages.push({
+          role: msg.role,
+          content: `${prefix}${msg.content}`,
+        });
+      }
+    }
+
+    // Ensure conversation ends with a user message
+    if (
+      formattedMessages.length === 0 ||
+      formattedMessages[formattedMessages.length - 1].role === "assistant"
+    ) {
+      formattedMessages.push({
+        role: "user",
+        content: "Continue the conversation.",
+      });
+    }
 
     const response = await this.client.messages.create({
       model: this.config.model.id,
