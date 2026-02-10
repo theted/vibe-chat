@@ -26,13 +26,13 @@ The test suite covers the following files that were modified in the current bran
 
 ```bash
 cd ai-chat-realtime/packages/client
-npm install
+pnpm install
 ```
 
 ### Run All Tests
 
 ```bash
-npm test
+pnpm test
 ```
 
 ### Run Tests in Watch Mode

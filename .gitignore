@@ -1,6 +1,9 @@
 # Dependency directories
 node_modules/
 
+# npm lockfile (project uses pnpm/bun)
+package-lock.json
+
 # Local MCP cache
 .mcp-data/
 
