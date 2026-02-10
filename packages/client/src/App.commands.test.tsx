@@ -14,6 +14,8 @@ vi.mock("./hooks/useSocket", () => ({
     on: (event: string, callback: (data: unknown) => void) => {
       listeners[event] = callback;
     },
+    off: vi.fn(),
+    emit: vi.fn(),
     joinRoom: vi.fn(),
     sendMessage: sendMessageMock,
     triggerAI: vi.fn(),

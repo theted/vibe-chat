@@ -8,6 +8,8 @@ import { MessageHistoryService } from "@/services/MessageHistoryService.js";
 import type { ChatAssistantService } from "@/services/ChatAssistantService.js";
 import type { MetricsService } from "@/services/MetricsService.js";
 import type { RedisClient } from "@/services/RedisClient.js";
+import { ChatAssistantHandler } from "./ChatAssistantHandler.js";
+import { setupOrchestratorEventBridge } from "./OrchestratorEventBridge.js";
 import { getClientIp } from "@/utils/httpUtils.js";
 import { transformAIServicesToParticipants } from "@/utils/aiServiceUtils.js";
 import {
@@ -19,29 +21,20 @@ import {
 } from "@/config/serverConfig.js";
 import type {
   ActiveAIParticipant,
-  ChatAssistantMetadata,
-  ChatAssistantOrigin,
   ChatMessage,
   ConnectedUser,
   JoinRoomPayload,
   MetricsHistoryPayload,
   TopicChangePayload,
-  TriggerChatAssistantPayload,
   UserMessagePayload,
 } from "@/types.js";
 
 const PRIVATE_ROOM_PREFIX = "private:";
 
 const getPrivateRoomAiId = (roomId: string): string | null => {
-  if (!roomId.startsWith(PRIVATE_ROOM_PREFIX)) {
-    return null;
-  }
-
+  if (!roomId.startsWith(PRIVATE_ROOM_PREFIX)) return null;
   const parts = roomId.split(":");
-  if (parts.length < 3) {
-    return null;
-  }
-
+  if (parts.length < 3) return null;
   const aiId = parts.slice(2).join(":").trim();
   return aiId || null;
 };
@@ -61,18 +54,9 @@ export class SocketController {
   roomManager: RoomManager;
   private aiTracker: AIMessageTracker;
   private connectedUsers: Map<string, ConnectedUser>;
-  chatAssistantService: ChatAssistantService | null;
-  chatAssistantMetadata: ChatAssistantMetadata | null;
+  private chatAssistant: ChatAssistantHandler;
   private rateLimiter: RateLimiter;
 
-  /**
-   * Create a SocketController for handling real-time chat events.
-   * @param io - Socket.IO server instance.
-   * @param chatOrchestrator - Chat orchestrator for AI responses.
-   * @param metricsService - Metrics service for tracking usage.
-   * @param redisClient - Optional Redis client for history persistence.
-   * @param options - Optional chat assistant configuration.
-   */
   constructor(
     io: Server,
     chatOrchestrator: ChatOrchestrator,
@@ -87,11 +71,7 @@ export class SocketController {
     this.previewRoomId = "preview-default-room";
     this.roomManager = new RoomManager();
     this.aiTracker = new AIMessageTracker();
-    this.connectedUsers = new Map(); // socketId -> user data
-    this.chatAssistantService = options.chatAssistantService || null;
-    this.chatAssistantMetadata = this.chatAssistantService
-      ? this.chatAssistantService.getMetadata()
-      : null;
+    this.connectedUsers = new Map();
     this.rateLimiter = new RateLimiter({
       redisClient,
       windowMs: USER_MESSAGE_WINDOW_MS,
@@ -99,107 +79,39 @@ export class SocketController {
       keyPrefix: "rate-limiter:ip:",
     });
 
-    this.setupChatOrchestratorEvents();
-  }
-
-  /**
-   * Setup chat orchestrator event listeners
-   */
-  setupChatOrchestratorEvents(): void {
-    this.chatOrchestrator.on(
-      "message-broadcast",
-      async ({ message, roomId }: { message: ChatMessage; roomId: string }) => {
-        await this.handleBroadcastMessage(message, roomId);
-      },
-    );
-
-    this.chatOrchestrator.on(
-      "ais-sleeping",
-      ({ reason }: { reason?: string }) => {
-        this.io.emit("ai-status-changed", { status: "sleeping", reason });
-      },
-    );
-
-    this.chatOrchestrator.on("ais-awakened", () => {
-      this.io.emit("ai-status-changed", { status: "active" });
+    this.chatAssistant = new ChatAssistantHandler({
+      chatAssistantService: options.chatAssistantService || null,
+      chatOrchestrator,
+      io,
+      getRecentMessages: (roomId) => this.getRecentMessages(roomId),
     });
 
-    this.chatOrchestrator.on(
-      "ai-generating-start",
-      (payload: { roomId?: string }) => {
-        if (!payload?.roomId) return;
-        this.io.to(payload.roomId).emit("ai-generating-start", payload);
-      },
-    );
-
-    this.chatOrchestrator.on(
-      "ai-generating-stop",
-      (payload: { roomId?: string }) => {
-        if (!payload?.roomId) return;
-        this.io.to(payload.roomId).emit("ai-generating-stop", payload);
-      },
-    );
-
-    this.chatOrchestrator.on(
-      "ai-response",
-      (payload: {
-        providerKey?: string;
-        modelKey?: string;
-        responseTimeMs?: number;
-      }) => {
-        this.metricsService.recordAIResponse(payload);
-      },
-    );
-
-    this.chatOrchestrator.on(
-      "ai-error",
-      (payload: {
-        providerKey?: string;
-        modelKey?: string;
-        responseTimeMs?: number;
-        error?: Error;
-      }) => {
-        const errorMessage =
-          payload.error instanceof Error ? payload.error.message : undefined;
-        this.metricsService.recordAIError({
-          providerKey: payload.providerKey,
-          modelKey: payload.modelKey,
-          responseTimeMs: payload.responseTimeMs,
-          errorMessage,
-        });
-      },
-    );
-
-    this.chatOrchestrator.on(
-      "topic-changed",
-      ({
-        newTopic,
-        changedBy,
-        roomId,
-      }: {
-        newTopic: string;
-        changedBy: string;
-        roomId: string;
-      }) => {
-        this.io.to(roomId).emit("topic-changed", { newTopic, changedBy });
-      },
-    );
-
-    this.chatOrchestrator.on("error", ({ error }: { error: Error }) => {
-      console.error("Chat orchestrator error:", error);
+    setupOrchestratorEventBridge({
+      chatOrchestrator,
+      io,
+      metricsService,
+      onBroadcast: (message, roomId) =>
+        this.handleBroadcastMessage(message, roomId),
     });
   }
 
-  async handleBroadcastMessage(
-    message: ChatMessage,
-    roomId: string,
-  ): Promise<void> {
+  // Backward-compatible accessors used by tests / server setup
+  get chatAssistantService(): ChatAssistantService | null {
+    return this.chatAssistant.service;
+  }
+
+  get chatAssistantMetadata() {
+    return this.chatAssistant.metadata;
+  }
+
+  // --- Broadcast ---
+
+  async handleBroadcastMessage(message: ChatMessage, roomId: string): Promise<void> {
     try {
       await this.messageHistory.storeMessage(roomId, message);
     } catch (error) {
-      const messageText =
-        error instanceof Error ? error.message : String(error);
-      console.warn("Failed to persist message history:", messageText);
+      const msg = error instanceof Error ? error.message : String(error);
+      console.warn("Failed to persist message history:", msg);
     }
 
     this.io.to(roomId).emit("new-message", message);
@@ -210,7 +122,6 @@ export class SocketController {
       aiParticipants: this.getActiveAIParticipants(),
     });
 
-    // Track metrics based on message type
     if (message.senderType === "ai") {
       this.metricsService.recordAIMessage(
         roomId,
@@ -221,10 +132,10 @@ export class SocketController {
 
     if (
       message.senderType === "ai" &&
-      this.chatAssistantService &&
+      this.chatAssistant.service &&
       !message.isInternalResponder
     ) {
-      await this.triggerChatAssistant({
+      await this.chatAssistant.trigger({
         roomId,
         content: message.content,
         origin: {
@@ -237,18 +148,13 @@ export class SocketController {
     }
   }
 
-  /**
-   * Handle new socket connection
-   * @param {Object} socket - Socket.IO socket
-   */
+  // --- Connection lifecycle ---
+
   handleConnection(socket: Socket): void {
     console.log(`User connected: ${socket.id}`);
-
-    // Set up event handlers
     this.setupSocketEvents(socket);
     socket.join(this.previewRoomId);
 
-    // Send initial data
     socket.emit("connection-established", {
       socketId: socket.id,
       serverTime: Date.now(),
@@ -256,100 +162,39 @@ export class SocketController {
     });
 
     this.sendRecentMessages(socket).catch((error) => {
-      const messageText =
-        error instanceof Error ? error.message : String(error);
-      console.warn("Failed to send recent messages on connect:", messageText);
+      const msg = error instanceof Error ? error.message : String(error);
+      console.warn("Failed to send recent messages on connect:", msg);
     });
   }
 
-  /**
-   * Setup event handlers for a socket
-   * @param {Object} socket - Socket.IO socket
-   */
   setupSocketEvents(socket: Socket): void {
-    // User joins a room
-    socket.on("join-room", (data: JoinRoomPayload) => {
-      this.handleJoinRoom(socket, data);
-    });
+    socket.on("join-room", (data: JoinRoomPayload) => this.handleJoinRoom(socket, data));
+    socket.on("user-message", (data: UserMessagePayload) => this.handleUserMessage(socket, data));
+    socket.on("change-topic", (data: TopicChangePayload) => this.handleTopicChange(socket, data));
+    socket.on("user-typing-start", () => this.handleUserTyping(socket, true));
+    socket.on("user-typing-stop", () => this.handleUserTyping(socket, false));
+    socket.on("get-room-info", (data: unknown) => this.handleGetRoomInfo(socket, data));
+    socket.on("get-ai-status", () => this.handleGetAIStatus(socket));
+    socket.on("admin-wake-ais", (data: unknown) => this.handleAdminWakeAIs(socket, data));
+    socket.on("admin-sleep-ais", (data: unknown) => this.handleAdminSleepAIs(socket, data));
+    socket.on("disconnect", () => this.handleDisconnect(socket));
 
-    // User sends a message
-    socket.on("user-message", (data: UserMessagePayload) => {
-      this.handleUserMessage(socket, data);
-    });
-
-    // Change topic
-    socket.on("change-topic", (data: TopicChangePayload) => {
-      this.handleTopicChange(socket, data);
-    });
-
-    // Typing indicators
-    socket.on("user-typing-start", () => {
-      this.handleUserTyping(socket, true);
-    });
-
-    socket.on("user-typing-stop", () => {
-      this.handleUserTyping(socket, false);
-    });
-
-    // Get room info
-    socket.on("get-room-info", (data: unknown) => {
-      this.handleGetRoomInfo(socket, data);
-    });
-
-    // Get AI status
-    socket.on("get-ai-status", () => {
-      this.handleGetAIStatus(socket);
-    });
-
-    // Admin commands
-    socket.on("admin-wake-ais", (data: unknown) => {
-      this.handleAdminWakeAIs(socket, data);
-    });
-
-    socket.on("admin-sleep-ais", (data: unknown) => {
-      this.handleAdminSleepAIs(socket, data);
-    });
-
-    // Handle disconnect
-    socket.on("disconnect", () => {
-      this.handleDisconnect(socket);
-    });
-
-    // Dashboard connection
+    // Dashboard events
     socket.on("join-dashboard", () => {
       socket.join("dashboard");
-      // Send current metrics immediately
-      const metrics = this.metricsService.getDetailedMetrics();
-      socket.emit("metrics-update", metrics);
+      socket.emit("metrics-update", this.metricsService.getDetailedMetrics());
       socket.emit("ai-participants", this.getActiveAIParticipants());
     });
-
-    socket.on("get-metrics", () => {
-      const metrics = this.metricsService.getDetailedMetrics();
-      socket.emit("metrics-update", metrics);
-    });
-
-    socket.on("get-ai-participants", () => {
-      socket.emit("ai-participants", this.getActiveAIParticipants());
-    });
-
+    socket.on("get-metrics", () => socket.emit("metrics-update", this.metricsService.getDetailedMetrics()));
+    socket.on("get-ai-participants", () => socket.emit("ai-participants", this.getActiveAIParticipants()));
     socket.on("get-metrics-history", (data: MetricsHistoryPayload) => {
-      const duration = data?.duration;
-      const history = this.metricsService.getMetricsHistory(duration);
-      socket.emit("metrics-history", history);
+      socket.emit("metrics-history", this.metricsService.getMetricsHistory(data?.duration));
     });
-
-    // Handle errors
-    socket.on("error", (error: Error) => {
-      console.error(`Socket ${socket.id} error:`, error);
-    });
+    socket.on("error", (error: Error) => console.error(`Socket ${socket.id} error:`, error));
   }
 
-  /**
-   * Handle user joining a room
-   * @param {Object} socket - Socket.IO socket
-   * @param {Object} data - Join room data
-   */
+  // --- Event handlers ---
+
   handleJoinRoom(socket: Socket, data: JoinRoomPayload): void {
     try {
       const { username, roomId = "default" } = data;
@@ -359,43 +204,30 @@ export class SocketController {
         return;
       }
 
-      // Validate username
       if (username.length > USERNAME_MAX_LENGTH || !/^[a-zA-Z0-9_-]+$/.test(username)) {
         socket.emit("error", {
-          message:
-            `Username must be 1-${USERNAME_MAX_LENGTH} characters, letters, numbers, dash, underscore only`,
+          message: `Username must be 1-${USERNAME_MAX_LENGTH} characters, letters, numbers, dash, underscore only`,
         });
         return;
       }
 
-      const userData = {
-        username: username.trim(),
-        joinedAt: Date.now(),
-      };
-
-      // Join room
+      const userData = { username: username.trim(), joinedAt: Date.now() };
       const room = this.roomManager.joinRoom(socket.id, roomId, userData);
 
       if (!room) {
-        socket.emit("error", {
-          message: "Failed to join room - room may be full",
-        });
+        socket.emit("error", { message: "Failed to join room - room may be full" });
         return;
       }
 
-      // Join Socket.IO room
       socket.join(roomId);
 
+      // Resolve private room AI scoping
       const privateAiId = getPrivateRoomAiId(roomId);
       if (privateAiId) {
-        const directMatch = this.chatOrchestrator.aiServices.has(privateAiId)
-          ? privateAiId
-          : null;
+        const directMatch = this.chatOrchestrator.aiServices.has(privateAiId) ? privateAiId : null;
         const normalizedMatch = directMatch
           ? null
-          : this.chatOrchestrator.findAIByNormalizedAlias(
-              normalizeRoomAiToken(privateAiId),
-            );
+          : this.chatOrchestrator.findAIByNormalizedAlias(normalizeRoomAiToken(privateAiId));
         const resolvedAiId = directMatch || normalizedMatch?.id || null;
 
         if (resolvedAiId) {
@@ -407,19 +239,11 @@ export class SocketController {
         this.chatOrchestrator.clearRoomAllowedAIs(roomId);
       }
 
-      // Store user data
       this.connectedUsers.set(socket.id, { ...userData, roomId });
-
-      // Initialize AI tracker for room
       this.aiTracker.initializeRoom(roomId);
-
-      // Update metrics
       this.metricsService.updateActiveUsers(this.connectedUsers.size);
-      this.metricsService.updateActiveRooms(
-        this.roomManager.getStats().totalRooms,
-      );
+      this.metricsService.updateActiveRooms(this.roomManager.getStats().totalRooms);
 
-      // Notify user
       socket.emit("room-joined", {
         roomId,
         roomName: room.name,
@@ -430,17 +254,11 @@ export class SocketController {
 
       socket.leave(this.previewRoomId);
       this.sendRecentMessages(socket, roomId).catch((error) => {
-        const messageText =
-          error instanceof Error ? error.message : String(error);
-        console.warn("Failed to send room history after join:", messageText);
+        const msg = error instanceof Error ? error.message : String(error);
+        console.warn("Failed to send room history after join:", msg);
       });
 
-      // Notify others in room
-      socket.to(roomId).emit("user-joined", {
-        username: userData.username,
-        timestamp: Date.now(),
-      });
-
+      socket.to(roomId).emit("user-joined", { username: userData.username, timestamp: Date.now() });
       console.log(`${userData.username} joined room ${roomId}`);
     } catch (error) {
       console.error("Error handling join room:", error);
@@ -448,15 +266,7 @@ export class SocketController {
     }
   }
 
-  /**
-   * Handle user message
-   * @param {Object} socket - Socket.IO socket
-   * @param {Object} data - Message data
-   */
-  async handleUserMessage(
-    socket: Socket,
-    data: UserMessagePayload,
-  ): Promise<void> {
+  async handleUserMessage(socket: Socket, data: UserMessagePayload): Promise<void> {
     try {
       const user = this.connectedUsers.get(socket.id);
       if (!user) {
@@ -471,9 +281,7 @@ export class SocketController {
       }
 
       if (content.length > MESSAGE_MAX_LENGTH) {
-        socket.emit("error", {
-          message: `Message too long (max ${MESSAGE_MAX_LENGTH} characters)`,
-        });
+        socket.emit("error", { message: `Message too long (max ${MESSAGE_MAX_LENGTH} characters)` });
         return;
       }
 
@@ -485,14 +293,11 @@ export class SocketController {
           ? Math.ceil(rateLimitResult.retryAfterMs / 1000)
           : undefined;
         socket.emit("error", {
-          message:
-            "Rate limit exceeded: max 10 messages per 10 minutes. Please wait before sending more.",
+          message: "Rate limit exceeded: max 10 messages per 10 minutes. Please wait before sending more.",
           code: "RATE_LIMITED",
           retryAfterSeconds,
         });
-        console.warn(
-          `Rate limit exceeded for IP ${ipAddress || "unknown"} (user: ${user.username})`,
-        );
+        console.warn(`Rate limit exceeded for IP ${ipAddress || "unknown"} (user: ${user.username})`);
         return;
       }
 
@@ -501,44 +306,31 @@ export class SocketController {
         content: content.trim(),
         senderType: "user",
         roomId: user.roomId,
-        priority: 1000, // High priority for user messages
+        priority: 1000,
         suppressAIResponses: false,
       };
 
-      const isChatAssistantQuery =
-        !!this.chatAssistantService &&
-        this.chatAssistantService.shouldHandle(message);
-
+      const isChatAssistantQuery = this.chatAssistant.shouldHandle(content);
       if (isChatAssistantQuery) {
         message.suppressAIResponses = true;
       }
 
-      // Track user message
       this.aiTracker.onUserMessage(user.roomId, user.username);
-      this.metricsService.recordUserMessage(
-        user.roomId,
-        user.username,
-        message,
-      );
+      this.metricsService.recordUserMessage(user.roomId, user.username, message);
+
       if (isChatAssistantQuery) {
         console.info(
-          `[ChatAssistant] User "${user.username}" mentioned @${this.chatAssistantService.name} with question:`,
+          `[ChatAssistant] User "${user.username}" mentioned @${this.chatAssistant.service?.name} with question:`,
           message.content,
         );
       }
-      // Add message to chat orchestrator
-      this.chatOrchestrator.addMessage(message);
-      this.io.to(user.roomId).emit("user-typing-stop", {
-        username: user.username,
-        roomId: user.roomId,
-      });
 
-      console.log(
-        `Message from ${user.username} in ${user.roomId}: ${content.substring(0, 50)}...`,
-      );
+      this.chatOrchestrator.addMessage(message);
+      this.io.to(user.roomId).emit("user-typing-stop", { username: user.username, roomId: user.roomId });
+      console.log(`Message from ${user.username} in ${user.roomId}: ${content.substring(0, 50)}...`);
 
       if (isChatAssistantQuery) {
-        await this.triggerChatAssistant({
+        await this.chatAssistant.trigger({
           roomId: user.roomId,
           content: message.content,
           origin: { type: "user", username: user.username },
@@ -550,35 +342,18 @@ export class SocketController {
     }
   }
 
-  /**
-   * Handle user typing state updates
-   * @param {Object} socket - Socket.IO socket
-   * @param {boolean} isTyping - Whether the user is typing
-   */
   handleUserTyping(socket: Socket, isTyping: boolean): void {
     try {
       const user = this.connectedUsers.get(socket.id);
-      if (!user) {
-        return;
-      }
-
-      const payload = {
-        username: user.username,
-        roomId: user.roomId,
-      };
+      if (!user) return;
 
       const eventName = isTyping ? "user-typing-start" : "user-typing-stop";
-      this.io.to(user.roomId).emit(eventName, payload);
+      this.io.to(user.roomId).emit(eventName, { username: user.username, roomId: user.roomId });
     } catch (error) {
       console.error("Error handling user typing state:", error);
     }
   }
 
-  /**
-   * Handle topic change
-   * @param {Object} socket - Socket.IO socket
-   * @param {Object} data - Topic change data
-   */
   handleTopicChange(socket: Socket, data: TopicChangePayload): void {
     try {
       const user = this.connectedUsers.get(socket.id);
@@ -594,44 +369,27 @@ export class SocketController {
       }
 
       if (topic.length > TOPIC_MAX_LENGTH) {
-        socket.emit("error", {
-          message: `Topic too long (max ${TOPIC_MAX_LENGTH} characters)`,
-        });
+        socket.emit("error", { message: `Topic too long (max ${TOPIC_MAX_LENGTH} characters)` });
         return;
       }
 
       const newTopic = topic.trim();
-
-      // Update room topic
-      const updated = this.roomManager.updateRoomTopic(
-        user.roomId,
-        newTopic,
-        user.username,
-      );
+      const updated = this.roomManager.updateRoomTopic(user.roomId, newTopic, user.username);
 
       if (!updated) {
         socket.emit("error", { message: "Failed to update topic" });
         return;
       }
 
-      // Notify chat orchestrator
       this.chatOrchestrator.changeTopic(newTopic, user.username, user.roomId);
-
-      console.log(
-        `${user.username} changed topic in ${user.roomId} to: ${newTopic}`,
-      );
+      console.log(`${user.username} changed topic in ${user.roomId} to: ${newTopic}`);
     } catch (error) {
       console.error("Error handling topic change:", error);
       socket.emit("error", { message: "Failed to change topic" });
     }
   }
 
-  /**
-   * Handle get room info request
-   * @param {Object} socket - Socket.IO socket
-   * @param {Object} data - Request data
-   */
-  handleGetRoomInfo(socket: Socket, data: unknown): void {
+  handleGetRoomInfo(socket: Socket, _data: unknown): void {
     try {
       const user = this.connectedUsers.get(socket.id);
       if (!user) {
@@ -639,14 +397,10 @@ export class SocketController {
         return;
       }
 
-      const room = this.roomManager.getRoom(user.roomId);
-      const participants = this.roomManager.getRoomParticipants(user.roomId);
-      const aiStatus = this.aiTracker.getRoomStatus(user.roomId);
-
       socket.emit("room-info", {
-        room,
-        participants,
-        aiStatus,
+        room: this.roomManager.getRoom(user.roomId),
+        participants: this.roomManager.getRoomParticipants(user.roomId),
+        aiStatus: this.aiTracker.getRoomStatus(user.roomId),
         aiParticipants: this.getActiveAIParticipants(),
       });
     } catch (error) {
@@ -655,18 +409,11 @@ export class SocketController {
     }
   }
 
-  /**
-   * Handle get AI status request
-   * @param {Object} socket - Socket.IO socket
-   */
   handleGetAIStatus(socket: Socket): void {
     try {
-      const orchestratorStatus = this.chatOrchestrator.getStatus();
-      const trackerStats = this.aiTracker.getStats();
-
       socket.emit("ai-status", {
-        orchestrator: orchestratorStatus,
-        tracker: trackerStats,
+        orchestrator: this.chatOrchestrator.getStatus(),
+        tracker: this.aiTracker.getStats(),
       });
     } catch (error) {
       console.error("Error getting AI status:", error);
@@ -674,15 +421,57 @@ export class SocketController {
     }
   }
 
+  handleAdminWakeAIs(socket: Socket, _data: unknown): void {
+    try {
+      const user = this.connectedUsers.get(socket.id);
+      if (!user) return;
+      this.aiTracker.wakeUpAIs(user.roomId, `admin-wake-by-${user.username}`);
+      this.chatOrchestrator.wakeUpAIs();
+      socket.to(user.roomId).emit("admin-action", { action: "wake-ais", by: user.username });
+    } catch (error) {
+      console.error("Error waking AIs:", error);
+    }
+  }
+
+  handleAdminSleepAIs(socket: Socket, _data: unknown): void {
+    try {
+      const user = this.connectedUsers.get(socket.id);
+      if (!user) return;
+      this.aiTracker.putAIsToSleep(user.roomId, `admin-sleep-by-${user.username}`);
+      this.chatOrchestrator.putAIsToSleep();
+      socket.to(user.roomId).emit("admin-action", { action: "sleep-ais", by: user.username });
+    } catch (error) {
+      console.error("Error sleeping AIs:", error);
+    }
+  }
+
+  handleDisconnect(socket: Socket): void {
+    try {
+      const user = this.connectedUsers.get(socket.id);
+
+      if (user) {
+        socket.to(user.roomId).emit("user-left", { username: user.username, timestamp: Date.now() });
+        this.io.to(user.roomId).emit("user-typing-stop", { username: user.username, roomId: user.roomId });
+        console.log(`${user.username} disconnected from room ${user.roomId}`);
+      }
+
+      this.roomManager.cleanup(socket.id);
+      this.connectedUsers.delete(socket.id);
+      this.metricsService.updateActiveUsers(this.connectedUsers.size);
+      this.metricsService.updateActiveRooms(this.roomManager.getStats().totalRooms);
+    } catch (error) {
+      console.error("Error handling disconnect:", error);
+    }
+  }
+
+  // --- Helpers ---
+
   getActiveAIParticipants(): ActiveAIParticipant[] {
     return transformAIServicesToParticipants(this.chatOrchestrator.aiServices);
   }
 
   async getRecentMessages(roomId = "default"): Promise<ChatMessage[]> {
-    return this.messageHistory.getRecentMessages(
-      roomId,
-      this.chatOrchestrator.contextManager
-    );
+    return this.messageHistory.getRecentMessages(roomId, this.chatOrchestrator.contextManager);
   }
 
   async sendRecentMessages(socket: Socket, roomId = "default"): Promise<void> {
@@ -693,116 +482,14 @@ export class SocketController {
         Promise.resolve(this.getActiveAIParticipants()),
       ]);
 
-      socket.emit("recent-messages", {
-        roomId,
-        messages,
-        participants,
-        aiParticipants,
-      });
+      socket.emit("recent-messages", { roomId, messages, participants, aiParticipants });
     } catch (error) {
-      const messageText =
-        error instanceof Error ? error.message : String(error);
-      console.warn("Failed to send recent messages:", messageText);
+      const msg = error instanceof Error ? error.message : String(error);
+      console.warn("Failed to send recent messages:", msg);
     }
   }
 
-  /**
-   * Handle admin wake AIs command
-   * @param {Object} socket - Socket.IO socket
-   * @param {Object} data - Command data
-   */
-  handleAdminWakeAIs(socket: Socket, data: unknown): void {
-    try {
-      const user = this.connectedUsers.get(socket.id);
-      if (!user) {
-        return;
-      }
-
-      this.aiTracker.wakeUpAIs(user.roomId, `admin-wake-by-${user.username}`);
-      this.chatOrchestrator.wakeUpAIs();
-
-      socket.to(user.roomId).emit("admin-action", {
-        action: "wake-ais",
-        by: user.username,
-      });
-    } catch (error) {
-      console.error("Error waking AIs:", error);
-    }
-  }
-
-  /**
-   * Handle admin sleep AIs command
-   * @param {Object} socket - Socket.IO socket
-   * @param {Object} data - Command data
-   */
-  handleAdminSleepAIs(socket: Socket, data: unknown): void {
-    try {
-      const user = this.connectedUsers.get(socket.id);
-      if (!user) {
-        return;
-      }
-
-      this.aiTracker.putAIsToSleep(
-        user.roomId,
-        `admin-sleep-by-${user.username}`,
-      );
-      this.chatOrchestrator.putAIsToSleep();
-
-      socket.to(user.roomId).emit("admin-action", {
-        action: "sleep-ais",
-        by: user.username,
-      });
-    } catch (error) {
-      console.error("Error sleeping AIs:", error);
-    }
-  }
-
-  /**
-   * Handle user disconnect
-   * @param {Object} socket - Socket.IO socket
-   */
-  handleDisconnect(socket: Socket): void {
-    try {
-      const user = this.connectedUsers.get(socket.id);
-
-      if (user) {
-        // Notify others in room
-        socket.to(user.roomId).emit("user-left", {
-          username: user.username,
-          timestamp: Date.now(),
-        });
-        this.io.to(user.roomId).emit("user-typing-stop", {
-          username: user.username,
-          roomId: user.roomId,
-        });
-
-        console.log(`${user.username} disconnected from room ${user.roomId}`);
-      }
-
-      // Cleanup
-      this.roomManager.cleanup(socket.id);
-      this.connectedUsers.delete(socket.id);
-
-      // Update metrics
-      this.metricsService.updateActiveUsers(this.connectedUsers.size);
-      this.metricsService.updateActiveRooms(
-        this.roomManager.getStats().totalRooms,
-      );
-    } catch (error) {
-      console.error("Error handling disconnect:", error);
-    }
-  }
-
-  /**
-   * Get server statistics
-   * @returns {Object} Server statistics
-   */
-  getStats(): {
-    connectedUsers: number;
-    rooms: ReturnType<RoomManager["getStats"]>;
-    aiTracker: ReturnType<AIMessageTracker["getStats"]>;
-    orchestrator: ReturnType<ChatOrchestrator["getStatus"]>;
-  } {
+  getStats() {
     return {
       connectedUsers: this.connectedUsers.size,
       rooms: this.roomManager.getStats(),
@@ -811,93 +498,8 @@ export class SocketController {
     };
   }
 
-  async triggerChatAssistant({
-    roomId,
-    content,
-    origin = {},
-  }: TriggerChatAssistantPayload): Promise<void> {
-    if (!this.chatAssistantService || !this.chatAssistantMetadata || !content) {
-      return;
-    }
-
-    if (!this.chatAssistantService.shouldHandle({ content })) {
-      return;
-    }
-
-    if (origin.type === "ai") {
-      if (origin.isInternalResponder) {
-        return;
-      }
-      const assistantId = this.chatAssistantMetadata?.aiId;
-      const assistantName = this.chatAssistantMetadata?.displayName;
-      if (assistantId && origin.aiId && origin.aiId === assistantId) {
-        return;
-      }
-      if (assistantName && origin.sender && origin.sender === assistantName) {
-        return;
-      }
-    }
-
-    try {
-      const recentMessages = await this.getRecentMessages(roomId);
-      const historyLimit = this.chatAssistantService?.chatHistoryLimit || 5;
-      const chatHistory = Array.isArray(recentMessages)
-        ? recentMessages.slice(-historyLimit)
-        : [];
-
-      const result = await this.chatAssistantService.createResponseFromContent(
-        content,
-        {
-          emitter: this.io,
-          roomId,
-          chatHistory,
-        },
-      );
-      if (!result || !result.answer) {
-        return;
-      }
-
-      if (result.error) {
-        console.warn(
-          "Chat assistant encountered an issue:",
-          result.error?.message || result.error,
-        );
-      }
-
-      const messageId = `chat-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-
-      const message: ChatMessage = {
-        ...this.chatAssistantMetadata,
-        content: result.answer,
-        senderType: "ai",
-        roomId,
-        priority: 800,
-        isInternalResponder: true,
-        suppressAIResponses: true,
-        mentionsTriggerSender:
-          origin.type === "user" ? origin.username : origin.sender || null,
-        contextQuestion: result.question,
-        timestamp: Date.now(),
-        id: messageId,
-      };
-
-      const originLabel =
-        origin.type === "user"
-          ? `user "${origin.username}"`
-          : origin.sender
-            ? `AI "${origin.sender}"`
-            : "trigger";
-
-      console.info(
-        `[ChatAssistant] Dispatching answer for ${originLabel} (question: "${result.question}")`,
-      );
-
-      await this.chatOrchestrator.handleMessage(message);
-    } catch (error) {
-      console.error(
-        "Failed to dispatch chat assistant response:",
-        error instanceof Error ? error.message : String(error),
-      );
-    }
+  // Backward-compatible method for external callers
+  async triggerChatAssistant(payload: { roomId: string; content: string; origin?: Record<string, unknown> }): Promise<void> {
+    return this.chatAssistant.trigger(payload);
   }
 }

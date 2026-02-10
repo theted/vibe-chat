@@ -2,73 +2,64 @@
  * Dashboard Component - Real-time metrics display
  */
 
-import { useState, useEffect, type ReactNode } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useSocket } from "@/hooks/useSocket";
 import StatusCard from "./StatusCard";
+import MetricCard from "./MetricCard";
+import ProgressBar from "./ProgressBar";
+import SortIndicator from "./SortIndicator";
+import type { SortColumn, SortDirection } from "./SortIndicator";
 import { SERVER_URL } from "@/constants/chat";
+import {
+  formatUptime,
+  formatTime,
+  formatDateTime,
+  formatResponseTime,
+  getPercentage,
+} from "@/utils/formatters";
 import type { DashboardMetrics, ConnectionStatus, ProviderModelStat } from "@/types";
 import type { AiParticipant } from "@/config/aiParticipants";
 
-type SortColumn = "provider" | "model" | "requests" | "errors" | "meanResponseTimeMs";
-type SortDirection = "asc" | "desc";
+const METRICS_REFRESH_INTERVAL_MS = 30_000;
+const METRICS_HISTORY_DURATION_MS = 60 * 60 * 1000;
 
-interface MetricCardProps {
-  title: string;
-  value: number | string;
-  subtitle?: string;
-  icon: string;
-  color?: string;
-}
-
-interface ProgressBarProps {
-  value: number;
-  max: number;
-  label: string;
-  color?: string;
-}
-
-// Shared style constants
 const styles = {
   card: "bg-white rounded-2xl p-6 shadow-md border border-gray-200",
   cardTitle: "text-xl font-semibold text-gray-900 mb-6",
   headerPill: "bg-white rounded-lg px-4 py-2 shadow-sm",
 };
 
-const Dashboard = () => {
-  const [metrics, setMetrics] = useState<DashboardMetrics>({
-    totalAIMessages: 0,
-    totalUserMessages: 0,
-    totalMessages: 0,
-    messagesPerMinute: 0,
-    activeUsers: 0,
-    activeRooms: 0,
-    providerModelStats: [],
-    errorLogs: [],
-    uptime: 0,
-    timestamp: Date.now(),
-  });
+const INITIAL_METRICS: DashboardMetrics = {
+  totalAIMessages: 0,
+  totalUserMessages: 0,
+  totalMessages: 0,
+  messagesPerMinute: 0,
+  activeUsers: 0,
+  activeRooms: 0,
+  providerModelStats: [],
+  errorLogs: [],
+  uptime: 0,
+  timestamp: Date.now(),
+};
 
+const Dashboard = () => {
+  const [metrics, setMetrics] = useState<DashboardMetrics>(INITIAL_METRICS);
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>({
     connected: false,
   });
-  const [history, setHistory] = useState<unknown[]>([]);
   const [aiParticipants, setAiParticipants] = useState<AiParticipant[]>([]);
-  const [isVisible, setIsVisible] = useState(true);
   const [sortColumn, setSortColumn] = useState<SortColumn>("provider");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
 
-  // Socket connection
   const { on, emit } = useSocket(SERVER_URL);
 
-  // Setup socket listeners
   useEffect(() => {
-    // Connection events
     on("connect", () => {
       setConnectionStatus({ connected: true });
       emit("join-dashboard");
       emit("get-metrics");
-      emit("get-metrics-history", { duration: 60 * 60 * 1000 }); // Last hour
+      emit("get-metrics-history", { duration: METRICS_HISTORY_DURATION_MS });
       emit("get-ai-participants");
     });
 
@@ -76,65 +67,28 @@ const Dashboard = () => {
       setConnectionStatus({ connected: false });
     });
 
-    // Metrics events
     on("metrics-update", (data: unknown) => {
       setMetrics(data as DashboardMetrics);
-    });
-
-    on("metrics-history", (data: unknown) => {
-      setHistory(data as unknown[]);
     });
 
     on("ai-participants", (data: unknown) => {
       setAiParticipants(Array.isArray(data) ? data : []);
     });
 
-    // Join dashboard immediately if connected
     emit("join-dashboard");
     emit("get-ai-participants");
   }, [on, emit]);
 
-  // Auto-refresh metrics every 30 seconds
   useEffect(() => {
     const interval = setInterval(() => {
       if (connectionStatus.connected) {
         emit("get-metrics");
       }
-    }, 30000);
+    }, METRICS_REFRESH_INTERVAL_MS);
 
     return () => clearInterval(interval);
   }, [connectionStatus.connected, emit]);
 
-  // Format uptime
-  const formatUptime = (seconds: number): string => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${hours}h ${minutes}m ${secs}s`;
-  };
-
-  // Format timestamp
-  const formatTime = (timestamp: number): string => {
-    return new Date(timestamp).toLocaleTimeString();
-  };
-
-  const formatDateTime = (timestamp: number | undefined): string => {
-    if (!timestamp) return "";
-    return new Date(timestamp).toLocaleString();
-  };
-
-  const formatResponseTime = (value: number | undefined): string => {
-    const normalized = Number(value) || 0;
-    return `${Math.round(normalized)} ms`;
-  };
-
-  // Calculate percentage
-  const getPercentage = (value: number, total: number): number => {
-    if (total === 0) return 0;
-    return Math.round((value / total) * 100);
-  };
-
-  // Handle column sort click
   const handleSort = (column: SortColumn) => {
     if (sortColumn === column) {
       setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
@@ -144,7 +98,6 @@ const Dashboard = () => {
     }
   };
 
-  // Sort provider stats
   const sortedProviderStats = [...(metrics.providerModelStats || [])].sort(
     (a: ProviderModelStat, b: ProviderModelStat) => {
       const multiplier = sortDirection === "asc" ? 1 : -1;
@@ -158,135 +111,19 @@ const Dashboard = () => {
     }
   );
 
-  // Sort indicator component
-  const SortIndicator = ({ column }: { column: SortColumn }) => {
-    if (sortColumn !== column) {
-      return <span className="text-gray-300 ml-1">↕</span>;
-    }
-    return (
-      <span className="text-primary-600 ml-1">
-        {sortDirection === "asc" ? "↑" : "↓"}
-      </span>
-    );
-  };
-
-  const metricCardStyles: Record<
-    string,
-    { container: string; title: string; icon: string }
-  > = {
-    blue: {
-      container:
-        "bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200",
-      title: "text-blue-600",
-      icon: "text-blue-500",
-    },
-    purple: {
-      container:
-        "bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200",
-      title: "text-purple-600",
-      icon: "text-purple-500",
-    },
-    green: {
-      container:
-        "bg-gradient-to-br from-green-50 to-green-100 border-green-200",
-      title: "text-green-600",
-      icon: "text-green-500",
-    },
-    orange: {
-      container:
-        "bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200",
-      title: "text-orange-600",
-      icon: "text-orange-500",
-    },
-    teal: {
-      container:
-        "bg-gradient-to-br from-teal-50 to-teal-100 border-teal-200",
-      title: "text-teal-600",
-      icon: "text-teal-500",
-    },
-    indigo: {
-      container:
-        "bg-gradient-to-br from-indigo-50 to-indigo-100 border-indigo-200",
-      title: "text-indigo-600",
-      icon: "text-indigo-500",
-    },
-  };
-
-  const MetricCard = ({
-    title,
-    value,
-    subtitle,
-    icon,
-    color = "blue",
-  }: MetricCardProps): ReactNode => {
-    const styles = metricCardStyles[color] || metricCardStyles.blue;
-    return (
-      <div
-        className={`${styles.container} border rounded-2xl p-6 shadow-md hover:shadow-lg transition-all duration-300`}
-      >
-        <div className="flex items-center justify-between">
-          <div>
-            <p
-              className={`${styles.title} text-sm font-medium uppercase tracking-wide`}
-            >
-              {title}
-            </p>
-            <p className="text-3xl font-bold text-gray-900 mt-2">
-              {typeof value === "number" ? value.toLocaleString() : value}
-            </p>
-            {subtitle && <p className="text-gray-600 text-sm mt-1">{subtitle}</p>}
-          </div>
-          <div className={`${styles.icon} text-4xl`}>{icon}</div>
-        </div>
-      </div>
-    );
-  };
-
-  const progressBarStyles: Record<string, string> = {
-    blue: "bg-gradient-to-r from-blue-400 to-blue-600",
-    purple: "bg-gradient-to-r from-purple-400 to-purple-600",
-    green: "bg-gradient-to-r from-green-400 to-green-600",
-    orange: "bg-gradient-to-r from-orange-400 to-orange-600",
-    teal: "bg-gradient-to-r from-teal-400 to-teal-600",
-    indigo: "bg-gradient-to-r from-indigo-400 to-indigo-600",
-  };
-
-  const ProgressBar = ({
-    value,
-    max,
-    label,
-    color = "blue",
-  }: ProgressBarProps): ReactNode => {
-    const percentage = max > 0 ? (value / max) * 100 : 0;
-    const barStyle = progressBarStyles[color] || progressBarStyles.blue;
-    return (
-      <div className="mb-4">
-        <div className="flex justify-between items-center mb-2">
-          <span className="text-sm font-medium text-gray-700">{label}</span>
-          <span className="text-sm text-gray-500">
-            {value} / {max}
-          </span>
-        </div>
-        <div className="w-full bg-gray-200 rounded-full h-3">
-          <div
-            className={`${barStyle} h-3 rounded-full transition-all duration-500 ease-out`}
-            style={{ width: `${Math.min(percentage, 100)}%` }}
-          ></div>
-        </div>
-        <div className="text-xs text-gray-500 mt-1">
-          {percentage.toFixed(1)}%
-        </div>
-      </div>
-    );
-  };
-
-  if (!isVisible) return null;
-
   const activeAiParticipants = aiParticipants
     .filter((participant) => participant.status === "active")
     .sort((first, second) =>
       (first.name || "").localeCompare(second.name || ""),
     );
+
+  const activityLevel = metrics.messagesPerMinute > 10
+    ? { label: "Very High", className: "text-red-600" }
+    : metrics.messagesPerMinute > 5
+      ? { label: "High", className: "text-orange-600" }
+      : metrics.messagesPerMinute > 1
+        ? { label: "Moderate", className: "text-green-600" }
+        : { label: "Low", className: "text-gray-600" };
 
   return (
     <div className="min-h-screen p-6">
@@ -327,145 +164,47 @@ const Dashboard = () => {
 
         {/* Main Metrics Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          <MetricCard
-            title="Total Messages"
-            value={metrics.totalMessages}
-            subtitle="All time"
-            icon="💬"
-            color="blue"
-          />
-
-          <MetricCard
-            title="AI Messages"
-            value={metrics.totalAIMessages}
-            subtitle={`${getPercentage(metrics.totalAIMessages, metrics.totalMessages)}% of total`}
-            icon="🤖"
-            color="purple"
-          />
-
-          <MetricCard
-            title="User Messages"
-            value={metrics.totalUserMessages}
-            subtitle={`${getPercentage(metrics.totalUserMessages, metrics.totalMessages)}% of total`}
-            icon="👤"
-            color="green"
-          />
-
-          <MetricCard
-            title="Messages/Minute"
-            value={metrics.messagesPerMinute}
-            subtitle="Current rate"
-            icon="⚡"
-            color="orange"
-          />
-
-          <MetricCard
-            title="Active Users"
-            value={metrics.activeUsers}
-            subtitle="Currently online"
-            icon="👥"
-            color="teal"
-          />
-
-          <MetricCard
-            title="Server Uptime"
-            value={formatUptime(metrics.uptime)}
-            subtitle="Since last restart"
-            icon="⏱️"
-            color="indigo"
-          />
+          <MetricCard title="Total Messages" value={metrics.totalMessages} subtitle="All time" icon="💬" color="blue" />
+          <MetricCard title="AI Messages" value={metrics.totalAIMessages} subtitle={`${getPercentage(metrics.totalAIMessages, metrics.totalMessages)}% of total`} icon="🤖" color="purple" />
+          <MetricCard title="User Messages" value={metrics.totalUserMessages} subtitle={`${getPercentage(metrics.totalUserMessages, metrics.totalMessages)}% of total`} icon="👤" color="green" />
+          <MetricCard title="Messages/Minute" value={metrics.messagesPerMinute} subtitle="Current rate" icon="⚡" color="orange" />
+          <MetricCard title="Active Users" value={metrics.activeUsers} subtitle="Currently online" icon="👥" color="teal" />
+          <MetricCard title="Server Uptime" value={formatUptime(metrics.uptime)} subtitle="Since last restart" icon="⏱️" color="indigo" />
         </div>
 
         {/* Detailed Analytics */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          {/* Message Distribution */}
           <div className={styles.card}>
             <h3 className={styles.cardTitle}>Message Distribution</h3>
-
-            <ProgressBar
-              value={metrics.totalAIMessages}
-              max={metrics.totalMessages}
-              label="AI Messages"
-              color="purple"
-            />
-
-            <ProgressBar
-              value={metrics.totalUserMessages}
-              max={metrics.totalMessages}
-              label="User Messages"
-              color="green"
-            />
-
+            <ProgressBar value={metrics.totalAIMessages} max={metrics.totalMessages} label="AI Messages" color="purple" />
+            <ProgressBar value={metrics.totalUserMessages} max={metrics.totalMessages} label="User Messages" color="green" />
             <div className="mt-6 pt-4 border-t border-gray-100">
               <div className="text-sm text-gray-600">
                 <div className="flex justify-between mb-2">
                   <span>AI to User Ratio:</span>
                   <span className="font-medium">
                     {metrics.totalUserMessages > 0
-                      ? (
-                          metrics.totalAIMessages / metrics.totalUserMessages
-                        ).toFixed(2)
+                      ? (metrics.totalAIMessages / metrics.totalUserMessages).toFixed(2)
                       : "0"}{" "}
                     : 1
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span>Activity Level:</span>
-                  <span
-                    className={`font-medium ${
-                      metrics.messagesPerMinute > 10
-                        ? "text-red-600"
-                        : metrics.messagesPerMinute > 5
-                          ? "text-orange-600"
-                          : metrics.messagesPerMinute > 1
-                            ? "text-green-600"
-                            : "text-gray-600"
-                    }`}
-                  >
-                    {metrics.messagesPerMinute > 10
-                      ? "Very High"
-                      : metrics.messagesPerMinute > 5
-                        ? "High"
-                        : metrics.messagesPerMinute > 1
-                          ? "Moderate"
-                          : "Low"}
+                  <span className={`font-medium ${activityLevel.className}`}>
+                    {activityLevel.label}
                   </span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Recent Activity */}
           <div className={styles.card}>
             <h3 className={styles.cardTitle}>System Status</h3>
-
             <div className="space-y-4">
-              <StatusCard
-                icon="🌐"
-                iconBackgroundClass="bg-blue-100"
-                iconTextClass="text-blue-600"
-                title="WebSocket Server"
-                subtitle="Real-time connection"
-                statusText="Online"
-              />
-
-              <StatusCard
-                icon="🤖"
-                iconBackgroundClass="bg-purple-100"
-                iconTextClass="text-purple-600"
-                title="AI Services"
-                subtitle="Multiple providers active"
-                statusText="Active"
-              />
-
-              <StatusCard
-                icon="📊"
-                iconBackgroundClass="bg-orange-100"
-                iconTextClass="text-orange-600"
-                title="Metrics Collection"
-                subtitle="Real-time tracking"
-                statusText="Collecting"
-              />
+              <StatusCard icon="🌐" iconBackgroundClass="bg-blue-100" iconTextClass="text-blue-600" title="WebSocket Server" subtitle="Real-time connection" statusText="Online" />
+              <StatusCard icon="🤖" iconBackgroundClass="bg-purple-100" iconTextClass="text-purple-600" title="AI Services" subtitle="Multiple providers active" statusText="Active" />
+              <StatusCard icon="📊" iconBackgroundClass="bg-orange-100" iconTextClass="text-orange-600" title="Metrics Collection" subtitle="Real-time tracking" statusText="Collecting" />
             </div>
           </div>
         </div>
@@ -477,41 +216,16 @@ const Dashboard = () => {
               <table className="min-w-full text-left text-sm">
                 <thead>
                   <tr className="border-b border-gray-200 text-gray-500 uppercase text-xs tracking-wide">
-                    <th
-                      className="py-2 pr-4 font-semibold cursor-pointer hover:text-gray-700 select-none"
-                      onClick={() => handleSort("provider")}
-                    >
-                      Provider
-                      <SortIndicator column="provider" />
-                    </th>
-                    <th
-                      className="py-2 pr-4 font-semibold cursor-pointer hover:text-gray-700 select-none"
-                      onClick={() => handleSort("model")}
-                    >
-                      Model
-                      <SortIndicator column="model" />
-                    </th>
-                    <th
-                      className="py-2 pr-4 font-semibold cursor-pointer hover:text-gray-700 select-none"
-                      onClick={() => handleSort("requests")}
-                    >
-                      Requests
-                      <SortIndicator column="requests" />
-                    </th>
-                    <th
-                      className="py-2 pr-4 font-semibold cursor-pointer hover:text-gray-700 select-none"
-                      onClick={() => handleSort("errors")}
-                    >
-                      Errors
-                      <SortIndicator column="errors" />
-                    </th>
-                    <th
-                      className="py-2 pr-4 font-semibold cursor-pointer hover:text-gray-700 select-none"
-                      onClick={() => handleSort("meanResponseTimeMs")}
-                    >
-                      Mean Response
-                      <SortIndicator column="meanResponseTimeMs" />
-                    </th>
+                    {(["provider", "model", "requests", "errors", "meanResponseTimeMs"] as const).map((col) => (
+                      <th
+                        key={col}
+                        className="py-2 pr-4 font-semibold cursor-pointer hover:text-gray-700 select-none"
+                        onClick={() => handleSort(col)}
+                      >
+                        {col === "meanResponseTimeMs" ? "Mean Response" : col.charAt(0).toUpperCase() + col.slice(1)}
+                        <SortIndicator column={col} activeColumn={sortColumn} direction={sortDirection} />
+                      </th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody>
@@ -523,25 +237,12 @@ const Dashboard = () => {
                     </tr>
                   ) : (
                     sortedProviderStats.map((stat) => (
-                      <tr
-                        key={`${stat.provider}-${stat.model}`}
-                        className="border-b border-gray-100"
-                      >
-                        <td className="py-2 pr-4 font-medium text-gray-900">
-                          {stat.provider}
-                        </td>
-                        <td className="py-2 pr-4 text-gray-700">
-                          {stat.model}
-                        </td>
-                        <td className="py-2 pr-4 text-gray-700">
-                          {stat.requests}
-                        </td>
-                        <td className="py-2 pr-4 text-gray-700">
-                          {stat.errors}
-                        </td>
-                        <td className="py-2 pr-4 text-gray-700">
-                          {formatResponseTime(stat.meanResponseTimeMs)}
-                        </td>
+                      <tr key={`${stat.provider}-${stat.model}`} className="border-b border-gray-100">
+                        <td className="py-2 pr-4 font-medium text-gray-900">{stat.provider}</td>
+                        <td className="py-2 pr-4 text-gray-700">{stat.model}</td>
+                        <td className="py-2 pr-4 text-gray-700">{stat.requests}</td>
+                        <td className="py-2 pr-4 text-gray-700">{stat.errors}</td>
+                        <td className="py-2 pr-4 text-gray-700">{formatResponseTime(stat.meanResponseTimeMs)}</td>
                       </tr>
                     ))
                   )}
@@ -604,26 +305,17 @@ const Dashboard = () => {
                     {participant.emoji || "🤖"}
                   </span>
                   <div className="flex-1">
-                    <p className="text-sm font-semibold text-gray-900">
-                      {participant.name}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      @{participant.alias}
-                    </p>
-                    <p className="text-xs text-gray-400 mt-1">
-                      Provider: {participant.provider || "Unknown"}
-                    </p>
+                    <p className="text-sm font-semibold text-gray-900">{participant.name}</p>
+                    <p className="text-xs text-gray-500">@{participant.alias}</p>
+                    <p className="text-xs text-gray-400 mt-1">Provider: {participant.provider || "Unknown"}</p>
                   </div>
-                  <span className="text-xs font-semibold uppercase tracking-wide text-green-600">
-                    Active
-                  </span>
+                  <span className="text-xs font-semibold uppercase tracking-wide text-green-600">Active</span>
                 </li>
               ))}
             </ul>
           )}
         </div>
 
-        {/* Footer */}
         <div className="text-center text-gray-500 text-sm">
           <p>Dashboard updates automatically every 2-5 seconds</p>
           <p className="mt-1">

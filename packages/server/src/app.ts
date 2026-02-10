@@ -89,11 +89,6 @@ async function startServer(): Promise<void> {
             }`,
           );
           chatAssistantService = null;
-          const socketController = getSocketController();
-          if (socketController) {
-            socketController.chatAssistantService = null;
-            socketController.chatAssistantMetadata = null;
-          }
           return false;
         });
     } catch (error) {
