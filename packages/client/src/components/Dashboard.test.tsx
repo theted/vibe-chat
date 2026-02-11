@@ -14,6 +14,7 @@ vi.mock("@/hooks/useSocket", () => ({
     on: (event: string, callback: (data: unknown) => void) => {
       mockHandlers[event] = callback;
     },
+    off: vi.fn(),
     emit: mockEmit,
   }),
 }));

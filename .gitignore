@@ -65,3 +65,6 @@ dist-tests/
 # Package-specific ignores
 packages/*/dist/
 packages/*/node_modules/
+
+# Node compile cache
+node-compile-cache/

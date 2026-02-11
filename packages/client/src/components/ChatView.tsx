@@ -1,19 +1,13 @@
-import { useEffect, useRef, useState, type FormEvent } from "react";
-import { Link } from "react-router-dom";
 import { DEFAULT_AI_PARTICIPANTS } from "@/config/aiParticipants";
+import { useModal } from "@/hooks/useModal";
 import ChatMessage from "./ChatMessage";
 import MessageInput from "./MessageInput";
 import ParticipantsList from "./ParticipantsList";
 import TypingIndicator from "./TypingIndicator";
+import SettingsModal from "./SettingsModal";
+import LoginModal from "./LoginModal";
 import Icon from "./Icon";
 import type { ChatViewProps } from "@/types";
-
-const styles = {
-  modalBackdrop:
-    "absolute inset-0 bg-slate-950/60 backdrop-blur-sm transition-opacity duration-200 ease-out",
-  primaryIconButton:
-    "flex items-center justify-center gap-2 rounded-xl border border-primary-200/70 bg-primary-50 px-4 py-3 text-sm font-semibold text-primary-700 transition-colors hover:bg-primary-100 dark:border-primary-500/40 dark:bg-primary-500/10 dark:text-primary-200 dark:hover:bg-primary-500/20",
-};
 
 const ChatView = ({
   theme,
@@ -43,86 +37,8 @@ const ChatView = ({
 }: ChatViewProps) => {
   const aiParticipantList =
     aiParticipants.length > 0 ? aiParticipants : DEFAULT_AI_PARTICIPANTS;
-  const aiParticipantCount = aiParticipantList.length;
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isMenuVisible, setIsMenuVisible] = useState(false);
-  const [isLoginOpen, setIsLoginOpen] = useState(false);
-  const [isLoginVisible, setIsLoginVisible] = useState(false);
-  const loginInputRef = useRef<HTMLInputElement>(null);
-  const displayName = username.trim() ? username : "Guest";
-  const isGuest = !username.trim();
-
-  useEffect(() => {
-    if (isMenuOpen) {
-      setIsMenuVisible(true);
-    } else if (isMenuVisible) {
-      const timeout = window.setTimeout(() => {
-        setIsMenuVisible(false);
-      }, 200);
-      return () => window.clearTimeout(timeout);
-    }
-    return undefined;
-  }, [isMenuOpen, isMenuVisible]);
-
-  useEffect(() => {
-    if (!isMenuOpen) {
-      return undefined;
-    }
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setIsMenuOpen(false);
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [isMenuOpen]);
-
-  useEffect(() => {
-    if (isLoginOpen) {
-      setIsLoginVisible(true);
-    } else if (isLoginVisible) {
-      const timeout = window.setTimeout(() => {
-        setIsLoginVisible(false);
-      }, 200);
-      return () => window.clearTimeout(timeout);
-    }
-    return undefined;
-  }, [isLoginOpen, isLoginVisible]);
-
-  useEffect(() => {
-    if (!isLoginOpen) {
-      return undefined;
-    }
-
-    loginInputRef.current?.focus();
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setIsLoginOpen(false);
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [isLoginOpen]);
-
-  const handleLoginSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!username.trim()) {
-      loginInputRef.current?.focus();
-      return;
-    }
-    onJoin(event);
-    setIsLoginOpen(false);
-  };
+  const menu = useModal();
+  const login = useModal();
 
   return (
     <div className="min-h-screen flex items-center justify-center p-6">
@@ -138,17 +54,6 @@ const ChatView = ({
                   <h1 className="header-title header-title--compact">
                     Vibe Chat
                   </h1>
-                  {/* <div className="text-slate-300/90 text-xs uppercase tracking-[0.24em] mt-2 flex items-center gap-2">
-                    <Icon name="topic" className="w-4 h-4" />
-                    <span>{roomInfo.topic}</span>
-                    <span aria-hidden="true">•</span>
-                    <span>{displayName}</span>
-                    {isGuest && (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.24em] text-white/70">
-                        Guest
-                      </span>
-                    )}
-                  </div> */}
                 </div>
               </div>
               <div className="flex flex-col items-end gap-2 self-stretch">
@@ -156,7 +61,7 @@ const ChatView = ({
                   {!isAuthenticated && (
                     <button
                       type="button"
-                      onClick={() => setIsLoginOpen(true)}
+                      onClick={login.open}
                       className="bg-primary-400/80 hover:bg-primary-400 text-white px-3 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 shadow-lg shadow-primary-500/30"
                       aria-label="Log in to chat"
                     >
@@ -166,222 +71,38 @@ const ChatView = ({
                   )}
                   <button
                     type="button"
-                    onClick={() => setIsMenuOpen(true)}
+                    onClick={menu.open}
                     className="bg-white/10 hover:bg-white/20 text-white/80 px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 dark:bg-slate-900/60 dark:hover:bg-slate-900/80 dark:text-slate-200 dark:border dark:border-slate-700"
                     aria-label="Open settings menu"
                     title="Open settings menu"
                   >
                     <Icon name="cog" className="w-4 h-4" />
                   </button>
-                  {/* <div className="text-primary-200 text-xs dark:text-slate-300">
-                    {`${participants.length} user${
-                      participants.length !== 1 ? "s" : ""
-                    } + ${aiParticipantCount} AI${
-                      aiParticipantCount !== 1 ? "s" : ""
-                    }`}
-                  </div> */}
                 </div>
-                {/* connection indicator */}
-                {/* <div className="flex items-center gap-2 text-sm text-slate-100/80 dark:text-slate-200/80">
-                  <div
-                    className={`w-2 h-2 rounded-full transition-colors ${
-                      connectionStatus.connected
-                        ? "bg-green-400"
-                        : "bg-red-400 animate-pulse"
-                    }`}
-                  ></div>
-                  <span>
-                    {connectionStatus.connected
-                      ? "Connected"
-                      : "Reconnecting..."}
-                  </span>
-                </div> */}
               </div>
             </div>
           </div>
-          {isMenuVisible && (
-            <div
-              className={`fixed inset-0 z-50 flex items-center justify-center ${
-                isMenuOpen ? "pointer-events-auto" : "pointer-events-none"
-              }`}
-            >
-              <div
-                className={`${styles.modalBackdrop} ${
-                  isMenuOpen ? "opacity-100" : "opacity-0"
-                }`}
-                role="button"
-                tabIndex={-1}
-                aria-label="Close settings menu"
-                onClick={() => setIsMenuOpen(false)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter" || event.key === " ") {
-                    setIsMenuOpen(false);
-                  }
-                }}
-              />
-              <div
-                role="dialog"
-                aria-modal="true"
-                aria-label="Settings"
-                aria-hidden={!isMenuOpen}
-                className={`relative w-full max-w-sm rounded-2xl bg-white/95 p-6 shadow-2xl border border-white/40 backdrop-blur-xl transition-all duration-200 ease-out transform-gpu will-change-transform dark:bg-slate-900/95 dark:border-slate-700/60 ${
-                  isMenuOpen
-                    ? "opacity-100 translate-y-0 scale-100"
-                    : "opacity-0 translate-y-2 scale-95"
-                }`}
-              >
-                <div className="flex items-center gap-3 mb-5">
-                  <div className="w-10 h-10 rounded-xl bg-primary-500/20 flex items-center justify-center">
-                    <Icon name="cog" className="w-5 h-5 text-primary-500" />
-                  </div>
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
-                      Quick actions
-                    </p>
-                    <p className="text-lg font-semibold text-slate-800 dark:text-slate-100">
-                      Settings
-                    </p>
-                  </div>
-                </div>
-                <div className="flex flex-col gap-3">
-                  <button
-                    type="button"
-                    onClick={toggleTheme}
-                    className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-3 rounded-xl text-sm font-medium transition-colors flex items-center justify-between gap-3 dark:bg-slate-800/80 dark:hover:bg-slate-800 dark:text-slate-100"
-                    title={`Switch to ${
-                      theme === "dark" ? "light" : "dark"
-                    } mode`}
-                  >
-                    <span className="flex items-center gap-2">
-                      <Icon
-                        name={theme === "dark" ? "sun" : "moon"}
-                        className="w-4 h-4"
-                      />
-                      {theme === "dark" ? "Light mode" : "Dark mode"}
-                    </span>
-                    <span className="text-xs text-slate-500 dark:text-slate-400">
-                      Toggle
-                    </span>
-                  </button>
-                  <div className="grid grid-cols-2 gap-3">
-                    <Link
-                      to="/dashboard"
-                      onClick={() => setIsMenuOpen(false)}
-                      className={styles.primaryIconButton}
-                      title="Dashboard"
-                      aria-label="Dashboard"
-                    >
-                      <Icon name="dashboard" className="w-5 h-5" />
-                    </Link>
-                    {isAuthenticated ? (
-                      <button
-                        type="button"
-                        onClick={onLogout}
-                        className="flex items-center justify-center gap-2 rounded-xl border border-rose-200/70 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-600 transition-colors hover:bg-rose-100 dark:border-rose-500/40 dark:bg-rose-500/10 dark:text-rose-200 dark:hover:bg-rose-500/20"
-                        title="Logout"
-                        aria-label="Logout"
-                      >
-                        <Icon name="logout" className="w-5 h-5" />
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsMenuOpen(false);
-                          setIsLoginOpen(true);
-                        }}
-                        className={styles.primaryIconButton}
-                        title="Log in"
-                        aria-label="Log in"
-                      >
-                        <Icon name="login" className="w-5 h-5" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-          {isLoginVisible && (
-            <div
-              className={`fixed inset-0 z-50 flex items-center justify-center ${
-                isLoginOpen ? "pointer-events-auto" : "pointer-events-none"
-              }`}
-            >
-              <div
-                className={`${styles.modalBackdrop} ${
-                  isLoginOpen ? "opacity-100" : "opacity-0"
-                }`}
-                role="button"
-                tabIndex={-1}
-                aria-label="Close login dialog"
-                onClick={() => setIsLoginOpen(false)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter" || event.key === " ") {
-                    setIsLoginOpen(false);
-                  }
-                }}
-              />
-              <div
-                role="dialog"
-                aria-modal="true"
-                aria-label="Set your username"
-                aria-hidden={!isLoginOpen}
-                className={`relative w-full max-w-md rounded-3xl bg-white/95 p-8 shadow-2xl border border-white/40 backdrop-blur-xl transition-all duration-200 ease-out transform-gpu will-change-transform dark:bg-slate-900/95 dark:border-slate-700/60 ${
-                  isLoginOpen
-                    ? "opacity-100 translate-y-0 scale-100"
-                    : "opacity-0 translate-y-2 scale-95"
-                }`}
-              >
-                <div className="absolute -top-10 right-8 h-24 w-24 rounded-full bg-primary-500/20 blur-2xl" />
-                <div className="absolute -bottom-8 left-8 h-24 w-24 rounded-full bg-indigo-500/20 blur-2xl" />
-                <div className="relative flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
-                      Welcome to the room
-                    </p>
-                    <p className="text-2xl font-semibold text-slate-800 dark:text-slate-100">
-                      Pick your username
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setIsLoginOpen(false)}
-                    className="rounded-full border border-slate-200/60 bg-white/70 p-2 text-slate-500 transition hover:text-slate-700 dark:border-slate-700/60 dark:bg-slate-900/70 dark:text-slate-300"
-                    aria-label="Close login dialog"
-                  >
-                    <Icon name="x-mark" className="w-4 h-4" />
-                  </button>
-                </div>
-                <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">
-                  Join the conversation with a display name so others can see
-                  you in the room.
-                </p>
-                <form onSubmit={handleLoginSubmit} className="mt-6 space-y-4">
-                  <input
-                    ref={loginInputRef}
-                    type="text"
-                    value={username}
-                    onChange={(event) => onUsernameChange(event.target.value)}
-                    placeholder="Enter your username"
-                    maxLength={50}
-                    pattern="[a-zA-Z0-9_-]+"
-                    title="Username can only contain letters, numbers, dash, and underscore"
-                    className="w-full rounded-2xl border border-slate-200/70 bg-white/80 px-5 py-3 text-base font-medium text-slate-800 shadow-inner outline-none transition focus:border-primary-300 focus:ring-2 focus:ring-primary-400/30 dark:border-slate-700/60 dark:bg-slate-900/70 dark:text-slate-100"
-                    required
-                  />
-                  <button
-                    type="submit"
-                    disabled={!connectionStatus.connected || !username.trim()}
-                    className="group relative flex w-full items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-r from-primary-500 via-indigo-500 to-sky-500 px-6 py-3 text-sm font-semibold uppercase tracking-[0.35em] text-white transition-all duration-300 disabled:from-slate-500 disabled:via-slate-600 disabled:to-slate-700 disabled:text-slate-300 disabled:shadow-none disabled:cursor-not-allowed"
-                  >
-                    <span className="absolute inset-0 translate-y-full bg-gradient-to-r from-emerald-400/80 via-teal-400/80 to-cyan-400/80 opacity-0 transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100" />
-                    <span className="relative">Join Chat</span>
-                  </button>
-                </form>
-              </div>
-            </div>
-          )}
+
+          <SettingsModal
+            isOpen={menu.isOpen}
+            isVisible={menu.isVisible}
+            onClose={menu.close}
+            onLoginOpen={login.open}
+            theme={theme}
+            toggleTheme={toggleTheme}
+            isAuthenticated={isAuthenticated}
+            onLogout={onLogout}
+          />
+
+          <LoginModal
+            isOpen={login.isOpen}
+            isVisible={login.isVisible}
+            onClose={login.close}
+            username={username}
+            onUsernameChange={onUsernameChange}
+            onJoin={onJoin}
+            connectionStatus={connectionStatus}
+          />
 
           <div
             className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar p-8 space-y-7 bg-gradient-to-b from-slate-50/30 to-white/40 dark:from-slate-900/50 dark:to-slate-900/20"
@@ -432,7 +153,7 @@ const ChatView = ({
                 <div>
                   <button
                     type="button"
-                    onClick={() => setIsLoginOpen(true)}
+                    onClick={login.open}
                     className="inline-flex items-center gap-2 rounded-full bg-primary-500 px-4 py-2 text-xs font-semibold uppercase tracking-[0.28em] text-white shadow-lg shadow-primary-500/30 transition hover:bg-primary-400"
                   >
                     <Icon name="login" className="w-4 h-4" />

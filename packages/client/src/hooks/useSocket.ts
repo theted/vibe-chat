@@ -39,6 +39,14 @@ export const useSocket = (serverUrl: string) => {
     listenersRef.current.set(event, callback);
   }, []);
 
+  const off = useCallback((event: string, callback: EventCallback) => {
+    socketService.off(event, callback);
+    const existing = listenersRef.current.get(event);
+    if (existing === callback) {
+      listenersRef.current.delete(event);
+    }
+  }, []);
+
   const emit = useCallback((event: string, data?: unknown) => {
     socketService.emit(event, data);
   }, []);
@@ -88,6 +96,7 @@ export const useSocket = (serverUrl: string) => {
 
   return {
     on,
+    off,
     emit,
     joinRoom,
     sendMessage,
