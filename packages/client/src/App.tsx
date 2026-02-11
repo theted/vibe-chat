@@ -31,6 +31,9 @@ import type {
 } from "./types";
 import type { AiParticipant } from "./config/aiParticipants";
 
+const RECENT_MESSAGES_FOR_AI_CONTEXT = 10;
+const SCROLL_ON_JOIN_DELAY_MS = 100;
+
 function App() {
   // Core state
   const [username, setUsername] = useState("");
@@ -140,7 +143,7 @@ function App() {
   // Scroll to bottom on join
   useEffect(() => {
     if (isJoined && messagesEndRef.current) {
-      setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "instant" }), 100);
+      setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "instant" }), SCROLL_ON_JOIN_DELAY_MS);
     }
   }, [isJoined]);
 
@@ -182,7 +185,7 @@ function App() {
   const handleAIMention = (mentions: string[], message: string) => {
     const aiNames = mapMentionsToAiNames(mentions);
     if (aiNames.length > 0) {
-      const recentMessages = messages.slice(-10);
+      const recentMessages = messages.slice(-RECENT_MESSAGES_FOR_AI_CONTEXT);
       triggerAI(aiNames as string[], message, recentMessages);
     }
   };

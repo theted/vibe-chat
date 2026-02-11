@@ -19,6 +19,14 @@ import {
 import type { ChatMessageProps, SenderType } from "@/types";
 import type { AiParticipant } from "@/config/aiParticipants";
 
+const SYNTAX_HIGHLIGHTER_STYLE: React.CSSProperties = {
+  background: "transparent",
+  margin: "15px 0",
+  padding: 10,
+};
+const CODE_TAG_STYLE: React.CSSProperties = { fontFamily: "inherit" };
+const DEFAULT_AI_DISPLAY_NAME = "AI Assistant";
+
 const formatTime = (timestamp: number): string =>
   new Date(timestamp).toLocaleTimeString("en-US", {
     hour: "2-digit",
@@ -170,7 +178,7 @@ const ChatMessage = ({
       message.sender,
     ];
 
-    return candidates.find((v) => v && v.trim().length > 0) || "AI Assistant";
+    return candidates.find((v) => v && v.trim().length > 0) || DEFAULT_AI_DISPLAY_NAME;
   };
 
   const getSenderDisplay = (sender: string, senderType: SenderType): string | null => {
@@ -218,8 +226,8 @@ const ChatMessage = ({
           style={oneDark}
           PreTag="pre"
           wrapLongLines
-          customStyle={{ background: "transparent", margin: "15px 0", padding: 10 }}
-          codeTagProps={{ style: { fontFamily: "inherit" } }}
+          customStyle={SYNTAX_HIGHLIGHTER_STYLE}
+          codeTagProps={{ style: CODE_TAG_STYLE }}
           className={`code-block ${className || ""}`.trim()}
           {...props}
         >

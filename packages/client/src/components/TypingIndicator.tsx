@@ -4,6 +4,9 @@
 
 import type { TypingIndicatorProps, TypingParticipant } from "@/types";
 
+const MAX_VISIBLE_AVATARS = 3;
+const AVATAR_ANIMATION_DELAY_MS = 100;
+
 const TypingIndicator = ({
   typingUsers = [],
   typingAIs = [],
@@ -48,7 +51,7 @@ const TypingIndicator = ({
         </span>
       </div>
       <div className="flex -space-x-2 ml-auto">
-        {allTyping.slice(0, 3).map((user, index) => (
+        {allTyping.slice(0, MAX_VISIBLE_AVATARS).map((user, index) => (
           <div
             key={`${user.type}-${user.id || user.name || index}`}
             className={`w-6 h-6 rounded-full border-2 border-white flex items-center justify-center text-xs font-semibold animate-pulse dark:border-slate-900 ${
@@ -56,16 +59,16 @@ const TypingIndicator = ({
                 ? "bg-gradient-to-br from-purple-400 to-purple-600 text-white dark:from-purple-500 dark:to-purple-700"
                 : "bg-gradient-to-br from-blue-400 to-blue-600 text-white dark:from-blue-400 dark:to-blue-700"
             }`}
-            style={{ animationDelay: `${index * 100}ms` }}
+            style={{ animationDelay: `${index * AVATAR_ANIMATION_DELAY_MS}ms` }}
           >
             {user.type === "ai"
               ? user.emoji || "🤖"
               : getDisplayName(user).charAt(0).toUpperCase()}
           </div>
         ))}
-        {allTyping.length > 3 && (
+        {allTyping.length > MAX_VISIBLE_AVATARS && (
           <div className="w-6 h-6 bg-slate-400 rounded-full border-2 border-white flex items-center justify-center text-xs font-semibold text-white dark:bg-slate-700 dark:border-slate-900 dark:text-slate-100">
-            +{allTyping.length - 3}
+            +{allTyping.length - MAX_VISIBLE_AVATARS}
           </div>
         )}
       </div>

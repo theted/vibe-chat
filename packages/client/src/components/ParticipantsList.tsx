@@ -2,11 +2,11 @@
  * ParticipantsList Component - Shows connected users and AI participants
  */
 
-import { motion } from "framer-motion";
 import {
   DEFAULT_AI_PARTICIPANTS,
   type AiParticipant,
 } from "@/config/aiParticipants";
+import { normalizeAlias } from "@/utils/ai";
 import Icon from "./Icon";
 import AnimatedListItem from "./AnimatedListItem";
 import SectionHeader from "./SectionHeader";
@@ -37,14 +37,6 @@ const ParticipantsList = ({
 }: ParticipantsListProps) => {
   if (!isVisible) return null;
 
-  const normalize = (value: string | undefined | null): string =>
-    value
-      ? value
-          .toString()
-          .toLowerCase()
-          .replace(/[^a-z0-9]/g, "")
-      : "";
-
   const baseAIList =
     aiParticipants.length > 0 ? aiParticipants : DEFAULT_AI_PARTICIPANTS;
   const aiList: NormalizedAiParticipant[] = baseAIList.map((ai) => {
@@ -53,7 +45,7 @@ const ParticipantsList = ({
       ...ai,
       displayName: ai.name,
       alias,
-      normalizedAlias: normalize(alias),
+      normalizedAlias: normalizeAlias(alias),
       status: ai.status || "active",
     };
   });
@@ -83,7 +75,7 @@ const ParticipantsList = ({
   };
 
   const isAITyping = (aiEntry: NormalizedAiParticipant): boolean => {
-    const normalizedTarget = normalize(
+    const normalizedTarget = normalizeAlias(
       aiEntry.alias || aiEntry.name || aiEntry.displayName,
     );
     return typingAIs.some((ai) => {
@@ -97,7 +89,7 @@ const ParticipantsList = ({
       if (
         ai.alias &&
         normalizedTarget &&
-        normalize(ai.alias) === normalizedTarget
+        normalizeAlias(ai.alias) === normalizedTarget
       )
         return true;
       return false;
