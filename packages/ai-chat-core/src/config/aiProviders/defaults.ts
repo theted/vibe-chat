@@ -29,7 +29,7 @@ import type { AIModel } from "@/types/index.js";
  */
 export const DEFAULT_MODELS: Record<string, AIModel> = {
   [COHERE.name]: COHERE.models.COMMAND_A_03_2025,
-  [ZAI.name]: ZAI.models.ZAI_DEFAULT,
+  [ZAI.name]: ZAI.models.ZAI_GLM_5,
   [GEMINI.name]: GEMINI.models.GEMINI_3_PRO,
   [MISTRAL.name]: MISTRAL.models.MISTRAL_LARGE,
   [OPENAI.name]: OPENAI.models.GPT5_2,

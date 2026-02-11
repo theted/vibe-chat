@@ -100,6 +100,7 @@ export const ENABLED_AI_MODELS: string[] = [
 
   // Z.ai Models
   "ZAI_ZAI_DEFAULT",
+  "ZAI_ZAI_GLM_5",
   "ZAI_ZAI_GLM_4_5",
   "ZAI_ZAI_GLM_4_5_AIR",
   "ZAI_ZAI_GLM_4_5_AIRX",

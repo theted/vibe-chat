@@ -25,7 +25,15 @@ export const ZAI: AIProvider = {
     ],
   },
   models: {
-    // GLM-4.7 (Latest - flagship thinking model)
+    // GLM-5 (Latest - flagship agentic model, 745B MoE)
+    ZAI_GLM_5: {
+      id: "glm-5",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are GLM-5 by Z.ai, the flagship 745B MoE foundation model with 200K context, engineered for complex systems design and long-horizon agentic workflows. Greet once, then demonstrate deep analytical thinking and systematic problem-solving.",
+    },
+    // GLM-4.7
     ZAI_GLM_4_7: {
       id: "glm-4.7",
       maxTokens: DEFAULT_MAX_TOKENS,
@@ -100,7 +108,7 @@ export const ZAI: AIProvider = {
     },
     // Default
     ZAI_DEFAULT: {
-      id: process.env.Z_MODEL_ID || "glm-4.7",
+      id: process.env.Z_MODEL_ID || "glm-5",
       maxTokens: DEFAULT_MAX_TOKENS,
       temperature: DEFAULT_TEMPERATURE,
       systemPrompt:
