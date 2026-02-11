@@ -106,7 +106,7 @@ const SettingsModal = ({
             {isAuthenticated ? (
               <button
                 type="button"
-                onClick={onLogout}
+                onClick={() => { onClose(); onLogout(); }}
                 className="flex items-center justify-center gap-2 rounded-xl border border-rose-200/70 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-600 transition-colors hover:bg-rose-100 dark:border-rose-500/40 dark:bg-rose-500/10 dark:text-rose-200 dark:hover:bg-rose-500/20"
                 title="Logout"
                 aria-label="Logout"

@@ -54,8 +54,7 @@ function App() {
   // Hooks
   const { theme, setTheme, toggleTheme } = useTheme();
   const { toasts, showToast } = useToasts();
-  const { on, off, emit, joinRoom, sendMessage, triggerAI, startTyping, stopTyping } =
-    useSocket(SERVER_URL);
+  const { on, off, emit, triggerAI } = useSocket(SERVER_URL);
 
   // Refs
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -80,31 +79,8 @@ function App() {
 
   const { clearMessages } = useMessagePersistence(messages, setMessages, isJoined);
 
-  // Load saved username on mount
-  useEffect(() => {
-    const saved = localStorage.getItem("ai-chat-username");
-    if (saved) {
-      setUsername(saved);
-      setHasSavedUsername(true);
-    } else {
-      setIsAuthLoading(false);
-    }
-  }, []);
-
-  // Auto-join when connected with saved username
-  useEffect(() => {
-    if (hasSavedUsername && connectionStatus.connected && !isJoined && username) {
-      joinRoom(username, "default");
-      setIsAuthLoading(true);
-    }
-  }, [connectionStatus.connected, hasSavedUsername, isJoined, joinRoom, username]);
-
-  useEffect(() => {
-    if (isJoined) setIsAuthLoading(false);
-  }, [isJoined]);
-
-  // Socket events
-  useSocketEvents({
+  // Socket events - consume returned helpers to avoid duplicate implementations
+  const { sendMessage, joinRoom, startTyping, stopTyping } = useSocketEvents({
     on,
     off,
     emit,
@@ -130,6 +106,29 @@ function App() {
     showToast,
   });
 
+  // Load saved username on mount
+  useEffect(() => {
+    const saved = localStorage.getItem("ai-chat-username");
+    if (saved) {
+      setUsername(saved);
+      setHasSavedUsername(true);
+    } else {
+      setIsAuthLoading(false);
+    }
+  }, []);
+
+  // Auto-join when connected with saved username
+  // joinRoom from useSocketEvents already sets isAuthLoading
+  useEffect(() => {
+    if (hasSavedUsername && connectionStatus.connected && !isJoined && username) {
+      joinRoom(username, "default");
+    }
+  }, [connectionStatus.connected, hasSavedUsername, isJoined, joinRoom, username]);
+
+  useEffect(() => {
+    if (isJoined) setIsAuthLoading(false);
+  }, [isJoined]);
+
   // Auto-scroll on new messages
   useEffect(() => {
     if (!messagesEndRef.current) return;
@@ -151,7 +150,6 @@ function App() {
     if (username.trim()) {
       localStorage.setItem("ai-chat-username", username.trim());
       setHasSavedUsername(true);
-      setIsAuthLoading(true);
       joinRoom(username.trim(), "default");
     }
   };
@@ -200,7 +198,6 @@ function App() {
       if (!aiId) return;
 
       const roomId = `private:${resolved}:${aiId}`;
-      setIsAuthLoading(true);
       setPreviewMessages([]);
       setMessages([]);
       setTypingUsers([]);

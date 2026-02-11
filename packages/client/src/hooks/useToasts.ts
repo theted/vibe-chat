@@ -13,7 +13,7 @@ export const useToasts = () => {
 
   useEffect(
     () => () => {
-      timeouts.current.forEach((id) => clearTimeout(id));
+      timeouts.current.forEach((id) => { clearTimeout(id); });
       timeouts.current.clear();
     },
     [],

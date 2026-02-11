@@ -189,10 +189,10 @@ export const useSocketEvents = (opts: UseSocketEventsOptions) => {
 
     handlersRef.current = handlers;
 
-    Object.entries(handlers).forEach(([event, handler]) => on(event, handler));
+    Object.entries(handlers).forEach(([event, handler]) => { on(event, handler); });
 
     return () => {
-      Object.entries(handlers).forEach(([event, handler]) => off(event, handler));
+      Object.entries(handlers).forEach(([event, handler]) => { off(event, handler); });
     };
   }, [on, off]);
 

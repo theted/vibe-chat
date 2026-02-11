@@ -158,7 +158,7 @@ export const createUserTypingStartHandler = (state: TypingState) =>
       const name = typedData?.username || typedData?.name;
       if (!name) return prev;
       const normalized = name.toLowerCase();
-      const isLocal = state.usernameRef.current && normalized === state.usernameRef.current.toLowerCase();
+      const isLocal = !!state.usernameRef.current && normalized === state.usernameRef.current.toLowerCase();
       const exists = prev.some((user) => user.normalized === normalized);
 
       if (!exists) {

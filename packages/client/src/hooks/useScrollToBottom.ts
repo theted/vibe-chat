@@ -10,7 +10,6 @@ const SCROLL_BUTTON_HIDE_DELAY_MS = 500;
 export const useScrollToBottom = (
   containerRef: RefObject<HTMLDivElement | null>,
   messagesEndRef: RefObject<HTMLDivElement | null>,
-  dependencies: unknown[] = [],
 ) => {
   const [showScrollButton, setShowScrollButton] = useState(false);
 

@@ -35,8 +35,10 @@ export class ResponseQueue {
   private activeCount: number;
   private maxConcurrent: number;
   private isProcessing: boolean;
+  private isCleared: boolean;
   private isSleeping: () => boolean;
   private onDispatch: ResponseHandler;
+  private pendingTimers: Set<ReturnType<typeof setTimeout>>;
 
   constructor(options: {
     maxConcurrent: number;
@@ -47,17 +49,21 @@ export class ResponseQueue {
     this.activeCount = 0;
     this.maxConcurrent = options.maxConcurrent;
     this.isProcessing = false;
+    this.isCleared = false;
     this.isSleeping = options.isSleeping;
     this.onDispatch = options.onDispatch;
+    this.pendingTimers = new Set();
   }
 
   enqueue(response: QueuedResponse): void {
+    this.isCleared = false;
     this.queue.push(response);
     this.queue.sort((a, b) => a.scheduledTime - b.scheduledTime);
     this.process();
   }
 
   enqueueBatch(responses: QueuedResponse[]): void {
+    this.isCleared = false;
     this.queue.push(...responses);
     this.queue.sort((a, b) => a.scheduledTime - b.scheduledTime);
     this.process();
@@ -73,7 +79,12 @@ export class ResponseQueue {
 
   clear(): void {
     this.queue = [];
-    this.activeCount = 0;
+    this.isCleared = true;
+    this.isProcessing = false;
+    for (const timer of this.pendingTimers) {
+      clearTimeout(timer);
+    }
+    this.pendingTimers.clear();
   }
 
   get pendingCount(): number {
@@ -84,12 +95,23 @@ export class ResponseQueue {
     return this.activeCount;
   }
 
+  private scheduleTimer(callback: () => void, delay: number): void {
+    const timer = setTimeout(() => {
+      this.pendingTimers.delete(timer);
+      if (!this.isCleared) {
+        callback();
+      }
+    }, delay);
+    this.pendingTimers.add(timer);
+  }
+
   private process(): void {
     if (this.isProcessing) return;
     this.isProcessing = true;
 
     const processNext = () => {
       if (
+        this.isCleared ||
         this.queue.length === 0 ||
         this.activeCount >= this.maxConcurrent
       ) {
@@ -101,14 +123,14 @@ export class ResponseQueue {
       const nextResponse = this.queue[0];
       const waitTime = Math.max(0, nextResponse.scheduledTime - now);
 
-      setTimeout(() => {
+      this.scheduleTimer(() => {
         if (
           this.isSleeping() ||
           this.activeCount >= this.maxConcurrent
         ) {
           this.isProcessing = false;
           if (this.queue.length > 0) {
-            setTimeout(() => this.process(), TIMING.QUEUE_RETRY_INTERVAL);
+            this.scheduleTimer(() => { this.process(); }, TIMING.QUEUE_RETRY_INTERVAL);
           }
           return;
         }

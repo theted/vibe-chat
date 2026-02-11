@@ -78,7 +78,7 @@ export class ChatAssistantHandler {
 
     try {
       const recentMessages = await this.getRecentMessages(roomId);
-      const historyLimit = this.chatAssistantService?.chatHistoryLimit || 5;
+      const historyLimit = this.chatAssistantService.chatHistoryLimit ?? 5;
       const chatHistory = Array.isArray(recentMessages)
         ? recentMessages.slice(-historyLimit)
         : [];

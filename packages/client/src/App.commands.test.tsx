@@ -7,7 +7,7 @@ import type { AiParticipant } from "./config/aiParticipants";
 import type { Message } from "./types";
 
 const listeners: Record<string, (data: unknown) => void> = {};
-const sendMessageMock = vi.fn();
+const emitMock = vi.fn();
 
 vi.mock("./hooks/useSocket", () => ({
   useSocket: () => ({
@@ -15,12 +15,8 @@ vi.mock("./hooks/useSocket", () => ({
       listeners[event] = callback;
     },
     off: vi.fn(),
-    emit: vi.fn(),
-    joinRoom: vi.fn(),
-    sendMessage: sendMessageMock,
+    emit: emitMock,
     triggerAI: vi.fn(),
-    startTyping: vi.fn(),
-    stopTyping: vi.fn(),
   }),
 }));
 
@@ -90,7 +86,7 @@ describe("App command handling", () => {
   });
 
   beforeEach(() => {
-    sendMessageMock.mockReset();
+    emitMock.mockReset();
     for (const key of Object.keys(listeners)) {
       delete listeners[key];
     }
@@ -143,7 +139,7 @@ describe("App command handling", () => {
 
     fireEvent.click(screen.getByTestId("command-clear"));
 
-    expect(sendMessageMock).not.toHaveBeenCalled();
+    expect(emitMock).not.toHaveBeenCalledWith("user-message", expect.anything());
 
     await waitFor(() => {
       expect(screen.getByTestId("message-count")).toHaveTextContent("0");
@@ -159,7 +155,7 @@ describe("App command handling", () => {
 
     fireEvent.click(screen.getByTestId("send-message"));
 
-    expect(sendMessageMock).toHaveBeenCalledWith("hello");
+    expect(emitMock).toHaveBeenCalledWith("user-message", { content: "hello" });
   });
 
   it("uses server AI participants for chat view", async () => {

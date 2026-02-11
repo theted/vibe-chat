@@ -52,32 +52,44 @@ const Dashboard = () => {
   const [sortColumn, setSortColumn] = useState<SortColumn>("provider");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
 
-  const { on, emit } = useSocket(SERVER_URL);
+  const { on, off, emit } = useSocket(SERVER_URL);
 
   useEffect(() => {
-    on("connect", () => {
+    const handleConnect = () => {
       setConnectionStatus({ connected: true });
       emit("join-dashboard");
       emit("get-metrics");
       emit("get-metrics-history", { duration: METRICS_HISTORY_DURATION_MS });
       emit("get-ai-participants");
-    });
+    };
 
-    on("disconnect", () => {
+    const handleDisconnect = () => {
       setConnectionStatus({ connected: false });
-    });
+    };
 
-    on("metrics-update", (data: unknown) => {
+    const handleMetrics = (data: unknown) => {
       setMetrics(data as DashboardMetrics);
-    });
+    };
 
-    on("ai-participants", (data: unknown) => {
+    const handleAiParticipants = (data: unknown) => {
       setAiParticipants(Array.isArray(data) ? data : []);
-    });
+    };
+
+    on("connect", handleConnect);
+    on("disconnect", handleDisconnect);
+    on("metrics-update", handleMetrics);
+    on("ai-participants", handleAiParticipants);
 
     emit("join-dashboard");
     emit("get-ai-participants");
-  }, [on, emit]);
+
+    return () => {
+      off("connect", handleConnect);
+      off("disconnect", handleDisconnect);
+      off("metrics-update", handleMetrics);
+      off("ai-participants", handleAiParticipants);
+    };
+  }, [on, off, emit]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -317,7 +329,7 @@ const Dashboard = () => {
         </div>
 
         <div className="text-center text-gray-500 text-sm">
-          <p>Dashboard updates automatically every 2-5 seconds</p>
+          <p>Dashboard updates automatically every {METRICS_REFRESH_INTERVAL_MS / 1000} seconds</p>
           <p className="mt-1">
             Server running for {formatUptime(metrics.uptime)}
           </p>

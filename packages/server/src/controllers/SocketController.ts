@@ -292,12 +292,13 @@ export class SocketController {
         const retryAfterSeconds = rateLimitResult.retryAfterMs
           ? Math.ceil(rateLimitResult.retryAfterMs / 1000)
           : undefined;
+        const windowMinutes = Math.round(USER_MESSAGE_WINDOW_MS / 60_000);
         socket.emit("error", {
-          message: "Rate limit exceeded: max 10 messages per 10 minutes. Please wait before sending more.",
+          message: `Rate limit exceeded: max ${USER_MESSAGE_LIMIT} messages per ${windowMinutes} minutes. Please wait before sending more.`,
           code: "RATE_LIMITED",
           retryAfterSeconds,
         });
-        console.warn(`Rate limit exceeded for IP ${ipAddress || "unknown"} (user: ${user.username})`);
+        console.warn(`Rate limit exceeded for IP ${ipAddress || "unknown"} (user: ${user.username}, limit: ${USER_MESSAGE_LIMIT}/${windowMinutes}min)`);
         return;
       }
 

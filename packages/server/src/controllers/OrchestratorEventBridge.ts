@@ -23,7 +23,12 @@ export const setupOrchestratorEventBridge = (options: {
   chatOrchestrator.on(
     "message-broadcast",
     async ({ message, roomId }: { message: ChatMessage; roomId: string }) => {
-      await onBroadcast(message, roomId);
+      try {
+        await onBroadcast(message, roomId);
+      } catch (error) {
+        const msg = error instanceof Error ? error.message : String(error);
+        console.error(`[OrchestratorEventBridge] Failed to broadcast message in room ${roomId}:`, msg);
+      }
     },
   );
 

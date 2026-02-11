@@ -184,10 +184,10 @@ const ChatMessage = ({
   };
 
   const renderMarkdownCode = useCallback(
-    ({ inline, className, children, ...props }: {
-      inline?: boolean;
+    ({ className, children, node, ...props }: {
       className?: string;
       children?: ReactNode;
+      node?: { type?: string };
     }) => {
       const languageMatch = /language-([\w+#-]+)/.exec(className || "");
       const normalizedChildren = String(children).replace(/\n$/, "");
@@ -201,10 +201,13 @@ const ChatMessage = ({
         return <span className="mention-chip">{trimmedChildren}</span>;
       }
 
-      if (inline || !normalizedChildren.includes("\n")) {
+      // Detect inline code: no language class and not a block-level code node
+      const isInline = !languageMatch && node?.type !== "code";
+
+      if (isInline || !normalizedChildren.includes("\n")) {
         return (
           <code className={`inline-code ${className || ""}`} {...props}>
-            {inline ? children : normalizedChildren}
+            {normalizedChildren}
           </code>
         );
       }
@@ -243,8 +246,8 @@ const ChatMessage = ({
         {message.senderType === "ai" ? (
           <ReactMarkdown
             components={{
-              h1: () => <h4 />,
-              h2: () => <h4 />,
+              h1: ({ children }) => <h4>{children}</h4>,
+              h2: ({ children }) => <h4>{children}</h4>,
               h3: "h3",
               code: renderMarkdownCode,
               pre: ({ children }) => <>{children}</>,

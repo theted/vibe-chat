@@ -31,10 +31,10 @@ const LoginModal = ({
   const loginInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && isVisible) {
       loginInputRef.current?.focus();
     }
-  }, [isOpen]);
+  }, [isOpen, isVisible]);
 
   const handleLoginSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
