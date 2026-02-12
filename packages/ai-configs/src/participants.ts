@@ -559,7 +559,15 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     emoji: "🎍",
   },
 
-  // Z.ai Models (GLM-4.7 Latest)
+  // Z.ai Models (GLM-5 Latest)
+  {
+    id: "ZAI_ZAI_GLM_5",
+    name: "GLM-5",
+    alias: "glm-5",
+    provider: "Z.ai",
+    status: "active",
+    emoji: "🏗️",
+  },
   {
     id: "ZAI_ZAI_GLM_4_7",
     name: "GLM-4.7",
