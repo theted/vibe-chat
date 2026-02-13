@@ -68,3 +68,6 @@ packages/*/node_modules/
 
 # Node compile cache
 node-compile-cache/
+
+# Cached model availability state
+models.json

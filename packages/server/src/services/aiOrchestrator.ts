@@ -8,6 +8,14 @@ import {
   toOrchestratorAIServiceInfo,
   type OrchestratorAIServiceInfo,
 } from "@/utils/aiServiceUtils.js";
+import {
+  readModelCache,
+  writeModelCache,
+  buildModelCache,
+} from "./modelCacheService.js";
+
+const parseBoolFlag = (value?: string): boolean =>
+  value?.toLowerCase() === "true";
 
 export const initializeAISystem = async (): Promise<ChatOrchestrator> => {
   console.log("🤖 Initializing AI Chat System...");
@@ -41,8 +49,45 @@ export const initializeAISystem = async (): Promise<ChatOrchestrator> => {
     aiConfigs.push({ providerKey: "MOCK", modelKey: "MOCK_AI" });
   }
 
+  const skipHealthCheck = parseBoolFlag(process.env.AI_CHAT_SKIP_HEALTHCHECK);
+  const recheckAvailability = parseBoolFlag(
+    process.env.AI_CHAT_RECHECK_AVAILABILITY,
+  );
+
+  // Determine whether to use cached model availability
+  let useCache = false;
+  if (!skipHealthCheck && !recheckAvailability) {
+    const cache = readModelCache();
+    if (cache) {
+      useCache = true;
+      const cachedOkModels = new Set(
+        cache.models
+          .filter((m) => m.status === "ok")
+          .map((m) => `${m.provider}_${m.model}`),
+      );
+
+      const totalConfigured = aiConfigs.length;
+      aiConfigs = aiConfigs.filter((c) =>
+        cachedOkModels.has(`${c.providerKey}_${c.modelKey}`),
+      );
+
+      console.log(
+        `📋 Using cached model availability from models.json (${aiConfigs.length}/${totalConfigured} models available)`,
+      );
+      console.log(
+        "   Run with --recheck-availability to force a fresh health check.",
+      );
+    }
+  }
+
+  if (recheckAvailability) {
+    console.log("🔄 Rechecking all model availability...");
+  }
+
   try {
-    await orchestrator.initializeAIs(aiConfigs);
+    const results = await orchestrator.initializeAIs(aiConfigs, {
+      skipHealthCheck: useCache || skipHealthCheck,
+    });
 
     const initializedModels = Array.from(orchestrator.aiServices.values())
       .map(toOrchestratorAIServiceInfo)
@@ -64,6 +109,12 @@ export const initializeAISystem = async (): Promise<ChatOrchestrator> => {
       console.warn(
         `⚠️  ${aiConfigs.length - initializedModels.length} model(s) failed to initialize`,
       );
+    }
+
+    // Write cache when performing actual health checks (not using cache, not skipping)
+    if (!useCache && !skipHealthCheck) {
+      writeModelCache(buildModelCache(results));
+      console.log("💾 Model availability saved to models.json");
     }
   } catch (error) {
     console.error("❌ Failed to initialize some AI services:", error);
