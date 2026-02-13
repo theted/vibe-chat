@@ -38,6 +38,15 @@ export { BAIDU } from "./providers/baidu.js";
 export { BYTEDANCE } from "./providers/bytedance.js";
 export { HUGGINGFACE } from "./providers/huggingface.js";
 export { PERPLEXITY } from "./providers/perplexity.js";
+export { ARCEE } from "./providers/arcee.js";
+export { STEPFUN } from "./providers/stepfun.js";
+export { INFLECTION } from "./providers/inflection.js";
+export { ZEROONEAI } from "./providers/01ai.js";
+export { DATABRICKS } from "./providers/databricks.js";
+export { NOUS } from "./providers/nous.js";
+export { PHIND } from "./providers/phind.js";
+export { MICROSOFT } from "./providers/microsoft.js";
+export { SNOWFLAKE } from "./providers/snowflake.js";
 
 // Import all providers for the main collection
 import { ANTHROPIC } from "./providers/anthropic.js";
@@ -59,6 +68,15 @@ import { BAIDU } from "./providers/baidu.js";
 import { BYTEDANCE } from "./providers/bytedance.js";
 import { HUGGINGFACE } from "./providers/huggingface.js";
 import { PERPLEXITY } from "./providers/perplexity.js";
+import { ARCEE } from "./providers/arcee.js";
+import { STEPFUN } from "./providers/stepfun.js";
+import { INFLECTION } from "./providers/inflection.js";
+import { ZEROONEAI } from "./providers/01ai.js";
+import { DATABRICKS } from "./providers/databricks.js";
+import { NOUS } from "./providers/nous.js";
+import { PHIND } from "./providers/phind.js";
+import { MICROSOFT } from "./providers/microsoft.js";
+import { SNOWFLAKE } from "./providers/snowflake.js";
 
 /**
  * All AI providers collection - maintains backward compatibility
@@ -83,6 +101,15 @@ export const AI_PROVIDERS = {
   BYTEDANCE,
   HUGGINGFACE,
   PERPLEXITY,
+  ARCEE,
+  STEPFUN,
+  INFLECTION,
+  ZEROONEAI,
+  DATABRICKS,
+  NOUS,
+  PHIND,
+  MICROSOFT,
+  SNOWFLAKE,
 } as const;
 
 /**

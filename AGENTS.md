@@ -44,7 +44,7 @@ If you add new folders, extend this list so future contributors (and agents) sta
 
 ## AI model management
 
-This project supports 19+ AI providers. Model lifecycle is controlled through two layers that must stay in sync.
+This project supports 28+ AI providers (including 16 OpenRouter-based providers). Model lifecycle is controlled through two layers that must stay in sync.
 
 ### How model activation works
 

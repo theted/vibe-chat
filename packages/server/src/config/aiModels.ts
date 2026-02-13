@@ -7,7 +7,11 @@
  * Uses AI_PROVIDERS from @ai-chat/core as source of truth for available models.
  */
 
-import { AI_PROVIDERS, AI_DISPLAY_INFO, getParticipantById } from "@ai-chat/core";
+import {
+  AI_PROVIDERS,
+  AI_DISPLAY_INFO,
+  getParticipantById,
+} from "@ai-chat/core";
 
 export type AIConfig = {
   providerKey: string;
@@ -163,6 +167,43 @@ export const ENABLED_AI_MODELS: string[] = [
   // Hugging Face Models (OpenRouter)
   "HUGGINGFACE_ZEPHYR_141B_A35B",
   "HUGGINGFACE_ZEPHYR_7B_BETA",
+
+  // Arcee AI Models (OpenRouter)
+  "ARCEE_TRINITY_LARGE_PREVIEW_FREE",
+  "ARCEE_TRINITY_MINI_FREE",
+  "ARCEE_CODER_LARGE",
+  "ARCEE_MAESTRO_REASONING",
+
+  // StepFun Models (OpenRouter)
+  "STEPFUN_STEP_3_5_FLASH_FREE",
+  "STEPFUN_STEP_3",
+
+  // Inflection AI Models (OpenRouter)
+  "INFLECTION_INFLECTION_3_PI",
+  "INFLECTION_INFLECTION_3_PRODUCTIVITY",
+
+  // 01.AI Models (OpenRouter)
+  "ZEROONEAI_YI_1_5_34B",
+  "ZEROONEAI_YI_CODER_9B",
+  "ZEROONEAI_YI_34B",
+
+  // Databricks Models (OpenRouter)
+  "DATABRICKS_DBRX_132B_INSTRUCT",
+
+  // Nous Research Models (OpenRouter)
+  "NOUS_HERMES_4_405B_FREE",
+  "NOUS_HERMES_4_70B",
+  "NOUS_DEEPHERMES_3_MISTRAL_24B",
+
+  // Phind Models (OpenRouter)
+  "PHIND_CODELLAMA_34B_V2",
+
+  // Microsoft AI Models (OpenRouter)
+  "MICROSOFT_WIZARDLM_2_8X22B",
+  "MICROSOFT_WIZARDLM_2_7B",
+
+  // Snowflake Models (OpenRouter)
+  "SNOWFLAKE_ARCTIC_INSTRUCT",
 ];
 
 const ENABLED_AI_MODEL_SET = new Set(ENABLED_AI_MODELS);
@@ -174,7 +215,10 @@ const isModelEnabled = (providerKey: string, modelKey: string): boolean =>
  * Checks whether a model's participant entry is active.
  * Models with status "inactive" in participants.ts are excluded from initialization.
  */
-const isParticipantActive = (providerKey: string, modelKey: string): boolean => {
+const isParticipantActive = (
+  providerKey: string,
+  modelKey: string,
+): boolean => {
   const participant = getParticipantById(`${providerKey}_${modelKey}`);
   return participant?.status !== "inactive";
 };
@@ -201,6 +245,15 @@ export const PROVIDER_ENV_VARS: Record<string, string> = {
   BAIDU: "OPENROUTER_API_KEY",
   BYTEDANCE: "OPENROUTER_API_KEY",
   HUGGINGFACE: "OPENROUTER_API_KEY",
+  ARCEE: "OPENROUTER_API_KEY",
+  STEPFUN: "OPENROUTER_API_KEY",
+  INFLECTION: "OPENROUTER_API_KEY",
+  ZEROONEAI: "OPENROUTER_API_KEY",
+  DATABRICKS: "OPENROUTER_API_KEY",
+  NOUS: "OPENROUTER_API_KEY",
+  PHIND: "OPENROUTER_API_KEY",
+  MICROSOFT: "OPENROUTER_API_KEY",
+  SNOWFLAKE: "OPENROUTER_API_KEY",
   PERPLEXITY: "PERPLEXITY_API_KEY",
 };
 

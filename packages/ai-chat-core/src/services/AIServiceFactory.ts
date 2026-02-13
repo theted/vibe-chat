@@ -23,6 +23,15 @@ import { MinimaxService } from "./MinimaxService.js";
 import { BaiduService } from "./BaiduService.js";
 import { BytedanceService } from "./BytedanceService.js";
 import { HuggingFaceService } from "./HuggingFaceService.js";
+import { ArceeService } from "./ArceeService.js";
+import { StepFunService } from "./StepFunService.js";
+import { InflectionService } from "./InflectionService.js";
+import { ZeroOneAIService } from "./ZeroOneAIService.js";
+import { DatabricksService } from "./DatabricksService.js";
+import { NousService } from "./NousService.js";
+import { PhindService } from "./PhindService.js";
+import { MicrosoftService } from "./MicrosoftService.js";
+import { SnowflakeService } from "./SnowflakeService.js";
 import { AI_PROVIDERS } from "@/config/aiProviders/index.js";
 import type { AIServiceConfig, IAIService } from "@/types/index.js";
 import type {
@@ -52,6 +61,15 @@ export class AIServiceFactory {
     [AI_PROVIDERS.BYTEDANCE.name]: BytedanceService,
     [AI_PROVIDERS.HUGGINGFACE.name]: HuggingFaceService,
     [AI_PROVIDERS.PERPLEXITY.name]: PerplexityService,
+    [AI_PROVIDERS.ARCEE.name]: ArceeService,
+    [AI_PROVIDERS.STEPFUN.name]: StepFunService,
+    [AI_PROVIDERS.INFLECTION.name]: InflectionService,
+    [AI_PROVIDERS.ZEROONEAI.name]: ZeroOneAIService,
+    [AI_PROVIDERS.DATABRICKS.name]: DatabricksService,
+    [AI_PROVIDERS.NOUS.name]: NousService,
+    [AI_PROVIDERS.PHIND.name]: PhindService,
+    [AI_PROVIDERS.MICROSOFT.name]: MicrosoftService,
+    [AI_PROVIDERS.SNOWFLAKE.name]: SnowflakeService,
   };
 
   /**
