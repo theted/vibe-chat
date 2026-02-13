@@ -15,6 +15,12 @@ import Icon from "./Icon";
 import { extractMentionsFromText } from "@/utils/mentions";
 import type { MessageInputProps, DialogPosition } from "@/types";
 
+const MAX_MESSAGE_LENGTH = 5_000;
+const MESSAGE_LENGTH_WARNING_THRESHOLD = 4_500;
+const TYPING_INACTIVITY_TIMEOUT_MS = 2_000;
+const TEXTAREA_MIN_HEIGHT = "52px";
+const TEXTAREA_MAX_HEIGHT = "200px";
+
 const MessageInput = ({
   onSendMessage,
   disabled = false,
@@ -64,7 +70,6 @@ const MessageInput = ({
 
       // Stop typing indicator when message is sent
       if (isTyping && onTypingStop) {
-        console.log("📤 Stopping typing indicator (message sent)");
         onTypingStop();
         setIsTyping(false);
       }
@@ -86,7 +91,6 @@ const MessageInput = ({
 
     // Handle typing indicators
     if (value.trim() && !isTyping && onTypingStart) {
-      console.log("📝 Starting typing indicator");
       onTypingStart();
       setIsTyping(true);
     }
@@ -97,17 +101,13 @@ const MessageInput = ({
     }
 
     if (value.trim()) {
-      // Stop typing after 2 seconds of inactivity
       typingTimeoutRef.current = setTimeout(() => {
         if (isTyping && onTypingStop) {
-          console.log("⏰ Auto-stopping typing indicator (timeout)");
           onTypingStop();
           setIsTyping(false);
         }
-      }, 2000);
+      }, TYPING_INACTIVITY_TIMEOUT_MS);
     } else if (isTyping && onTypingStop) {
-      // Stop typing immediately if field is empty
-      console.log("🚫 Stopping typing indicator (empty field)");
       onTypingStop();
       setIsTyping(false);
     }
@@ -197,13 +197,13 @@ const MessageInput = ({
             onKeyPress={handleKeyPress}
             placeholder="Type your message... (Use @ to mention an AI, Enter to send, Shift+Enter for new line)"
             disabled={disabled}
-            maxLength={5000}
+            maxLength={MAX_MESSAGE_LENGTH}
             rows={1}
-            style={{ minHeight: "52px", maxHeight: "200px" }}
+            style={{ minHeight: TEXTAREA_MIN_HEIGHT, maxHeight: TEXTAREA_MAX_HEIGHT }}
           />
-          {message.length > 4500 && (
+          {message.length > MESSAGE_LENGTH_WARNING_THRESHOLD && (
             <div className="absolute bottom-2 right-2 text-xs text-slate-400">
-              {5000 - message.length}
+              {MAX_MESSAGE_LENGTH - message.length}
             </div>
           )}
         </div>

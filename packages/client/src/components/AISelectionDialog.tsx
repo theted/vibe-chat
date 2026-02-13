@@ -9,6 +9,33 @@ import { DEFAULT_AI_PARTICIPANTS } from "@/config/aiParticipants";
 import Icon from "./Icon";
 import type { AISelectionDialogProps, DialogPosition } from "@/types";
 
+const DIALOG_Y_OFFSET = 10;
+const DIALOG_MAX_HEIGHT_CLASS = "max-h-64";
+
+const DIALOG_SPRING_CONFIG = {
+  type: "spring" as const,
+  stiffness: 300,
+  damping: 30,
+  duration: 0.2,
+};
+
+const EXTRA_AI_PARTICIPANTS = [
+  {
+    id: "OPENAI_GPT4",
+    name: "gpt-4",
+    alias: "gpt-4",
+    provider: "OpenAI",
+    emoji: resolveEmoji("gpt-4"),
+  },
+  {
+    id: "OPENAI_CHATGPT",
+    name: "chatgpt",
+    alias: "chatgpt",
+    provider: "OpenAI",
+    emoji: resolveEmoji("chatgpt"),
+  },
+];
+
 interface MentionOption {
   id: string;
   name: string;
@@ -66,24 +93,7 @@ const AISelectionDialog = ({
   const [activeIndex, setActiveIndex] = useState(0);
 
   const mentionOptions = useMemo<MentionOption[]>(() => {
-    const extras = [
-      {
-        id: "OPENAI_GPT4",
-        name: "gpt-4",
-        alias: "gpt-4",
-        provider: "OpenAI",
-        emoji: resolveEmoji("gpt-4"),
-      },
-      {
-        id: "OPENAI_CHATGPT",
-        name: "chatgpt",
-        alias: "chatgpt",
-        provider: "OpenAI",
-        emoji: resolveEmoji("chatgpt"),
-      },
-    ];
-
-    const combined = [...DEFAULT_AI_PARTICIPANTS, ...extras];
+    const combined = [...DEFAULT_AI_PARTICIPANTS, ...EXTRA_AI_PARTICIPANTS];
 
     return combined.map((ai) => {
       const alias = ai.alias || ai.name;
@@ -204,15 +214,10 @@ const AISelectionDialog = ({
           initial={{ opacity: 0, y: 10, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -5, scale: 0.98 }}
-          transition={{
-            type: "spring",
-            stiffness: 300,
-            damping: 30,
-            duration: 0.2,
-          }}
+          transition={DIALOG_SPRING_CONFIG}
           style={{
             left: safePosition.x,
-            top: safePosition.y - 10,
+            top: safePosition.y - DIALOG_Y_OFFSET,
             transform: "translateY(-100%)",
           }}
         >
@@ -233,7 +238,7 @@ const AISelectionDialog = ({
               </div>
             ) : (
               <div
-                className="space-y-1 max-h-64 overflow-y-auto no-scrollbar"
+                className={`space-y-1 ${DIALOG_MAX_HEIGHT_CLASS} overflow-y-auto no-scrollbar`}
                 role="listbox"
               >
                 {filteredAIs.map((ai, index) => {

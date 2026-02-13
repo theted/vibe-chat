@@ -24,6 +24,21 @@ import type { AiParticipant } from "@/config/aiParticipants";
 const METRICS_REFRESH_INTERVAL_MS = 30_000;
 const METRICS_HISTORY_DURATION_MS = 60 * 60 * 1000;
 
+const ACTIVITY_VERY_HIGH_THRESHOLD = 10;
+const ACTIVITY_HIGH_THRESHOLD = 5;
+const ACTIVITY_MODERATE_THRESHOLD = 1;
+
+const ACTIVITY_LEVELS = [
+  { threshold: ACTIVITY_VERY_HIGH_THRESHOLD, label: "Very High", className: "text-red-600" },
+  { threshold: ACTIVITY_HIGH_THRESHOLD, label: "High", className: "text-orange-600" },
+  { threshold: ACTIVITY_MODERATE_THRESHOLD, label: "Moderate", className: "text-green-600" },
+] as const;
+
+const ACTIVITY_LEVEL_DEFAULT = { label: "Low", className: "text-gray-600" } as const;
+
+const resolveActivityLevel = (messagesPerMinute: number) =>
+  ACTIVITY_LEVELS.find((level) => messagesPerMinute > level.threshold) ?? ACTIVITY_LEVEL_DEFAULT;
+
 const styles = {
   card: "bg-white rounded-2xl p-6 shadow-md border border-gray-200",
   cardTitle: "text-xl font-semibold text-gray-900 mb-6",
@@ -129,13 +144,7 @@ const Dashboard = () => {
       (first.name || "").localeCompare(second.name || ""),
     );
 
-  const activityLevel = metrics.messagesPerMinute > 10
-    ? { label: "Very High", className: "text-red-600" }
-    : metrics.messagesPerMinute > 5
-      ? { label: "High", className: "text-orange-600" }
-      : metrics.messagesPerMinute > 1
-        ? { label: "Moderate", className: "text-green-600" }
-        : { label: "Low", className: "text-gray-600" };
+  const activityLevel = resolveActivityLevel(metrics.messagesPerMinute);
 
   return (
     <div className="min-h-screen p-6">
