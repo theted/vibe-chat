@@ -46,7 +46,6 @@ export const OPENAI: AIProvider = {
     GPT5_MINI: {
       id: "gpt-5-mini",
       maxTokens: DEFAULT_MAX_TOKENS,
-      temperature: 0.9,
       maxTokensParam: "max_completion_tokens",
       useResponsesApi: true,
       systemPrompt:
@@ -55,7 +54,6 @@ export const OPENAI: AIProvider = {
     GPT5_NANO: {
       id: "gpt-5-nano",
       maxTokens: DEFAULT_MAX_TOKENS,
-      temperature: 0.9,
       maxTokensParam: "max_completion_tokens",
       useResponsesApi: true,
       systemPrompt:

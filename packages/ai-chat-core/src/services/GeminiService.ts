@@ -126,7 +126,7 @@ export class GeminiService extends BaseAIService {
 
       return true;
     } catch (error) {
-      console.warn(`Gemini health check failed: ${error}`);
+      this.lastValidationError = `Health check failed: ${error instanceof Error ? error.message : String(error)}`;
       return false;
     }
   }

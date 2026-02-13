@@ -113,7 +113,7 @@ export abstract class OpenAICompatibleService extends BaseAIService {
     const baseParams: OpenAICompletionRequest = {
       model: this.getModel(),
       messages: formattedMessages,
-      temperature: this.config.model.temperature || 0.7,
+      temperature: this.config.model.temperature ?? 0.7,
       max_tokens: this.config.model.maxTokens || 4000,
     };
 
@@ -151,11 +151,13 @@ export abstract class OpenAICompatibleService extends BaseAIService {
     const client = ensureResponsesClient(this.client, this.name);
 
     const temperatureRaw =
-      context?.temperature ?? this.config.model.temperature ?? 0.7;
+      context?.temperature ?? this.config.model.temperature;
     const temperature =
-      typeof temperatureRaw === "number"
-        ? temperatureRaw
-        : Number(temperatureRaw);
+      temperatureRaw !== undefined
+        ? typeof temperatureRaw === "number"
+          ? temperatureRaw
+          : Number(temperatureRaw)
+        : undefined;
     const maxTokensRaw = context?.maxTokens ?? this.config.model.maxTokens;
     const maxTokens =
       typeof maxTokensRaw === "number"
@@ -327,7 +329,7 @@ export abstract class OpenAICompatibleService extends BaseAIService {
         const payload = buildResponsesPayload({
           model: this.getModel(),
           messages: processedMessages,
-          temperature: this.config.model.temperature ?? 0.7,
+          temperature: this.config.model.temperature,
           maxTokens: this.config.model.maxTokens,
         });
 

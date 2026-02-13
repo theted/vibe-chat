@@ -42,17 +42,21 @@ export const initializeAISystem = async (): Promise<ChatOrchestrator> => {
   }
 
   try {
-    await orchestrator.initializeAIs(aiConfigs);
+    const failedConfigs = await orchestrator.initializeAIs(aiConfigs);
 
     const initializedModels = Array.from(orchestrator.aiServices.values())
       .map(toOrchestratorAIServiceInfo)
       .filter((ai): ai is OrchestratorAIServiceInfo => ai !== null);
-    console.log(
-      `✅ Initialized ${initializedModels.length}/${aiConfigs.length} AI services`,
-    );
+
+    // Print single consolidated summary after all health checks complete
+    const successCount = initializedModels.length;
+    const failCount = failedConfigs.length;
+    const totalCount = aiConfigs.length;
+
+    console.log("");
+    console.log(`✅ Initialized ${successCount}/${totalCount} AI services`);
 
     if (initializedModels.length > 0) {
-      console.log("📋 Active AI models:");
       initializedModels.forEach((ai) => {
         const emoji = ai.emoji || "🤖";
         const name = ai.displayName || ai.name;
@@ -60,14 +64,41 @@ export const initializeAISystem = async (): Promise<ChatOrchestrator> => {
       });
     }
 
-    if (initializedModels.length < aiConfigs.length) {
-      console.warn(
-        `⚠️  ${aiConfigs.length - initializedModels.length} model(s) failed to initialize`,
-      );
+    if (failCount > 0) {
+      console.log("");
+      console.warn(`⚠️  ${failCount} model(s) failed to initialize:`);
+      failedConfigs.forEach((failed) => {
+        const label =
+          failed.displayName ||
+          failed.alias ||
+          `${failed.providerKey}_${failed.modelKey}`;
+        const shortError = extractShortError(failed.error);
+        console.warn(`   • ${label} — ${shortError}`);
+      });
     }
+
+    console.log("");
   } catch (error) {
-    console.error("❌ Failed to initialize some AI services:", error);
+    console.error("❌ Failed to initialize AI services:", error);
   }
 
   return orchestrator;
+};
+
+/**
+ * Extract a concise error reason from a ServiceInitializationError message.
+ * Strips nested "Failed to initialize..." and "Service configuration..." wrappers.
+ */
+const extractShortError = (error?: string): string => {
+  if (!error) return "unknown error";
+
+  // Common pattern: "Failed to initialize Foo: Service configuration validation failed: Health check failed: <actual reason>"
+  const healthCheckMatch = error.match(/Health check failed:\s*(.+)/);
+  if (healthCheckMatch) return healthCheckMatch[1].trim();
+
+  // Fallback: strip "Failed to initialize <Name>: " prefix
+  const initMatch = error.match(/Failed to initialize [^:]+:\s*(.+)/);
+  if (initMatch) return initMatch[1].trim();
+
+  return error;
 };

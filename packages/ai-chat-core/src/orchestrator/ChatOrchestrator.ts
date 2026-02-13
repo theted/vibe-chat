@@ -181,8 +181,22 @@ export class ChatOrchestrator extends EventEmitter {
     });
   }
 
-  async initializeAIs(aiConfigs) {
-    const failedConfigs = [];
+  async initializeAIs(aiConfigs): Promise<
+    Array<{
+      providerKey: string;
+      modelKey: string;
+      displayName?: string;
+      alias?: string;
+      error?: string;
+    }>
+  > {
+    const failedConfigs: Array<{
+      providerKey: string;
+      modelKey: string;
+      displayName?: string;
+      alias?: string;
+      error?: string;
+    }> = [];
     const skipHealthCheck = parseBooleanEnvFlag(
       getEnvFlag("AI_CHAT_SKIP_HEALTHCHECK"),
     );
@@ -217,37 +231,21 @@ export class ChatOrchestrator extends EventEmitter {
 
         this.activeAIs.push(aiId);
       } catch (error) {
-        console.error(
-          `Failed to initialize AI ${config.providerKey}_${config.modelKey}:`,
-          error,
-        );
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
         failedConfigs.push({
           providerKey: config.providerKey,
           modelKey: config.modelKey,
           displayName: config.displayName,
           alias: config.alias,
+          error: errorMessage,
         });
       }
     });
 
     await runWithConcurrencyLimit(tasks, MAX_PARALLEL_AI_INITIALIZATIONS);
 
-    console.log(`Initialized ${this.aiServices.size} AI services`);
-
-    if (failedConfigs.length > 0) {
-      console.warn(
-        `⚠️  ${failedConfigs.length} AI model(s) failed to initialize:`,
-      );
-      failedConfigs.forEach((failed) => {
-        const label =
-          failed.displayName ||
-          failed.alias ||
-          `${failed.providerKey}_${failed.modelKey}`;
-        console.warn(
-          `   • ${label} (${failed.providerKey}_${failed.modelKey})`,
-        );
-      });
-    }
+    return failedConfigs;
   }
 
   async handleMessage(message) {
