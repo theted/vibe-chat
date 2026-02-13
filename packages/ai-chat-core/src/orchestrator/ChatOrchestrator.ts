@@ -64,6 +64,13 @@ type ChatOrchestratorOptions = {
 
 const MAX_PARALLEL_AI_INITIALIZATIONS = 8;
 
+export type ModelInitResult = {
+  providerKey: string;
+  modelKey: string;
+  status: "ok" | "error";
+  error?: string;
+};
+
 /**
  * Run async tasks with a concurrency limit.
  */
@@ -181,11 +188,15 @@ export class ChatOrchestrator extends EventEmitter {
     });
   }
 
-  async initializeAIs(aiConfigs) {
+  async initializeAIs(
+    aiConfigs,
+    options?: { skipHealthCheck?: boolean },
+  ): Promise<ModelInitResult[]> {
+    const results: ModelInitResult[] = [];
     const failedConfigs = [];
-    const skipHealthCheck = parseBooleanEnvFlag(
-      getEnvFlag("AI_CHAT_SKIP_HEALTHCHECK"),
-    );
+    const skipHealthCheck =
+      options?.skipHealthCheck ??
+      parseBooleanEnvFlag(getEnvFlag("AI_CHAT_SKIP_HEALTHCHECK"));
     const tasks = aiConfigs.map((config) => async () => {
       try {
         const service = AIServiceFactory.createServiceByName(
@@ -216,11 +227,24 @@ export class ChatOrchestrator extends EventEmitter {
         });
 
         this.activeAIs.push(aiId);
+        results.push({
+          providerKey: config.providerKey,
+          modelKey: config.modelKey,
+          status: "ok",
+        });
       } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
         console.error(
           `Failed to initialize AI ${config.providerKey}_${config.modelKey}:`,
           error,
         );
+        results.push({
+          providerKey: config.providerKey,
+          modelKey: config.modelKey,
+          status: "error",
+          error: errorMessage,
+        });
         failedConfigs.push({
           providerKey: config.providerKey,
           modelKey: config.modelKey,
@@ -248,6 +272,8 @@ export class ChatOrchestrator extends EventEmitter {
         );
       });
     }
+
+    return results;
   }
 
   async handleMessage(message) {

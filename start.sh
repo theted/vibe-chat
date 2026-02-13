@@ -3,13 +3,15 @@
 VERBOSE_MODE=false
 PERSONAS_MODE=false
 SKIP_HEALTHCHECK_MODE=false
+RECHECK_AVAILABILITY_MODE=false
 VERBOSE_CONTEXT_FLAG="AI_CHAT_VERBOSE_CONTEXT"
 PERSONAS_FLAG="AI_CHAT_ENABLE_PERSONAS"
 SKIP_HEALTHCHECK_FLAG="AI_CHAT_SKIP_HEALTHCHECK"
+RECHECK_AVAILABILITY_FLAG="AI_CHAT_RECHECK_AVAILABILITY"
 
 print_usage() {
     cat <<'USAGE'
-Usage: ./start.sh [--verbose] [--personas] [--skip-healthcheck]
+Usage: ./start.sh [--verbose] [--personas] [--skip-healthcheck] [--recheck-availability]
 
 Options:
   --verbose, -v   Output the full AI context that will be forwarded to the models.
@@ -18,6 +20,9 @@ Options:
                   Each AI participant will express their configured personality.
   --skip-healthcheck
                   Skip AI provider health checks during initialization.
+  --recheck-availability
+                  Force re-check of all model availability and update models.json.
+                  By default, cached availability from models.json is used if present.
   --help, -h      Show this message.
 USAGE
 }
@@ -34,6 +39,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --skip-healthcheck)
             SKIP_HEALTHCHECK_MODE=true
+            shift
+            ;;
+        --recheck-availability)
+            RECHECK_AVAILABILITY_MODE=true
             shift
             ;;
         --help|-h)
@@ -68,6 +77,12 @@ enable_skip_healthcheck() {
     export "${SKIP_HEALTHCHECK_FLAG}"=true
     echo "🩺 AI provider health checks skipped"
     echo "   AI services will initialize without connectivity validation."
+}
+
+enable_recheck_availability() {
+    export "${RECHECK_AVAILABILITY_FLAG}"=true
+    echo "🔄 Model availability recheck enabled"
+    echo "   All models will be health-checked and models.json will be updated."
 }
 
 # Check if .env exists
@@ -118,6 +133,10 @@ fi
 
 if [ "$SKIP_HEALTHCHECK_MODE" = true ]; then
     enable_skip_healthcheck
+fi
+
+if [ "$RECHECK_AVAILABILITY_MODE" = true ]; then
+    enable_recheck_availability
 fi
 
 echo ""
