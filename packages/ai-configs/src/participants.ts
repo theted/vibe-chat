@@ -825,6 +825,176 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     emoji: "🤗",
   },
 
+  // Arcee AI Models (OpenRouter)
+  {
+    id: "ARCEE_TRINITY_LARGE_PREVIEW_FREE",
+    name: "Trinity Large Preview (Free)",
+    alias: "trinity-large-free",
+    provider: "Arcee AI",
+    status: "active",
+    emoji: "🎭",
+  },
+  {
+    id: "ARCEE_TRINITY_MINI_FREE",
+    name: "Trinity Mini (Free)",
+    alias: "trinity-mini-free",
+    provider: "Arcee AI",
+    status: "active",
+    emoji: "🎪",
+  },
+  {
+    id: "ARCEE_CODER_LARGE",
+    name: "Arcee Coder Large",
+    alias: "arcee-coder",
+    provider: "Arcee AI",
+    status: "active",
+    emoji: "💻",
+  },
+  {
+    id: "ARCEE_MAESTRO_REASONING",
+    name: "Arcee Maestro Reasoning",
+    alias: "arcee-maestro",
+    provider: "Arcee AI",
+    status: "active",
+    emoji: "🧠",
+  },
+
+  // StepFun Models (OpenRouter)
+  {
+    id: "STEPFUN_STEP_3_5_FLASH_FREE",
+    name: "Step 3.5 Flash (Free)",
+    alias: "step-3.5-flash-free",
+    provider: "StepFun",
+    status: "active",
+    emoji: "⚡",
+  },
+  {
+    id: "STEPFUN_STEP_3",
+    name: "Step 3",
+    alias: "step-3",
+    provider: "StepFun",
+    status: "active",
+    emoji: "🎯",
+  },
+
+  // Inflection AI Models (OpenRouter)
+  {
+    id: "INFLECTION_INFLECTION_3_PI",
+    name: "Inflection Pi",
+    alias: "pi",
+    provider: "Inflection AI",
+    status: "active",
+    emoji: "💙",
+  },
+  {
+    id: "INFLECTION_INFLECTION_3_PRODUCTIVITY",
+    name: "Inflection Productivity",
+    alias: "inflection-productivity",
+    provider: "Inflection AI",
+    status: "active",
+    emoji: "📋",
+  },
+
+  // 01.AI Models (OpenRouter)
+  {
+    id: "ZEROONEAI_YI_1_5_34B",
+    name: "Yi-1.5 34B",
+    alias: "yi-1.5-34b",
+    provider: "01.AI",
+    status: "active",
+    emoji: "🔢",
+  },
+  {
+    id: "ZEROONEAI_YI_CODER_9B",
+    name: "Yi Coder 9B",
+    alias: "yi-coder-9b",
+    provider: "01.AI",
+    status: "active",
+    emoji: "👨‍💻",
+  },
+  {
+    id: "ZEROONEAI_YI_34B",
+    name: "Yi 34B",
+    alias: "yi-34b",
+    provider: "01.AI",
+    status: "active",
+    emoji: "🎓",
+  },
+
+  // Databricks Models (OpenRouter)
+  {
+    id: "DATABRICKS_DBRX_132B_INSTRUCT",
+    name: "DBRX 132B Instruct",
+    alias: "dbrx",
+    provider: "Databricks",
+    status: "active",
+    emoji: "🏢",
+  },
+
+  // Nous Research Models (OpenRouter)
+  {
+    id: "NOUS_HERMES_4_405B_FREE",
+    name: "Hermes 4 405B (Free)",
+    alias: "hermes-4-405b-free",
+    provider: "Nous Research",
+    status: "active",
+    emoji: "🦉",
+  },
+  {
+    id: "NOUS_HERMES_4_70B",
+    name: "Hermes 4 70B",
+    alias: "hermes-4-70b",
+    provider: "Nous Research",
+    status: "active",
+    emoji: "🧙",
+  },
+  {
+    id: "NOUS_DEEPHERMES_3_MISTRAL_24B",
+    name: "DeepHermes 3 Mistral 24B",
+    alias: "deephermes-3",
+    provider: "Nous Research",
+    status: "active",
+    emoji: "🔮",
+  },
+
+  // Phind Models (OpenRouter)
+  {
+    id: "PHIND_CODELLAMA_34B_V2",
+    name: "Phind CodeLlama 34B v2",
+    alias: "phind-codellama",
+    provider: "Phind",
+    status: "active",
+    emoji: "🚀",
+  },
+
+  // Microsoft AI Models (OpenRouter)
+  {
+    id: "MICROSOFT_WIZARDLM_2_8X22B",
+    name: "WizardLM-2 8x22B",
+    alias: "wizardlm-2-8x22b",
+    provider: "Microsoft AI",
+    status: "active",
+    emoji: "🧙‍♂️",
+  },
+  {
+    id: "MICROSOFT_WIZARDLM_2_7B",
+    name: "WizardLM-2 7B",
+    alias: "wizardlm-2-7b",
+    provider: "Microsoft AI",
+    status: "active",
+    emoji: "⚡",
+  },
+
+  // Snowflake Models (OpenRouter)
+  {
+    id: "SNOWFLAKE_ARCTIC_INSTRUCT",
+    name: "Arctic Instruct",
+    alias: "arctic",
+    provider: "Snowflake",
+    status: "active",
+    emoji: "❄️",
+  },
+
   // Perplexity Models
   {
     id: "PERPLEXITY_SONAR",

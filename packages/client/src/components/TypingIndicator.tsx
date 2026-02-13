@@ -30,7 +30,7 @@ const TypingIndicator = ({
       return `${formatParticipant(allTyping[0])} is typing...`;
     }
     if (allTyping.length === 2) {
-      return `${formatParticipant(allTyping[0])} and ${formatParticipant(allTyping[1])} are typing up a storm... ✨`;
+      return `${formatParticipant(allTyping[0])} and ${formatParticipant(allTyping[1])} are typing...`;
     }
     return `${allTyping.length} chatters are typing... 🔥`;
   };

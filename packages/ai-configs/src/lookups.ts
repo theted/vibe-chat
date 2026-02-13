@@ -205,6 +205,56 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   zephyr: "zephyr-141b",
   "zephyr-141b": "zephyr-141b",
   "zephyr-7b-beta": "zephyr-7b-beta",
+
+  // Arcee AI (OpenRouter)
+  arcee: "trinity-large-free",
+  trinity: "trinity-large-free",
+  "trinity-large-free": "trinity-large-free",
+  "trinity-mini-free": "trinity-mini-free",
+  "arcee-coder": "arcee-coder",
+  "arcee-maestro": "arcee-maestro",
+
+  // StepFun (OpenRouter)
+  stepfun: "step-3.5-flash-free",
+  "step-3.5-flash-free": "step-3.5-flash-free",
+  "step-3": "step-3",
+
+  // Inflection AI (OpenRouter)
+  inflection: "pi",
+  pi: "pi",
+  "inflection-productivity": "inflection-productivity",
+
+  // 01.AI (OpenRouter)
+  "01ai": "yi-1.5-34b",
+  yi: "yi-1.5-34b",
+  "yi-1.5-34b": "yi-1.5-34b",
+  "yi-coder-9b": "yi-coder-9b",
+  "yi-34b": "yi-34b",
+
+  // Databricks (OpenRouter)
+  databricks: "dbrx",
+  dbrx: "dbrx",
+
+  // Nous Research (OpenRouter)
+  nous: "hermes-4-405b-free",
+  hermes: "hermes-4-405b-free",
+  "hermes-4-405b-free": "hermes-4-405b-free",
+  "hermes-4-70b": "hermes-4-70b",
+  "deephermes-3": "deephermes-3",
+
+  // Phind (OpenRouter)
+  phind: "phind-codellama",
+  "phind-codellama": "phind-codellama",
+
+  // Microsoft AI (OpenRouter)
+  microsoft: "wizardlm-2-8x22b",
+  wizardlm: "wizardlm-2-8x22b",
+  "wizardlm-2-8x22b": "wizardlm-2-8x22b",
+  "wizardlm-2-7b": "wizardlm-2-7b",
+
+  // Snowflake (OpenRouter)
+  snowflake: "arctic",
+  arctic: "arctic",
 };
 
 const buildEmojiLookup = (): Record<string, string> => {
