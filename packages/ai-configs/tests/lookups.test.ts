@@ -8,9 +8,9 @@ describe("lookups", () => {
   });
 
   it("resolves emojis for known aliases and partial matches", () => {
-    expect(resolveEmoji("gpt-4o")).toBe("🧠");
-    expect(resolveEmoji("grok-4-heavy")).toBe("🏋️");
-    expect(resolveEmoji("gpt-4o-mini")).toBe("🛸");
+    expect(resolveEmoji("gpt-4o")).toBe("🌍");
+    expect(resolveEmoji("grok-4-heavy")).toBe("🕹️");
+    expect(resolveEmoji("gpt-4o-mini")).toBe("🌏");
   });
 
   it("maps mentions to canonical AI names", () => {
