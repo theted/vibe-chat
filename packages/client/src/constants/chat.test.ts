@@ -71,14 +71,14 @@ describe("chat constants", () => {
 
     it("should map GPT variants to the expected emoji", () => {
       expect(AI_EMOJI_LOOKUP.gpt).toBe("🌀");
-      expect(AI_EMOJI_LOOKUP.gpt4).toBe("🧠");
-      expect(AI_EMOJI_LOOKUP.gpt35).toBe("💡");
+      expect(AI_EMOJI_LOOKUP.gpt4).toBe("🌍");
+      expect(AI_EMOJI_LOOKUP.gpt35).toBe("⭐");
       expect(AI_EMOJI_LOOKUP.openai).toBe("🌀");
     });
 
-    it("should map Grok/X.AI to mechanical arm emoji", () => {
-      expect(AI_EMOJI_LOOKUP.grok).toBe("🦾");
-      expect(AI_EMOJI_LOOKUP.xai).toBe("🦾");
+    it("should map Grok/X.AI to joker emoji", () => {
+      expect(AI_EMOJI_LOOKUP.grok).toBe("🃏");
+      expect(AI_EMOJI_LOOKUP.xai).toBe("🃏");
     });
 
     it("should map Gemini/Google to diamond emoji", () => {
@@ -87,10 +87,10 @@ describe("chat constants", () => {
       expect(AI_EMOJI_LOOKUP.bard).toBe("🔷");
     });
 
-    it("should map Cohere variants to crystal ball emoji", () => {
-      expect(AI_EMOJI_LOOKUP.cohere).toBe("🔮");
-      expect(AI_EMOJI_LOOKUP.command).toBe("🔮");
-      expect(AI_EMOJI_LOOKUP.commandr).toBe("🔮");
+    it("should map Cohere variants to anchor emoji", () => {
+      expect(AI_EMOJI_LOOKUP.cohere).toBe("⚓");
+      expect(AI_EMOJI_LOOKUP.command).toBe("⚓");
+      expect(AI_EMOJI_LOOKUP.commandr).toBe("⚓");
     });
 
     it("should map Mistral to tornado emoji", () => {

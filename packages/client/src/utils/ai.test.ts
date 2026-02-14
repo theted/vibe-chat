@@ -59,12 +59,12 @@ describe("resolveEmoji", () => {
     expect(resolveEmoji("claude")).toBe("🎹");
     expect(resolveEmoji("anthropic")).toBe("🎹");
     expect(resolveEmoji("gpt")).toBe("🌀");
-    expect(resolveEmoji("gpt4")).toBe("🧠");
+    expect(resolveEmoji("gpt4")).toBe("🌍");
     expect(resolveEmoji("openai")).toBe("🌀");
-    expect(resolveEmoji("grok")).toBe("🦾");
+    expect(resolveEmoji("grok")).toBe("🃏");
     expect(resolveEmoji("gemini")).toBe("🔷");
     expect(resolveEmoji("mistral")).toBe("🌪️");
-    expect(resolveEmoji("cohere")).toBe("🔮");
+    expect(resolveEmoji("cohere")).toBe("⚓");
     expect(resolveEmoji("kimi")).toBe(kimiEmoji);
     expect(resolveEmoji("perplexity")).toBe("🔊");
     expect(resolveEmoji("qwen")).toBe("🐲");
@@ -77,17 +77,17 @@ describe("resolveEmoji", () => {
   });
 
   it("should handle special characters in input", () => {
-    expect(resolveEmoji("gpt-4")).toBe("🧠");
+    expect(resolveEmoji("gpt-4")).toBe("🌍");
     expect(resolveEmoji("z.ai")).toBe("🔆");
-    // "command-r" normalizes to "commandr", matches "command" prefix -> 🔮
-    expect(resolveEmoji("command-r")).toBe("🔮");
+    // "command-r" normalizes to "commandr", matches "command" prefix -> ⚓
+    expect(resolveEmoji("command-r")).toBe("⚓");
   });
 
   it("should resolve partial matches", () => {
     // "claude-opus" normalizes to "claudeopus", matches "claude" prefix -> 🎹
     expect(resolveEmoji("claude-opus")).toBe("🎹");
-    // "gpt-3.5-turbo" normalizes to "gpt35turbo", matches "gpt35" prefix -> 💡
-    expect(resolveEmoji("gpt-3.5-turbo")).toBe("💡");
+    // "gpt-3.5-turbo" normalizes to "gpt35turbo", matches "gpt35" prefix -> ⭐
+    expect(resolveEmoji("gpt-3.5-turbo")).toBe("⭐");
     expect(resolveEmoji("gemini-pro")).toBe("🔷");
     expect(resolveEmoji("mistral-large")).toBe("🌪️");
   });
@@ -105,7 +105,7 @@ describe("resolveEmoji", () => {
 
   it("should handle aliases correctly", () => {
     const kimiEmoji = resolveParticipantEmoji("kimi-k2.5");
-    expect(resolveEmoji("xai")).toBe("🦾");
+    expect(resolveEmoji("xai")).toBe("🃏");
     expect(resolveEmoji("google")).toBe("🔷");
     expect(resolveEmoji("bard")).toBe("🔷");
     expect(resolveEmoji("moonshot")).toBe(kimiEmoji);

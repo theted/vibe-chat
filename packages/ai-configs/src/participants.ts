@@ -3,9 +3,30 @@ import type { AiParticipant } from "./types.js";
 /**
  * All AI participants with unique emojis per model.
  * Organized by provider for maintainability.
+ *
+ * Emoji themes by provider:
+ *   Anthropic    - Music/performing arts (model names are musical forms)
+ *   OpenAI       - Space/cosmos
+ *   xAI/Grok     - Gaming/arcade (playful brand personality)
+ *   Google       - Gems/crystals ("Gemini" = precious)
+ *   Cohere       - Naval/seafaring ("Command" naming)
+ *   Mistral AI   - Wind/weather ("Mistral" is a cold wind)
+ *   DeepSeek     - Deep ocean creatures
+ *   Moonshot AI  - Moon phases
+ *   Qwen         - East Asian culture
+ *   Z.ai         - Tools/engineering
+ *   Meta         - Mountain animals (llama habitat)
+ *   Amazon       - Rainforest
+ *   NVIDIA       - Green (brand color)
+ *   Baidu        - Bears (logo mascot)
+ *   ByteDance    - Seeds/plants ("Seed" product)
+ *   Hugging Face - Warmth/hugs
+ *   Perplexity   - Sonar/signal
+ *   Nous Research - Greek/wisdom ("Nous" = mind)
+ *   Microsoft AI - Magic/wizards
  */
 export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
-  // Anthropic Models (Opus 4.6 latest)
+  // Anthropic Models - Music/performing arts
   {
     id: "ANTHROPIC_CLAUDE_OPUS_4_6",
     name: "Claude Opus 4.6",
@@ -28,7 +49,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "claude-haiku-4-5",
     provider: "Anthropic",
     status: "active",
-    emoji: "🌸",
+    emoji: "🎵",
   },
   {
     id: "ANTHROPIC_CLAUDE_OPUS_4_5",
@@ -68,7 +89,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "claude-3-7-sonnet",
     provider: "Anthropic",
     status: "inactive",
-    emoji: "🎵",
+    emoji: "🎧",
   },
   {
     id: "ANTHROPIC_CLAUDE3_5_HAIKU_20241022",
@@ -76,10 +97,10 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "haiku-3-5",
     provider: "Anthropic",
     status: "inactive",
-    emoji: "🍃",
+    emoji: "🪕",
   },
 
-  // OpenAI Models
+  // OpenAI Models - Space/cosmos
   {
     id: "OPENAI_GPT5_2",
     name: "GPT-5.2",
@@ -94,7 +115,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "gpt-5.2-pro",
     provider: "OpenAI",
     status: "active",
-    emoji: "🛡️",
+    emoji: "🪐",
   },
   {
     id: "OPENAI_GPT5_MINI",
@@ -110,7 +131,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "gpt-5-nano",
     provider: "OpenAI",
     status: "active",
-    emoji: "🔹",
+    emoji: "✳️",
   },
   {
     id: "OPENAI_GPT5",
@@ -126,7 +147,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "gpt-5.1",
     provider: "OpenAI",
     status: "inactive",
-    emoji: "✨",
+    emoji: "☄️",
   },
   {
     id: "OPENAI_GPT4O",
@@ -134,7 +155,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "gpt-4o",
     provider: "OpenAI",
     status: "active",
-    emoji: "🧠",
+    emoji: "🌍",
   },
   {
     id: "OPENAI_GPT4O_MINI",
@@ -142,7 +163,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "gpt-4o-mini",
     provider: "OpenAI",
     status: "active",
-    emoji: "🛸",
+    emoji: "🌏",
   },
   {
     id: "OPENAI_GPT4_1",
@@ -150,7 +171,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "gpt-4.1",
     provider: "OpenAI",
     status: "active",
-    emoji: "🧩",
+    emoji: "🛸",
   },
   {
     id: "OPENAI_GPT4_1_MINI",
@@ -158,7 +179,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "gpt-4.1-mini",
     provider: "OpenAI",
     status: "active",
-    emoji: "🧮",
+    emoji: "🛰️",
   },
   {
     id: "OPENAI_GPT4_1_NANO",
@@ -166,7 +187,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "gpt-4.1-nano",
     provider: "OpenAI",
     status: "active",
-    emoji: "🧬",
+    emoji: "🌌",
   },
   {
     id: "OPENAI_O3",
@@ -174,7 +195,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "o3",
     provider: "OpenAI",
     status: "active",
-    emoji: "🧪",
+    emoji: "🔭",
   },
   {
     id: "OPENAI_O4_MINI",
@@ -182,7 +203,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "o4-mini",
     provider: "OpenAI",
     status: "active",
-    emoji: "🛰️",
+    emoji: "🌠",
   },
   {
     id: "OPENAI_GPT35_TURBO",
@@ -190,17 +211,17 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "gpt-3-5",
     provider: "OpenAI",
     status: "inactive",
-    emoji: "💡",
+    emoji: "⭐",
   },
 
-  // xAI/Grok Models (Grok 4 Latest)
+  // xAI/Grok Models - Gaming/arcade
   {
     id: "GROK_GROK_4_0709",
     name: "Grok 4",
     alias: "grok-4",
     provider: "xAI",
     status: "active",
-    emoji: "🛸",
+    emoji: "👾",
   },
   {
     id: "GROK_GROK_4_FAST_NON_REASONING",
@@ -216,7 +237,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "grok-4-reasoning",
     provider: "xAI",
     status: "active",
-    emoji: "🧭",
+    emoji: "🎮",
   },
   {
     id: "GROK_GROK_4_HEAVY",
@@ -224,7 +245,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "grok-4-heavy",
     provider: "xAI",
     status: "active",
-    emoji: "🏋️",
+    emoji: "🕹️",
   },
   {
     id: "GROK_GROK_4_1_FAST_NON_REASONING",
@@ -232,7 +253,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "grok-4.1-fast",
     provider: "xAI",
     status: "active",
-    emoji: "🚄",
+    emoji: "🎰",
   },
   {
     id: "GROK_GROK_4_1_FAST_REASONING",
@@ -240,7 +261,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "grok-4.1-reasoning",
     provider: "xAI",
     status: "active",
-    emoji: "🔮",
+    emoji: "🎲",
   },
   {
     id: "GROK_GROK_3",
@@ -248,7 +269,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "grok",
     provider: "xAI",
     status: "active",
-    emoji: "🦾",
+    emoji: "🃏",
   },
   {
     id: "GROK_GROK_3_MINI",
@@ -256,7 +277,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "grok-3-mini",
     provider: "xAI",
     status: "active",
-    emoji: "⚙️",
+    emoji: "🎯",
   },
   {
     id: "GROK_GROK_CODE_FAST_1",
@@ -264,10 +285,10 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "grok-code",
     provider: "xAI",
     status: "active",
-    emoji: "💻",
+    emoji: "💾",
   },
 
-  // Google/Gemini Models (Gemini 3 Latest)
+  // Google/Gemini Models - Gems/crystals
   {
     id: "GEMINI_GEMINI_3_PRO",
     name: "Gemini 3 Pro",
@@ -282,7 +303,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "gemini-3-flash",
     provider: "Google",
     status: "active",
-    emoji: "⚡",
+    emoji: "💠",
   },
   {
     id: "GEMINI_GEMINI_2_5_PRO",
@@ -290,7 +311,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "gemini-2.5-pro",
     provider: "Google",
     status: "active",
-    emoji: "💠",
+    emoji: "💎",
   },
   {
     id: "GEMINI_GEMINI_2_5_FLASH",
@@ -298,7 +319,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "gemini-2.5-flash",
     provider: "Google",
     status: "active",
-    emoji: "💎",
+    emoji: "🔹",
   },
   {
     id: "GEMINI_GEMINI_2_5_FLASH_LITE",
@@ -309,14 +330,14 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     emoji: "✨",
   },
 
-  // Cohere Models
+  // Cohere Models - Naval/seafaring
   {
     id: "COHERE_COMMAND_A_03_2025",
     name: "Command A",
     alias: "cohere",
     provider: "Cohere",
     status: "active",
-    emoji: "🔮",
+    emoji: "⚓",
   },
   {
     id: "COHERE_COMMAND_A_REASONING_08_2025",
@@ -324,7 +345,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "cohere-reasoning",
     provider: "Cohere",
     status: "active",
-    emoji: "🎱",
+    emoji: "🧭",
   },
   {
     id: "COHERE_COMMAND_A_TRANSLATE_08_2025",
@@ -340,7 +361,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "command-r-plus",
     provider: "Cohere",
     status: "active",
-    emoji: "🌟",
+    emoji: "🚢",
   },
   {
     id: "COHERE_COMMAND_R_08_2024",
@@ -348,10 +369,10 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "command-r",
     provider: "Cohere",
     status: "active",
-    emoji: "🌙",
+    emoji: "🗺️",
   },
 
-  // Mistral AI Models
+  // Mistral AI Models - Wind/weather
   {
     id: "MISTRAL_MISTRAL_LARGE",
     name: "Mistral Large 3",
@@ -382,7 +403,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "magistral-medium",
     provider: "Mistral AI",
     status: "active",
-    emoji: "📏",
+    emoji: "🌩️",
   },
   {
     id: "MISTRAL_MAGISTRAL_SMALL",
@@ -390,7 +411,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "magistral-small",
     provider: "Mistral AI",
     status: "active",
-    emoji: "📐",
+    emoji: "☁️",
   },
   {
     id: "MISTRAL_CODESTRAL",
@@ -398,7 +419,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "codestral",
     provider: "Mistral AI",
     status: "active",
-    emoji: "🖥️",
+    emoji: "🌊",
   },
   {
     id: "MISTRAL_DEVSTRAL",
@@ -406,7 +427,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "devstral",
     provider: "Mistral AI",
     status: "active",
-    emoji: "🛠️",
+    emoji: "🌧️",
   },
   {
     id: "MISTRAL_DEVSTRAL_SMALL",
@@ -414,7 +435,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "devstral-small",
     provider: "Mistral AI",
     status: "active",
-    emoji: "🔧",
+    emoji: "🌫️",
   },
   {
     id: "MISTRAL_MINISTRAL_8B",
@@ -425,14 +446,14 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     emoji: "🪶",
   },
 
-  // DeepSeek Models
+  // DeepSeek Models - Deep ocean creatures
   {
     id: "DEEPSEEK_DEEPSEEK_CHAT",
     name: "DeepSeek Chat",
     alias: "deepseek",
     provider: "DeepSeek",
     status: "active",
-    emoji: "🔍",
+    emoji: "🐙",
   },
   {
     id: "DEEPSEEK_DEEPSEEK_R1",
@@ -440,10 +461,10 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "deepseek-r1",
     provider: "DeepSeek",
     status: "active",
-    emoji: "🔭",
+    emoji: "🦑",
   },
 
-  // Moonshot/Kimi Models (Kimi K2.5 Latest)
+  // Moonshot/Kimi Models - Moon phases
   {
     id: "KIMI_KIMI_K2_5",
     name: "Kimi K2.5",
@@ -474,7 +495,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "moonshot-v1-8k",
     provider: "Moonshot AI",
     status: "inactive",
-    emoji: "🎯",
+    emoji: "🌗",
   },
   {
     id: "KIMI_KIMI_32K",
@@ -482,7 +503,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "moonshot-v1-32k",
     provider: "Moonshot AI",
     status: "inactive",
-    emoji: "🧭",
+    emoji: "🌖",
   },
   {
     id: "KIMI_KIMI_128K",
@@ -490,10 +511,10 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "moonshot-v1-128k",
     provider: "Moonshot AI",
     status: "inactive",
-    emoji: "🗺️",
+    emoji: "🌓",
   },
 
-  // Qwen/Alibaba Models (Qwen3 Latest)
+  // Qwen/Alibaba Models - East Asian culture
   {
     id: "QWEN_QWEN3_MAX",
     name: "Qwen3 Max",
@@ -524,7 +545,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "qwen3-coder-flash",
     provider: "Qwen",
     status: "active",
-    emoji: "⚡",
+    emoji: "🎎",
   },
   {
     id: "QWEN_QWEN_MAX",
@@ -559,7 +580,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     emoji: "🎍",
   },
 
-  // Z.ai Models (GLM-5 Latest)
+  // Z.ai Models - Tools/engineering
   {
     id: "ZAI_ZAI_GLM_5",
     name: "GLM-5",
@@ -574,7 +595,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "glm-4.7",
     provider: "Z.ai",
     status: "active",
-    emoji: "🚄",
+    emoji: "⚙️",
   },
   {
     id: "ZAI_ZAI_GLM_4_7_FLASH",
@@ -582,7 +603,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "glm-4.7-flash",
     provider: "Z.ai",
     status: "active",
-    emoji: "📸",
+    emoji: "🔧",
   },
   {
     id: "ZAI_ZAI_GLM_4_7V",
@@ -590,7 +611,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "glm-4.7v",
     provider: "Z.ai",
     status: "active",
-    emoji: "🛰️",
+    emoji: "🛠️",
   },
   {
     id: "ZAI_ZAI_GLM_4_6",
@@ -598,7 +619,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "glm-4.6",
     provider: "Z.ai",
     status: "active",
-    emoji: "🔹",
+    emoji: "🔩",
   },
   {
     id: "ZAI_ZAI_GLM_4_6V",
@@ -606,7 +627,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "glm-4.6v",
     provider: "Z.ai",
     status: "active",
-    emoji: "👁️",
+    emoji: "🪛",
   },
   {
     id: "ZAI_ZAI_GLM_4_5",
@@ -614,7 +635,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "glm-4.5",
     provider: "Z.ai",
     status: "active",
-    emoji: "🔶",
+    emoji: "🔨",
   },
   {
     id: "ZAI_ZAI_GLM_4_5_AIR",
@@ -622,7 +643,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "glm-4.5-air",
     provider: "Z.ai",
     status: "active",
-    emoji: "🪁",
+    emoji: "🪚",
   },
   {
     id: "ZAI_ZAI_GLM_4_5_AIRX",
@@ -630,7 +651,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "glm-4.5-airx",
     provider: "Z.ai",
     status: "active",
-    emoji: "🪂",
+    emoji: "📐",
   },
   {
     id: "ZAI_ZAI_GLM_4_5_FLASH",
@@ -638,7 +659,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "glm-4.5-flash",
     provider: "Z.ai",
     status: "active",
-    emoji: "⚡",
+    emoji: "🧲",
   },
   {
     id: "ZAI_ZAI_GLM_4_5_LONG",
@@ -646,7 +667,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "glm-4.5-long",
     provider: "Z.ai",
     status: "active",
-    emoji: "📜",
+    emoji: "📏",
   },
   {
     id: "ZAI_ZAI_DEFAULT",
@@ -657,7 +678,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     emoji: "🔆",
   },
 
-  // Meta/Llama Models
+  // Meta/Llama Models - Mountain animals
   {
     id: "LLAMA_LLAMA_3_3_70B_INSTRUCT",
     name: "Llama 3.3 70B Instruct",
@@ -680,7 +701,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "llama-4-maverick",
     provider: "Meta",
     status: "active",
-    emoji: "🦙",
+    emoji: "🦬",
   },
   {
     id: "LLAMA_LLAMA_4_SCOUT",
@@ -688,17 +709,17 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "llama-4-scout",
     provider: "Meta",
     status: "active",
-    emoji: "🦙",
+    emoji: "🦌",
   },
 
-  // Amazon Models
+  // Amazon Models - Rainforest
   {
     id: "AMAZON_NOVA_2_LITE_V1",
     name: "Nova 2 Lite",
     alias: "nova-2-lite",
     provider: "Amazon",
     status: "active",
-    emoji: "📦",
+    emoji: "🦜",
   },
   {
     id: "AMAZON_NOVA_PRO_V1",
@@ -706,17 +727,17 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "nova-pro",
     provider: "Amazon",
     status: "active",
-    emoji: "📦",
+    emoji: "🌿",
   },
 
-  // NVIDIA Models
+  // NVIDIA Models - Green (brand color)
   {
     id: "NVIDIA_NEMOTRON_3_NANO_30B_A3B",
     name: "Nemotron 3 Nano 30B A3B",
     alias: "nemotron-3-nano-30b-a3b",
     provider: "NVIDIA",
     status: "active",
-    emoji: "⚡",
+    emoji: "💚",
   },
   {
     id: "NVIDIA_NEMOTRON_3_NANO_30B_A3B_FREE",
@@ -724,7 +745,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "nemotron-3-nano-30b-a3b-free",
     provider: "NVIDIA",
     status: "active",
-    emoji: "⚡",
+    emoji: "💚",
   },
   {
     id: "NVIDIA_NEMOTRON_3_NANO_2_VL",
@@ -732,7 +753,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "nemotron-3-nano-2-vl",
     provider: "NVIDIA",
     status: "active",
-    emoji: "⚡",
+    emoji: "🟢",
   },
 
   // Xiaomi Models
@@ -742,17 +763,17 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "mimo-v2-flash",
     provider: "Xiaomi",
     status: "active",
-    emoji: "🚀",
+    emoji: "📱",
   },
 
-  // MiniMax Models
+  // MiniMax Models - Charts/sizing (Mini + Max)
   {
     id: "MINIMAX_MINIMAX_M2_1",
     name: "MiniMax M2.1",
     alias: "minimax-m2.1",
     provider: "MiniMax",
     status: "active",
-    emoji: "🎯",
+    emoji: "📊",
   },
   {
     id: "MINIMAX_MINIMAX_M2",
@@ -760,7 +781,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "minimax-m2",
     provider: "MiniMax",
     status: "active",
-    emoji: "🎯",
+    emoji: "📈",
   },
   {
     id: "MINIMAX_MINIMAX_M1",
@@ -768,17 +789,17 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "minimax-m1",
     provider: "MiniMax",
     status: "active",
-    emoji: "🎯",
+    emoji: "📉",
   },
 
-  // Baidu Models
+  // Baidu Models - Bears (logo mascot)
   {
     id: "BAIDU_ERNIE_4_5_21B_A3B_THINKING",
     name: "ERNIE 4.5 21B A3B Thinking",
     alias: "ernie-4.5-21b-thinking",
     provider: "Baidu",
     status: "active",
-    emoji: "🔴",
+    emoji: "🐻",
   },
   {
     id: "BAIDU_ERNIE_4_5_21B_A3B",
@@ -786,7 +807,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "ernie-4.5-21b",
     provider: "Baidu",
     status: "active",
-    emoji: "🔴",
+    emoji: "🐼",
   },
   {
     id: "BAIDU_ERNIE_4_5_300B_A47B",
@@ -794,17 +815,17 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "ernie-4.5-300b",
     provider: "Baidu",
     status: "active",
-    emoji: "🔴",
+    emoji: "🐾",
   },
 
-  // ByteDance Models
+  // ByteDance Models - Seeds/plants
   {
     id: "BYTEDANCE_SEED_1_6_FLASH",
     name: "Seed 1.6 Flash",
     alias: "seed-1.6-flash",
     provider: "ByteDance",
     status: "active",
-    emoji: "⚡",
+    emoji: "🌱",
   },
   {
     id: "BYTEDANCE_SEED_1_6",
@@ -812,10 +833,10 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "seed-1.6",
     provider: "ByteDance",
     status: "active",
-    emoji: "⚡",
+    emoji: "🌾",
   },
 
-  // Hugging Face Models
+  // Hugging Face Models - Warmth/hugs
   {
     id: "HUGGINGFACE_ZEPHYR_141B_A35B",
     name: "Zephyr 141B-A35B",
@@ -830,17 +851,17 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "zephyr-7b-beta",
     provider: "Hugging Face",
     status: "active",
-    emoji: "🤗",
+    emoji: "🫂",
   },
 
-  // Arcee AI Models (OpenRouter)
+  // Arcee AI Models - Trophies/awards
   {
     id: "ARCEE_TRINITY_LARGE_PREVIEW_FREE",
     name: "Trinity Large Preview (Free)",
     alias: "trinity-large-free",
     provider: "Arcee AI",
     status: "active",
-    emoji: "🎭",
+    emoji: "👑",
   },
   {
     id: "ARCEE_TRINITY_MINI_FREE",
@@ -848,7 +869,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "trinity-mini-free",
     provider: "Arcee AI",
     status: "active",
-    emoji: "🎪",
+    emoji: "🏅",
   },
   {
     id: "ARCEE_CODER_LARGE",
@@ -856,7 +877,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "arcee-coder",
     provider: "Arcee AI",
     status: "active",
-    emoji: "💻",
+    emoji: "🎖️",
   },
   {
     id: "ARCEE_MAESTRO_REASONING",
@@ -864,17 +885,17 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "arcee-maestro",
     provider: "Arcee AI",
     status: "active",
-    emoji: "🧠",
+    emoji: "🏆",
   },
 
-  // StepFun Models (OpenRouter)
+  // StepFun Models - Footsteps/stairs
   {
     id: "STEPFUN_STEP_3_5_FLASH_FREE",
     name: "Step 3.5 Flash (Free)",
     alias: "step-3.5-flash-free",
     provider: "StepFun",
     status: "active",
-    emoji: "⚡",
+    emoji: "👣",
   },
   {
     id: "STEPFUN_STEP_3",
@@ -882,10 +903,10 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "step-3",
     provider: "StepFun",
     status: "active",
-    emoji: "🎯",
+    emoji: "🪜",
   },
 
-  // Inflection AI Models (OpenRouter)
+  // Inflection AI Models - Hearts
   {
     id: "INFLECTION_INFLECTION_3_PI",
     name: "Inflection Pi",
@@ -900,10 +921,10 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "inflection-productivity",
     provider: "Inflection AI",
     status: "active",
-    emoji: "📋",
+    emoji: "💜",
   },
 
-  // 01.AI Models (OpenRouter)
+  // 01.AI Models - Numbers/math
   {
     id: "ZEROONEAI_YI_1_5_34B",
     name: "Yi-1.5 34B",
@@ -918,7 +939,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "yi-coder-9b",
     provider: "01.AI",
     status: "active",
-    emoji: "👨‍💻",
+    emoji: "🧮",
   },
   {
     id: "ZEROONEAI_YI_34B",
@@ -926,20 +947,20 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "yi-34b",
     provider: "01.AI",
     status: "active",
-    emoji: "🎓",
+    emoji: "📟",
   },
 
-  // Databricks Models (OpenRouter)
+  // Databricks Models
   {
     id: "DATABRICKS_DBRX_132B_INSTRUCT",
     name: "DBRX 132B Instruct",
     alias: "dbrx",
     provider: "Databricks",
     status: "active",
-    emoji: "🏢",
+    emoji: "🧱",
   },
 
-  // Nous Research Models (OpenRouter)
+  // Nous Research Models - Greek/wisdom
   {
     id: "NOUS_HERMES_4_405B_FREE",
     name: "Hermes 4 405B (Free)",
@@ -954,7 +975,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "hermes-4-70b",
     provider: "Nous Research",
     status: "active",
-    emoji: "🧙",
+    emoji: "🏛️",
   },
   {
     id: "NOUS_DEEPHERMES_3_MISTRAL_24B",
@@ -962,20 +983,20 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "deephermes-3",
     provider: "Nous Research",
     status: "active",
-    emoji: "🔮",
+    emoji: "🫒",
   },
 
-  // Phind Models (OpenRouter)
+  // Phind Models
   {
     id: "PHIND_CODELLAMA_34B_V2",
     name: "Phind CodeLlama 34B v2",
     alias: "phind-codellama",
     provider: "Phind",
     status: "active",
-    emoji: "🚀",
+    emoji: "🔎",
   },
 
-  // Microsoft AI Models (OpenRouter)
+  // Microsoft AI Models - Magic/wizards
   {
     id: "MICROSOFT_WIZARDLM_2_8X22B",
     name: "WizardLM-2 8x22B",
@@ -990,10 +1011,10 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     alias: "wizardlm-2-7b",
     provider: "Microsoft AI",
     status: "active",
-    emoji: "⚡",
+    emoji: "🪄",
   },
 
-  // Snowflake Models (OpenRouter)
+  // Snowflake Models
   {
     id: "SNOWFLAKE_ARCTIC_INSTRUCT",
     name: "Arctic Instruct",
@@ -1003,7 +1024,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     emoji: "❄️",
   },
 
-  // Perplexity Models
+  // Perplexity Models - Sonar/signal
   {
     id: "PERPLEXITY_SONAR",
     name: "Perplexity Sonar",
