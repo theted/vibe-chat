@@ -61,12 +61,12 @@ export const buildModelCache = (
     modelKey: string;
     status: "ok" | "error";
     error?: string;
-  }>,
+  }> = [],
 ): ModelCache => {
   const now = new Date().toISOString();
   return {
     lastUpdated: now,
-    models: results.map((r) => ({
+    models: (results ?? []).map((r) => ({
       checkedAt: now,
       provider: r.providerKey,
       model: r.modelKey,

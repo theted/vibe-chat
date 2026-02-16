@@ -112,7 +112,7 @@ export const initializeAISystem = async (): Promise<ChatOrchestrator> => {
     }
 
     // Write cache when performing actual health checks (not using cache, not skipping)
-    if (!useCache && !skipHealthCheck) {
+    if (!useCache && !skipHealthCheck && results) {
       writeModelCache(buildModelCache(results));
       console.log("💾 Model availability saved to models.json");
     }
