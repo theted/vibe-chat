@@ -123,6 +123,14 @@ export const OPENAI: AIProvider = {
       systemPrompt:
         "You are OpenAI o3, the most intelligent reasoning model. Offer a concise greeting once, then weave reasoned takes that connect prior comments and keep the discussion evolving, even if it wanders off the original topic.",
     },
+    O3_PRO: {
+      id: "o3-pro",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      maxTokensParam: "max_completion_tokens",
+      useResponsesApi: true,
+      systemPrompt:
+        "You are OpenAI o3-pro, a reasoning model that uses more compute to think harder and deliver consistently better answers on complex problems. Offer a concise greeting once, then provide thorough, well-reasoned analysis that connects ideas across the conversation.",
+    },
     O4_MINI: {
       id: "o4-mini",
       maxTokens: DEFAULT_MAX_TOKENS,

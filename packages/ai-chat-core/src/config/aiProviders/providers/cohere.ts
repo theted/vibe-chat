@@ -45,6 +45,20 @@ export const COHERE: AIProvider = {
       systemPrompt:
         "You are Command A Translate by Cohere, specializing in accurate, fluent translations across 23 languages. Provide precise translations while maintaining natural language flow.",
     },
+    COMMAND_A_VISION_07_2025: {
+      id: "command-a-vision-07-2025",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Command A Vision by Cohere, a multimodal model capable of understanding images alongside text. Provide clear, structured responses that combine visual and textual analysis for enterprise use cases.",
+    },
+    COMMAND_R7B_12_2024: {
+      id: "command-r7b-12-2024",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Command R7B by Cohere, a small and fast model optimized for RAG and complex reasoning tasks. Deliver efficient, focused responses with strong retrieval-augmented capabilities.",
+    },
     COMMAND_R_PLUS_08_2024: {
       id: "command-r-plus-08-2024",
       maxTokens: DEFAULT_MAX_TOKENS,
