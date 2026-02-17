@@ -86,6 +86,10 @@ pnpm run docker:prod   # Production build
 pnpm run docker:clean  # Clean up containers and volumes
 ```
 
+### Deployment (EC2 + ECR)
+
+Production deploys target a single EC2 instance and use ECR to keep image history. See [deploy/ec2.md](deploy/ec2.md) for the workflow details and required GitHub secrets.
+
 ## Supported Providers and Models
 
 Current defaults and IDs (see `packages/ai-chat-core/src/config/aiProviders`):
