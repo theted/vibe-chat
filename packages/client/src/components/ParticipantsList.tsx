@@ -145,9 +145,7 @@ const ParticipantsList = ({
                         typing...
                       </span>
                     ) : (
-                      <span className={badgeStyles.online}>
-                        online
-                      </span>
+                      <span className={badgeStyles.online}>online</span>
                     )}
                   </AnimatedListItem>
                 );
@@ -215,9 +213,6 @@ const ParticipantsList = ({
                                 {ai.displayName || ai.name}
                               </div>
                             )}
-                            <div className="text-xs text-slate-500 truncate dark:text-slate-400">
-                              {ai.provider}
-                            </div>
                           </div>
                           {generating ? (
                             <span className={badgeStyles.generating}>
@@ -226,7 +221,11 @@ const ParticipantsList = ({
                             </span>
                           ) : (
                             <span
-                              className={ai.status === "active" ? badgeStyles.active : badgeStyles.inactive}
+                              className={
+                                ai.status === "active"
+                                  ? badgeStyles.active
+                                  : badgeStyles.inactive
+                              }
                             >
                               {ai.status}
                             </span>

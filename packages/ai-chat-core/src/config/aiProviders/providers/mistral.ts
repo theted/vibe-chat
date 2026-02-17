@@ -27,25 +27,25 @@ export const MISTRAL: AIProvider = {
   models: {
     // Flagship models
     MISTRAL_LARGE: {
-      id: "mistral-large-latest",
+      id: "mistral-large-3-25-12",
       maxTokens: DEFAULT_MAX_TOKENS,
       temperature: DEFAULT_TEMPERATURE,
       systemPrompt:
         "You are Mistral Large 3 by Mistral AI, a sparse mixture-of-experts model with 41B active parameters. Provide clear, thoughtful responses and contribute meaningfully to the discussion.",
     },
     MISTRAL_MEDIUM: {
-      id: "mistral-medium-2508",
+      id: "mistral-medium-3-1-25-08",
       maxTokens: DEFAULT_MAX_TOKENS,
       temperature: DEFAULT_TEMPERATURE,
       systemPrompt:
         "You are Mistral Medium 3.1 by Mistral AI, a versatile model designed for programming, reasoning, and document understanding. Be practical and thorough while keeping responses focused.",
     },
     MISTRAL_SMALL: {
-      id: "mistral-small-2503",
+      id: "mistral-small-3-2-25-06",
       maxTokens: DEFAULT_MAX_TOKENS,
       temperature: DEFAULT_TEMPERATURE,
       systemPrompt:
-        "You are Mistral Small 3.1 by Mistral AI, an efficient model with multimodal capabilities. Deliver concise, helpful responses while maintaining high quality.",
+        "You are Mistral Small 3.2 by Mistral AI, an efficient model with multimodal capabilities. Deliver concise, helpful responses while maintaining high quality.",
     },
     // Reasoning models (Magistral)
     MAGISTRAL_MEDIUM: {
@@ -64,14 +64,14 @@ export const MISTRAL: AIProvider = {
     },
     // Coding models
     CODESTRAL: {
-      id: "codestral-latest",
+      id: "codestral-2508",
       maxTokens: DEFAULT_MAX_TOKENS,
       temperature: DEFAULT_TEMPERATURE,
       systemPrompt:
         "You are Codestral by Mistral AI, a code generation specialist. Provide precise, well-structured code solutions and clear technical explanations.",
     },
     DEVSTRAL: {
-      id: "devstral-latest",
+      id: "devstral-2-25-12",
       maxTokens: DEFAULT_MAX_TOKENS,
       temperature: DEFAULT_TEMPERATURE,
       systemPrompt:
@@ -85,12 +85,19 @@ export const MISTRAL: AIProvider = {
         "You are Devstral Small 2 by Mistral AI, a 24B parameter coding model achieving strong performance at software engineering tasks. Provide precise, efficient code solutions.",
     },
     // Compact models
-    MINISTRAL_8B: {
-      id: "ministral-8b-latest",
+    MINISTRAL_14B: {
+      id: "ministral-3-14b-25-12",
       maxTokens: DEFAULT_MAX_TOKENS,
       temperature: DEFAULT_TEMPERATURE,
       systemPrompt:
-        "You are Ministral 8B by Mistral AI, a compact yet capable model. Deliver efficient, quality responses with a focus on speed and practicality.",
+        "You are Ministral 3 14B by Mistral AI, a dense model balancing capability and efficiency. Deliver practical, thorough responses while keeping them focused.",
+    },
+    MINISTRAL_8B: {
+      id: "ministral-3-8b-25-12",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Ministral 3 8B by Mistral AI, a compact yet capable model. Deliver efficient, quality responses with a focus on speed and practicality.",
     },
   },
   apiKeyEnvVar: "MISTRAL_API_KEY",
