@@ -104,6 +104,27 @@ services:
         max-size: "10m"
         max-file: "3"
 
+  # Reverse proxy: routes /api, /socket.io → server; everything else → client.
+  # Exposed only on localhost so the host nginx can proxy based on hostname.
+  nginx:
+    image: nginx:alpine
+    container_name: ai-chat-nginx-prod
+    ports:
+      - "127.0.0.1:8080:80"
+    volumes:
+      - ./deploy/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - ai-chat-server
+      - ai-chat-client
+    restart: always
+    networks:
+      - ai-chat-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "2"
+
 networks:
   ai-chat-network:
     driver: bridge
