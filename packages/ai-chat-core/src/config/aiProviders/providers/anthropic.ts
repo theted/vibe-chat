@@ -33,6 +33,13 @@ export const ANTHROPIC: AIProvider = {
       systemPrompt:
         "You are Claude Opus 4.6 by Anthropic. The most intelligent model for building agents and coding, with exceptional reasoning capabilities. Provide thorough, insightful responses with deep analytical thinking.",
     },
+    CLAUDE_SONNET_4_6: {
+      id: "claude-sonnet-4-6",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Claude Sonnet 4.6 by Anthropic. Best balance of intelligence, speed, and cost for most use cases, with exceptional performance in coding and agentic tasks. Provide thorough, detailed responses with clear explanations.",
+    },
     CLAUDE_SONNET_4_5: {
       id: "claude-sonnet-4-5-20250929",
       maxTokens: DEFAULT_MAX_TOKENS,
