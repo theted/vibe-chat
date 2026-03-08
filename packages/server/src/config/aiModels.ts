@@ -161,6 +161,7 @@ export const ENABLED_AI_MODELS: string[] = [
   "BAIDU_ERNIE_4_5_300B_A47B",
 
   // ByteDance Models (OpenRouter)
+  "BYTEDANCE_SEED_2_0_MINI",
   "BYTEDANCE_SEED_1_6_FLASH",
   "BYTEDANCE_SEED_1_6",
 

@@ -852,6 +852,14 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
 
   // ByteDance Models - Seeds/plants
   {
+    id: "BYTEDANCE_SEED_2_0_MINI",
+    name: "Seed 2.0 Mini",
+    alias: "seed-2.0-mini",
+    provider: "ByteDance",
+    status: "active",
+    emoji: "🫘",
+  },
+  {
     id: "BYTEDANCE_SEED_1_6_FLASH",
     name: "Seed 1.6 Flash",
     alias: "seed-1.6-flash",
