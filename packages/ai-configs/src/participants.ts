@@ -36,6 +36,14 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     emoji: "🎶",
   },
   {
+    id: "ANTHROPIC_CLAUDE_SONNET_4_6",
+    name: "Claude Sonnet 4.6",
+    alias: "claude-sonnet-4-6",
+    provider: "Anthropic",
+    status: "active",
+    emoji: "🎷",
+  },
+  {
     id: "ANTHROPIC_CLAUDE_SONNET_4_5",
     name: "Claude 4.5 Sonnet",
     alias: "claude-sonnet-4-5",
