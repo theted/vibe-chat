@@ -1,0 +1,96 @@
+# EC2 Docker Compose (pulls from ECR)
+services:
+  redis:
+    image: redis:7.4-alpine
+    container_name: ai-chat-redis-prod
+    command: redis-server --save 60 1 --appendonly yes --loglevel warning
+    volumes:
+      - redis-data:/data
+    ports:
+      - "6379:6379"
+    restart: always
+    networks:
+      - ai-chat-network
+
+  chroma:
+    image: chromadb/chroma:latest
+    container_name: ai-chat-chroma-prod
+    restart: always
+    networks:
+      - ai-chat-network
+    volumes:
+      - chroma-data:/chroma/chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+      - ANONYMIZED_TELEMETRY=FALSE
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  ai-chat-server:
+    image: ${SERVER_IMAGE:?SERVER_IMAGE is required}
+    container_name: ai-chat-server-prod
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - CLIENT_URL=${CLIENT_URL:-*}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - GROK_API_KEY=${GROK_API_KEY}
+      - GOOGLE_AI_API_KEY=${GOOGLE_AI_API_KEY}
+      - MISTRAL_API_KEY=${MISTRAL_API_KEY}
+      - COHERE_API_KEY=${COHERE_API_KEY}
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
+      - QWEN_API_KEY=${QWEN_API_KEY}
+      - KIMI_API_KEY=${KIMI_API_KEY}
+      - Z_API_KEY=${Z_API_KEY}
+      - AI_CHAT_VERBOSE_CONTEXT=${AI_CHAT_VERBOSE_CONTEXT:-false}
+      - AI_CHAT_ENABLE_PERSONAS=${AI_CHAT_ENABLE_PERSONAS:-false}
+      - AI_CHAT_SKIP_HEALTHCHECK=${AI_CHAT_SKIP_HEALTHCHECK:-false}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+      - CHAT_ASSISTANT_SCRIPT=/app/scripts/run-mcp-chat.js
+      - CHAT_ASSISTANT_AUTO_INDEX=true
+      - NODE_PATH=/app/server/node_modules
+      - CHROMA_URL=${CHROMA_URL:-http://chroma:8000}
+      - CHAT_ASSISTANT_COLLECTION=ai-chat-workspace
+    volumes:
+      - ./packages/ai-chat-cli/dist/scripts:/app/scripts:ro
+      - ./packages/mcp-assistant/src:/app/mcp-assistant/src:ro
+    restart: always
+    networks:
+      - ai-chat-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  ai-chat-client:
+    image: ${CLIENT_IMAGE:?CLIENT_IMAGE is required}
+    container_name: ai-chat-client-prod
+    ports:
+      - "80:80"
+    depends_on:
+      - ai-chat-server
+    restart: always
+    networks:
+      - ai-chat-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  ai-chat-network:
+    driver: bridge
+
+volumes:
+  redis-data:
+  chroma-data:
