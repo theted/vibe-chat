@@ -194,8 +194,9 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   "ernie-4.5-300b": "ernie-4.5-300b",
 
   // ByteDance (OpenRouter)
-  bytedance: "seed-1.6",
-  seed: "seed-1.6",
+  bytedance: "seed-2.0-mini",
+  seed: "seed-2.0-mini",
+  "seed-2.0-mini": "seed-2.0-mini",
   "seed-1.6-flash": "seed-1.6-flash",
   "seed-1.6": "seed-1.6",
 

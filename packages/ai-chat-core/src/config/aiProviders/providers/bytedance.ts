@@ -26,15 +26,22 @@ export const BYTEDANCE: AIProvider = {
     ],
   },
   models: {
+    SEED_2_0_MINI: {
+      id: "bytedance-seed/seed-2.0-mini",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are ByteDance Seed 2.0 Mini, built for fast, high-concurrency inference. Greet once, then deliver quick, precise answers.",
+    },
     SEED_1_6_FLASH: {
-      id: "bytedance/seed-1.6-flash",
+      id: "bytedance-seed/seed-1.6-flash",
       maxTokens: DEFAULT_MAX_TOKENS,
       temperature: DEFAULT_TEMPERATURE,
       systemPrompt:
         "You are ByteDance Seed 1.6 Flash, optimized for rapid reasoning. Greet once, then deliver fast, clear answers with minimal fluff.",
     },
     SEED_1_6: {
-      id: "bytedance/seed-1.6",
+      id: "bytedance-seed/seed-1.6",
       maxTokens: DEFAULT_MAX_TOKENS,
       temperature: DEFAULT_TEMPERATURE,
       systemPrompt:
