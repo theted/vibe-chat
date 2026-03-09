@@ -19,5 +19,5 @@ jobs:
             set -e
             cd /opt/vibe-chat
             git pull origin master
-            docker compose -f docker-compose.prod.yml --env-file .env up -d --build
+            docker compose -f docker-compose.ec2.yml --env-file .env up -d --build
             docker image prune -f
