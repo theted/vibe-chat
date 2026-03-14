@@ -1,15 +1,20 @@
-# Production Docker Compose
+# EC2 production compose file.
+#
+# Differences from docker-compose.prod.yml:
+#   - Redis and Chroma have no profiles: they always start (self-contained instance).
+#   - Nginx exposes port 8080 on localhost; host nginx routes external traffic to it
+#     based on hostname. Server and client use expose (docker-internal only) which
+#     is correct: all external access flows through the nginx service below.
+#
+# Deploy: docker compose -f docker-compose.ec2.yml --env-file .env up -d --build
+
 services:
   redis:
     image: redis:7.4-alpine
     container_name: ai-chat-redis-prod
     command: redis-server --save 60 1 --appendonly yes --loglevel warning
-    profiles:
-      - internal-redis
     volumes:
       - redis-data:/data
-    ports:
-      - "6379:6379"
     restart: always
     networks:
       - ai-chat-network
@@ -17,8 +22,6 @@ services:
   chroma:
     image: chromadb/chroma:latest
     container_name: ai-chat-chroma-prod
-    profiles:
-      - internal-chroma
     restart: always
     networks:
       - ai-chat-network
@@ -27,8 +30,6 @@ services:
     environment:
       - IS_PERSISTENT=TRUE
       - ANONYMIZED_TELEMETRY=FALSE
-    ports:
-      - "8000:8000"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
       interval: 10s
@@ -41,6 +42,8 @@ services:
       context: .
       dockerfile: packages/server/Dockerfile
     container_name: ai-chat-server-prod
+    # expose makes port available within the docker network only.
+    # External traffic reaches the server via the nginx service below.
     expose:
       - "3001"
     environment:
@@ -76,8 +79,6 @@ services:
     restart: always
     networks:
       - ai-chat-network
-    # Note: depends_on removed - handled by network + health checks in code
-    # When using external redis/chroma via profiles, they won't be in this compose file
     logging:
       driver: "json-file"
       options:
@@ -91,6 +92,8 @@ services:
       args:
         - VITE_SERVER_URL=${SERVER_URL:-http://localhost:3001}
     container_name: ai-chat-client-prod
+    # expose makes port available within the docker network only.
+    # External traffic reaches the client via the nginx service below.
     expose:
       - "80"
     depends_on:
@@ -105,7 +108,10 @@ services:
         max-file: "3"
 
   # Reverse proxy: routes /api, /socket.io → server; everything else → client.
-  # Exposed only on localhost so the host nginx can proxy based on hostname.
+  # Bound to 127.0.0.1:8080 so host nginx can route external traffic by hostname
+  # (see deploy/nginx/ec2-vibe-chat.nginx.conf). To add another service on the
+  # same EC2, run its compose stack on a different localhost port and add a new
+  # server block in host nginx.
   nginx:
     image: nginx:alpine
     container_name: ai-chat-nginx-prod
