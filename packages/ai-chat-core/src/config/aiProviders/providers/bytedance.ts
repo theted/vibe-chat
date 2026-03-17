@@ -33,6 +33,13 @@ export const BYTEDANCE: AIProvider = {
       systemPrompt:
         "You are ByteDance Seed 2.0 Mini, built for fast, high-concurrency inference. Greet once, then deliver quick, precise answers.",
     },
+    SEED_2_0_LITE: {
+      id: "bytedance-seed/seed-2.0-lite",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are ByteDance Seed 2.0 Lite, a lightweight model optimized for efficiency and speed. Greet once, then provide concise, focused responses.",
+    },
     SEED_1_6_FLASH: {
       id: "bytedance-seed/seed-1.6-flash",
       maxTokens: DEFAULT_MAX_TOKENS,

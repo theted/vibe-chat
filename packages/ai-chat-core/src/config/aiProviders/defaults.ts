@@ -33,7 +33,7 @@ export const DEFAULT_MODELS: Record<string, AIModel> = {
   [GEMINI.name]: GEMINI.models.GEMINI_3_PRO,
   [MISTRAL.name]: MISTRAL.models.MISTRAL_LARGE,
   [OPENAI.name]: OPENAI.models.GPT5_2,
-  [ANTHROPIC.name]: ANTHROPIC.models.CLAUDE_SONNET_4_5,
+  [ANTHROPIC.name]: ANTHROPIC.models.CLAUDE_SONNET_4_6,
   [DEEPSEEK.name]: DEEPSEEK.models.DEEPSEEK_CHAT,
   [GROK.name]: GROK.models.GROK_4_0709,
   [QWEN.name]: QWEN.models.QWEN3_MAX,

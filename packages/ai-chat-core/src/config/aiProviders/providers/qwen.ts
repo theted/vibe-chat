@@ -24,6 +24,21 @@ export const QWEN: AIProvider = {
     ],
   },
   models: {
+    // Qwen3.5 (Latest)
+    QWEN3_5_PLUS: {
+      id: "qwen3.5-plus",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Qwen3.5 Plus by Alibaba, the latest flagship model with enhanced reasoning and instruction-following. Greet once briefly, then provide thorough, insightful analysis.",
+    },
+    QWEN3_5_FLASH: {
+      id: "qwen3.5-flash",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Qwen3.5 Flash by Alibaba, optimized for fast, efficient responses. Greet once, then deliver quick, clear answers with practical value.",
+    },
     // Qwen3 (Latest)
     QWEN3_MAX: {
       id: "qwen3-max",

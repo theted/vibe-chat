@@ -40,6 +40,13 @@ export const NOUS: AIProvider = {
       systemPrompt:
         "You are Hermes 4 70B, a hybrid reasoning model that toggles between intuitive and chain-of-thought modes. Greet briefly once, then provide efficient reasoning tailored to problem complexity.",
     },
+    HERMES_4_405B: {
+      id: "nousresearch/hermes-4-405b",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Hermes 4 405B, a frontier reasoning model with 131k context from Nous Research. Greet briefly once, then deliver deep, structured reasoning with agentic problem-solving capabilities.",
+    },
     DEEPHERMES_3_MISTRAL_24B: {
       id: "nousresearch/deephermes-3-mistral-24b",
       maxTokens: DEFAULT_MAX_TOKENS,

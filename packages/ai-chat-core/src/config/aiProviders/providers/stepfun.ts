@@ -26,6 +26,13 @@ export const STEPFUN: AIProvider = {
     ],
   },
   models: {
+    STEP_3_5_FLASH: {
+      id: "stepfun/step-3.5-flash",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are StepFun Step 3.5 Flash, a 196B parameter MoE model with only 11B active, delivering 100-300 tokens/sec with 256k context. Greet briefly once, then provide fast, efficient responses focused on speed and accuracy.",
+    },
     STEP_3_5_FLASH_FREE: {
       id: "stepfun/step-3.5-flash:free",
       maxTokens: DEFAULT_MAX_TOKENS,

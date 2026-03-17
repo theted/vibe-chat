@@ -232,6 +232,30 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
 
   // xAI/Grok Models - Gaming/arcade
   {
+    id: "GROK_GROK_4_20_MULTI_AGENT",
+    name: "Grok 4.20 Multi-Agent",
+    alias: "grok-4.20-multi-agent",
+    provider: "xAI",
+    status: "active",
+    emoji: "🧩",
+  },
+  {
+    id: "GROK_GROK_4_20_REASONING",
+    name: "Grok 4.20 Reasoning",
+    alias: "grok-4.20-reasoning",
+    provider: "xAI",
+    status: "active",
+    emoji: "♟️",
+  },
+  {
+    id: "GROK_GROK_4_20_NON_REASONING",
+    name: "Grok 4.20",
+    alias: "grok-4.20",
+    provider: "xAI",
+    status: "active",
+    emoji: "🎳",
+  },
+  {
     id: "GROK_GROK_4_0709",
     name: "Grok 4",
     alias: "grok-4",
@@ -260,7 +284,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     name: "Grok 4 Heavy",
     alias: "grok-4-heavy",
     provider: "xAI",
-    status: "active",
+    status: "inactive",
     emoji: "🕹️",
   },
   {
@@ -307,11 +331,19 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
   // Google/Gemini Models - Gems/crystals
   {
     id: "GEMINI_GEMINI_3_PRO",
-    name: "Gemini 3 Pro",
-    alias: "gemini-3-pro",
+    name: "Gemini 3.1 Pro",
+    alias: "gemini-3.1-pro",
     provider: "Google",
     status: "active",
     emoji: "🔷",
+  },
+  {
+    id: "GEMINI_GEMINI_3_1_FLASH_LITE",
+    name: "Gemini 3.1 Flash Lite",
+    alias: "gemini-3.1-lite",
+    provider: "Google",
+    status: "active",
+    emoji: "🫧",
   },
   {
     id: "GEMINI_GEMINI_3_FLASH",
@@ -404,7 +436,33 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     emoji: "🗺️",
   },
 
+  // Cohere Aya models - Naval/seafaring
+  {
+    id: "COHERE_AYA_EXPANSE_32B",
+    name: "Aya Expanse 32B",
+    alias: "aya-expanse-32b",
+    provider: "Cohere",
+    status: "active",
+    emoji: "🛶",
+  },
+  {
+    id: "COHERE_AYA_VISION_32B",
+    name: "Aya Vision 32B",
+    alias: "aya-vision-32b",
+    provider: "Cohere",
+    status: "active",
+    emoji: "🧿",
+  },
+
   // Mistral AI Models - Wind/weather
+  {
+    id: "MISTRAL_MISTRAL_SMALL_4",
+    name: "Mistral Small 4",
+    alias: "mistral-small-4",
+    provider: "Mistral AI",
+    status: "active",
+    emoji: "🍃",
+  },
   {
     id: "MISTRAL_MISTRAL_LARGE",
     name: "Mistral Large 3",
@@ -555,6 +613,22 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
   },
 
   // Qwen/Alibaba Models - East Asian culture
+  {
+    id: "QWEN_QWEN3_5_PLUS",
+    name: "Qwen3.5 Plus",
+    alias: "qwen3.5-plus",
+    provider: "Qwen",
+    status: "active",
+    emoji: "🎑",
+  },
+  {
+    id: "QWEN_QWEN3_5_FLASH",
+    name: "Qwen3.5 Flash",
+    alias: "qwen3.5-flash",
+    provider: "Qwen",
+    status: "active",
+    emoji: "🏵️",
+  },
   {
     id: "QWEN_QWEN3_MAX",
     name: "Qwen3 Max",
@@ -808,6 +882,14 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
 
   // MiniMax Models - Charts/sizing (Mini + Max)
   {
+    id: "MINIMAX_MINIMAX_M2_5",
+    name: "MiniMax M2.5",
+    alias: "minimax-m2.5",
+    provider: "MiniMax",
+    status: "active",
+    emoji: "📋",
+  },
+  {
     id: "MINIMAX_MINIMAX_M2_1",
     name: "MiniMax M2.1",
     alias: "minimax-m2.1",
@@ -834,6 +916,22 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
 
   // Baidu Models - Bears (logo mascot)
   {
+    id: "BAIDU_ERNIE_4_5_VL_424B_A47B",
+    name: "ERNIE 4.5 VL 424B",
+    alias: "ernie-4.5-vl-424b",
+    provider: "Baidu",
+    status: "active",
+    emoji: "🧸",
+  },
+  {
+    id: "BAIDU_ERNIE_4_5_VL_28B_A3B",
+    name: "ERNIE 4.5 VL 28B",
+    alias: "ernie-4.5-vl-28b",
+    provider: "Baidu",
+    status: "active",
+    emoji: "🐨",
+  },
+  {
     id: "BAIDU_ERNIE_4_5_21B_A3B_THINKING",
     name: "ERNIE 4.5 21B A3B Thinking",
     alias: "ernie-4.5-21b-thinking",
@@ -859,6 +957,14 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
   },
 
   // ByteDance Models - Seeds/plants
+  {
+    id: "BYTEDANCE_SEED_2_0_LITE",
+    name: "Seed 2.0 Lite",
+    alias: "seed-2.0-lite",
+    provider: "ByteDance",
+    status: "active",
+    emoji: "🌿",
+  },
   {
     id: "BYTEDANCE_SEED_2_0_MINI",
     name: "Seed 2.0 Mini",
@@ -935,8 +1041,32 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     status: "active",
     emoji: "🏆",
   },
+  {
+    id: "ARCEE_SPOTLIGHT",
+    name: "Arcee Spotlight",
+    alias: "arcee-spotlight",
+    provider: "Arcee AI",
+    status: "active",
+    emoji: "🔦",
+  },
+  {
+    id: "ARCEE_VIRTUOSO_LARGE",
+    name: "Arcee Virtuoso Large",
+    alias: "arcee-virtuoso",
+    provider: "Arcee AI",
+    status: "active",
+    emoji: "🥇",
+  },
 
   // StepFun Models - Footsteps/stairs
+  {
+    id: "STEPFUN_STEP_3_5_FLASH",
+    name: "Step 3.5 Flash",
+    alias: "step-3.5-flash",
+    provider: "StepFun",
+    status: "active",
+    emoji: "🦶",
+  },
   {
     id: "STEPFUN_STEP_3_5_FLASH_FREE",
     name: "Step 3.5 Flash (Free)",
@@ -950,7 +1080,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     name: "Step 3",
     alias: "step-3",
     provider: "StepFun",
-    status: "active",
+    status: "inactive",
     emoji: "🪜",
   },
 
@@ -1010,6 +1140,14 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
 
   // Nous Research Models - Greek/wisdom
   {
+    id: "NOUS_HERMES_4_405B",
+    name: "Hermes 4 405B",
+    alias: "hermes-4-405b",
+    provider: "Nous Research",
+    status: "active",
+    emoji: "⚡",
+  },
+  {
     id: "NOUS_HERMES_4_405B_FREE",
     name: "Hermes 4 405B (Free)",
     alias: "hermes-4-405b-free",
@@ -1040,7 +1178,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     name: "Phind CodeLlama 34B v2",
     alias: "phind-codellama",
     provider: "Phind",
-    status: "active",
+    status: "inactive",
     emoji: "🔎",
   },
 
@@ -1068,7 +1206,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     name: "Arctic Instruct",
     alias: "arctic",
     provider: "Snowflake",
-    status: "active",
+    status: "inactive",
     emoji: "❄️",
   },
 
