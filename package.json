@@ -4,7 +4,7 @@
   "description": "Vibe chat application with multiple AI personalities and CLI tools",
   "private": true,
   "type": "module",
-  "packageManager": "pnpm@9.15.0",
+  "packageManager": "bun@1.3.10",
   "workspaces": [
     "packages/*"
   ],
