@@ -10,7 +10,7 @@ const MODAL_BACKDROP =
   "absolute inset-0 bg-slate-950/60 backdrop-blur-sm transition-opacity duration-200 ease-out";
 
 const PRIMARY_ICON_BUTTON =
-  "flex items-center justify-center gap-2 rounded-xl border border-primary-200/70 bg-primary-50 px-4 py-3 text-sm font-semibold text-primary-700 transition-colors hover:bg-primary-100 dark:border-primary-500/40 dark:bg-primary-500/10 dark:text-primary-200 dark:hover:bg-primary-500/20";
+  "glass-btn flex items-center justify-center gap-2 rounded-xl border border-primary-200/70 bg-primary-50/90 px-4 py-3 text-sm font-semibold text-primary-700 transition-colors hover:bg-primary-100 dark:border-primary-500/40 dark:bg-primary-500/10 dark:text-primary-200 dark:hover:bg-primary-500/20";
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -79,7 +79,7 @@ const SettingsModal = ({
           <button
             type="button"
             onClick={toggleTheme}
-            className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-3 rounded-xl text-sm font-medium transition-colors flex items-center justify-between gap-3 dark:bg-slate-800/80 dark:hover:bg-slate-800 dark:text-slate-100"
+            className="glass-btn bg-slate-100/90 hover:bg-slate-200 text-slate-700 px-4 py-3 rounded-xl text-sm font-medium transition-colors flex items-center justify-between gap-3 dark:bg-slate-800/80 dark:hover:bg-slate-800 dark:text-slate-100"
             title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
           >
             <span className="flex items-center gap-2">
@@ -107,7 +107,7 @@ const SettingsModal = ({
               <button
                 type="button"
                 onClick={() => { onClose(); onLogout(); }}
-                className="flex items-center justify-center gap-2 rounded-xl border border-rose-200/70 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-600 transition-colors hover:bg-rose-100 dark:border-rose-500/40 dark:bg-rose-500/10 dark:text-rose-200 dark:hover:bg-rose-500/20"
+                className="glass-btn flex items-center justify-center gap-2 rounded-xl border border-rose-200/70 bg-rose-50/90 px-4 py-3 text-sm font-semibold text-rose-600 transition-colors hover:bg-rose-100 dark:border-rose-500/40 dark:bg-rose-500/10 dark:text-rose-200 dark:hover:bg-rose-500/20"
                 title="Logout"
                 aria-label="Logout"
               >

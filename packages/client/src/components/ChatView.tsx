@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { DEFAULT_AI_PARTICIPANTS } from "@/config/aiParticipants";
 import { useModal } from "@/hooks/useModal";
 import ChatMessage from "./ChatMessage";
@@ -40,15 +41,25 @@ const ChatView = ({
   const menu = useModal();
   const login = useModal();
 
+  const [darkChatBg, setDarkChatBg] = useState(
+    () => localStorage.getItem("chat-dark-bg") === "true"
+  );
+  const toggleDarkChatBg = () => {
+    setDarkChatBg((prev) => {
+      localStorage.setItem("chat-dark-bg", String(!prev));
+      return !prev;
+    });
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center p-6">
-      <div className="glass-surface flex bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl max-w-7xl w-full max-h-[95vh] overflow-hidden animate-fade-in border border-white/30 dark:bg-slate-900/90 dark:border-slate-800">
+    <div className="flex items-start lg:items-center justify-center min-h-dvh lg:min-h-screen p-0 lg:p-6">
+      <div className="glass-surface flex bg-white/95 backdrop-blur-xl lg:rounded-3xl lg:shadow-2xl max-w-7xl w-full h-dvh lg:h-auto lg:max-h-[95vh] overflow-hidden animate-fade-in lg:border lg:border-white/30 dark:bg-[rgba(0,22,32,0.80)] dark:border-teal-600/25 dark:shadow-[0_0_80px_rgba(0,100,130,0.25)]">
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-          <div className="bg-gradient-to-r from-slate-600/90 to-slate-700/90 backdrop-blur-sm text-white p-6 rounded-tl-3xl border-b border-white/10 dark:from-slate-800/90 dark:to-slate-900/90 dark:border-slate-800/60">
-            <div className="flex justify-between items-stretch gap-6 flex-wrap">
-              <div className="flex items-center gap-4 self-stretch">
-                <div className="w-10 h-10 bg-gradient-to-br from-primary-400 to-primary-600 rounded-xl flex items-center justify-center shadow-lg">
-                  <Icon name="chat" className="w-6 h-6 text-white" />
+          <div className="bg-gradient-to-r from-slate-600/90 to-slate-700/90 backdrop-blur-sm text-white p-3 sm:p-4 lg:p-6 lg:rounded-tl-3xl border-b border-white/25 dark:from-teal-900/85 dark:to-[rgba(0,18,28,0.92)] dark:border-teal-600/20">
+            <div className="flex justify-between items-center gap-2 lg:gap-6">
+              <div className="flex items-center gap-2 sm:gap-3 lg:gap-4">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 lg:w-10 lg:h-10 bg-gradient-to-br from-primary-400 to-primary-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <Icon name="chat" className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-white" />
                 </div>
                 <div className="flex flex-col justify-center">
                   <h1 className="header-title header-title--compact">
@@ -56,30 +67,41 @@ const ChatView = ({
                   </h1>
                 </div>
               </div>
-              <div className="flex flex-col items-end gap-2 self-stretch">
-                <div className="flex items-center gap-3 flex-wrap justify-end">
+              <div className="flex items-center gap-1.5 sm:gap-2 lg:gap-3">
                   {!isAuthenticated && (
                     <button
                       type="button"
                       onClick={login.open}
-                      className="bg-primary-400/80 hover:bg-primary-400 text-white px-3 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 shadow-lg shadow-primary-500/30"
+                      className="glass-btn bg-primary-400/80 hover:bg-primary-400 text-white px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all flex items-center gap-1.5 shadow-lg shadow-primary-500/30"
                       aria-label="Log in to chat"
                     >
                       <Icon name="login" className="w-4 h-4" />
-                      <span className="hidden sm:inline">Log in</span>
+                      <span className="hidden lg:inline">Log in</span>
                     </button>
                   )}
                   <button
                     type="button"
+                    onClick={toggleDarkChatBg}
+                    className={`glass-btn px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-lg text-sm font-medium transition-all flex items-center ${
+                      darkChatBg
+                        ? "bg-teal-500/30 hover:bg-teal-500/40 text-teal-200 border border-teal-400/30 shadow-md shadow-teal-900/40"
+                        : "bg-white/10 hover:bg-white/20 text-white/60 hover:text-white/80"
+                    }`}
+                    aria-label="Toggle deep dark background"
+                    title="Toggle deep dark background"
+                  >
+                    <Icon name="sparkle" className="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
                     onClick={menu.open}
-                    className="bg-white/10 hover:bg-white/20 text-white/80 px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 dark:bg-slate-900/60 dark:hover:bg-slate-900/80 dark:text-slate-200 dark:border dark:border-slate-700"
+                    className="glass-btn bg-white/10 hover:bg-white/20 text-white/80 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-lg text-sm font-medium transition-colors flex items-center dark:bg-teal-900/30 dark:hover:bg-teal-800/40 dark:text-teal-100 dark:border dark:border-teal-600/30"
                     aria-label="Open settings menu"
                     title="Open settings menu"
                   >
                     <Icon name="cog" className="w-4 h-4" />
                   </button>
                 </div>
-              </div>
             </div>
           </div>
 
@@ -105,18 +127,26 @@ const ChatView = ({
           />
 
           <div
-            className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar p-8 space-y-7 bg-gradient-to-b from-slate-50/30 to-white/40 dark:from-slate-900/50 dark:to-slate-900/20"
+            className="flex-1 relative overflow-y-auto overflow-x-hidden no-scrollbar bg-gradient-to-b from-slate-50/30 to-white/40 dark:from-transparent dark:to-transparent min-h-0"
             ref={messagesContainerRef}
           >
-            {messages.map((message) => (
-              <ChatMessage
-                key={message.id}
-                message={message}
-                aiParticipants={aiParticipantList}
-                participants={participants}
-              />
-            ))}
-            <div ref={messagesEndRef} />
+            {/* Radial vignette — always-on teal depth effect, darker at edges */}
+            <div className="absolute inset-0 chat-vignette pointer-events-none dark:block hidden" />
+            {/* Deep vibrant teal overlay — fades in/out via opacity so gradient can cross-fade */}
+            <div
+              className={`absolute inset-0 chat-bg-deep pointer-events-none transition-opacity duration-700 ${darkChatBg ? "opacity-100" : "opacity-0"}`}
+            />
+            <div className="relative z-10 p-3 sm:p-5 lg:p-8 space-y-3 sm:space-y-5 lg:space-y-7">
+              {messages.map((message) => (
+                <ChatMessage
+                  key={message.id}
+                  message={message}
+                  aiParticipants={aiParticipantList}
+                  participants={participants}
+                />
+              ))}
+              <div ref={messagesEndRef} />
+            </div>
           </div>
 
           <TypingIndicator typingUsers={typingUsers} typingAIs={typingAIs} />
@@ -133,7 +163,7 @@ const ChatView = ({
             </button>
           )}
 
-          <div className="glass-surface border-t border-slate-100/50 bg-white/80 backdrop-blur-md p-8 space-y-6 rounded-bl-3xl dark:bg-slate-900/90 dark:border-slate-800/60">
+          <div className="glass-surface border-t border-slate-100/50 bg-white/80 backdrop-blur-md p-2.5 sm:p-4 lg:p-8 space-y-2.5 sm:space-y-4 lg:space-y-6 lg:rounded-bl-3xl dark:bg-[rgba(0,18,28,0.88)] dark:border-teal-700/30">
             {error && (
               <div className="bg-red-50/70 backdrop-blur-sm border border-red-200/50 text-red-800 px-6 py-4 rounded-2xl text-center animate-slide-up shadow-sm dark:bg-red-500/10 dark:border-red-400/40 dark:text-red-200">
                 {error}

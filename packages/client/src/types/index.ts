@@ -301,7 +301,8 @@ export type IconName =
   | "moon"
   | "sun"
   | "alert"
-  | "tag";
+  | "tag"
+  | "contrast";
 
 export interface IconProps {
   name?: IconName;

@@ -7,7 +7,7 @@ import type { Variants } from "framer-motion";
 type SenderType = "user" | "ai" | "system" | string;
 
 const SENDER_LABEL_BASE =
-  "text-md font-bold mb-3 flex items-center gap-2 transition-colors";
+  "text-sm lg:text-base font-bold mb-1.5 lg:mb-3 flex items-center gap-2 transition-colors";
 
 const SENDER_LABEL_CLASSES: Record<string, string> = {
   user: `${SENDER_LABEL_BASE} text-white/90 decoration-white/60 dark:text-primary-100 dark:decoration-primary-200/70`,

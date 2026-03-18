@@ -187,15 +187,15 @@ const MessageInput = ({
 
   return (
     <>
-      <form onSubmit={handleSubmit} className="flex gap-4 items-center p-1">
+      <form onSubmit={handleSubmit} className="flex gap-2 items-center p-1">
         <div className="flex-1 relative">
           <textarea
             ref={textareaRef}
-            className="w-full px-5 py-4 pr-12 rounded-2xl border border-slate-200 focus:border-primary-400 focus:ring-2 focus:ring-primary-200 outline-none transition-all resize-none placeholder-slate-400 bg-white/90 backdrop-blur-sm shadow-sm hover:shadow-md no-scrollbar overflow-y-auto dark:bg-slate-900/80 dark:border-slate-700 dark:text-slate-100 dark:placeholder-slate-500 dark:focus:border-primary-400 dark:focus:ring-primary-500/30"
+            className="input-glass w-full px-3 py-2 sm:px-4 sm:py-3 lg:px-5 lg:py-4 pr-10 rounded-2xl border border-slate-200 focus:border-primary-400 focus:ring-2 focus:ring-primary-200 outline-none transition-all resize-none placeholder-slate-400 bg-white/90 backdrop-blur-sm no-scrollbar overflow-y-auto dark:bg-slate-900/80 dark:border-slate-700 dark:text-slate-100 dark:placeholder-slate-500 dark:focus:border-primary-400 dark:focus:ring-primary-500/30 text-sm"
             value={message}
             onChange={handleChange}
             onKeyPress={handleKeyPress}
-            placeholder="Type your message... (Use @ to mention an AI, Enter to send, Shift+Enter for new line)"
+            placeholder="Message... (@ to mention AI)"
             disabled={disabled}
             maxLength={MAX_MESSAGE_LENGTH}
             rows={1}
@@ -209,14 +209,14 @@ const MessageInput = ({
         </div>
         <button
           type="submit"
-          className="send-button h-[52px] min-w-[120px] px-6 bg-emerald-500 text-white font-semibold rounded-xl shadow-md flex items-center justify-center gap-2 group hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-200 disabled:bg-emerald-200 disabled:text-emerald-600 disabled:cursor-not-allowed dark:bg-emerald-500 dark:hover:bg-emerald-400 dark:text-slate-900 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
+          className="send-button glass-btn h-[40px] w-[40px] sm:h-[44px] sm:w-[44px] lg:h-[52px] lg:w-auto lg:min-w-[120px] px-0 lg:px-6 bg-emerald-500/85 text-white font-semibold rounded-xl shadow-lg shadow-emerald-500/30 flex items-center justify-center gap-2 group hover:bg-emerald-500 hover:shadow-emerald-500/40 focus:outline-none focus:ring-2 focus:ring-emerald-200 disabled:bg-emerald-200 disabled:text-emerald-600 disabled:cursor-not-allowed disabled:shadow-none dark:bg-emerald-500/80 dark:hover:bg-emerald-400/90 dark:text-slate-900 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
           disabled={disabled || !message.trim()}
         >
           <Icon
             name="send"
             className="w-5 h-5 transform group-hover:translate-x-1 transition-transform duration-300"
           />
-          <span className="hidden sm:inline group-hover:animate-pulse">
+          <span className="hidden lg:inline group-hover:animate-pulse">
             Send
           </span>
         </button>

@@ -39,7 +39,7 @@ const TypingIndicator = ({
   };
 
   return (
-    <div className="flex items-center gap-4 px-8 py-5 bg-slate-50/60 backdrop-blur-md border-t border-slate-100/50 shadow-sm dark:bg-slate-900/70 dark:border-slate-800/50 dark:shadow-none">
+    <div className="flex items-center gap-2 px-3 py-2 sm:px-5 sm:py-3 lg:px-8 lg:py-5 bg-slate-50/60 backdrop-blur-md border-t border-slate-100/50 shadow-sm dark:bg-slate-900/70 dark:border-slate-800/50 dark:shadow-none">
       <div className="flex items-center gap-2">
         <div className="flex space-x-1">
           <div className="w-2 h-2 bg-primary-400 rounded-full animate-bounce-delay-0 shadow-sm dark:bg-primary-300"></div>

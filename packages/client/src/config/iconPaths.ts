@@ -313,6 +313,16 @@ export const ICON_PATHS: Record<IconName, IconDefinition> = {
       ],
     },
   },
+  contrast: {
+    classic: {
+      strokeWidth: 2,
+      paths: ["M12 3v18", "M12 3a9 9 0 0 0 0 18"],
+    },
+    modern: {
+      strokeWidth: 1.5,
+      paths: ["M12 4v16", "M12 4a8 8 0 0 0 0 16"],
+    },
+  },
   tag: {
     classic: {
       strokeWidth: 2,

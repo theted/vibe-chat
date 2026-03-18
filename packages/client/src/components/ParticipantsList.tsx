@@ -2,6 +2,7 @@
  * ParticipantsList Component - Shows connected users and AI participants
  */
 
+import { useState } from "react";
 import {
   DEFAULT_AI_PARTICIPANTS,
   type AiParticipant,
@@ -11,6 +12,17 @@ import Icon from "./Icon";
 import AnimatedListItem from "./AnimatedListItem";
 import SectionHeader from "./SectionHeader";
 import type { ParticipantsListProps, TypingUser, TypingAI } from "@/types";
+
+type PanelStyle = "dark" | "light";
+
+const STORAGE_KEY = "participants-panel-style";
+
+const PANEL_STYLES: Record<PanelStyle, string> = {
+  // Dark: solid frosted — high contrast against the transparent main area
+  dark: "bg-slate-900/75 backdrop-blur-md border-l border-slate-700/60 dark:bg-[rgba(0,18,28,0.85)] dark:border-teal-700/30",
+  // Light: very transparent glass — airy frosted look, background bleeds through strongly
+  light: "bg-white/15 backdrop-blur-xl border-l border-white/20 dark:bg-white/[8%] dark:border-white/10",
+};
 
 const BADGE_BASE = "text-xs px-2 py-1 rounded-full font-medium";
 
@@ -35,6 +47,16 @@ const ParticipantsList = ({
   isVisible = true,
   onAISelect,
 }: ParticipantsListProps) => {
+  const [panelStyle, setPanelStyle] = useState<PanelStyle>(
+    () => (localStorage.getItem(STORAGE_KEY) as PanelStyle | null) ?? "dark"
+  );
+
+  const togglePanelStyle = () => {
+    const next: PanelStyle = panelStyle === "dark" ? "light" : "dark";
+    setPanelStyle(next);
+    localStorage.setItem(STORAGE_KEY, next);
+  };
+
   if (!isVisible) return null;
 
   const baseAIList =
@@ -99,15 +121,26 @@ const ParticipantsList = ({
   const canStartPrivateConversation = Boolean(onAISelect);
 
   return (
-    <div className="glass-surface w-80 bg-gradient-to-b from-slate-50/50 to-white/70 backdrop-blur-sm border-l border-transparent flex flex-col rounded-tr-3xl rounded-br-3xl lg:flex hidden dark:from-slate-950/40 dark:to-slate-950/20 dark:border-slate-800/60">
-      <div className="bg-gradient-to-r from-slate-600/90 to-slate-700/90 backdrop-blur-sm text-white p-4 rounded-tr-3xl border-b border-white/10 dark:from-slate-800/90 dark:to-slate-900/90 dark:border-slate-800/60">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center dark:bg-slate-900/60">
-            <Icon name="participants" className="w-5 h-5" />
+    <div className={`glass-surface w-80 flex flex-col rounded-tr-3xl rounded-br-3xl lg:flex hidden transition-colors duration-300 ${PANEL_STYLES[panelStyle]}`}>
+      <div className="bg-gradient-to-r from-slate-600/90 to-slate-700/90 backdrop-blur-sm text-white p-4 rounded-tr-3xl border-b border-white/25 dark:from-teal-900/85 dark:to-[rgba(0,18,28,0.92)] dark:border-teal-600/20">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center dark:bg-slate-900/60">
+              <Icon name="participants" className="w-5 h-5" />
+            </div>
+            <h3 className="font-semibold text-lg text-white/95">
+              Participants ({participants.length + aiList.length})
+            </h3>
           </div>
-          <h3 className="font-semibold text-lg text-white/95">
-            Participants ({participants.length + aiList.length})
-          </h3>
+          <button
+            type="button"
+            onClick={togglePanelStyle}
+            className="glass-btn w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+            title={panelStyle === "dark" ? "Switch to light glass panel" : "Switch to dark panel"}
+            aria-label="Toggle panel style"
+          >
+            <Icon name="contrast" className="w-4 h-4 text-white/70" />
+          </button>
         </div>
       </div>
 
