@@ -30,6 +30,10 @@ ENV NODE_ENV=production
 
 COPY --from=builder /app/packages/server/dist ./dist
 COPY --from=builder /app/scripts ./scripts
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/packages/ai-chat-core ./packages/ai-chat-core
+COPY --from=builder /app/packages/ai-configs ./packages/ai-configs
+COPY --from=builder /app/packages/mcp-assistant ./packages/mcp-assistant
 
 EXPOSE 3001
 
