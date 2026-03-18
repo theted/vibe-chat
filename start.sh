@@ -4,14 +4,16 @@ VERBOSE_MODE=false
 PERSONAS_MODE=false
 SKIP_HEALTHCHECK_MODE=false
 RECHECK_AVAILABILITY_MODE=false
+USE_LAST_WORKING_MODE=false
 VERBOSE_CONTEXT_FLAG="AI_CHAT_VERBOSE_CONTEXT"
 PERSONAS_FLAG="AI_CHAT_ENABLE_PERSONAS"
 SKIP_HEALTHCHECK_FLAG="AI_CHAT_SKIP_HEALTHCHECK"
 RECHECK_AVAILABILITY_FLAG="AI_CHAT_RECHECK_AVAILABILITY"
+USE_LAST_WORKING_FLAG="AI_CHAT_USE_LAST_WORKING"
 
 print_usage() {
     cat <<'USAGE'
-Usage: ./start.sh [--verbose] [--personas] [--skip-healthcheck] [--recheck-availability]
+Usage: ./start.sh [--verbose] [--personas] [--skip-healthcheck] [--recheck-availability] [--use-last-working]
 
 Options:
   --verbose, -v   Output the full AI context that will be forwarded to the models.
@@ -20,9 +22,16 @@ Options:
                   Each AI participant will express their configured personality.
   --skip-healthcheck
                   Skip AI provider health checks during initialization.
+                  All configured models are added without connectivity validation.
   --recheck-availability
                   Force re-check of all model availability and update models.json.
                   By default, cached availability from models.json is used if present.
+  --use-last-working
+                  Fast startup: load only the participants that successfully
+                  activated in the last run (from startup-log.json). No health
+                  checks are performed. Ideal for iterative development where
+                  participant availability is stable. Requires at least one prior
+                  startup without this flag to build the log.
   --help, -h      Show this message.
 USAGE
 }
@@ -43,6 +52,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --recheck-availability)
             RECHECK_AVAILABILITY_MODE=true
+            shift
+            ;;
+        --use-last-working)
+            USE_LAST_WORKING_MODE=true
             shift
             ;;
         --help|-h)
@@ -83,6 +96,13 @@ enable_recheck_availability() {
     export "${RECHECK_AVAILABILITY_FLAG}"=true
     echo "🔄 Model availability recheck enabled"
     echo "   All models will be health-checked and models.json will be updated."
+}
+
+enable_use_last_working() {
+    export "${USE_LAST_WORKING_FLAG}"=true
+    echo "⚡ Fast startup enabled (--use-last-working)"
+    echo "   Loading only participants that worked last run — no health checks."
+    echo "   Startup log: startup-log.json"
 }
 
 # Check if .env exists
@@ -137,6 +157,17 @@ fi
 
 if [ "$RECHECK_AVAILABILITY_MODE" = true ]; then
     enable_recheck_availability
+fi
+
+if [ "$USE_LAST_WORKING_MODE" = true ]; then
+    if [ "$RECHECK_AVAILABILITY_MODE" = true ] || [ "$SKIP_HEALTHCHECK_MODE" = true ]; then
+        echo "⚠️  --use-last-working conflicts with --recheck-availability / --skip-healthcheck. Ignoring those flags."
+        unset "${RECHECK_AVAILABILITY_FLAG}"
+        unset "${SKIP_HEALTHCHECK_FLAG}"
+        RECHECK_AVAILABILITY_MODE=false
+        SKIP_HEALTHCHECK_MODE=false
+    fi
+    enable_use_last_working
 fi
 
 echo ""

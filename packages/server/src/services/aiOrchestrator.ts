@@ -12,6 +12,9 @@ import {
   readModelCache,
   writeModelCache,
   buildModelCache,
+  appendStartupLog,
+  getLastWorkingModels,
+  type StartupMode,
 } from "./modelCacheService.js";
 
 const parseBoolFlag = (value?: string): boolean =>
@@ -20,7 +23,6 @@ const parseBoolFlag = (value?: string): boolean =>
 export const initializeAISystem = async (): Promise<ChatOrchestrator> => {
   console.log("🤖 Initializing AI Chat System...");
 
-  // Uses defaults from @ai-chat/core constants
   const orchestrator = new ChatOrchestrator();
 
   let aiConfigs: AIConfig[] = [];
@@ -50,13 +52,39 @@ export const initializeAISystem = async (): Promise<ChatOrchestrator> => {
   }
 
   const skipHealthCheck = parseBoolFlag(process.env.AI_CHAT_SKIP_HEALTHCHECK);
-  const recheckAvailability = parseBoolFlag(
-    process.env.AI_CHAT_RECHECK_AVAILABILITY,
-  );
+  const recheckAvailability = parseBoolFlag(process.env.AI_CHAT_RECHECK_AVAILABILITY);
+  const useLastWorking = parseBoolFlag(process.env.AI_CHAT_USE_LAST_WORKING);
 
-  // Determine whether to use cached model availability
+  let mode: StartupMode;
   let useCache = false;
-  if (!skipHealthCheck && !recheckAvailability) {
+
+  if (useLastWorking) {
+    // Fast-boot: use last startup's successful participants, no healthcheck.
+    const lastWorking = getLastWorkingModels();
+    if (lastWorking.length === 0) {
+      console.error(
+        "❌ --use-last-working: No startup-log.json found (or it has no successful entries).",
+      );
+      console.error(
+        "   Run once without --use-last-working to build the startup log.",
+      );
+      process.exit(1);
+    }
+
+    const lastWorkingSet = new Set(
+      lastWorking.map((m) => `${m.provider}_${m.model}`),
+    );
+    const totalConfigured = aiConfigs.length;
+    aiConfigs = aiConfigs.filter((c) =>
+      lastWorkingSet.has(`${c.providerKey}_${c.modelKey}`),
+    );
+
+    console.log(
+      `⚡ Fast startup: ${aiConfigs.length}/${totalConfigured} participants from last run (no healthcheck)`,
+    );
+    mode = "use-last-working";
+    useCache = true; // skip healthcheck in initializeAIs
+  } else if (!skipHealthCheck && !recheckAvailability) {
     const cache = readModelCache();
     if (cache) {
       useCache = true;
@@ -77,11 +105,16 @@ export const initializeAISystem = async (): Promise<ChatOrchestrator> => {
       console.log(
         "   Run with --recheck-availability to force a fresh health check.",
       );
+      mode = "cached";
+    } else {
+      mode = "healthcheck";
     }
-  }
-
-  if (recheckAvailability) {
+  } else if (skipHealthCheck) {
+    mode = "skip-healthcheck";
+  } else {
+    // recheckAvailability
     console.log("🔄 Rechecking all model availability...");
+    mode = "healthcheck";
   }
 
   try {
@@ -111,11 +144,24 @@ export const initializeAISystem = async (): Promise<ChatOrchestrator> => {
       );
     }
 
-    // Write cache when performing actual health checks (not using cache, not skipping)
+    // Write models.json cache when doing an actual healthcheck
     if (!useCache && !skipHealthCheck && results) {
       writeModelCache(buildModelCache(results));
       console.log("💾 Model availability saved to models.json");
     }
+
+    // Always log activation results for every startup
+    appendStartupLog({
+      startedAt: new Date().toISOString(),
+      mode,
+      participants: results.map((r) => ({
+        provider: r.providerKey,
+        model: r.modelKey,
+        success: r.status === "ok",
+        ...(r.error ? { error: r.error } : {}),
+      })),
+    });
+    console.log(`📝 Startup activation logged to startup-log.json (mode: ${mode})`);
   } catch (error) {
     console.error("❌ Failed to initialize some AI services:", error);
   }
