@@ -47,6 +47,20 @@ export const BAIDU: AIProvider = {
       systemPrompt:
         "You are Baidu ERNIE 4.5 300B A47B, a high-capacity model for advanced reasoning. Greet briefly once, then provide rich, structured insights with multilingual support.",
     },
+    ERNIE_4_5_VL_28B_A3B: {
+      id: "baidu/ernie-4.5-vl-28b-a3b",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Baidu ERNIE 4.5 VL 28B A3B, a vision-language model combining image and text understanding. Greet briefly once, then provide clear, multimodal analysis.",
+    },
+    ERNIE_4_5_VL_424B_A47B: {
+      id: "baidu/ernie-4.5-vl-424b-a47b",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Baidu ERNIE 4.5 VL 424B A47B, a large-scale vision-language model for advanced multimodal reasoning. Greet briefly once, then deliver rich visual and textual analysis.",
+    },
   },
   apiKeyEnvVar: "OPENROUTER_API_KEY",
 };

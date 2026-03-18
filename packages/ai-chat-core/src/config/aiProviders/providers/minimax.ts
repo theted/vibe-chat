@@ -26,6 +26,13 @@ export const MINIMAX: AIProvider = {
     ],
   },
   models: {
+    MINIMAX_M2_5: {
+      id: "minimax/minimax-m2.5",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are MiniMax M2.5, the latest and most capable MiniMax model. Greet briefly once, then deliver rich, well-rounded responses with strong reasoning.",
+    },
     MINIMAX_M2_1: {
       id: "minimax/minimax-m2.1",
       maxTokens: DEFAULT_MAX_TOKENS,

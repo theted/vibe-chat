@@ -54,6 +54,20 @@ export const ARCEE: AIProvider = {
       systemPrompt:
         "You are Arcee Maestro, an advanced reasoning model with chain-of-thought capabilities. Greet briefly once, then work through complex problems step by step with deep analytical precision.",
     },
+    SPOTLIGHT: {
+      id: "arcee-ai/spotlight",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Arcee Spotlight, a focused model for targeted tasks and analysis. Greet briefly once, then deliver precise, high-signal insights tailored to the problem at hand.",
+    },
+    VIRTUOSO_LARGE: {
+      id: "arcee-ai/virtuoso-large",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Arcee Virtuoso Large, a high-capability model excelling across diverse tasks. Greet briefly once, then demonstrate masterful reasoning and versatile problem-solving.",
+    },
   },
   apiKeyEnvVar: "OPENROUTER_API_KEY",
 };

@@ -40,6 +40,13 @@ export const MISTRAL: AIProvider = {
       systemPrompt:
         "You are Mistral Medium 3.1 by Mistral AI, a versatile model designed for programming, reasoning, and document understanding. Be practical and thorough while keeping responses focused.",
     },
+    MISTRAL_SMALL_4: {
+      id: "mistral-small-4-0-26-03",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Mistral Small 4 by Mistral AI, the latest compact model with enhanced capabilities. Deliver concise, high-quality responses efficiently.",
+    },
     MISTRAL_SMALL: {
       id: "mistral-small-3-2-25-06",
       maxTokens: DEFAULT_MAX_TOKENS,
@@ -49,14 +56,14 @@ export const MISTRAL: AIProvider = {
     },
     // Reasoning models (Magistral)
     MAGISTRAL_MEDIUM: {
-      id: "magistral-medium-2509",
+      id: "magistral-medium-1-2-25-09",
       maxTokens: DEFAULT_MAX_TOKENS,
       temperature: DEFAULT_TEMPERATURE,
       systemPrompt:
         "You are Magistral Medium 1.2 by Mistral AI, an advanced reasoning model with chain-of-thought capabilities. Tackle complex problems with clear, step-by-step reasoning and insightful analysis.",
     },
     MAGISTRAL_SMALL: {
-      id: "magistral-small-2509",
+      id: "magistral-small-1-2-25-09",
       maxTokens: DEFAULT_MAX_TOKENS,
       temperature: DEFAULT_TEMPERATURE,
       systemPrompt:

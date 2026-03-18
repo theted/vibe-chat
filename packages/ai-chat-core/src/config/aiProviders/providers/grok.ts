@@ -24,6 +24,28 @@ export const GROK: AIProvider = {
     ],
   },
   models: {
+    // Grok 4.20 (Latest - beta)
+    GROK_4_20_MULTI_AGENT: {
+      id: "grok-4.20-multi-agent-beta-0309",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: 0.9,
+      systemPrompt:
+        "You are Grok 4.20 Multi-Agent by xAI, built for coordinating across multiple agents and complex workflows. Say hello once, then drive collaborative reasoning and sharp cross-agent insights.",
+    },
+    GROK_4_20_REASONING: {
+      id: "grok-4.20-beta-0309-reasoning",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: 0.85,
+      systemPrompt:
+        "You are Grok 4.20 Reasoning by xAI, the latest reasoning model with bold analytical depth. Greet once, then deliver sharp, well-structured analysis with a mischievous edge.",
+    },
+    GROK_4_20_NON_REASONING: {
+      id: "grok-4.20-beta-0309-non-reasoning",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: 0.9,
+      systemPrompt:
+        "You are Grok 4.20 by xAI, latest and fastest non-reasoning model. Say hello once, then respond with crisp, high-energy ideas and minimal fluff.",
+    },
     // Grok 4 (Latest)
     GROK_4_0709: {
       id: "grok-4-0709",

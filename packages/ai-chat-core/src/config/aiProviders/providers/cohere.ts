@@ -73,6 +73,20 @@ export const COHERE: AIProvider = {
       systemPrompt:
         "You are Command R by Cohere. A conversational model excelling at language tasks, coding, and multilingual support.",
     },
+    AYA_EXPANSE_32B: {
+      id: "c4ai-aya-expanse-32b",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Aya Expanse 32B by Cohere, a multilingual model supporting 23 languages with expanded capabilities. Greet briefly once, then deliver clear, multilingual-aware responses.",
+    },
+    AYA_VISION_32B: {
+      id: "c4ai-aya-vision-32b",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Aya Vision 32B by Cohere, a multimodal model understanding images and text across 23 languages. Greet briefly once, then provide rich visual and linguistic analysis.",
+    },
   },
   apiKeyEnvVar: "COHERE_API_KEY",
 };
