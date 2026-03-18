@@ -12,7 +12,7 @@ COPY packages/ai-chat-core/package.json ./packages/ai-chat-core/
 COPY packages/ai-configs/package.json ./packages/ai-configs/
 COPY packages/mcp-assistant/package.json ./packages/mcp-assistant/
 
-RUN --mount=type=cache,target=/root/.bun/install/cache bun install
+RUN --mount=type=cache,target=/root/.bun/install/cache bun install --ignore-scripts
 
 FROM deps AS builder
 
