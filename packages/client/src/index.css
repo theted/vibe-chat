@@ -7,58 +7,87 @@
 @theme {
   --font-sans: "Inter", system-ui, sans-serif;
 
-  --color-primary-50: #f0f9ff;
-  --color-primary-100: #e0f2fe;
-  --color-primary-200: #bae6fd;
-  --color-primary-300: #7dd3fc;
-  --color-primary-400: #38bdf8;
-  --color-primary-500: #0ea5e9;
-  --color-primary-600: #0284c7;
-  --color-primary-700: #0369a1;
-  --color-primary-800: #075985;
-  --color-primary-900: #0c4a6e;
+  /* ─── Primary: Electric Cyan-Blue ───────────────────────────────────
+     Shifted from sky-blue (hue 237°) to pure cyan (hue 200°).
+     Chroma bumped from ~0.17 to 0.24 at mid-range — P3-vivid on
+     modern displays, still rich on sRGB. Coheres with the teal
+     glass accents throughout the dark theme. */
+  --color-primary-50:  oklch(97%  0.012 205);
+  --color-primary-100: oklch(93%  0.034 205);
+  --color-primary-200: oklch(87%  0.080 203);
+  --color-primary-300: oklch(78%  0.145 201);
+  --color-primary-400: oklch(70%  0.200 199);
+  --color-primary-500: oklch(62%  0.240 199);
+  --color-primary-600: oklch(52%  0.215 200);
+  --color-primary-700: oklch(42%  0.170 202);
+  --color-primary-800: oklch(32%  0.115 205);
+  --color-primary-900: oklch(22%  0.072 208);
 
-  --color-secondary-50: #f8fafc;
-  --color-secondary-100: #f1f5f9;
-  --color-secondary-200: #e2e8f0;
-  --color-secondary-300: #cbd5e1;
-  --color-secondary-400: #94a3b8;
-  --color-secondary-500: #64748b;
-  --color-secondary-600: #475569;
-  --color-secondary-700: #334155;
-  --color-secondary-800: #1e293b;
-  --color-secondary-900: #0f172a;
+  /* ─── Secondary: Cool Blue-Gray ─────────────────────────────────────
+     Subtle blue-teal hue (hue 222°) over pure neutral gray.
+     Very low chroma keeps it functional while adding cohesion
+     with the cyan primary palette — avoids dead/lifeless grays. */
+  --color-secondary-50:  oklch(97%  0.006 222);
+  --color-secondary-100: oklch(93%  0.010 222);
+  --color-secondary-200: oklch(87%  0.015 220);
+  --color-secondary-300: oklch(78%  0.022 220);
+  --color-secondary-400: oklch(63%  0.026 222);
+  --color-secondary-500: oklch(50%  0.024 224);
+  --color-secondary-600: oklch(40%  0.019 226);
+  --color-secondary-700: oklch(31%  0.014 228);
+  --color-secondary-800: oklch(22%  0.010 230);
+  --color-secondary-900: oklch(14%  0.007 232);
 
-  --animate-fade-in: fadeIn 0.5s ease-in-out;
-  --animate-slide-up: slideUp 0.3s ease-out;
-  --animate-scale-in: scaleIn 0.2s ease-out;
+  /* ─── Teal: Override built-in — boosted chroma ───────────────────────
+     Standard Tailwind teal tops out at ~0.14 chroma. These push
+     to 0.22–0.24 for electric glass shimmer and dark-mode accents. */
+  --color-teal-200: oklch(88%  0.13 188);
+  --color-teal-300: oklch(82%  0.18 187);
+  --color-teal-400: oklch(75%  0.22 185);
+  --color-teal-500: oklch(67%  0.24 184);
+  --color-teal-600: oklch(57%  0.22 184);
+  --color-teal-700: oklch(46%  0.18 185);
+  --color-teal-800: oklch(35%  0.13 187);
+  --color-teal-900: oklch(23%  0.08 190);
+
+  /* ─── Emerald: Override built-in — pushed toward lime ────────────────
+     Default emerald chroma ~0.17. Shifting hue slightly toward
+     lime (150°) and boosting chroma to 0.25 gives a more electric,
+     bioluminescent green for the send button and success states. */
+  --color-emerald-300: oklch(86%  0.19 152);
+  --color-emerald-400: oklch(80%  0.23 150);
+  --color-emerald-500: oklch(72%  0.26 148);
+  --color-emerald-600: oklch(61%  0.23 149);
+  --color-emerald-700: oklch(50%  0.18 151);
+
+  /* ─── Animations ──────────────────────────────────────────────────── */
+  --animate-fade-in:    fadeIn 0.5s ease-in-out;
+  --animate-slide-up:   slideUp 0.3s ease-out;
+  --animate-scale-in:   scaleIn 0.2s ease-out;
   --animate-pulse-soft: pulseSoft 2s ease-in-out infinite;
 
   @keyframes fadeIn {
     from { opacity: 0; }
-    to { opacity: 1; }
+    to   { opacity: 1; }
   }
-
   @keyframes slideUp {
     from { transform: translateY(10px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
+    to   { transform: translateY(0);    opacity: 1; }
   }
-
   @keyframes scaleIn {
     from { transform: scale(0.95); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
+    to   { transform: scale(1);    opacity: 1; }
   }
-
   @keyframes pulseSoft {
     0%, 100% { opacity: 0.6; }
-    50% { opacity: 1; }
+    50%       { opacity: 1;   }
   }
 }
 
 @keyframes pageFadeIn {
-  0% { opacity: 0; }
-  60% { opacity: 0.85; }
-  100% { opacity: 1; }
+  0%   { opacity: 0;    }
+  60%  { opacity: 0.85; }
+  100% { opacity: 1;    }
 }
 
 @layer base {
@@ -71,9 +100,15 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     @apply text-slate-900 transition-colors duration-300;
-    background-color: #010a10;
+    /* Near-black with a richer teal-blue character vs old #010a10 */
+    background-color: oklch(7% 0.025 215);
     background-image:
-      radial-gradient(ellipse at 50% 0%, rgba(8, 55, 70, 0.72) 0%, rgba(1, 12, 22, 0.92) 60%, rgba(1, 8, 14, 0.97) 100%),
+      radial-gradient(
+        ellipse at 50% 0%,
+        oklch(28% 0.11 210 / 72%) 0%,
+        oklch(9%  0.025 220 / 92%) 60%,
+        oklch(6%  0.015 222 / 97%) 100%
+      ),
       url("./assets/bg.png");
     background-attachment: fixed;
     background-size: cover;
@@ -91,9 +126,14 @@
 
   .dark body {
     @apply text-slate-100;
-    background-color: #010a10;
+    background-color: oklch(7% 0.025 215);
     background-image:
-      radial-gradient(ellipse at 50% 0%, rgba(8, 55, 70, 0.72) 0%, rgba(1, 12, 22, 0.92) 60%, rgba(1, 8, 14, 0.97) 100%),
+      radial-gradient(
+        ellipse at 50% 0%,
+        oklch(28% 0.11 210 / 72%) 0%,
+        oklch(9%  0.025 220 / 92%) 60%,
+        oklch(6%  0.015 222 / 97%) 100%
+      ),
       url("./assets/bg.png");
     background-attachment: fixed;
     background-size: cover;
@@ -104,7 +144,11 @@
   /* Below lg (1024px): strip the pattern, keep the teal radial glow only */
   @media (max-width: 1023px) {
     body, .dark body {
-      background-image: radial-gradient(ellipse at 50% 0%, rgba(8, 55, 70, 0.55) 0%, transparent 55%);
+      background-image: radial-gradient(
+        ellipse at 50% 0%,
+        oklch(24% 0.085 212 / 55%) 0%,
+        transparent 55%
+      );
     }
   }
 
@@ -117,12 +161,11 @@
 
   /* Hide scrollbars while keeping scroll functionality */
   .no-scrollbar {
-    -ms-overflow-style: none; /* IE and Edge */
-    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
-
   .no-scrollbar::-webkit-scrollbar {
-    display: none; /* Chrome, Safari, Opera */
+    display: none;
   }
 }
 
@@ -132,7 +175,7 @@
     position: relative;
   }
 
-  /* Inner edge glow + angled top-left highlight (teal-tinted glass refraction) */
+  /* Inner edge glow: higher chroma oklch gives a more vivid cyan refraction */
   .glass-surface::before {
     content: '';
     position: absolute;
@@ -140,15 +183,15 @@
     border-radius: inherit;
     background: linear-gradient(
       155deg,
-      rgba(110, 230, 240, 0.13) 0%,
-      rgba(60, 180, 200, 0.06) 28%,
-      transparent 55%
+      oklch(88% 0.18 195 / 13%) 0%,
+      oklch(72% 0.12 195 / 6%)  28%,
+      transparent                55%
     );
     box-shadow:
-      inset 0 1px 0 rgba(100, 220, 235, 0.22),
-      inset 1px 0 rgba(80, 200, 220, 0.08),
-      inset -1px 0 rgba(80, 200, 220, 0.08),
-      inset 0 -1px 0 rgba(60, 180, 210, 0.06);
+      inset 0  1px 0  oklch(86% 0.16 193 / 22%),
+      inset  1px 0 0  oklch(79% 0.13 193 / 8%),
+      inset -1px 0 0  oklch(79% 0.13 193 / 8%),
+      inset 0 -1px 0  oklch(72% 0.11 200 / 6%);
     pointer-events: none;
     z-index: 1;
   }
@@ -169,19 +212,19 @@
   /* Deep vibrant teal radial background for the chat message area */
   .chat-bg-deep {
     background:
-      radial-gradient(ellipse at 50% 30%, rgba(0, 80, 100, 0.55) 0%, transparent 52%),
-      radial-gradient(ellipse at 15% 80%, rgba(0, 55, 80, 0.40) 0%, transparent 45%),
-      radial-gradient(ellipse at 85% 70%, rgba(0, 45, 70, 0.35) 0%, transparent 40%),
-      rgb(0, 12, 20);
+      radial-gradient(ellipse at 50% 30%, oklch(34% 0.11 212 / 55%) 0%, transparent 52%),
+      radial-gradient(ellipse at 15% 80%, oklch(26% 0.09 218 / 40%) 0%, transparent 45%),
+      radial-gradient(ellipse at 85% 70%, oklch(22% 0.07 220 / 35%) 0%, transparent 40%),
+      oklch(7% 0.022 218);
   }
 
   /* Radial vignette for message area — darker at edges, teal glow at center */
   .chat-vignette {
     background: radial-gradient(
       ellipse at 50% 38%,
-      rgba(0, 55, 72, 0.18) 0%,
-      rgba(0, 20, 32, 0.52) 60%,
-      rgba(0, 8, 16, 0.72) 100%
+      oklch(24% 0.07 210 / 18%) 0%,
+      oklch(12% 0.04 218 / 52%) 60%,
+      oklch(6%  0.02 222 / 72%) 100%
     );
   }
 
@@ -190,27 +233,30 @@
     position: relative;
     overflow: hidden;
   }
-
   .glass-btn::before {
     content: '';
     position: absolute;
     inset: 0;
     background: linear-gradient(
       to bottom,
-      rgba(255, 255, 255, 0.20) 0%,
-      rgba(255, 255, 255, 0.07) 45%,
-      transparent 100%
+      oklch(100% 0 0 / 20%) 0%,
+      oklch(100% 0 0 / 7%)  45%,
+      transparent           100%
     );
     pointer-events: none;
   }
 
   /* Input field inset shadow */
   .input-glass {
-    box-shadow: inset 0 2px 8px rgba(15, 23, 42, 0.07), inset 0 1px 2px rgba(15, 23, 42, 0.05);
+    box-shadow:
+      inset 0 2px 8px  oklch(13% 0.030 267 / 7%),
+      inset 0 1px 2px  oklch(13% 0.030 267 / 5%);
   }
-
   .input-glass:hover {
-    box-shadow: inset 0 2px 10px rgba(15, 23, 42, 0.10), inset 0 1px 2px rgba(15, 23, 42, 0.06), 0 1px 4px rgba(15, 23, 42, 0.06);
+    box-shadow:
+      inset 0 2px 10px oklch(13% 0.030 267 / 10%),
+      inset 0 1px 2px  oklch(13% 0.030 267 / 6%),
+            0 1px 4px  oklch(13% 0.030 267 / 6%);
   }
 
   /* Markdown styling for AI messages */
@@ -218,22 +264,10 @@
     @apply leading-relaxed break-words;
     overflow-wrap: anywhere;
   }
-
-  .markdown-content p {
-    @apply mb-2;
-  }
-
-  .markdown-content p:last-child {
-    @apply mb-0;
-  }
-
-  .markdown-content strong {
-    @apply font-semibold text-slate-800;
-  }
-
-  .markdown-content em {
-    @apply italic text-slate-600;
-  }
+  .markdown-content p              { @apply mb-2; }
+  .markdown-content p:last-child   { @apply mb-0; }
+  .markdown-content strong         { @apply font-semibold text-slate-800; }
+  .markdown-content em             { @apply italic text-slate-600; }
 
   .inline-code {
     @apply bg-teal-500/10 text-teal-600 px-1.5 py-0.5 rounded-md font-mono text-sm break-all;
@@ -246,18 +280,10 @@
   .code-block {
     @apply bg-slate-800 text-slate-100 p-3 rounded-lg overflow-x-auto my-2 font-mono text-sm leading-relaxed;
   }
+  .code-block code { @apply bg-transparent text-inherit p-0 rounded-none; }
 
-  .code-block code {
-    @apply bg-transparent text-inherit p-0 rounded-none;
-  }
-
-  .markdown-list {
-    @apply my-2 pl-6;
-  }
-
-  .markdown-list li {
-    @apply my-1;
-  }
+  .markdown-list    { @apply my-2 pl-6; }
+  .markdown-list li { @apply my-1; }
 
   .markdown-link {
     @apply text-primary-600 underline hover:text-primary-700 hover:no-underline transition-colors;
@@ -266,77 +292,34 @@
   .markdown-content blockquote {
     @apply border-l-4 border-primary-400 ml-0 my-2 py-2 pl-4 bg-slate-50 italic text-slate-600;
   }
+  .markdown-content hr            { @apply my-6 border-0 border-t border-slate-200/80; }
+  .markdown-content h4            { @apply text-lg font-semibold text-slate-800 mt-3 mb-2; }
+  .markdown-content h4:first-child { @apply mt-0; }
 
-  .markdown-content hr {
-    @apply my-6 border-0 border-t border-slate-200/80;
-  }
-
-  .markdown-content h4 {
-    @apply text-lg font-semibold text-slate-800 mt-3 mb-2;
-  }
-
-  .markdown-content h4:first-child {
-    @apply mt-0;
-  }
-
-  .dark .markdown-content {
-    @apply text-slate-200;
-  }
-
-  .dark .markdown-content strong {
-    @apply text-slate-100;
-  }
-
-  .dark .markdown-content em {
-    @apply text-slate-300;
-  }
-
-  .dark .inline-code {
-    @apply bg-teal-400/10 text-teal-200 border border-teal-500/40;
-  }
-
-  .dark .markdown-content strong code {
-    @apply bg-emerald-400/10 border-emerald-500/40 text-emerald-200;
-  }
-
-  .dark .code-block {
-    @apply bg-slate-950 text-slate-200 border border-slate-800;
-  }
-
-  .dark .markdown-link {
-    @apply text-primary-300 hover:text-primary-200;
-  }
-
-  .dark .markdown-content blockquote {
-    @apply border-primary-500/60 bg-slate-900/60 text-slate-300;
-  }
-
-  .dark .markdown-content hr {
-    @apply border-slate-800;
-  }
-
-  .dark .markdown-list li {
-    @apply text-slate-200;
-  }
+  /* ── Dark mode markdown ── */
+  .dark .markdown-content          { @apply text-slate-200; }
+  .dark .markdown-content strong   { @apply text-slate-100; }
+  .dark .markdown-content em       { @apply text-slate-300; }
+  .dark .inline-code               { @apply bg-teal-400/10 text-teal-200 border border-teal-500/40; }
+  .dark .markdown-content strong code { @apply bg-emerald-400/10 border-emerald-500/40 text-emerald-200; }
+  .dark .code-block                { @apply bg-slate-950 text-slate-200 border border-slate-800; }
+  .dark .markdown-link             { @apply text-primary-300 hover:text-primary-200; }
+  .dark .markdown-content blockquote { @apply border-primary-500/60 bg-slate-900/60 text-slate-300; }
+  .dark .markdown-content hr       { @apply border-slate-800; }
+  .dark .markdown-list li          { @apply text-slate-200; }
 
   .mention-chip {
     @apply inline-flex items-center px-2 py-0.5 rounded-full border font-semibold tracking-tight uppercase text-xs bg-emerald-500/15 border-emerald-400/60 text-emerald-700 shadow-sm transition-transform duration-150;
   }
-
-  .mention-chip:hover {
-    @apply scale-[1.03] bg-emerald-500/20;
-  }
-
-  .dark .mention-chip {
-    @apply bg-emerald-400/10 border-emerald-500/40 text-emerald-200;
-  }
+  .mention-chip:hover { @apply scale-[1.03] bg-emerald-500/20; }
+  .dark .mention-chip { @apply bg-emerald-400/10 border-emerald-500/40 text-emerald-200; }
 
   .send-button {
     transition:
       background-color 180ms ease,
-      color 180ms ease,
-      transform 200ms ease,
-      box-shadow 200ms ease;
+      color            180ms ease,
+      transform        200ms ease,
+      box-shadow       200ms ease;
   }
 
   .header-title {
@@ -345,11 +328,7 @@
     text-transform: uppercase;
     @apply font-extralight text-slate-200 drop-shadow-sm transition-colors duration-300;
   }
-
-  .header-title--hero {
-    @apply text-4xl md:text-5xl;
-  }
-
+  .header-title--hero    { @apply text-4xl md:text-5xl; }
   .header-title--compact {
     letter-spacing: 0.12em;
     @apply text-sm sm:text-base lg:text-2xl xl:text-3xl text-slate-100;
@@ -357,35 +336,14 @@
 }
 
 @layer utilities {
-  .animate-fade-in {
-    animation: fadeIn 0.3s ease-in-out;
-  }
+  .animate-fade-in      { animation: fadeIn     0.3s ease-in-out; }
+  .animate-fade-in-slow { animation: fadeInSlow 0.8s ease-in-out; }
+  .animate-scale-in     { animation: scaleIn    0.2s ease-out; }
+  .animate-slide-up     { animation: slideUp    0.3s ease-out; }
 
-  .animate-fade-in-slow {
-    animation: fadeInSlow 0.8s ease-in-out;
-  }
-
-  .animate-scale-in {
-    animation: scaleIn 0.2s ease-out;
-  }
-
-  .animate-slide-up {
-    animation: slideUp 0.3s ease-out;
-  }
-
-  /* Smooth Framer Motion animations now handle message entrance */
-
-  .animate-bounce-delay-0 {
-    animation: bounce 1.4s ease-in-out infinite;
-  }
-
-  .animate-bounce-delay-1 {
-    animation: bounce 1.4s ease-in-out infinite 0.2s;
-  }
-
-  .animate-bounce-delay-2 {
-    animation: bounce 1.4s ease-in-out infinite 0.4s;
-  }
+  .animate-bounce-delay-0 { animation: bounce 1.4s ease-in-out infinite; }
+  .animate-bounce-delay-1 { animation: bounce 1.4s ease-in-out infinite 0.2s; }
+  .animate-bounce-delay-2 { animation: bounce 1.4s ease-in-out infinite 0.4s; }
 
   @keyframes fadeInSlow {
     from {
@@ -402,10 +360,8 @@
 
   @keyframes bounce {
     0%, 20%, 53%, 80%, 100% { transform: translateY(0); }
-    40%, 43% { transform: translateY(-8px); }
-    70% { transform: translateY(-4px); }
-    90% { transform: translateY(-2px); }
+    40%, 43%                 { transform: translateY(-8px); }
+    70%                      { transform: translateY(-4px); }
+    90%                      { transform: translateY(-2px); }
   }
-
-  /* Removed old whoosh keyframes - now using Framer Motion for smoother animations */
 }
