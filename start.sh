@@ -295,6 +295,13 @@ compose_with_profiles() {
     "${compose_args[@]}"
 }
 
+# Ensure startup-log.json exists as a file before Docker tries to bind-mount it.
+# If Docker runs first and the file doesn't exist, it creates a directory instead.
+if [ ! -f startup-log.json ]; then
+    echo "📝 Creating startup-log.json..."
+    echo "[]" > startup-log.json
+fi
+
 case $choice in
     1)
         echo "🔄 Starting development mode with live reloading..."

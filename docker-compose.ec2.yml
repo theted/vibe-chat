@@ -67,6 +67,9 @@ services:
       - AI_CHAT_VERBOSE_CONTEXT=${AI_CHAT_VERBOSE_CONTEXT:-false}
       - AI_CHAT_ENABLE_PERSONAS=${AI_CHAT_ENABLE_PERSONAS:-false}
       - AI_CHAT_SKIP_HEALTHCHECK=${AI_CHAT_SKIP_HEALTHCHECK:-false}
+      - AI_CHAT_RECHECK_AVAILABILITY=${AI_CHAT_RECHECK_AVAILABILITY:-false}
+      - AI_CHAT_USE_LAST_WORKING=${AI_CHAT_USE_LAST_WORKING:-false}
+      - AI_CHAT_TRY_MERGE=${AI_CHAT_TRY_MERGE:-false}
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
       - CHAT_ASSISTANT_SCRIPT=/app/scripts/run-mcp-chat.js
       - CHAT_ASSISTANT_AUTO_INDEX=true
@@ -76,6 +79,7 @@ services:
     volumes:
       - ./packages/ai-chat-cli/dist/scripts:/app/scripts:ro
       - ./packages/mcp-assistant/src:/app/mcp-assistant/src:ro
+      - ./startup-log.json:/app/startup-log.json
     restart: always
     networks:
       - ai-chat-network
