@@ -28,10 +28,17 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
+# Copy package manifests and install production deps fresh (avoids broken symlinks from copying node_modules)
+COPY package.json pnpm-workspace.yaml ./
+COPY packages/server/package.json ./packages/server/
+COPY packages/ai-chat-core/package.json ./packages/ai-chat-core/
+COPY packages/ai-configs/package.json ./packages/ai-configs/
+COPY packages/mcp-assistant/package.json ./packages/mcp-assistant/
+RUN --mount=type=cache,target=/root/.bun/install/cache bun install --production --ignore-scripts
+
+# Copy built artifacts
 COPY --from=builder /app/packages/server/dist ./dist
 COPY --from=builder /app/scripts ./scripts
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/packages/server/node_modules ./packages/server/node_modules
 COPY --from=builder /app/packages/ai-chat-core ./packages/ai-chat-core
 COPY --from=builder /app/packages/ai-configs ./packages/ai-configs
 COPY --from=builder /app/packages/mcp-assistant ./packages/mcp-assistant
