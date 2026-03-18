@@ -42,7 +42,7 @@ const ChatView = ({
 
   return (
     <div className="min-h-screen flex items-center justify-center p-6">
-      <div className="flex bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl max-w-7xl w-full max-h-[95vh] overflow-hidden animate-fade-in border border-white/30 dark:bg-slate-900/90 dark:border-slate-800">
+      <div className="glass-surface flex bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl max-w-7xl w-full max-h-[95vh] overflow-hidden animate-fade-in border border-white/30 dark:bg-slate-900/90 dark:border-slate-800">
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
           <div className="bg-gradient-to-r from-slate-600/90 to-slate-700/90 backdrop-blur-sm text-white p-6 rounded-tl-3xl border-b border-white/10 dark:from-slate-800/90 dark:to-slate-900/90 dark:border-slate-800/60">
             <div className="flex justify-between items-stretch gap-6 flex-wrap">
@@ -133,7 +133,7 @@ const ChatView = ({
             </button>
           )}
 
-          <div className="border-t border-slate-100/50 bg-white/80 backdrop-blur-md p-8 space-y-6 rounded-bl-3xl dark:bg-slate-900/90 dark:border-slate-800/60">
+          <div className="glass-surface border-t border-slate-100/50 bg-white/80 backdrop-blur-md p-8 space-y-6 rounded-bl-3xl dark:bg-slate-900/90 dark:border-slate-800/60">
             {error && (
               <div className="bg-red-50/70 backdrop-blur-sm border border-red-200/50 text-red-800 px-6 py-4 rounded-2xl text-center animate-slide-up shadow-sm dark:bg-red-500/10 dark:border-red-400/40 dark:text-red-200">
                 {error}

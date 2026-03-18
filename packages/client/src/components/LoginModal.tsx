@@ -69,7 +69,7 @@ const LoginModal = ({
         aria-modal="true"
         aria-label="Set your username"
         aria-hidden={!isOpen}
-        className={`relative w-full max-w-md rounded-3xl bg-white/95 p-8 shadow-2xl border border-white/40 backdrop-blur-xl transition-all duration-200 ease-out transform-gpu will-change-transform dark:bg-slate-900/95 dark:border-slate-700/60 ${
+        className={`glass-surface relative w-full max-w-md rounded-3xl bg-white/95 p-8 shadow-2xl border border-white/40 backdrop-blur-xl transition-all duration-200 ease-out transform-gpu will-change-transform dark:bg-slate-900/95 dark:border-slate-700/60 ${
           isOpen
             ? "opacity-100 translate-y-0 scale-100"
             : "opacity-0 translate-y-2 scale-95"

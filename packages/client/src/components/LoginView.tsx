@@ -61,7 +61,7 @@ const LoginView = ({
           </button>
         </div>
 
-        <div className="flex w-full max-w-5xl flex-col items-center gap-16 rounded-[3rem] border border-white/10 bg-white/5 p-10 text-center backdrop-blur-xl shadow-2xl shadow-black/40 animate-fade-in-slow lg:flex-row lg:items-end lg:text-left">
+        <div className="glass-surface flex w-full max-w-5xl flex-col items-center gap-16 rounded-[3rem] border border-white/10 bg-white/5 p-10 text-center backdrop-blur-xl shadow-2xl shadow-black/40 animate-fade-in-slow lg:flex-row lg:items-end lg:text-left">
           <div className="flex justify-center lg:justify-start">
             <CircuitIcon className="h-64 w-64 text-slate-100/90 drop-shadow-[0_20px_60px_rgba(15,23,42,0.7)]" />
           </div>
