@@ -97,6 +97,7 @@ export const buildModelCache = (
 export type StartupMode =
   | "healthcheck"       // full healthcheck — first run or --recheck-availability
   | "cached"            // log exists, trusted: no healthcheck at all
+  | "try-merge"         // trust previous successes, re-check only previous failures
   | "skip-healthcheck"; // explicit flag: all configured models, no check
 
 export type StartupLogParticipant = {
@@ -211,6 +212,47 @@ export const appendModelToCurrentStartup = (
     process.exit(1);
   }
   entry.participants.push(participant);
+  writeLog(log);
+};
+
+/**
+ * Merges updated participant results back into the LAST log entry in-place.
+ * Used by --try-merge: previously-successful entries are left untouched;
+ * previously-failed entries are updated with fresh results (may flip to success).
+ * Any model not previously in the entry is appended.
+ */
+export const mergeIntoLastStartupEntry = (updates: StartupLogParticipant[]): void => {
+  const log = readLog();
+  if (log.length === 0) {
+    console.error(`${LOG_PREFIX} ❌ FATAL: mergeIntoLastStartupEntry called with empty log`);
+    process.exit(1);
+  }
+
+  const last = log[log.length - 1];
+  let merged = 0;
+  let added = 0;
+
+  for (const update of updates) {
+    const key = `${update.provider}_${update.model}`;
+    const existing = last.participants.find(
+      (p) => `${p.provider}_${p.model}` === key,
+    );
+    if (existing) {
+      const flipped = !existing.success && update.success;
+      existing.success = update.success;
+      existing.error = update.error;
+      existing.httpStatus = update.httpStatus;
+      const statusStr = update.success ? "✅ ok" : `❌ still failing${update.httpStatus ? ` [HTTP ${update.httpStatus}]` : ""}`;
+      console.log(`${LOG_PREFIX} Merge update: ${key} → ${statusStr}${flipped ? " 🎉 (newly working!)" : ""}`);
+      merged++;
+    } else {
+      last.participants.push(update);
+      console.log(`${LOG_PREFIX} Merge add (new model): ${key} → ${update.success ? "✅ ok" : "❌ fail"}`);
+      added++;
+    }
+  }
+
+  console.log(`${LOG_PREFIX} Merge complete: ${merged} updated, ${added} added`);
   writeLog(log);
 };
 
