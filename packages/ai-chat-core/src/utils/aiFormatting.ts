@@ -55,10 +55,17 @@ export const inlineSystemIntoFirstUser = (
  * @param messages - Array of message objects
  * @returns Array of Gemini-compatible messages
  */
-export const toGeminiHistory = (messages: Message[]): GeminiMessage[] =>
-  messages
+export const toGeminiHistory = (messages: Message[]): GeminiMessage[] => {
+  const mapped = messages
     .filter((m) => m.role !== "system")
     .map((m) => ({
-      role: m.role === "assistant" ? "model" : "user",
+      role: m.role === "assistant" ? ("model" as const) : ("user" as const),
       parts: [{ text: m.content }],
     }));
+
+  // Gemini requires first message to have role 'user' — drop leading 'model' messages
+  const firstUserIdx = mapped.findIndex((m) => m.role === "user");
+  if (firstUserIdx > 0) return mapped.slice(firstUserIdx);
+
+  return mapped;
+};

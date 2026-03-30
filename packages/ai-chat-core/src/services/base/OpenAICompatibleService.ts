@@ -250,8 +250,10 @@ export abstract class OpenAICompatibleService extends BaseAIService {
   protected parseResponse(
     apiResponse: OpenAICompletionResponse,
   ): ServiceResponse {
-    const choice = apiResponse.choices[0];
-    if (!choice?.message?.content) {
+    const choice = apiResponse.choices?.[0];
+    const content = choice?.message?.content
+      ?? (choice?.message as Record<string, unknown>)?.reasoning_content as string | undefined;
+    if (!content) {
       throw new ServiceAPIError(
         "Invalid API response: missing content",
         this.name,
@@ -261,7 +263,7 @@ export abstract class OpenAICompatibleService extends BaseAIService {
     }
 
     return {
-      content: choice.message.content.trim(),
+      content: content.trim(),
       usage: apiResponse.usage
         ? {
             promptTokens: apiResponse.usage.prompt_tokens,
