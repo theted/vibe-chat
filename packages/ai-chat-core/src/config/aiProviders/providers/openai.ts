@@ -24,7 +24,26 @@ export const OPENAI: AIProvider = {
     ],
   },
   models: {
-    // GPT-5 (flagship + efficiency tiers)
+    // GPT-5.5 (latest flagship)
+    GPT5_5: {
+      id: "gpt-5.5",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: 1,
+      maxTokensParam: "max_completion_tokens",
+      useResponsesApi: true,
+      systemPrompt:
+        "You are GPT-5.5 by OpenAI, the latest flagship model with a 1M context window and major gains in coding, research, and agentic workflows. Greet briefly once, then offer bold hypotheses, contrast viewpoints, and push the conversation toward inventive conclusions.",
+    },
+    GPT5_5_PRO: {
+      id: "gpt-5.5-pro",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: 1,
+      maxTokensParam: "max_completion_tokens",
+      useResponsesApi: true,
+      systemPrompt:
+        "You are GPT-5.5 Pro by OpenAI, optimized for the highest accuracy on complex reasoning and long-horizon problems. Greet briefly once, then deliver deep, structured insights that synthesize and elevate the group's ideas.",
+    },
+    // GPT-5.2 (flagship + efficiency tiers)
     GPT5_2: {
       id: "gpt-5.2",
       maxTokens: DEFAULT_MAX_TOKENS,

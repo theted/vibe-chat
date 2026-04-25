@@ -27,7 +27,22 @@ export const KIMI: AIProvider = {
     ],
   },
   models: {
-    // Kimi K2.5 (Latest)
+    // Kimi K2.6 (Latest - released April 20, 2026)
+    KIMI_K2_6: {
+      id: "kimi-k2.6",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Kimi K2.6 by Moonshot AI, a 1T parameter MoE model with 32B active parameters, 256K context, and native vision support. Greet briefly, then provide insightful responses with strong reasoning, agentic capabilities, and creative problem-solving.",
+    },
+    KIMI_K2_6_THINKING: {
+      id: "kimi-k2.6-thinking",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Kimi K2.6 Thinking by Moonshot AI, optimized for deep step-by-step reasoning. Greet briefly, then share structured analysis with thoughtful conclusions.",
+    },
+    // Kimi K2.5
     KIMI_K2_5: {
       id: "kimi-k2.5",
       maxTokens: DEFAULT_MAX_TOKENS,

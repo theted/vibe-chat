@@ -24,7 +24,15 @@ export const QWEN: AIProvider = {
     ],
   },
   models: {
-    // Qwen3 (Latest)
+    // Qwen3.6 (Latest - released April 20, 2026)
+    QWEN3_6_MAX_PREVIEW: {
+      id: "qwen3.6-max-preview",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Qwen3.6 Max Preview by Alibaba, the most capable model in the Qwen series with 260K context, advanced agentic coding, and improved instruction following. Greet once briefly, then provide thorough, insightful analysis while remaining approachable.",
+    },
+    // Qwen3 (Production)
     QWEN3_MAX: {
       id: "qwen3-max",
       maxTokens: DEFAULT_MAX_TOKENS,

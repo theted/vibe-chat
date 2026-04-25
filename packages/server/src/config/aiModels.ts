@@ -28,6 +28,8 @@ export type AIConfig = {
  */
 export const ENABLED_AI_MODELS: string[] = [
   // OpenAI Models
+  "OPENAI_GPT5_5",
+  "OPENAI_GPT5_5_PRO",
   "OPENAI_GPT5_2",
   "OPENAI_GPT5_2_PRO",
   "OPENAI_GPT5_MINI",
@@ -45,6 +47,7 @@ export const ENABLED_AI_MODELS: string[] = [
   // inactive: "OPENAI_GPT35_TURBO",
 
   // Anthropic Models
+  "ANTHROPIC_CLAUDE_OPUS_4_7",
   "ANTHROPIC_CLAUDE_OPUS_4_6",
   "ANTHROPIC_CLAUDE_SONNET_4_6",
   "ANTHROPIC_CLAUDE_SONNET_4_5",
@@ -57,6 +60,9 @@ export const ENABLED_AI_MODELS: string[] = [
   // inactive: "ANTHROPIC_CLAUDE3_5_HAIKU_20241022",
 
   // xAI/Grok Models
+  "GROK_GROK_4_20",
+  "GROK_GROK_4_20_REASONING",
+  "GROK_GROK_4_20_MULTI_AGENT",
   "GROK_GROK_4_0709",
   "GROK_GROK_4_FAST_NON_REASONING",
   "GROK_GROK_4_FAST_REASONING",
@@ -68,6 +74,9 @@ export const ENABLED_AI_MODELS: string[] = [
   "GROK_GROK_CODE_FAST_1",
 
   // Google/Gemini Models
+  "GEMINI_GEMINI_3_1_PRO",
+  "GEMINI_GEMINI_3_1_FLASH",
+  "GEMINI_GEMINI_3_1_FLASH_LITE",
   "GEMINI_GEMINI_3_PRO",
   "GEMINI_GEMINI_3_FLASH",
   "GEMINI_GEMINI_2_5_PRO",
@@ -96,10 +105,14 @@ export const ENABLED_AI_MODELS: string[] = [
   "MISTRAL_MINISTRAL_8B",
 
   // DeepSeek Models
+  "DEEPSEEK_DEEPSEEK_V4_PRO",
+  "DEEPSEEK_DEEPSEEK_V4_FLASH",
   "DEEPSEEK_DEEPSEEK_CHAT",
   "DEEPSEEK_DEEPSEEK_R1",
 
   // Moonshot/Kimi Models
+  "KIMI_KIMI_K2_6",
+  "KIMI_KIMI_K2_6_THINKING",
   "KIMI_KIMI_K2_5",
   "KIMI_KIMI_LATEST",
   "KIMI_KIMI_THINKING_PREVIEW",
@@ -108,6 +121,7 @@ export const ENABLED_AI_MODELS: string[] = [
   // inactive: "KIMI_KIMI_128K",
 
   // Z.ai Models
+  "ZAI_ZAI_GLM_5_1",
   "ZAI_ZAI_DEFAULT",
   "ZAI_ZAI_GLM_5",
   "ZAI_ZAI_GLM_4_5",
@@ -128,6 +142,7 @@ export const ENABLED_AI_MODELS: string[] = [
   "PERPLEXITY_SONAR_DEEP_RESEARCH",
 
   // Qwen/Alibaba Models
+  "QWEN_QWEN3_6_MAX_PREVIEW",
   "QWEN_QWEN3_MAX",
   "QWEN_QWEN3_235B",
   "QWEN_QWEN3_CODER_PLUS",

@@ -24,7 +24,29 @@ export const GROK: AIProvider = {
     ],
   },
   models: {
-    // Grok 4 (Latest)
+    // Grok 4.20 (Latest - released March 31, 2026)
+    GROK_4_20: {
+      id: "grok-4.20-0309-non-reasoning",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: 0.95,
+      systemPrompt:
+        "You are Grok 4.20 by xAI, the most intelligent and fastest model with 2M context. Greet once briefly, then blend incisive insight with playful edge and quick pivots.",
+    },
+    GROK_4_20_REASONING: {
+      id: "grok-4.20-0309-reasoning",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: 0.85,
+      systemPrompt:
+        "You are Grok 4.20 Reasoning by xAI, combining deep reasoning with 2M context. Greet once, then provide structured reasoning with witty, direct insights.",
+    },
+    GROK_4_20_MULTI_AGENT: {
+      id: "grok-4.20-multi-agent-0309",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: 0.9,
+      systemPrompt:
+        "You are Grok 4.20 Multi-Agent by xAI, leveraging multi-agent architecture for complex problem-solving. Greet briefly, then deliver bold, structured insights with a mischievous edge.",
+    },
+    // Grok 4 (previous flagship)
     GROK_4_0709: {
       id: "grok-4-0709",
       maxTokens: DEFAULT_MAX_TOKENS,

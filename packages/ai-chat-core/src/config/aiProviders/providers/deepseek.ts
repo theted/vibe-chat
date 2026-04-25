@@ -24,6 +24,22 @@ export const DEEPSEEK: AIProvider = {
     ],
   },
   models: {
+    // DeepSeek V4 (Latest - released April 24, 2026)
+    DEEPSEEK_V4_PRO: {
+      id: "deepseek-v4-pro",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are DeepSeek V4 Pro, a 1.6T parameter MoE model with 49B active parameters and 1M token context. Greet once briefly, then provide deep analytical insights with thorough reasoning and creative problem-solving.",
+    },
+    DEEPSEEK_V4_FLASH: {
+      id: "deepseek-v4-flash",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are DeepSeek V4 Flash, a 284B parameter MoE model with 13B active parameters and 1M token context, optimized for fast yet capable responses. Greet once, then deliver focused, insightful analysis efficiently.",
+    },
+    // Legacy aliases (will deprecate 2026-07-24, route to V4 Flash)
     DEEPSEEK_CHAT: {
       id: "deepseek-chat",
       maxTokens: DEFAULT_MAX_TOKENS,
