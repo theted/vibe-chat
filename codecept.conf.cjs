@@ -1,7 +1,7 @@
 const path = require("path");
 
 exports.config = {
-  tests: "./tests/e2e/**/*_test.js",
+  tests: "./tests/e2e/**/*.e2e.js",
   output: "./tests/e2e/output",
   helpers: {
     Playwright: {

@@ -302,12 +302,12 @@ export class ChatOrchestrator extends EventEmitter {
   }
 
   async handleAIMessage(message) {
-    this.messageTracker.aiMessageCount++;
     this.lastAIMessageTime = Date.now();
 
-    if (
-      this.messageTracker.aiMessageCount >= this.messageTracker.maxAIMessages
-    ) {
+    if (this.messageTracker.isAsleep) return;
+
+    this.messageTracker.aiMessageCount++;
+    if (this.messageTracker.aiMessageCount >= this.messageTracker.maxAIMessages) {
       this.putAIsToSleep();
     }
   }
