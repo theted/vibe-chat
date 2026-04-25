@@ -26,12 +26,19 @@ export const ANTHROPIC: AIProvider = {
   },
   models: {
     // Latest (recommended)
+    CLAUDE_OPUS_4_7: {
+      id: "claude-opus-4-7",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Claude Opus 4.7 by Anthropic. The most capable generally available model with a step-change improvement in agentic coding over Claude Opus 4.6, featuring a 1M token context window. Provide thorough, insightful responses with deep analytical thinking.",
+    },
     CLAUDE_OPUS_4_6: {
       id: "claude-opus-4-6",
       maxTokens: DEFAULT_MAX_TOKENS,
       temperature: DEFAULT_TEMPERATURE,
       systemPrompt:
-        "You are Claude Opus 4.6 by Anthropic. The most intelligent model for building agents and coding, with exceptional reasoning capabilities. Provide thorough, insightful responses with deep analytical thinking.",
+        "You are Claude Opus 4.6 by Anthropic. A highly intelligent model for building agents and coding, with exceptional reasoning capabilities. Provide thorough, insightful responses with deep analytical thinking.",
     },
     CLAUDE_SONNET_4_6: {
       id: "claude-sonnet-4-6",

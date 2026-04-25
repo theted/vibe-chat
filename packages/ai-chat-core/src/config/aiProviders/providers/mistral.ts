@@ -27,21 +27,21 @@ export const MISTRAL: AIProvider = {
   models: {
     // Flagship models
     MISTRAL_LARGE: {
-      id: "mistral-large-3-25-12",
+      id: "mistral-large-2512",
       maxTokens: DEFAULT_MAX_TOKENS,
       temperature: DEFAULT_TEMPERATURE,
       systemPrompt:
         "You are Mistral Large 3 by Mistral AI, a sparse mixture-of-experts model with 41B active parameters. Provide clear, thoughtful responses and contribute meaningfully to the discussion.",
     },
     MISTRAL_MEDIUM: {
-      id: "mistral-medium-3-1-25-08",
+      id: "mistral-medium-2508",
       maxTokens: DEFAULT_MAX_TOKENS,
       temperature: DEFAULT_TEMPERATURE,
       systemPrompt:
         "You are Mistral Medium 3.1 by Mistral AI, a versatile model designed for programming, reasoning, and document understanding. Be practical and thorough while keeping responses focused.",
     },
     MISTRAL_SMALL: {
-      id: "mistral-small-3-2-25-06",
+      id: "mistral-small-2506",
       maxTokens: DEFAULT_MAX_TOKENS,
       temperature: DEFAULT_TEMPERATURE,
       systemPrompt:
@@ -71,14 +71,14 @@ export const MISTRAL: AIProvider = {
         "You are Codestral by Mistral AI, a code generation specialist. Provide precise, well-structured code solutions and clear technical explanations.",
     },
     DEVSTRAL: {
-      id: "devstral-2-25-12",
+      id: "devstral-2512",
       maxTokens: DEFAULT_MAX_TOKENS,
       temperature: DEFAULT_TEMPERATURE,
       systemPrompt:
         "You are Devstral 2 by Mistral AI, an advanced agentic coding model optimized for software development workflows. Provide expert code solutions with strong reasoning.",
     },
     DEVSTRAL_SMALL: {
-      id: "devstral-small-2-25-12",
+      id: "devstral-small-2512",
       maxTokens: DEFAULT_MAX_TOKENS,
       temperature: DEFAULT_TEMPERATURE,
       systemPrompt:
@@ -86,14 +86,14 @@ export const MISTRAL: AIProvider = {
     },
     // Compact models
     MINISTRAL_14B: {
-      id: "ministral-3-14b-25-12",
+      id: "ministral-3-14b-2512",
       maxTokens: DEFAULT_MAX_TOKENS,
       temperature: DEFAULT_TEMPERATURE,
       systemPrompt:
         "You are Ministral 3 14B by Mistral AI, a dense model balancing capability and efficiency. Deliver practical, thorough responses while keeping them focused.",
     },
     MINISTRAL_8B: {
-      id: "ministral-3-8b-25-12",
+      id: "ministral-3-8b-2512",
       maxTokens: DEFAULT_MAX_TOKENS,
       temperature: DEFAULT_TEMPERATURE,
       systemPrompt:

@@ -28,6 +28,14 @@ import type { AiParticipant } from "./types.js";
 export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
   // Anthropic Models - Music/performing arts
   {
+    id: "ANTHROPIC_CLAUDE_OPUS_4_7",
+    name: "Claude Opus 4.7",
+    alias: "claude-opus-4-7",
+    provider: "Anthropic",
+    status: "active",
+    emoji: "🎤",
+  },
+  {
     id: "ANTHROPIC_CLAUDE_OPUS_4_6",
     name: "Claude Opus 4.6",
     alias: "claude-opus-4-6",
@@ -109,6 +117,22 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
   },
 
   // OpenAI Models - Space/cosmos
+  {
+    id: "OPENAI_GPT5_5",
+    name: "GPT-5.5",
+    alias: "gpt-5.5",
+    provider: "OpenAI",
+    status: "active",
+    emoji: "🌟",
+  },
+  {
+    id: "OPENAI_GPT5_5_PRO",
+    name: "GPT-5.5 Pro",
+    alias: "gpt-5.5-pro",
+    provider: "OpenAI",
+    status: "active",
+    emoji: "☀️",
+  },
   {
     id: "OPENAI_GPT5_2",
     name: "GPT-5.2",
@@ -232,6 +256,30 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
 
   // xAI/Grok Models - Gaming/arcade
   {
+    id: "GROK_GROK_4_20",
+    name: "Grok 4.20",
+    alias: "grok-4.20",
+    provider: "xAI",
+    status: "active",
+    emoji: "🎳",
+  },
+  {
+    id: "GROK_GROK_4_20_REASONING",
+    name: "Grok 4.20 Reasoning",
+    alias: "grok-4.20-reasoning",
+    provider: "xAI",
+    status: "active",
+    emoji: "🧩",
+  },
+  {
+    id: "GROK_GROK_4_20_MULTI_AGENT",
+    name: "Grok 4.20 Multi-Agent",
+    alias: "grok-4.20-multi-agent",
+    provider: "xAI",
+    status: "active",
+    emoji: "🪀",
+  },
+  {
     id: "GROK_GROK_4_0709",
     name: "Grok 4",
     alias: "grok-4",
@@ -306,20 +354,28 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
 
   // Google/Gemini Models - Gems/crystals
   {
-    id: "GEMINI_GEMINI_3_PRO",
-    name: "Gemini 3 Pro",
-    alias: "gemini-3-pro",
+    id: "GEMINI_GEMINI_3_1_PRO",
+    name: "Gemini 3.1 Pro",
+    alias: "gemini-3.1-pro",
     provider: "Google",
     status: "active",
     emoji: "🔷",
   },
   {
-    id: "GEMINI_GEMINI_3_FLASH",
-    name: "Gemini 3 Flash",
-    alias: "gemini-3-flash",
+    id: "GEMINI_GEMINI_3_1_FLASH",
+    name: "Gemini 3.1 Flash",
+    alias: "gemini-3.1-flash",
     provider: "Google",
     status: "active",
     emoji: "💠",
+  },
+  {
+    id: "GEMINI_GEMINI_3_1_FLASH_LITE",
+    name: "Gemini 3.1 Flash Lite",
+    alias: "gemini-3.1-flash-lite",
+    provider: "Google",
+    status: "active",
+    emoji: "🔸",
   },
   {
     id: "GEMINI_GEMINI_2_5_PRO",
@@ -488,6 +544,22 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
 
   // DeepSeek Models - Deep ocean creatures
   {
+    id: "DEEPSEEK_DEEPSEEK_V4_PRO",
+    name: "DeepSeek V4 Pro",
+    alias: "deepseek-v4-pro",
+    provider: "DeepSeek",
+    status: "active",
+    emoji: "🐋",
+  },
+  {
+    id: "DEEPSEEK_DEEPSEEK_V4_FLASH",
+    name: "DeepSeek V4 Flash",
+    alias: "deepseek-v4-flash",
+    provider: "DeepSeek",
+    status: "active",
+    emoji: "🐬",
+  },
+  {
     id: "DEEPSEEK_DEEPSEEK_CHAT",
     name: "DeepSeek Chat",
     alias: "deepseek",
@@ -505,6 +577,22 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
   },
 
   // Moonshot/Kimi Models - Moon phases
+  {
+    id: "KIMI_KIMI_K2_6",
+    name: "Kimi K2.6",
+    alias: "kimi-k2.6",
+    provider: "Moonshot AI",
+    status: "active",
+    emoji: "🌝",
+  },
+  {
+    id: "KIMI_KIMI_K2_6_THINKING",
+    name: "Kimi K2.6 Thinking",
+    alias: "kimi-k2.6-thinking",
+    provider: "Moonshot AI",
+    status: "active",
+    emoji: "🌚",
+  },
   {
     id: "KIMI_KIMI_K2_5",
     name: "Kimi K2.5",
@@ -555,6 +643,14 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
   },
 
   // Qwen/Alibaba Models - East Asian culture
+  {
+    id: "QWEN_QWEN3_6_MAX_PREVIEW",
+    name: "Qwen3.6 Max Preview",
+    alias: "qwen3.6-max",
+    provider: "Qwen",
+    status: "active",
+    emoji: "🀄",
+  },
   {
     id: "QWEN_QWEN3_MAX",
     name: "Qwen3 Max",
@@ -621,6 +717,14 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
   },
 
   // Z.ai Models - Tools/engineering
+  {
+    id: "ZAI_ZAI_GLM_5_1",
+    name: "GLM-5.1",
+    alias: "glm-5.1",
+    provider: "Z.ai",
+    status: "active",
+    emoji: "🏭",
+  },
   {
     id: "ZAI_ZAI_GLM_5",
     name: "GLM-5",

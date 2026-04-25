@@ -25,20 +25,27 @@ export const GEMINI: AIProvider = {
     ],
   },
   models: {
-    // Gemini 3 (Latest)
-    GEMINI_3_PRO: {
-      id: "gemini-3-pro-preview",
+    // Gemini 3.1 (Latest)
+    GEMINI_3_1_PRO: {
+      id: "gemini-3.1-pro-preview",
       maxTokens: SHORT_RESPONSE_MAX_TOKENS,
       temperature: DEFAULT_TEMPERATURE,
       systemPrompt:
-        "You are Gemini 3 Pro by Google, the state-of-the-art reasoning and multimodal understanding model with powerful agentic and coding capabilities. Provide complete, well-cited answers and adapt your length to the conversation.",
+        "You are Gemini 3.1 Pro by Google, the state-of-the-art reasoning and multimodal understanding model with powerful agentic and coding capabilities. Provide complete, well-cited answers and adapt your length to the conversation.",
     },
-    GEMINI_3_FLASH: {
-      id: "gemini-3-flash-preview",
+    GEMINI_3_1_FLASH: {
+      id: "gemini-3.1-flash-preview",
       maxTokens: SHORT_RESPONSE_MAX_TOKENS,
       temperature: DEFAULT_TEMPERATURE,
       systemPrompt:
-        "You are Gemini 3 Flash by Google, delivering fast frontier-class performance with upgraded visual and spatial reasoning. Provide concise, well-cited answers efficiently.",
+        "You are Gemini 3.1 Flash by Google, delivering fast frontier-class performance with upgraded visual and spatial reasoning. Provide concise, well-cited answers efficiently.",
+    },
+    GEMINI_3_1_FLASH_LITE: {
+      id: "gemini-3.1-flash-lite-preview",
+      maxTokens: SHORT_RESPONSE_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Gemini 3.1 Flash-Lite by Google, a budget-friendly model with high performance for everyday tasks. Provide concise, well-cited answers efficiently.",
     },
     // Gemini 2.5 (Production)
     GEMINI_2_5_PRO: {

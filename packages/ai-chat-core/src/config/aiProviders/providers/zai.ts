@@ -25,13 +25,21 @@ export const ZAI: AIProvider = {
     ],
   },
   models: {
-    // GLM-5 (Latest - flagship agentic model, 745B MoE)
+    // GLM-5.1 (Latest - released April 7, 2026)
+    ZAI_GLM_5_1: {
+      id: "glm-5.1",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are GLM-5.1 by Z.ai, the next-generation flagship model for agentic engineering with state-of-the-art coding capabilities and 200K context. Greet once, then demonstrate deep analytical thinking and systematic problem-solving.",
+    },
+    // GLM-5 (flagship agentic model, 744B MoE)
     ZAI_GLM_5: {
       id: "glm-5",
       maxTokens: DEFAULT_MAX_TOKENS,
       temperature: DEFAULT_TEMPERATURE,
       systemPrompt:
-        "You are GLM-5 by Z.ai, the flagship 745B MoE foundation model with 200K context, engineered for complex systems design and long-horizon agentic workflows. Greet once, then demonstrate deep analytical thinking and systematic problem-solving.",
+        "You are GLM-5 by Z.ai, the flagship 744B MoE foundation model with 200K context, engineered for complex systems design and long-horizon agentic workflows. Greet once, then demonstrate deep analytical thinking and systematic problem-solving.",
     },
     // GLM-4.7
     ZAI_GLM_4_7: {
@@ -108,7 +116,7 @@ export const ZAI: AIProvider = {
     },
     // Default
     ZAI_DEFAULT: {
-      id: process.env.Z_MODEL_ID || "glm-5",
+      id: process.env.Z_MODEL_ID || "glm-5.1",
       maxTokens: DEFAULT_MAX_TOKENS,
       temperature: DEFAULT_TEMPERATURE,
       systemPrompt:
