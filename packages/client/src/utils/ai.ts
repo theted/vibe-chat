@@ -1,3 +1,4 @@
+import { normalizeAliasKey } from "@ai-chat/ai-configs";
 import { DEFAULT_AI_PARTICIPANTS } from "@/config/aiParticipants";
 import { AI_EMOJI_LOOKUP, AI_MENTION_MAPPINGS } from "@/constants/chat.ts";
 
@@ -13,18 +14,7 @@ const normalizedMentionLookup = Object.entries(AI_MENTION_MAPPINGS).reduce(
   {} as Record<string, string>,
 );
 
-export const normalizeAlias = (value?: string | number | null): string => {
-  if (value === null || value === undefined) {
-    return "";
-  }
-
-  const stringValue = value.toString();
-  if (!stringValue) {
-    return "";
-  }
-
-  return stringValue.toLowerCase().replace(/[^a-z0-9]/g, "");
-};
+export const normalizeAlias = normalizeAliasKey;
 
 export const resolveEmoji = (value?: string | number | null): string => {
   const normalized = normalizeAlias(value);

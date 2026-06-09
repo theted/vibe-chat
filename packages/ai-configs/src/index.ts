@@ -37,3 +37,6 @@ export {
   resolveEmoji,
   mapMentionsToAiNames,
 } from "./lookups.js";
+
+// Alias utilities
+export { normalizeAliasKey } from "./aliasUtils.js";

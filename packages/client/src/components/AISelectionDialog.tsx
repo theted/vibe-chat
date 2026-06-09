@@ -7,8 +7,9 @@
 
 import { useState, useEffect, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { resolveEmoji } from "@ai-chat/ai-configs";
+import { normalizeAliasKey } from "@ai-chat/ai-configs";
 import { DEFAULT_AI_PARTICIPANTS } from "@/config/aiParticipants";
+import { EXTRA_AI_PARTICIPANTS } from "@/config/extraAiParticipants";
 import Icon from "./Icon";
 import type { AISelectionDialogProps, DialogPosition } from "@/types";
 
@@ -35,23 +36,6 @@ const SLIDE_VARIANTS = {
   },
 };
 
-const EXTRA_AI_PARTICIPANTS = [
-  {
-    id: "OPENAI_GPT4",
-    name: "gpt-4",
-    alias: "gpt-4",
-    provider: "OpenAI",
-    emoji: resolveEmoji("gpt-4"),
-  },
-  {
-    id: "OPENAI_CHATGPT",
-    name: "chatgpt",
-    alias: "chatgpt",
-    provider: "OpenAI",
-    emoji: resolveEmoji("chatgpt"),
-  },
-];
-
 interface MentionOption {
   id: string;
   name: string;
@@ -62,8 +46,7 @@ interface MentionOption {
   score?: number;
 }
 
-const normalize = (v: string | undefined | null): string =>
-  v?.toLowerCase?.().replace(/[^a-z0-9]/g, "") || "";
+const normalize = normalizeAliasKey;
 
 const fuzzyMatch = (term: string, candidate: string): boolean => {
   if (!term) return true;
