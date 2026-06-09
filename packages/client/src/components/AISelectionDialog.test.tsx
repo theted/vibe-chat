@@ -99,8 +99,10 @@ describe("AISelectionDialog", () => {
 
     // Two-step flow: first Enter opens the detail view, second Enter inserts
     fireEvent.keyDown(document, { key: "Enter" });
+    expect(defaultProps.onSelect).not.toHaveBeenCalled();
     fireEvent.keyDown(document, { key: "Enter" });
     expect(defaultProps.onSelect).toHaveBeenCalledWith("beta");
+    expect(defaultProps.onSelect).toHaveBeenCalledTimes(1);
   });
 
   it("wraps selection when navigating above the first option", () => {
