@@ -4,17 +4,13 @@
  * Common string manipulation functions used across the orchestrator and services.
  */
 
+import { normalizeAliasKey } from "@ai-chat/ai-configs";
+
 /**
  * Normalize an alias/name to lowercase alphanumeric characters only
  * Used for consistent comparison of participant names and mentions
  */
-export const normalizeAlias = (value?: string | number | null): string =>
-  value
-    ? value
-        .toString()
-        .toLowerCase()
-        .replace(/[^a-z0-9]/g, "")
-    : "";
+export const normalizeAlias = normalizeAliasKey;
 
 /**
  * Convert a value to a mention-friendly alias format

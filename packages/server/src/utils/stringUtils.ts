@@ -16,12 +16,7 @@ export const resolveText = (value: unknown, fallback: string): string => {
 };
 
 /**
- * Normalize an alias to lowercase alphanumeric characters only
+ * Normalize an alias to lowercase alphanumeric characters only.
+ * Re-exported from the shared implementation in @ai-chat/ai-configs.
  */
-export const normalizeAlias = (value?: string | number | null): string =>
-  value
-    ? value
-        .toString()
-        .toLowerCase()
-        .replace(/[^a-z0-9]/g, "")
-    : "";
+export { normalizeAliasKey as normalizeAlias } from "@ai-chat/ai-configs";
