@@ -20,6 +20,7 @@ import {
 } from "@/utils/formatters";
 import type { DashboardMetrics, ConnectionStatus, ProviderModelStat } from "@/types";
 import type { AiParticipant } from "@/config/aiParticipants";
+import { SOCKET_EVENTS } from "@ai-chat/ai-configs";
 
 const METRICS_REFRESH_INTERVAL_MS = 30_000;
 const METRICS_HISTORY_DURATION_MS = 60 * 60 * 1000;
@@ -72,10 +73,10 @@ const Dashboard = () => {
   useEffect(() => {
     const handleConnect = () => {
       setConnectionStatus({ connected: true });
-      emit("join-dashboard");
-      emit("get-metrics");
-      emit("get-metrics-history", { duration: METRICS_HISTORY_DURATION_MS });
-      emit("get-ai-participants");
+      emit(SOCKET_EVENTS.JOIN_DASHBOARD);
+      emit(SOCKET_EVENTS.GET_METRICS);
+      emit(SOCKET_EVENTS.GET_METRICS_HISTORY, { duration: METRICS_HISTORY_DURATION_MS });
+      emit(SOCKET_EVENTS.GET_AI_PARTICIPANTS);
     };
 
     const handleDisconnect = () => {
@@ -92,24 +93,24 @@ const Dashboard = () => {
 
     on("connect", handleConnect);
     on("disconnect", handleDisconnect);
-    on("metrics-update", handleMetrics);
-    on("ai-participants", handleAiParticipants);
+    on(SOCKET_EVENTS.METRICS_UPDATE, handleMetrics);
+    on(SOCKET_EVENTS.AI_PARTICIPANTS, handleAiParticipants);
 
-    emit("join-dashboard");
-    emit("get-ai-participants");
+    emit(SOCKET_EVENTS.JOIN_DASHBOARD);
+    emit(SOCKET_EVENTS.GET_AI_PARTICIPANTS);
 
     return () => {
       off("connect", handleConnect);
       off("disconnect", handleDisconnect);
-      off("metrics-update", handleMetrics);
-      off("ai-participants", handleAiParticipants);
+      off(SOCKET_EVENTS.METRICS_UPDATE, handleMetrics);
+      off(SOCKET_EVENTS.AI_PARTICIPANTS, handleAiParticipants);
     };
   }, [on, off, emit]);
 
   useEffect(() => {
     const interval = setInterval(() => {
       if (connectionStatus.connected) {
-        emit("get-metrics");
+        emit(SOCKET_EVENTS.GET_METRICS);
       }
     }, METRICS_REFRESH_INTERVAL_MS);
 

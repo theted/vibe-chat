@@ -40,3 +40,7 @@ export {
 
 // Alias utilities
 export { normalizeAliasKey } from "./aliasUtils.js";
+
+// Socket wire-protocol events
+export { SOCKET_EVENTS } from "./socketEvents.js";
+export type { SocketEventName } from "./socketEvents.js";
