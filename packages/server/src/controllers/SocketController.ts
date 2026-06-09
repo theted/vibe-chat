@@ -19,6 +19,7 @@ import {
   MESSAGE_MAX_LENGTH,
   TOPIC_MAX_LENGTH,
 } from "@/config/serverConfig.js";
+import { SOCKET_EVENTS } from "@ai-chat/ai-configs";
 import type {
   ActiveAIParticipant,
   ChatMessage,
@@ -114,8 +115,8 @@ export class SocketController {
       console.warn("Failed to persist message history:", msg);
     }
 
-    this.io.to(roomId).emit("new-message", message);
-    this.io.to(this.previewRoomId).emit("preview-message", {
+    this.io.to(roomId).emit(SOCKET_EVENTS.NEW_MESSAGE, message);
+    this.io.to(this.previewRoomId).emit(SOCKET_EVENTS.PREVIEW_MESSAGE, {
       roomId,
       message,
       participants: this.roomManager.getRoomParticipants(roomId),
@@ -155,7 +156,7 @@ export class SocketController {
     this.setupSocketEvents(socket);
     socket.join(this.previewRoomId);
 
-    socket.emit("connection-established", {
+    socket.emit(SOCKET_EVENTS.CONNECTION_ESTABLISHED, {
       socketId: socket.id,
       serverTime: Date.now(),
       availableRooms: this.roomManager.getRoomList(),
@@ -168,29 +169,29 @@ export class SocketController {
   }
 
   setupSocketEvents(socket: Socket): void {
-    socket.on("join-room", (data: JoinRoomPayload) => this.handleJoinRoom(socket, data));
-    socket.on("user-message", (data: UserMessagePayload) => this.handleUserMessage(socket, data));
-    socket.on("change-topic", (data: TopicChangePayload) => this.handleTopicChange(socket, data));
-    socket.on("user-typing-start", () => this.handleUserTyping(socket, true));
-    socket.on("user-typing-stop", () => this.handleUserTyping(socket, false));
-    socket.on("get-room-info", (data: unknown) => this.handleGetRoomInfo(socket, data));
-    socket.on("get-ai-status", () => this.handleGetAIStatus(socket));
-    socket.on("admin-wake-ais", (data: unknown) => this.handleAdminWakeAIs(socket, data));
-    socket.on("admin-sleep-ais", (data: unknown) => this.handleAdminSleepAIs(socket, data));
+    socket.on(SOCKET_EVENTS.JOIN_ROOM, (data: JoinRoomPayload) => this.handleJoinRoom(socket, data));
+    socket.on(SOCKET_EVENTS.USER_MESSAGE, (data: UserMessagePayload) => this.handleUserMessage(socket, data));
+    socket.on(SOCKET_EVENTS.CHANGE_TOPIC, (data: TopicChangePayload) => this.handleTopicChange(socket, data));
+    socket.on(SOCKET_EVENTS.USER_TYPING_START, () => this.handleUserTyping(socket, true));
+    socket.on(SOCKET_EVENTS.USER_TYPING_STOP, () => this.handleUserTyping(socket, false));
+    socket.on(SOCKET_EVENTS.GET_ROOM_INFO, (data: unknown) => this.handleGetRoomInfo(socket, data));
+    socket.on(SOCKET_EVENTS.GET_AI_STATUS, () => this.handleGetAIStatus(socket));
+    socket.on(SOCKET_EVENTS.ADMIN_WAKE_AIS, (data: unknown) => this.handleAdminWakeAIs(socket, data));
+    socket.on(SOCKET_EVENTS.ADMIN_SLEEP_AIS, (data: unknown) => this.handleAdminSleepAIs(socket, data));
     socket.on("disconnect", () => this.handleDisconnect(socket));
 
     // Dashboard events
-    socket.on("join-dashboard", () => {
+    socket.on(SOCKET_EVENTS.JOIN_DASHBOARD, () => {
       socket.join("dashboard");
-      socket.emit("metrics-update", this.metricsService.getDetailedMetrics());
-      socket.emit("ai-participants", this.getActiveAIParticipants());
+      socket.emit(SOCKET_EVENTS.METRICS_UPDATE, this.metricsService.getDetailedMetrics());
+      socket.emit(SOCKET_EVENTS.AI_PARTICIPANTS, this.getActiveAIParticipants());
     });
-    socket.on("get-metrics", () => socket.emit("metrics-update", this.metricsService.getDetailedMetrics()));
-    socket.on("get-ai-participants", () => socket.emit("ai-participants", this.getActiveAIParticipants()));
-    socket.on("get-metrics-history", (data: MetricsHistoryPayload) => {
-      socket.emit("metrics-history", this.metricsService.getMetricsHistory(data?.duration));
+    socket.on(SOCKET_EVENTS.GET_METRICS, () => socket.emit(SOCKET_EVENTS.METRICS_UPDATE, this.metricsService.getDetailedMetrics()));
+    socket.on(SOCKET_EVENTS.GET_AI_PARTICIPANTS, () => socket.emit(SOCKET_EVENTS.AI_PARTICIPANTS, this.getActiveAIParticipants()));
+    socket.on(SOCKET_EVENTS.GET_METRICS_HISTORY, (data: MetricsHistoryPayload) => {
+      socket.emit(SOCKET_EVENTS.METRICS_HISTORY, this.metricsService.getMetricsHistory(data?.duration));
     });
-    socket.on("error", (error: Error) => console.error(`Socket ${socket.id} error:`, error));
+    socket.on(SOCKET_EVENTS.ERROR, (error: Error) => console.error(`Socket ${socket.id} error:`, error));
   }
 
   // --- Event handlers ---
@@ -200,12 +201,12 @@ export class SocketController {
       const { username, roomId = "default" } = data;
 
       if (!username || username.trim().length === 0) {
-        socket.emit("error", { message: "Username is required" });
+        socket.emit(SOCKET_EVENTS.ERROR, { message: "Username is required" });
         return;
       }
 
       if (username.length > USERNAME_MAX_LENGTH || !/^[a-zA-Z0-9_-]+$/.test(username)) {
-        socket.emit("error", {
+        socket.emit(SOCKET_EVENTS.ERROR, {
           message: `Username must be 1-${USERNAME_MAX_LENGTH} characters, letters, numbers, dash, underscore only`,
         });
         return;
@@ -215,7 +216,7 @@ export class SocketController {
       const room = this.roomManager.joinRoom(socket.id, roomId, userData);
 
       if (!room) {
-        socket.emit("error", { message: "Failed to join room - room may be full" });
+        socket.emit(SOCKET_EVENTS.ERROR, { message: "Failed to join room - room may be full" });
         return;
       }
 
@@ -244,7 +245,7 @@ export class SocketController {
       this.metricsService.updateActiveUsers(this.connectedUsers.size);
       this.metricsService.updateActiveRooms(this.roomManager.getStats().totalRooms);
 
-      socket.emit("room-joined", {
+      socket.emit(SOCKET_EVENTS.ROOM_JOINED, {
         roomId,
         roomName: room.name,
         topic: room.topic,
@@ -258,11 +259,11 @@ export class SocketController {
         console.warn("Failed to send room history after join:", msg);
       });
 
-      socket.to(roomId).emit("user-joined", { username: userData.username, timestamp: Date.now() });
+      socket.to(roomId).emit(SOCKET_EVENTS.USER_JOINED, { username: userData.username, timestamp: Date.now() });
       console.log(`${userData.username} joined room ${roomId}`);
     } catch (error) {
       console.error("Error handling join room:", error);
-      socket.emit("error", { message: "Failed to join room" });
+      socket.emit(SOCKET_EVENTS.ERROR, { message: "Failed to join room" });
     }
   }
 
@@ -270,18 +271,18 @@ export class SocketController {
     try {
       const user = this.connectedUsers.get(socket.id);
       if (!user) {
-        socket.emit("error", { message: "User not found - please rejoin" });
+        socket.emit(SOCKET_EVENTS.ERROR, { message: "User not found - please rejoin" });
         return;
       }
 
       const { content } = data;
       if (!content || content.trim().length === 0) {
-        socket.emit("error", { message: "Message content is required" });
+        socket.emit(SOCKET_EVENTS.ERROR, { message: "Message content is required" });
         return;
       }
 
       if (content.length > MESSAGE_MAX_LENGTH) {
-        socket.emit("error", { message: `Message too long (max ${MESSAGE_MAX_LENGTH} characters)` });
+        socket.emit(SOCKET_EVENTS.ERROR, { message: `Message too long (max ${MESSAGE_MAX_LENGTH} characters)` });
         return;
       }
 
@@ -293,7 +294,7 @@ export class SocketController {
           ? Math.ceil(rateLimitResult.retryAfterMs / 1000)
           : undefined;
         const windowMinutes = Math.round(USER_MESSAGE_WINDOW_MS / 60_000);
-        socket.emit("error", {
+        socket.emit(SOCKET_EVENTS.ERROR, {
           message: `Rate limit exceeded: max ${USER_MESSAGE_LIMIT} messages per ${windowMinutes} minutes. Please wait before sending more.`,
           code: "RATE_LIMITED",
           retryAfterSeconds,
@@ -327,7 +328,7 @@ export class SocketController {
       }
 
       this.chatOrchestrator.addMessage(message);
-      this.io.to(user.roomId).emit("user-typing-stop", { username: user.username, roomId: user.roomId });
+      this.io.to(user.roomId).emit(SOCKET_EVENTS.USER_TYPING_STOP, { username: user.username, roomId: user.roomId });
       console.log(`Message from ${user.username} in ${user.roomId}: ${content.substring(0, 50)}...`);
 
       if (isChatAssistantQuery) {
@@ -339,7 +340,7 @@ export class SocketController {
       }
     } catch (error) {
       console.error("Error handling user message:", error);
-      socket.emit("error", { message: "Failed to send message" });
+      socket.emit(SOCKET_EVENTS.ERROR, { message: "Failed to send message" });
     }
   }
 
@@ -359,18 +360,18 @@ export class SocketController {
     try {
       const user = this.connectedUsers.get(socket.id);
       if (!user) {
-        socket.emit("error", { message: "User not found - please rejoin" });
+        socket.emit(SOCKET_EVENTS.ERROR, { message: "User not found - please rejoin" });
         return;
       }
 
       const { topic } = data;
       if (!topic || topic.trim().length === 0) {
-        socket.emit("error", { message: "Topic is required" });
+        socket.emit(SOCKET_EVENTS.ERROR, { message: "Topic is required" });
         return;
       }
 
       if (topic.length > TOPIC_MAX_LENGTH) {
-        socket.emit("error", { message: `Topic too long (max ${TOPIC_MAX_LENGTH} characters)` });
+        socket.emit(SOCKET_EVENTS.ERROR, { message: `Topic too long (max ${TOPIC_MAX_LENGTH} characters)` });
         return;
       }
 
@@ -378,7 +379,7 @@ export class SocketController {
       const updated = this.roomManager.updateRoomTopic(user.roomId, newTopic, user.username);
 
       if (!updated) {
-        socket.emit("error", { message: "Failed to update topic" });
+        socket.emit(SOCKET_EVENTS.ERROR, { message: "Failed to update topic" });
         return;
       }
 
@@ -386,7 +387,7 @@ export class SocketController {
       console.log(`${user.username} changed topic in ${user.roomId} to: ${newTopic}`);
     } catch (error) {
       console.error("Error handling topic change:", error);
-      socket.emit("error", { message: "Failed to change topic" });
+      socket.emit(SOCKET_EVENTS.ERROR, { message: "Failed to change topic" });
     }
   }
 
@@ -394,11 +395,11 @@ export class SocketController {
     try {
       const user = this.connectedUsers.get(socket.id);
       if (!user) {
-        socket.emit("error", { message: "User not found - please rejoin" });
+        socket.emit(SOCKET_EVENTS.ERROR, { message: "User not found - please rejoin" });
         return;
       }
 
-      socket.emit("room-info", {
+      socket.emit(SOCKET_EVENTS.ROOM_INFO, {
         room: this.roomManager.getRoom(user.roomId),
         participants: this.roomManager.getRoomParticipants(user.roomId),
         aiStatus: this.aiTracker.getRoomStatus(user.roomId),
@@ -406,19 +407,19 @@ export class SocketController {
       });
     } catch (error) {
       console.error("Error getting room info:", error);
-      socket.emit("error", { message: "Failed to get room info" });
+      socket.emit(SOCKET_EVENTS.ERROR, { message: "Failed to get room info" });
     }
   }
 
   handleGetAIStatus(socket: Socket): void {
     try {
-      socket.emit("ai-status", {
+      socket.emit(SOCKET_EVENTS.AI_STATUS, {
         orchestrator: this.chatOrchestrator.getStatus(),
         tracker: this.aiTracker.getStats(),
       });
     } catch (error) {
       console.error("Error getting AI status:", error);
-      socket.emit("error", { message: "Failed to get AI status" });
+      socket.emit(SOCKET_EVENTS.ERROR, { message: "Failed to get AI status" });
     }
   }
 
@@ -428,7 +429,7 @@ export class SocketController {
       if (!user) return;
       this.aiTracker.wakeUpAIs(user.roomId, `admin-wake-by-${user.username}`);
       this.chatOrchestrator.wakeUpAIs();
-      socket.to(user.roomId).emit("admin-action", { action: "wake-ais", by: user.username });
+      socket.to(user.roomId).emit(SOCKET_EVENTS.ADMIN_ACTION, { action: "wake-ais", by: user.username });
     } catch (error) {
       console.error("Error waking AIs:", error);
     }
@@ -440,7 +441,7 @@ export class SocketController {
       if (!user) return;
       this.aiTracker.putAIsToSleep(user.roomId, `admin-sleep-by-${user.username}`);
       this.chatOrchestrator.putAIsToSleep();
-      socket.to(user.roomId).emit("admin-action", { action: "sleep-ais", by: user.username });
+      socket.to(user.roomId).emit(SOCKET_EVENTS.ADMIN_ACTION, { action: "sleep-ais", by: user.username });
     } catch (error) {
       console.error("Error sleeping AIs:", error);
     }
@@ -451,8 +452,8 @@ export class SocketController {
       const user = this.connectedUsers.get(socket.id);
 
       if (user) {
-        socket.to(user.roomId).emit("user-left", { username: user.username, timestamp: Date.now() });
-        this.io.to(user.roomId).emit("user-typing-stop", { username: user.username, roomId: user.roomId });
+        socket.to(user.roomId).emit(SOCKET_EVENTS.USER_LEFT, { username: user.username, timestamp: Date.now() });
+        this.io.to(user.roomId).emit(SOCKET_EVENTS.USER_TYPING_STOP, { username: user.username, roomId: user.roomId });
         console.log(`${user.username} disconnected from room ${user.roomId}`);
       }
 
@@ -483,7 +484,7 @@ export class SocketController {
         Promise.resolve(this.getActiveAIParticipants()),
       ]);
 
-      socket.emit("recent-messages", { roomId, messages, participants, aiParticipants });
+      socket.emit(SOCKET_EVENTS.RECENT_MESSAGES, { roomId, messages, participants, aiParticipants });
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
       console.warn("Failed to send recent messages:", msg);

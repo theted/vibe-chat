@@ -4,6 +4,7 @@
 
 import { io, type Socket } from "socket.io-client";
 import { SERVER_URL } from "@/constants/chat.ts";
+import { SOCKET_EVENTS } from "@ai-chat/ai-configs";
 
 type EventCallback = (...args: unknown[]) => void;
 
@@ -142,45 +143,45 @@ class SocketService {
 
   // Chat specific methods
   joinRoom(username: string, roomId: string = "default"): void {
-    this.emit("join-room", { username, roomId });
+    this.emit(SOCKET_EVENTS.JOIN_ROOM, { username, roomId });
   }
 
   sendMessage(content: string): void {
-    this.emit("user-message", { content });
+    this.emit(SOCKET_EVENTS.USER_MESSAGE, { content });
   }
 
   changeTopic(topic: string): void {
-    this.emit("change-topic", { topic });
+    this.emit(SOCKET_EVENTS.CHANGE_TOPIC, { topic });
   }
 
   getRoomInfo(): void {
-    this.emit("get-room-info");
+    this.emit(SOCKET_EVENTS.GET_ROOM_INFO);
   }
 
   getAIStatus(): void {
-    this.emit("get-ai-status");
+    this.emit(SOCKET_EVENTS.GET_AI_STATUS);
   }
 
   adminWakeAIs(): void {
-    this.emit("admin-wake-ais");
+    this.emit(SOCKET_EVENTS.ADMIN_WAKE_AIS);
   }
 
   adminSleepAIs(): void {
-    this.emit("admin-sleep-ais");
+    this.emit(SOCKET_EVENTS.ADMIN_SLEEP_AIS);
   }
 
   triggerAI(aiNames: string[], message: string, context: unknown[] = []): void {
-    this.emit("trigger-ai", { aiNames, message, context });
+    this.emit(SOCKET_EVENTS.TRIGGER_AI, { aiNames, message, context });
   }
 
   startTyping(): void {
     console.log("📝 Sending user-typing-start event");
-    this.emit("user-typing-start");
+    this.emit(SOCKET_EVENTS.USER_TYPING_START);
   }
 
   stopTyping(): void {
     console.log("✋ Sending user-typing-stop event");
-    this.emit("user-typing-stop");
+    this.emit(SOCKET_EVENTS.USER_TYPING_STOP);
   }
 
   // Connection management

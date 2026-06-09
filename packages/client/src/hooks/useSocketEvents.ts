@@ -27,6 +27,7 @@ import type {
   TypingAI,
 } from "@/types";
 import type { AiParticipant } from "@/config/aiParticipants";
+import { SOCKET_EVENTS } from "@ai-chat/ai-configs";
 
 type StateSetter<T> = React.Dispatch<React.SetStateAction<T>>;
 type ShowToast = (message: string, type?: string) => void;
@@ -129,16 +130,16 @@ export const useSocketEvents = (opts: UseSocketEventsOptions) => {
 
     const handlers: Record<string, (...args: unknown[]) => void> = {
       "connection-status": connectionHandler,
-      "recent-messages": createRecentMessagesHandler(previewState),
-      "preview-message": createPreviewMessageHandler(previewState),
-      "room-joined": createRoomJoinedHandler(roomJoinState),
-      "new-message": (data: unknown) => {
+      [SOCKET_EVENTS.RECENT_MESSAGES]: createRecentMessagesHandler(previewState),
+      [SOCKET_EVENTS.PREVIEW_MESSAGE]: createPreviewMessageHandler(previewState),
+      [SOCKET_EVENTS.ROOM_JOINED]: createRoomJoinedHandler(roomJoinState),
+      [SOCKET_EVENTS.NEW_MESSAGE]: (data: unknown) => {
         const message = data as Message;
         setMessages((prev) =>
           [...prev, message].slice(-LOCAL_STORAGE_MESSAGES_LIMIT),
         );
       },
-      "user-joined": (data: unknown) => {
+      [SOCKET_EVENTS.USER_JOINED]: (data: unknown) => {
         const typedData = data as { username?: string };
         if (typedData?.username) {
           setParticipants((prev) => {
@@ -147,7 +148,7 @@ export const useSocketEvents = (opts: UseSocketEventsOptions) => {
           });
         }
       },
-      "user-left": (data: unknown) => {
+      [SOCKET_EVENTS.USER_LEFT]: (data: unknown) => {
         const typedData = data as { username?: string };
         if (typedData?.username) {
           setParticipants((prev) =>
@@ -158,17 +159,17 @@ export const useSocketEvents = (opts: UseSocketEventsOptions) => {
           );
         }
       },
-      "user-typing-start": createUserTypingStartHandler(typingState),
-      "user-typing-stop": createUserTypingStopHandler(typingState),
-      "ai-generating-start": createAIGeneratingStartHandler(setTypingAIs),
-      "ai-generating-stop": createAIGeneratingStopHandler(setTypingAIs),
-      "ai-status-changed": (data: unknown) => {
+      [SOCKET_EVENTS.USER_TYPING_START]: createUserTypingStartHandler(typingState),
+      [SOCKET_EVENTS.USER_TYPING_STOP]: createUserTypingStopHandler(typingState),
+      [SOCKET_EVENTS.AI_GENERATING_START]: createAIGeneratingStartHandler(setTypingAIs),
+      [SOCKET_EVENTS.AI_GENERATING_STOP]: createAIGeneratingStopHandler(setTypingAIs),
+      [SOCKET_EVENTS.AI_STATUS_CHANGED]: (data: unknown) => {
         const typedData = data as AIStatus;
         if (typedData?.status === "sleeping") {
           showToast("AIs are taking a break. Send a message to wake them up!", "info");
         }
       },
-      "topic-changed": (data: unknown) => {
+      [SOCKET_EVENTS.TOPIC_CHANGED]: (data: unknown) => {
         const typedData = data as { newTopic?: string; changedBy?: string };
         if (typedData?.newTopic) {
           setRoomInfo((prev) => ({ ...prev, topic: typedData.newTopic || prev.topic }));
@@ -178,7 +179,7 @@ export const useSocketEvents = (opts: UseSocketEventsOptions) => {
           );
         }
       },
-      error: (data: unknown) => {
+      [SOCKET_EVENTS.ERROR]: (data: unknown) => {
         const typedData = data as { message?: string };
         if (typedData?.message) {
           setError(typedData.message);
@@ -200,7 +201,7 @@ export const useSocketEvents = (opts: UseSocketEventsOptions) => {
 
   const sendMessage = useCallback(
     (content: string) => {
-      emit("user-message", { content });
+      emit(SOCKET_EVENTS.USER_MESSAGE, { content });
     },
     [emit],
   );
@@ -208,20 +209,20 @@ export const useSocketEvents = (opts: UseSocketEventsOptions) => {
   const joinRoom = useCallback(
     (username: string, roomId = "default") => {
       setIsAuthLoading(true);
-      emit("join-room", { username, roomId });
+      emit(SOCKET_EVENTS.JOIN_ROOM, { username, roomId });
     },
     [emit, setIsAuthLoading],
   );
 
   const changeTopic = useCallback(
     (topic: string) => {
-      emit("change-topic", { topic });
+      emit(SOCKET_EVENTS.CHANGE_TOPIC, { topic });
     },
     [emit],
   );
 
-  const startTyping = useCallback(() => emit("user-typing-start"), [emit]);
-  const stopTyping = useCallback(() => emit("user-typing-stop"), [emit]);
+  const startTyping = useCallback(() => emit(SOCKET_EVENTS.USER_TYPING_START), [emit]);
+  const stopTyping = useCallback(() => emit(SOCKET_EVENTS.USER_TYPING_STOP), [emit]);
 
   return {
     sendMessage,

@@ -13,6 +13,7 @@ import type {
   ProviderModelStats,
 } from "@/types.js";
 import type { RedisClient } from "./RedisClient.js";
+import { SOCKET_EVENTS } from "@ai-chat/ai-configs";
 
 type MetricsServiceOptions = {
   redisClient?: RedisClient | null;
@@ -498,10 +499,10 @@ export class MetricsService extends EventEmitter {
     const metrics = this.getMetrics();
 
     // Emit to dashboard route specifically
-    this.io.emit("metrics-update", metrics);
+    this.io.emit(SOCKET_EVENTS.METRICS_UPDATE, metrics);
 
     // Also emit to any room that wants metrics
-    this.io.to("dashboard").emit("metrics-update", metrics);
+    this.io.to("dashboard").emit(SOCKET_EVENTS.METRICS_UPDATE, metrics);
   }
 
   /**
