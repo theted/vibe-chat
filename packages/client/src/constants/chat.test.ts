@@ -64,27 +64,33 @@ describe("chat constants", () => {
       });
     });
 
-    it("should map Claude variants to music emoji", () => {
-      expect(AI_EMOJI_LOOKUP.claude).toBe("🎹");
-      expect(AI_EMOJI_LOOKUP.anthropic).toBe("🎹");
+    // Derive expected emojis from the canonical mapping so these tests
+    // survive flagship model updates without manual edits.
+    it("should map Claude variants to the flagship participant emoji", () => {
+      const expected = resolveParticipantEmoji(AI_MENTION_MAPPINGS.claude);
+      expect(AI_EMOJI_LOOKUP.claude).toBe(expected);
+      expect(AI_EMOJI_LOOKUP.anthropic).toBe(expected);
     });
 
     it("should map GPT variants to the expected emoji", () => {
-      expect(AI_EMOJI_LOOKUP.gpt).toBe("🌀");
-      expect(AI_EMOJI_LOOKUP.gpt4).toBe("🌍");
-      expect(AI_EMOJI_LOOKUP.gpt35).toBe("⭐");
-      expect(AI_EMOJI_LOOKUP.openai).toBe("🌀");
+      const expected = resolveParticipantEmoji(AI_MENTION_MAPPINGS.gpt);
+      expect(AI_EMOJI_LOOKUP.gpt).toBe(expected);
+      expect(AI_EMOJI_LOOKUP.openai).toBe(expected);
+      expect(AI_EMOJI_LOOKUP.gpt4).toBe(resolveParticipantEmoji("gpt-4o"));
+      expect(AI_EMOJI_LOOKUP.gpt35).toBe(resolveParticipantEmoji("gpt-3-5"));
     });
 
-    it("should map Grok/X.AI to joker emoji", () => {
-      expect(AI_EMOJI_LOOKUP.grok).toBe("🃏");
-      expect(AI_EMOJI_LOOKUP.xai).toBe("🃏");
+    it("should map Grok/X.AI to the flagship participant emoji", () => {
+      const expected = resolveParticipantEmoji(AI_MENTION_MAPPINGS.grok);
+      expect(AI_EMOJI_LOOKUP.grok).toBe(expected);
+      expect(AI_EMOJI_LOOKUP.xai).toBe(expected);
     });
 
-    it("should map Gemini/Google to diamond emoji", () => {
-      expect(AI_EMOJI_LOOKUP.gemini).toBe("🔷");
-      expect(AI_EMOJI_LOOKUP.google).toBe("🔷");
-      expect(AI_EMOJI_LOOKUP.bard).toBe("🔷");
+    it("should map Gemini/Google to the flagship participant emoji", () => {
+      const expected = resolveParticipantEmoji(AI_MENTION_MAPPINGS.gemini);
+      expect(AI_EMOJI_LOOKUP.gemini).toBe(expected);
+      expect(AI_EMOJI_LOOKUP.google).toBe(expected);
+      expect(AI_EMOJI_LOOKUP.bard).toBe(expected);
     });
 
     it("should map Cohere variants to anchor emoji", () => {
@@ -129,45 +135,45 @@ describe("chat constants", () => {
       expect(typeof AI_MENTION_MAPPINGS).toBe("object");
     });
 
-    it("should contain mappings for major AI providers", () => {
-      const requiredProviders = [
-        "claude-sonnet-4-5",
-        "gpt-5.2",
+    it("should contain bare provider aliases for major AI providers", () => {
+      const requiredAliases = [
+        "claude",
+        "gpt",
         "grok",
-        "gemini-3-pro",
+        "gemini",
         "cohere",
         "mistral",
-        "sonar-pro",
-        "qwen3-max",
+        "perplexity",
+        "qwen",
       ];
-      const mappingValues = Object.values(AI_MENTION_MAPPINGS);
-      requiredProviders.forEach((provider) => {
-        expect(mappingValues).toContain(provider);
+      requiredAliases.forEach((alias) => {
+        expect(AI_MENTION_MAPPINGS).toHaveProperty(alias);
       });
     });
 
-    it("should map Claude aliases to claude-sonnet-4-5", () => {
-      expect(AI_MENTION_MAPPINGS.claude).toBe("claude-sonnet-4-5");
-      expect(AI_MENTION_MAPPINGS.anthropic).toBe("claude-sonnet-4-5");
+    it("should map provider aliases to active participant aliases", () => {
+      // Flagship mappings must always point at a currently active participant —
+      // this is the invariant that catches stale model updates.
+      const activeAliases = DEFAULT_AI_PARTICIPANTS.filter(
+        (participant) => participant.status === "active",
+      ).map((participant) => participant.alias);
+
+      ["claude", "anthropic", "gpt", "openai", "grok", "xai", "gemini", "google"].forEach(
+        (alias) => {
+          expect(activeAliases).toContain(AI_MENTION_MAPPINGS[alias]);
+        },
+      );
     });
 
-    it("should map GPT aliases to gpt-5.2", () => {
-      expect(AI_MENTION_MAPPINGS.gpt).toBe("gpt-5.2");
+    it("should keep provider alias pairs in sync", () => {
+      expect(AI_MENTION_MAPPINGS.anthropic).toBe(AI_MENTION_MAPPINGS.claude);
+      expect(AI_MENTION_MAPPINGS.openai).toBe(AI_MENTION_MAPPINGS.gpt);
+      expect(AI_MENTION_MAPPINGS.chatgpt).toBe(AI_MENTION_MAPPINGS.gpt);
+      expect(AI_MENTION_MAPPINGS.xai).toBe(AI_MENTION_MAPPINGS.grok);
+      expect(AI_MENTION_MAPPINGS.google).toBe(AI_MENTION_MAPPINGS.gemini);
+      expect(AI_MENTION_MAPPINGS.bard).toBe(AI_MENTION_MAPPINGS.gemini);
       expect(AI_MENTION_MAPPINGS.gpt4).toBe("gpt-4o");
       expect(AI_MENTION_MAPPINGS["gpt-4"]).toBe("gpt-4o");
-      expect(AI_MENTION_MAPPINGS.openai).toBe("gpt-5.2");
-      expect(AI_MENTION_MAPPINGS.chatgpt).toBe("gpt-5.2");
-    });
-
-    it("should map Grok aliases correctly", () => {
-      expect(AI_MENTION_MAPPINGS.grok).toBe("grok");
-      expect(AI_MENTION_MAPPINGS.xai).toBe("grok");
-    });
-
-    it("should map Gemini aliases correctly", () => {
-      expect(AI_MENTION_MAPPINGS.gemini).toBe("gemini-3-pro");
-      expect(AI_MENTION_MAPPINGS.google).toBe("gemini-3-pro");
-      expect(AI_MENTION_MAPPINGS.bard).toBe("gemini-3-pro");
     });
 
     it("should map Cohere aliases to cohere", () => {

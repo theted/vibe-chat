@@ -4,7 +4,7 @@ FROM oven/bun:alpine AS deps
 
 WORKDIR /app
 
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY package.json bun.lock ./
 
 # Copy each package.json to preserve directory structure (glob doesn't work in Docker)
 COPY packages/client/package.json ./packages/client/

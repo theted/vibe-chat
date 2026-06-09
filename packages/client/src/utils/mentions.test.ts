@@ -3,19 +3,19 @@ import { extractMentionsFromText, findMentionMatches } from "./mentions";
 
 describe("mentions utilities", () => {
   it("matches @mentions with spaces from known AI names", () => {
-    const text = "Hello @Claude 3.5 Haiku!";
+    const text = "Hello @Claude Haiku 4.5!";
     const matches = findMentionMatches(text);
 
     expect(matches).toHaveLength(1);
-    expect(matches[0]?.text).toBe("@Claude 3.5 Haiku");
+    expect(matches[0]?.text).toBe("@Claude Haiku 4.5");
   });
 
   it("extracts normalized mentions from text", () => {
     const mentions = extractMentionsFromText(
-      "Ping @Claude 3.5 Haiku and @gpt-4o.",
+      "Ping @Claude Haiku 4.5 and @gpt-4o.",
     );
 
-    expect(mentions).toEqual(["claude 3.5 haiku", "gpt-4o"]);
+    expect(mentions).toEqual(["claude haiku 4.5", "gpt-4o"]);
   });
 
   it("matches @mentions from extra candidates", () => {

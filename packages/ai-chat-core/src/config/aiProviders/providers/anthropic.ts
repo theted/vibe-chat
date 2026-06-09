@@ -26,6 +26,20 @@ export const ANTHROPIC: AIProvider = {
   },
   models: {
     // Latest (recommended)
+    CLAUDE_FABLE_5: {
+      id: "claude-fable-5",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Claude Fable 5 by Anthropic. The most powerful and intelligent Claude model, a new tier above Opus, with a 1M token context window. Provide thorough, insightful responses with deep analytical thinking.",
+    },
+    CLAUDE_OPUS_4_8: {
+      id: "claude-opus-4-8",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Claude Opus 4.8 by Anthropic. The most capable Opus-tier model — highly autonomous, state-of-the-art on long-horizon agentic work and knowledge work, with a 1M token context window. Provide thorough, insightful responses with deep analytical thinking.",
+    },
     CLAUDE_OPUS_4_7: {
       id: "claude-opus-4-7",
       maxTokens: DEFAULT_MAX_TOKENS,
@@ -90,20 +104,7 @@ export const ANTHROPIC: AIProvider = {
       systemPrompt:
         "You are Claude Opus 4 by Anthropic. Provide thoughtful, thorough, and comprehensive answers that fully explore the topic.",
     },
-    CLAUDE3_7_SONNET: {
-      id: "claude-3-7-sonnet-20250219",
-      maxTokens: DEFAULT_MAX_TOKENS,
-      temperature: DEFAULT_TEMPERATURE,
-      systemPrompt:
-        "You are Claude 3.7 Sonnet, a hybrid AI reasoning model by Anthropic. Provide detailed, comprehensive responses that fully address questions. Use step-by-step reasoning when helpful.",
-    },
-    CLAUDE3_5_HAIKU_20241022: {
-      id: "claude-3-5-haiku-20241022",
-      maxTokens: DEFAULT_MAX_TOKENS,
-      temperature: DEFAULT_TEMPERATURE,
-      systemPrompt:
-        "You are Claude 3.5 Haiku by Anthropic. Provide thoughtful, well-developed responses that fully address the user's questions with appropriate depth and detail.",
-    },
+    // claude-3-7-sonnet and claude-3-5-haiku retired Feb 19, 2026 (API returns 404) — removed
   },
   apiKeyEnvVar: "ANTHROPIC_API_KEY",
 };

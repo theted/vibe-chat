@@ -28,6 +28,22 @@ import type { AiParticipant } from "./types.js";
 export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
   // Anthropic Models - Music/performing arts
   {
+    id: "ANTHROPIC_CLAUDE_FABLE_5",
+    name: "Claude Fable 5",
+    alias: "claude-fable-5",
+    provider: "Anthropic",
+    status: "active",
+    emoji: "🎸",
+  },
+  {
+    id: "ANTHROPIC_CLAUDE_OPUS_4_8",
+    name: "Claude Opus 4.8",
+    alias: "claude-opus-4-8",
+    provider: "Anthropic",
+    status: "active",
+    emoji: "🎙️",
+  },
+  {
     id: "ANTHROPIC_CLAUDE_OPUS_4_7",
     name: "Claude Opus 4.7",
     alias: "claude-opus-4-7",
@@ -98,22 +114,6 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     provider: "Anthropic",
     status: "inactive",
     emoji: "🎭",
-  },
-  {
-    id: "ANTHROPIC_CLAUDE3_7_SONNET",
-    name: "Claude 3.7 Sonnet",
-    alias: "claude-3-7-sonnet",
-    provider: "Anthropic",
-    status: "inactive",
-    emoji: "🎧",
-  },
-  {
-    id: "ANTHROPIC_CLAUDE3_5_HAIKU_20241022",
-    name: "Claude 3.5 Haiku",
-    alias: "haiku-3-5",
-    provider: "Anthropic",
-    status: "inactive",
-    emoji: "🪕",
   },
 
   // OpenAI Models - Space/cosmos
@@ -256,6 +256,14 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
 
   // xAI/Grok Models - Gaming/arcade
   {
+    id: "GROK_GROK_4_3",
+    name: "Grok 4.3",
+    alias: "grok-4.3",
+    provider: "xAI",
+    status: "active",
+    emoji: "♟️",
+  },
+  {
     id: "GROK_GROK_4_20",
     name: "Grok 4.20",
     alias: "grok-4.20",
@@ -284,7 +292,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     name: "Grok 4",
     alias: "grok-4",
     provider: "xAI",
-    status: "active",
+    status: "inactive",
     emoji: "👾",
   },
   {
@@ -292,7 +300,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     name: "Grok 4 Fast",
     alias: "grok-4-fast",
     provider: "xAI",
-    status: "active",
+    status: "inactive",
     emoji: "🏎️",
   },
   {
@@ -300,7 +308,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     name: "Grok 4 Fast Reasoning",
     alias: "grok-4-reasoning",
     provider: "xAI",
-    status: "active",
+    status: "inactive",
     emoji: "🎮",
   },
   {
@@ -308,7 +316,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     name: "Grok 4 Heavy",
     alias: "grok-4-heavy",
     provider: "xAI",
-    status: "active",
+    status: "inactive",
     emoji: "🕹️",
   },
   {
@@ -316,7 +324,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     name: "Grok 4.1 Fast",
     alias: "grok-4.1-fast",
     provider: "xAI",
-    status: "active",
+    status: "inactive",
     emoji: "🎰",
   },
   {
@@ -324,15 +332,15 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     name: "Grok 4.1 Fast Reasoning",
     alias: "grok-4.1-reasoning",
     provider: "xAI",
-    status: "active",
+    status: "inactive",
     emoji: "🎲",
   },
   {
     id: "GROK_GROK_3",
     name: "Grok 3",
-    alias: "grok",
+    alias: "grok-3",
     provider: "xAI",
-    status: "active",
+    status: "inactive",
     emoji: "🃏",
   },
   {
@@ -340,7 +348,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     name: "Grok 3 Mini",
     alias: "grok-3-mini",
     provider: "xAI",
-    status: "active",
+    status: "inactive",
     emoji: "🎯",
   },
   {
@@ -348,11 +356,19 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     name: "Grok Code",
     alias: "grok-code",
     provider: "xAI",
-    status: "active",
+    status: "inactive",
     emoji: "💾",
   },
 
   // Google/Gemini Models - Gems/crystals
+  {
+    id: "GEMINI_GEMINI_3_5_FLASH",
+    name: "Gemini 3.5 Flash",
+    alias: "gemini-3.5-flash",
+    provider: "Google",
+    status: "active",
+    emoji: "🔶",
+  },
   {
     id: "GEMINI_GEMINI_3_1_PRO",
     name: "Gemini 3.1 Pro",

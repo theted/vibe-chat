@@ -1,30 +1,42 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import AISelectionDialog from "./AISelectionDialog";
+import { createElement } from "react";
 import type { ReactNode } from "react";
 
 const stripMotionProps = (props: Record<string, unknown>) => {
-  const { whileHover, whileTap, ...rest } = props;
+  const {
+    whileHover,
+    whileTap,
+    initial,
+    animate,
+    exit,
+    variants,
+    transition,
+    layout,
+    layoutId,
+    ...rest
+  } = props;
   return rest;
 };
 
+// Proxy covers every motion.* element so new tags in the component don't break the mock
 vi.mock("framer-motion", () => ({
-  motion: {
-    div: ({
-      children,
-      ...props
-    }: {
-      children: ReactNode;
-      [key: string]: unknown;
-    }) => <div {...stripMotionProps(props)}>{children}</div>,
-    button: ({
-      children,
-      ...props
-    }: {
-      children: ReactNode;
-      [key: string]: unknown;
-    }) => <button {...stripMotionProps(props)}>{children}</button>,
-  },
+  motion: new Proxy(
+    {},
+    {
+      get:
+        (_target, tag: string) =>
+        ({
+          children,
+          ...props
+        }: {
+          children?: ReactNode;
+          [key: string]: unknown;
+        }) =>
+          createElement(tag, stripMotionProps(props), children),
+    },
+  ),
   AnimatePresence: ({ children }: { children: ReactNode }) => <>{children}</>,
 }));
 
@@ -75,18 +87,22 @@ describe("AISelectionDialog", () => {
     render(<AISelectionDialog {...defaultProps} />);
 
     expect(screen.getAllByRole("option")[0]).toHaveAttribute(
-      "data-active",
+      "aria-selected",
       "true",
     );
 
     fireEvent.keyDown(document, { key: "ArrowDown" });
     expect(screen.getAllByRole("option")[1]).toHaveAttribute(
-      "data-active",
+      "aria-selected",
       "true",
     );
 
+    // Two-step flow: first Enter opens the detail view, second Enter inserts
+    fireEvent.keyDown(document, { key: "Enter" });
+    expect(defaultProps.onSelect).not.toHaveBeenCalled();
     fireEvent.keyDown(document, { key: "Enter" });
     expect(defaultProps.onSelect).toHaveBeenCalledWith("beta");
+    expect(defaultProps.onSelect).toHaveBeenCalledTimes(1);
   });
 
   it("wraps selection when navigating above the first option", () => {
@@ -96,6 +112,6 @@ describe("AISelectionDialog", () => {
     const options = screen.getAllByRole("option");
     const lastOption = options[options.length - 1];
 
-    expect(lastOption).toHaveAttribute("data-active", "true");
+    expect(lastOption).toHaveAttribute("aria-selected", "true");
   });
 });
