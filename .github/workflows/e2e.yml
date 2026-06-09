@@ -16,18 +16,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
         with:
-          node-version: "22"
-          cache: "pnpm"
-          cache-dependency-path: pnpm-lock.yaml
+          bun-version: "latest"
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: bun install --ignore-scripts
 
       - name: Build and start application stack
         env:
@@ -60,12 +55,12 @@ jobs:
           wait_for "$CLIENT_URL"
 
       - name: Install Playwright browsers
-        run: npx --yes -p playwright playwright install --with-deps chromium
+        run: bunx playwright install --with-deps chromium
 
       - name: Run end-to-end tests
         env:
           CODECEPT_BASE_URL: http://localhost:3000
-        run: pnpm run test:e2e
+        run: bun run test:e2e
 
       - name: Stop application stack
         if: always()

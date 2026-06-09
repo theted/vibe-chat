@@ -48,7 +48,7 @@ ai-chat/
 2. Install dependencies:
 
    ```bash
-   pnpm install
+   bun install
    ```
 
 3. Create a `.env` file based on `.env.example` and add your API keys:
@@ -60,7 +60,7 @@ ai-chat/
 
 4. Build the packages:
    ```bash
-   pnpm run build
+   bun run build
    ```
 
 ## Usage
@@ -69,11 +69,11 @@ ai-chat/
 
 ```bash
 # Using Docker (recommended)
-pnpm run docker:dev
+bun run docker:dev
 
 # Or run individually
-pnpm --workspace @ai-chat/server run dev
-pnpm --workspace @ai-chat/client run dev
+bun run --filter @ai-chat/server dev
+bun run --filter @ai-chat/client dev
 ```
 
 The client runs on `http://localhost:3000` and the server on `http://localhost:3001`.
@@ -81,9 +81,9 @@ The client runs on `http://localhost:3000` and the server on `http://localhost:3
 ### Docker Commands
 
 ```bash
-pnpm run docker:dev    # Development with live reload
-pnpm run docker:prod   # Production build
-pnpm run docker:clean  # Clean up containers and volumes
+bun run docker:dev    # Development with live reload
+bun run docker:prod   # Production build
+bun run docker:clean  # Clean up containers and volumes
 ```
 
 ## Supported Providers and Models
@@ -280,21 +280,21 @@ Integration tests verify each provider returns expected responses. They skip aut
 
 ```bash
 # Run all tests
-pnpm test
+bun run test
 
 # Run specific workspace tests
-pnpm run test:core
-pnpm run test:client
-pnpm run test:cli
+bun run test:core
+bun run test:client
+bun run test:cli
 
 # Run provider-specific tests
-pnpm run test:openai
-pnpm run test:anthropic
-pnpm run test:mistral
-pnpm run test:gemini
-pnpm run test:deepseek
-pnpm run test:grok
-pnpm run test:all
+bun run test:openai
+bun run test:anthropic
+bun run test:mistral
+bun run test:gemini
+bun run test:deepseek
+bun run test:grok
+bun run test:all
 ```
 
 ## Extending the Project
@@ -309,11 +309,11 @@ pnpm run test:all
 ### Package Scripts
 
 ```bash
-pnpm run build:core    # Build core library
-pnpm run build:cli     # Build CLI (includes core)
-pnpm run build:server  # Build server
-pnpm run build:client  # Build client
-pnpm run build         # Build all packages
+bun run build:core    # Build core library
+bun run build:cli     # Build CLI (includes core)
+bun run build:server  # Build server
+bun run build:client  # Build client
+bun run build         # Build all packages
 ```
 
 ## License

@@ -25,7 +25,15 @@ export const GEMINI: AIProvider = {
     ],
   },
   models: {
-    // Gemini 3.1 (Latest)
+    // Gemini 3.5 (Latest)
+    GEMINI_3_5_FLASH: {
+      id: "gemini-3.5-flash",
+      maxTokens: SHORT_RESPONSE_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Gemini 3.5 Flash by Google, the most intelligent Gemini model for sustained frontier performance on agentic and coding tasks. Provide complete, well-cited answers and adapt your length to the conversation.",
+    },
+    // Gemini 3.1
     GEMINI_3_1_PRO: {
       id: "gemini-3.1-pro-preview",
       maxTokens: SHORT_RESPONSE_MAX_TOKENS,
@@ -41,7 +49,8 @@ export const GEMINI: AIProvider = {
         "You are Gemini 3.1 Flash by Google, delivering fast frontier-class performance with upgraded visual and spatial reasoning. Provide concise, well-cited answers efficiently.",
     },
     GEMINI_3_1_FLASH_LITE: {
-      id: "gemini-3.1-flash-lite-preview",
+      // preview ID shut down — stable ID is GA
+      id: "gemini-3.1-flash-lite",
       maxTokens: SHORT_RESPONSE_MAX_TOKENS,
       temperature: DEFAULT_TEMPERATURE,
       systemPrompt:

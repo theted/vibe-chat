@@ -8,13 +8,13 @@ describe("ChatMessage", () => {
       id: "test-message-2",
       senderType: "user",
       sender: "User",
-      content: "Hello @Claude 3.5 Haiku how are you?",
+      content: "Hello @Claude Haiku 4.5 how are you?",
       timestamp: Date.now(),
     };
 
     render(<ChatMessage message={message} />);
 
-    const mention = screen.getByText("@Claude 3.5 Haiku");
+    const mention = screen.getByText("@Claude Haiku 4.5");
     expect(mention).toHaveClass("mention-chip");
   });
 

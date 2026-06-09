@@ -24,7 +24,15 @@ export const GROK: AIProvider = {
     ],
   },
   models: {
-    // Grok 4.20 (Latest - released March 31, 2026)
+    // Grok 4.3 (Latest flagship - deprecated Grok 3/4/4.1 models redirect here since May 15, 2026)
+    GROK_4_3: {
+      id: "grok-4.3",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: 0.9,
+      systemPrompt:
+        "You are Grok 4.3 by xAI, the most intelligent and fastest Grok model with a 1M context window, leading in non-hallucination rate and agentic tool calling. Greet once briefly, then blend incisive insight with playful edge.",
+    },
+    // Grok 4.20
     GROK_4_20: {
       id: "grok-4.20-0309-non-reasoning",
       maxTokens: DEFAULT_MAX_TOKENS,

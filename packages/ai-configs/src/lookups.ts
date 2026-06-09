@@ -12,15 +12,16 @@ export const normalizeAlias = (alias: string): string =>
  */
 export const AI_MENTION_MAPPINGS: Record<string, string> = {
   // Anthropic/Claude
-  claude: "claude-sonnet-4-6",
-  anthropic: "claude-sonnet-4-6",
+  claude: "claude-fable-5",
+  anthropic: "claude-fable-5",
+  fable: "claude-fable-5",
+  "claude-fable-5": "claude-fable-5",
   haiku: "claude-haiku-4-5",
   sonnet: "claude-sonnet-4-6",
-  opus: "claude-opus-4-7",
+  opus: "claude-opus-4-8",
+  "claude-opus-4-8": "claude-opus-4-8",
   "claude-opus-4-7": "claude-opus-4-7",
   "claude-opus-4-6": "claude-opus-4-6",
-  "claude-3-7-sonnet": "claude-3-7-sonnet",
-  "claude-3-5-haiku": "haiku-3-5",
   "claude-haiku-4-5": "claude-haiku-4-5",
   "claude-sonnet-4": "claude-sonnet-4",
   "claude-sonnet-4-5": "claude-sonnet-4-5",
@@ -58,8 +59,9 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   "o4-mini": "o4-mini",
 
   // xAI/Grok
-  grok: "grok-4.20",
-  xai: "grok-4.20",
+  grok: "grok-4.3",
+  xai: "grok-4.3",
+  "grok-4.3": "grok-4.3",
   "grok-4.20": "grok-4.20",
   "grok-4.20-reasoning": "grok-4.20-reasoning",
   "grok-4.20-multi-agent": "grok-4.20-multi-agent",
@@ -71,10 +73,13 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   "grok-4.1": "grok-4.1-fast",
   "grok-4.1-fast": "grok-4.1-fast",
   "grok-4.1-reasoning": "grok-4.1-reasoning",
+  "grok-3": "grok-3",
   "grok-code": "grok-code",
 
   // Google/Gemini
-  gemini: "gemini-3.1-pro",
+  gemini: "gemini-3.5-flash",
+  "gemini-3.5": "gemini-3.5-flash",
+  "gemini-3.5-flash": "gemini-3.5-flash",
   gemini3: "gemini-3.1-pro",
   "gemini-3": "gemini-3.1-pro",
   "gemini 3": "gemini-3.1-pro",
@@ -85,8 +90,8 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   "gemini-3.1-flash-lite": "gemini-3.1-flash-lite",
   "gemini-flash": "gemini-3.1-flash",
   "gemini-2.5": "gemini-2.5-pro",
-  google: "gemini-3.1-pro",
-  bard: "gemini-3.1-pro",
+  google: "gemini-3.5-flash",
+  bard: "gemini-3.5-flash",
 
   // Cohere
   command: "cohere",
@@ -291,9 +296,6 @@ const buildEmojiLookup = (): Record<string, string> => {
     ["pplx", "sonar"],
     ["qwen", "qwen3-max"], // 🐲
     // Base provider aliases -> specific model with expected emoji
-    ["gemini", "gemini-3-pro"], // 🔷
-    ["google", "gemini-3-pro"],
-    ["bard", "gemini-3-pro"],
     ["kimi", "kimi-k2.5"], // 🌕
     ["moonshot", "kimi-k2.5"],
   ]);

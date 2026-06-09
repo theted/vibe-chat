@@ -29,7 +29,7 @@ describe("MessageInput", () => {
 
   it("shows AI selection dialog while typing an @mention", () => {
     render(<MessageInput {...defaultProps} />);
-    const textarea = screen.getByPlaceholderText(/Use @ to mention an AI/i);
+    const textarea = screen.getByPlaceholderText(/@ to mention AI/i);
 
     fireEvent.change(textarea, { target: { value: "@Gr", selectionStart: 3 } });
 
@@ -40,7 +40,7 @@ describe("MessageInput", () => {
 
   it("opens the AI selection dialog even if selectionStart is unavailable", () => {
     render(<MessageInput {...defaultProps} />);
-    const textarea = screen.getByPlaceholderText(/Use @ to mention an AI/i);
+    const textarea = screen.getByPlaceholderText(/@ to mention AI/i);
 
     fireEvent.change(textarea, { target: { value: "@gr" } });
 
@@ -51,7 +51,7 @@ describe("MessageInput", () => {
 
   it("opens the AI selection dialog when selectionEnd is available", () => {
     render(<MessageInput {...defaultProps} />);
-    const textarea = screen.getByPlaceholderText(/Use @ to mention an AI/i);
+    const textarea = screen.getByPlaceholderText(/@ to mention AI/i);
 
     fireEvent.change(textarea, {
       target: { value: "@gra", selectionStart: null, selectionEnd: 4 },

@@ -15,7 +15,7 @@
     "dist"
   ],
   "scripts": {
-    "prebuild": "bun --cwd ../ai-configs run build",
+    "prebuild": "bun run --cwd ../ai-configs build",
     "build": "tsc --emitDeclarationOnly --outDir dist && swc src -d dist --strip-leading-paths && bun ../../scripts/resolve-path-aliases.mjs .",
     "build:watch": "swc src -d dist --watch & tsc --noEmit --watch",
     "clean": "rm -rf dist",
