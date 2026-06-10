@@ -100,6 +100,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     emoji: "🎺",
   },
   {
+    // retires 2026-06-15
     id: "ANTHROPIC_CLAUDE_SONNET_4",
     name: "Claude Sonnet 4",
     alias: "claude-sonnet-4",
@@ -108,6 +109,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     emoji: "🎼",
   },
   {
+    // retires 2026-06-15
     id: "ANTHROPIC_CLAUDE_OPUS_4",
     name: "Claude Opus 4",
     alias: "claude-opus-4",
@@ -288,6 +290,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     emoji: "🪀",
   },
   {
+    // deprecated May 15, 2026 (redirects to grok-4.3; retires Aug 15, 2026)
     id: "GROK_GROK_4_0709",
     name: "Grok 4",
     alias: "grok-4",

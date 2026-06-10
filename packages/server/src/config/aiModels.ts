@@ -1,17 +1,16 @@
 /**
  * AI Model Configuration
  *
- * Maps providers to their environment variable keys and defines
+ * Maps providers to their environment variable keys and derives
  * which models to initialize when API keys are available.
  *
- * Uses AI_PROVIDERS from @ai-chat/core as source of truth for available models.
+ * Uses AI_PROVIDERS from @ai-chat/core as source of truth for available
+ * models, and participant status in @ai-chat/ai-configs participants.ts as
+ * source of truth for which models are enabled.
  */
 
-import {
-  AI_PROVIDERS,
-  AI_DISPLAY_INFO,
-  getParticipantById,
-} from "@ai-chat/core";
+import { AI_PROVIDERS, AI_DISPLAY_INFO } from "@ai-chat/core";
+import { getActiveParticipants } from "@ai-chat/ai-configs";
 
 export type AIConfig = {
   providerKey: string;
@@ -22,228 +21,37 @@ export type AIConfig = {
 };
 
 /**
- * Enabled AI models for server startup.
- *
- * Comment out any entries to disable those models without changing logic.
+ * Filters active participant IDs against a comma-separated disable list.
+ * Exported for testing.
  */
-export const ENABLED_AI_MODELS: string[] = [
-  // OpenAI Models
-  "OPENAI_GPT5_5",
-  "OPENAI_GPT5_5_PRO",
-  "OPENAI_GPT5_2",
-  "OPENAI_GPT5_2_PRO",
-  "OPENAI_GPT5_MINI",
-  "OPENAI_GPT5_NANO",
-  "OPENAI_GPT4O",
-  "OPENAI_GPT4O_MINI",
-  "OPENAI_GPT4_1",
-  "OPENAI_GPT4_1_MINI",
-  "OPENAI_GPT4_1_NANO",
-  "OPENAI_O3",
-  "OPENAI_O3_PRO",
-  "OPENAI_O4_MINI",
-  // inactive: "OPENAI_GPT5",
-  // inactive: "OPENAI_GPT5_1",
-  // inactive: "OPENAI_GPT35_TURBO",
+export const deriveEnabledModels = (
+  activeIds: string[],
+  disabledCsv = "",
+): string[] => {
+  const disabled = new Set(
+    disabledCsv
+      .split(",")
+      .map((id) => id.trim())
+      .filter(Boolean),
+  );
+  return activeIds.filter((id) => !disabled.has(id));
+};
 
-  // Anthropic Models
-  "ANTHROPIC_CLAUDE_FABLE_5",
-  "ANTHROPIC_CLAUDE_OPUS_4_8",
-  "ANTHROPIC_CLAUDE_OPUS_4_7",
-  "ANTHROPIC_CLAUDE_OPUS_4_6",
-  "ANTHROPIC_CLAUDE_SONNET_4_6",
-  "ANTHROPIC_CLAUDE_SONNET_4_5",
-  "ANTHROPIC_CLAUDE_HAIKU_4_5",
-  "ANTHROPIC_CLAUDE_OPUS_4_1",
-  // inactive: "ANTHROPIC_CLAUDE_OPUS_4_5",
-  // inactive (retires 2026-06-15): "ANTHROPIC_CLAUDE_SONNET_4",
-  // inactive (retires 2026-06-15): "ANTHROPIC_CLAUDE_OPUS_4",
-
-  // xAI/Grok Models
-  "GROK_GROK_4_3",
-  "GROK_GROK_4_20",
-  "GROK_GROK_4_20_REASONING",
-  "GROK_GROK_4_20_MULTI_AGENT",
-  // deprecated May 15, 2026 (redirect to grok-4.3; retire Aug 15, 2026):
-  // inactive: "GROK_GROK_4_0709",
-  // inactive: "GROK_GROK_4_FAST_NON_REASONING",
-  // inactive: "GROK_GROK_4_FAST_REASONING",
-  // inactive: "GROK_GROK_4_HEAVY",
-  // inactive: "GROK_GROK_4_1_FAST_NON_REASONING",
-  // inactive: "GROK_GROK_4_1_FAST_REASONING",
-  // inactive: "GROK_GROK_3",
-  // inactive: "GROK_GROK_3_MINI",
-  // inactive: "GROK_GROK_CODE_FAST_1",
-
-  // Google/Gemini Models
-  "GEMINI_GEMINI_3_5_FLASH",
-  "GEMINI_GEMINI_3_1_PRO",
-  "GEMINI_GEMINI_3_1_FLASH",
-  "GEMINI_GEMINI_3_1_FLASH_LITE",
-  "GEMINI_GEMINI_2_5_PRO",
-  "GEMINI_GEMINI_2_5_FLASH",
-  "GEMINI_GEMINI_2_5_FLASH_LITE",
-
-  // Cohere Models
-  "COHERE_COMMAND_A_03_2025",
-  "COHERE_COMMAND_A_REASONING_08_2025",
-  "COHERE_COMMAND_A_TRANSLATE_08_2025",
-  "COHERE_COMMAND_A_VISION_07_2025",
-  "COHERE_COMMAND_R7B_12_2024",
-  "COHERE_COMMAND_R_PLUS_08_2024",
-  "COHERE_COMMAND_R_08_2024",
-
-  // Mistral AI Models
-  "MISTRAL_MISTRAL_LARGE",
-  "MISTRAL_MISTRAL_MEDIUM",
-  "MISTRAL_MISTRAL_SMALL",
-  "MISTRAL_MAGISTRAL_MEDIUM",
-  "MISTRAL_MAGISTRAL_SMALL",
-  "MISTRAL_CODESTRAL",
-  "MISTRAL_DEVSTRAL",
-  "MISTRAL_DEVSTRAL_SMALL",
-  "MISTRAL_MINISTRAL_14B",
-  "MISTRAL_MINISTRAL_8B",
-
-  // DeepSeek Models
-  "DEEPSEEK_DEEPSEEK_V4_PRO",
-  "DEEPSEEK_DEEPSEEK_V4_FLASH",
-  "DEEPSEEK_DEEPSEEK_CHAT",
-  "DEEPSEEK_DEEPSEEK_R1",
-
-  // Moonshot/Kimi Models
-  "KIMI_KIMI_K2_6",
-  "KIMI_KIMI_K2_6_THINKING",
-  "KIMI_KIMI_K2_5",
-  "KIMI_KIMI_LATEST",
-  "KIMI_KIMI_THINKING_PREVIEW",
-  // inactive: "KIMI_KIMI_8K",
-  // inactive: "KIMI_KIMI_32K",
-  // inactive: "KIMI_KIMI_128K",
-
-  // Z.ai Models
-  "ZAI_ZAI_GLM_5_1",
-  "ZAI_ZAI_DEFAULT",
-  "ZAI_ZAI_GLM_5",
-  "ZAI_ZAI_GLM_4_5",
-  "ZAI_ZAI_GLM_4_5_AIR",
-  "ZAI_ZAI_GLM_4_5_AIRX",
-  "ZAI_ZAI_GLM_4_5_FLASH",
-  "ZAI_ZAI_GLM_4_5_LONG",
-  "ZAI_ZAI_GLM_4_6",
-  "ZAI_ZAI_GLM_4_6V",
-  "ZAI_ZAI_GLM_4_7",
-  "ZAI_ZAI_GLM_4_7_FLASH",
-  "ZAI_ZAI_GLM_4_7V",
-
-  // Perplexity Models
-  "PERPLEXITY_SONAR",
-  "PERPLEXITY_SONAR_PRO",
-  "PERPLEXITY_SONAR_REASONING_PRO",
-  "PERPLEXITY_SONAR_DEEP_RESEARCH",
-
-  // Qwen/Alibaba Models
-  "QWEN_QWEN3_6_MAX_PREVIEW",
-  "QWEN_QWEN3_MAX",
-  "QWEN_QWEN3_235B",
-  "QWEN_QWEN3_CODER_PLUS",
-  "QWEN_QWEN3_CODER_FLASH",
-  "QWEN_QWEN_PLUS",
-  "QWEN_QWEN_TURBO",
-  "QWEN_QWEN_FLASH",
-  // inactive: "QWEN_QWEN_MAX",
-
-  // Meta/Llama Models
-  "LLAMA_LLAMA_3_3_70B_INSTRUCT",
-  "LLAMA_LLAMA_3_3_70B_INSTRUCT_FREE",
-  "LLAMA_LLAMA_4_MAVERICK",
-  "LLAMA_LLAMA_4_SCOUT",
-
-  // Amazon Models (OpenRouter)
-  "AMAZON_NOVA_2_LITE_V1",
-  "AMAZON_NOVA_PRO_V1",
-
-  // NVIDIA Models (OpenRouter)
-  "NVIDIA_NEMOTRON_3_NANO_30B_A3B",
-  "NVIDIA_NEMOTRON_3_NANO_30B_A3B_FREE",
-  "NVIDIA_NEMOTRON_3_NANO_2_VL",
-
-  // Xiaomi Models (OpenRouter)
-  "XIAOMI_MIMO_V2_FLASH",
-
-  // MiniMax Models (OpenRouter)
-  "MINIMAX_MINIMAX_M2_1",
-  "MINIMAX_MINIMAX_M2",
-  "MINIMAX_MINIMAX_M1",
-
-  // Baidu Models (OpenRouter)
-  "BAIDU_ERNIE_4_5_21B_A3B_THINKING",
-  "BAIDU_ERNIE_4_5_21B_A3B",
-  "BAIDU_ERNIE_4_5_300B_A47B",
-
-  // ByteDance Models (OpenRouter)
-  "BYTEDANCE_SEED_2_0_MINI",
-  "BYTEDANCE_SEED_1_6_FLASH",
-  "BYTEDANCE_SEED_1_6",
-
-  // Hugging Face Models (OpenRouter)
-  "HUGGINGFACE_ZEPHYR_141B_A35B",
-  "HUGGINGFACE_ZEPHYR_7B_BETA",
-
-  // Arcee AI Models (OpenRouter)
-  "ARCEE_TRINITY_LARGE_PREVIEW_FREE",
-  "ARCEE_TRINITY_MINI_FREE",
-  "ARCEE_CODER_LARGE",
-  "ARCEE_MAESTRO_REASONING",
-
-  // StepFun Models (OpenRouter)
-  "STEPFUN_STEP_3_5_FLASH_FREE",
-  "STEPFUN_STEP_3",
-
-  // Inflection AI Models (OpenRouter)
-  "INFLECTION_INFLECTION_3_PI",
-  "INFLECTION_INFLECTION_3_PRODUCTIVITY",
-
-  // 01.AI Models (OpenRouter)
-  "ZEROONEAI_YI_1_5_34B",
-  "ZEROONEAI_YI_CODER_9B",
-  "ZEROONEAI_YI_34B",
-
-  // Databricks Models (OpenRouter)
-  "DATABRICKS_DBRX_132B_INSTRUCT",
-
-  // Nous Research Models (OpenRouter)
-  "NOUS_HERMES_4_405B_FREE",
-  "NOUS_HERMES_4_70B",
-  "NOUS_DEEPHERMES_3_MISTRAL_24B",
-
-  // Phind Models (OpenRouter)
-  "PHIND_CODELLAMA_34B_V2",
-
-  // Microsoft AI Models (OpenRouter)
-  "MICROSOFT_WIZARDLM_2_8X22B",
-  "MICROSOFT_WIZARDLM_2_7B",
-
-  // Snowflake Models (OpenRouter)
-  "SNOWFLAKE_ARCTIC_INSTRUCT",
-];
+/**
+ * Enabled AI models for server startup, derived from participant status in
+ * @ai-chat/ai-configs (status: "active"). To disable a model everywhere,
+ * mark its participant "inactive"; for a server-only disable, list its ID in
+ * the DISABLED_AI_MODELS env var (comma-separated).
+ */
+export const ENABLED_AI_MODELS: string[] = deriveEnabledModels(
+  getActiveParticipants().map((participant) => participant.id),
+  process.env.DISABLED_AI_MODELS,
+);
 
 const ENABLED_AI_MODEL_SET = new Set(ENABLED_AI_MODELS);
 
 const isModelEnabled = (providerKey: string, modelKey: string): boolean =>
   ENABLED_AI_MODEL_SET.has(`${providerKey}_${modelKey}`);
-
-/**
- * Checks whether a model's participant entry is active.
- * Models with status "inactive" in participants.ts are excluded from initialization.
- */
-const isParticipantActive = (
-  providerKey: string,
-  modelKey: string,
-): boolean => {
-  const participant = getParticipantById(`${providerKey}_${modelKey}`);
-  return participant?.status !== "inactive";
-};
 
 /**
  * Maps provider keys to their environment variable names
@@ -316,7 +124,6 @@ export const getAvailableAIConfigs = (): AIConfig[] => {
     const models = getProviderModels(providerKey);
     models.forEach((modelKey) => {
       if (!isModelEnabled(providerKey, modelKey)) return;
-      if (!isParticipantActive(providerKey, modelKey)) return;
       // Only add models that have display info configured
       const displayKey = `${providerKey}_${modelKey}`;
       if (AI_DISPLAY_INFO[displayKey]) {
@@ -373,7 +180,6 @@ export const getProviderAIConfigs = (
 
   return selectedModels
     .filter((modelKey) => isModelEnabled(providerKey, modelKey))
-    .filter((modelKey) => isParticipantActive(providerKey, modelKey))
     .filter((modelKey) => {
       const displayKey = `${providerKey}_${modelKey}`;
       return AI_DISPLAY_INFO[displayKey] !== undefined;
