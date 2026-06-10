@@ -212,6 +212,7 @@ export interface IAIService {
   getModel(): string;
   getEnhancedSystemPrompt(additionalContext?: string): string;
   validateConfiguration(): Promise<boolean>;
+  getLastValidationError?(): string | undefined;
   getConfig?(): AIServiceConfig;
   shutdown?(): Promise<void>;
 }

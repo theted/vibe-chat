@@ -220,6 +220,13 @@ export abstract class BaseAIService implements IAIServiceExtended {
   /**
    * Validate the service configuration
    */
+  /**
+   * Detail for the most recent validateConfiguration/healthCheck failure.
+   */
+  getLastValidationError(): string | undefined {
+    return this.lastValidationError;
+  }
+
   async validateConfiguration(): Promise<boolean> {
     try {
       // Basic configuration checks

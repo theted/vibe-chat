@@ -59,13 +59,15 @@ app.use(createMetricsRouter({ getMetricsService }));
 app.use(createRoomsRouter({ getSocketController }));
 
 // Initialize and start server
-async function startServer(): Promise<void> {
+const startServer = async (): Promise<void> => {
   let redisClient: RedisClient | null = null;
   let metricsService: MetricsService | null = null;
   let chatOrchestrator: ChatOrchestrator | null = null;
   try {
-    // Initialize AI system
-    chatOrchestrator = await initializeAISystem();
+    // Initialize AI system (fast — health checks run in the background later)
+    const { orchestrator, startBackgroundRevalidation } =
+      await initializeAISystem();
+    chatOrchestrator = orchestrator;
     redisClient = await createRedisClient();
 
     // Create metrics service
@@ -105,11 +107,25 @@ async function startServer(): Promise<void> {
     }
 
     // Create socket controller
-    setSocketController(
-      new SocketController(io, chatOrchestrator, metricsService, redisClient, {
-        chatAssistantService,
-      }),
+    const socketController = new SocketController(
+      io,
+      chatOrchestrator,
+      metricsService,
+      redisClient,
+      { chatAssistantService },
     );
+    setSocketController(socketController);
+
+    // Revalidate untrusted models in the background; failed models are
+    // removed live and pushed to connected clients
+    startBackgroundRevalidation({
+      onParticipantsChanged: () => socketController.broadcastAIParticipants(),
+    }).catch((error) => {
+      console.warn(
+        "⚠️  Background model revalidation failed:",
+        error instanceof Error ? error.message : String(error),
+      );
+    });
 
     // Handle Socket.IO connections
     io.on("connection", (socket) => {
@@ -172,7 +188,7 @@ async function startServer(): Promise<void> {
     }
     process.exit(1);
   }
-}
+};
 
 // Error handling
 process.on(

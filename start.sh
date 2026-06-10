@@ -4,18 +4,18 @@ VERBOSE_MODE=false
 PERSONAS_MODE=false
 SKIP_HEALTHCHECK_MODE=false
 RECHECK_AVAILABILITY_MODE=false
-USE_LAST_WORKING_MODE=false
-TRY_MERGE_MODE=false
 VERBOSE_CONTEXT_FLAG="AI_CHAT_VERBOSE_CONTEXT"
 PERSONAS_FLAG="AI_CHAT_ENABLE_PERSONAS"
 SKIP_HEALTHCHECK_FLAG="AI_CHAT_SKIP_HEALTHCHECK"
 RECHECK_AVAILABILITY_FLAG="AI_CHAT_RECHECK_AVAILABILITY"
-USE_LAST_WORKING_FLAG="AI_CHAT_USE_LAST_WORKING"
-TRY_MERGE_FLAG="AI_CHAT_TRY_MERGE"
 
 print_usage() {
     cat <<'USAGE'
-Usage: ./start.sh [--verbose] [--personas] [--skip-healthcheck] [--recheck-availability] [--use-last-working]
+Usage: ./start.sh [--verbose] [--personas] [--skip-healthcheck] [--recheck-availability]
+
+Startup is stale-while-revalidate: all enabled models load immediately, models
+with a fresh success in model-health.json are trusted, and the rest are
+health-checked in the background after the server is up.
 
 Options:
   --verbose, -v   Output the full AI context that will be forwarded to the models.
@@ -23,23 +23,11 @@ Options:
   --personas      Enable AI persona injection into system prompts.
                   Each AI participant will express their configured personality.
   --skip-healthcheck
-                  Skip AI provider health checks during initialization.
-                  All configured models are added without connectivity validation.
+                  Disable background health checks entirely. All configured
+                  models stay available without connectivity validation.
   --recheck-availability
-                  Force re-check of all model availability and update models.json.
-                  By default, cached availability from models.json is used if present.
-  --use-last-working
-                  Fast startup: load only the participants that successfully
-                  activated in the last run (from startup-log.json). No health
-                  checks are performed. Ideal for iterative development where
-                  participant availability is stable. Requires at least one prior
-                  startup without this flag to build the log.
-  --try-merge
-                  Trust the previously-working models (no healthcheck), but
-                  re-run healthchecks for any models that FAILED last time.
-                  If previously-failed models now pass, they are merged back
-                  into the last log entry (not written as a new run). Use this
-                  to pick up newly-fixed providers without hammering working APIs.
+                  Ignore model-health.json and re-check every model in the
+                  background (use after rotating API keys or provider issues).
   --help, -h      Show this message.
 USAGE
 }
@@ -60,14 +48,6 @@ while [[ $# -gt 0 ]]; do
             ;;
         --recheck-availability)
             RECHECK_AVAILABILITY_MODE=true
-            shift
-            ;;
-        --use-last-working)
-            USE_LAST_WORKING_MODE=true
-            shift
-            ;;
-        --try-merge)
-            TRY_MERGE_MODE=true
             shift
             ;;
         --help|-h)
@@ -100,28 +80,14 @@ enable_persona_injection() {
 
 enable_skip_healthcheck() {
     export "${SKIP_HEALTHCHECK_FLAG}"=true
-    echo "🩺 AI provider health checks skipped"
-    echo "   AI services will initialize without connectivity validation."
+    echo "🩺 Background health checks disabled"
+    echo "   All configured models stay available without connectivity validation."
 }
 
 enable_recheck_availability() {
     export "${RECHECK_AVAILABILITY_FLAG}"=true
     echo "🔄 Model availability recheck enabled"
-    echo "   All models will be health-checked and models.json will be updated."
-}
-
-enable_use_last_working() {
-    export "${USE_LAST_WORKING_FLAG}"=true
-    echo "⚡ Fast startup enabled (--use-last-working)"
-    echo "   Loading only participants that worked last run — no health checks."
-    echo "   Startup log: startup-log.json"
-}
-
-enable_try_merge() {
-    export "${TRY_MERGE_FLAG}"=true
-    echo "🔀 Try-merge enabled (--try-merge)"
-    echo "   Previously-working models: loaded without healthcheck."
-    echo "   Previously-failed models: re-checked, merged into last log entry if passing."
+    echo "   model-health.json is ignored; every model is re-checked in the background."
 }
 
 # Check if .env exists
@@ -176,26 +142,6 @@ fi
 
 if [ "$RECHECK_AVAILABILITY_MODE" = true ]; then
     enable_recheck_availability
-fi
-
-if [ "$TRY_MERGE_MODE" = true ]; then
-    if [ "$RECHECK_AVAILABILITY_MODE" = true ]; then
-        echo "⚠️  --try-merge conflicts with --recheck-availability. Ignoring --recheck-availability."
-        unset "${RECHECK_AVAILABILITY_FLAG}"
-        RECHECK_AVAILABILITY_MODE=false
-    fi
-    enable_try_merge
-fi
-
-if [ "$USE_LAST_WORKING_MODE" = true ]; then
-    if [ "$RECHECK_AVAILABILITY_MODE" = true ] || [ "$SKIP_HEALTHCHECK_MODE" = true ]; then
-        echo "⚠️  --use-last-working conflicts with --recheck-availability / --skip-healthcheck. Ignoring those flags."
-        unset "${RECHECK_AVAILABILITY_FLAG}"
-        unset "${SKIP_HEALTHCHECK_FLAG}"
-        RECHECK_AVAILABILITY_MODE=false
-        SKIP_HEALTHCHECK_MODE=false
-    fi
-    enable_use_last_working
 fi
 
 echo ""
@@ -323,11 +269,11 @@ compose_with_profiles() {
     "${compose_args[@]}"
 }
 
-# Ensure startup-log.json exists as a file before Docker tries to bind-mount it.
+# Ensure model-health.json exists as a file before Docker tries to bind-mount it.
 # If Docker runs first and the file doesn't exist, it creates a directory instead.
-if [ ! -f startup-log.json ]; then
-    echo "📝 Creating startup-log.json..."
-    echo "[]" > startup-log.json
+if [ ! -f model-health.json ]; then
+    echo "📝 Creating model-health.json..."
+    echo '{"updatedAt":"","entries":{}}' > model-health.json
 fi
 
 case $choice in
