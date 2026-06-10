@@ -1,6 +1,8 @@
 import {
   createLocalCodeMcpServer,
   MCP_ERROR_CODES,
+  DEFAULT_CHROMA_URL,
+  DEFAULT_COLLECTION_NAME,
 } from "@ai-chat/mcp-assistant";
 import { createWorkspaceIndexer } from "@ai-chat/mcp-assistant/indexer";
 import type { Server } from "socket.io";
@@ -107,9 +109,9 @@ export class ChatAssistantService {
         .toLowerCase()
         .trim() === "true";
 
-    this.chromaUrl = process.env.CHROMA_URL || "http://localhost:8000";
+    this.chromaUrl = process.env.CHROMA_URL || DEFAULT_CHROMA_URL;
     this.collectionName =
-      process.env.CHAT_ASSISTANT_COLLECTION || "ai-chat-workspace";
+      process.env.CHAT_ASSISTANT_COLLECTION || DEFAULT_COLLECTION_NAME;
 
     this.chatHistoryLimit = 5;
 

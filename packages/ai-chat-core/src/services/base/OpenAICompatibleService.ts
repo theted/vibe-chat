@@ -9,6 +9,10 @@
 import { BaseAIService } from "./BaseAIService.js";
 import { mapToOpenAIChat } from "@/utils/aiFormatting.js";
 import {
+  DEFAULT_TEMPERATURE,
+  DEFAULT_MAX_TOKENS,
+} from "@/config/aiProviders/constants.js";
+import {
   buildResponsesPayload,
   ensureResponsesClient,
   extractTextFromResponses,
@@ -113,8 +117,8 @@ export abstract class OpenAICompatibleService extends BaseAIService {
     const baseParams: OpenAICompletionRequest = {
       model: this.getModel(),
       messages: formattedMessages,
-      temperature: this.config.model.temperature || 0.7,
-      max_tokens: this.config.model.maxTokens || 4000,
+      temperature: this.config.model.temperature || DEFAULT_TEMPERATURE,
+      max_tokens: this.config.model.maxTokens || DEFAULT_MAX_TOKENS,
     };
 
     // Apply any context-specific parameters
@@ -151,7 +155,7 @@ export abstract class OpenAICompatibleService extends BaseAIService {
     const client = ensureResponsesClient(this.client, this.name);
 
     const temperatureRaw =
-      context?.temperature ?? this.config.model.temperature ?? 0.7;
+      context?.temperature ?? this.config.model.temperature ?? DEFAULT_TEMPERATURE;
     const temperature =
       typeof temperatureRaw === "number"
         ? temperatureRaw
@@ -327,7 +331,7 @@ export abstract class OpenAICompatibleService extends BaseAIService {
         const payload = buildResponsesPayload({
           model: this.getModel(),
           messages: processedMessages,
-          temperature: this.config.model.temperature ?? 0.7,
+          temperature: this.config.model.temperature ?? DEFAULT_TEMPERATURE,
           maxTokens: this.config.model.maxTokens,
         });
 

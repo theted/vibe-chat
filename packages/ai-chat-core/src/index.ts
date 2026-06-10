@@ -37,9 +37,6 @@ export {
   NetworkError,
 } from "./types/index.js";
 
-// Constants
-export { DEFAULT_TEMPERATURE, DEFAULT_MAX_TOKENS } from "./types/index.js";
-
 // AI Service base & factory
 export { BaseAIService } from "./services/base/BaseAIService.js";
 export { AIServiceFactory } from "./services/AIServiceFactory.js";
@@ -71,8 +68,8 @@ export {
   DEFAULT_MODELS,
   getRandomAIConfig,
   DEFAULT_CONVERSATION_CONFIG,
-  DEFAULT_TEMPERATURE as CONFIG_DEFAULT_TEMPERATURE,
-  DEFAULT_MAX_TOKENS as CONFIG_DEFAULT_MAX_TOKENS,
+  DEFAULT_TEMPERATURE,
+  DEFAULT_MAX_TOKENS,
   SHORT_RESPONSE_MAX_TOKENS,
 } from "./config/aiProviders/index.js";
 export {
@@ -91,6 +88,7 @@ export {
   getActiveParticipants,
   getParticipantsByProvider,
   normalizeAlias,
+  normalizeAliasKey,
   resolveEmoji,
   mapMentionsToAiNames,
   type AiParticipant,

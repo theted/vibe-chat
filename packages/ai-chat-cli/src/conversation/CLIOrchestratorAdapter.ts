@@ -21,6 +21,8 @@ import {
   AI_PROVIDERS,
   AI_DISPLAY_INFO,
   createEnhancedSystemPrompt,
+  normalizeAliasKey,
+  DEFAULT_CONVERSATION_CONFIG,
 } from "@ai-chat/core";
 import type {
   AIServiceConfig,
@@ -86,10 +88,6 @@ interface AdapterOptions {
   internalResponders?: InternalResponder[];
 }
 
-// Constants
-const DEFAULT_MAX_TURNS = 10;
-const DEFAULT_TIMEOUT_MS = 300000; // 5 minutes
-
 /**
  * CLI adapter for ChatOrchestrator.
  * Provides synchronous conversation control for command-line usage.
@@ -107,8 +105,8 @@ export class CLIOrchestratorAdapter {
 
   constructor(options: AdapterOptions = {}) {
     this.config = {
-      maxTurns: options.maxTurns ?? DEFAULT_MAX_TURNS,
-      timeoutMs: options.timeoutMs ?? DEFAULT_TIMEOUT_MS,
+      maxTurns: options.maxTurns ?? DEFAULT_CONVERSATION_CONFIG.maxTurns,
+      timeoutMs: options.timeoutMs ?? DEFAULT_CONVERSATION_CONFIG.timeoutMs,
     };
     this.internalResponders = options.internalResponders ?? [];
 
@@ -171,7 +169,7 @@ export class CLIOrchestratorAdapter {
     const service = AIServiceFactory.createService(aiConfig);
     const participantId = this.participants.length;
     const displayName = `${service.getName()} (${service.getModel()})`;
-    const alias = displayName.toLowerCase().replace(/[^a-z0-9]/g, "");
+    const alias = normalizeAliasKey(displayName);
     const aiId = `cli_${participantId}_${providerKey}_${modelKey}`;
     const displayKey = `${providerKey}_${modelKey}`;
     const emoji = AI_DISPLAY_INFO[displayKey]?.emoji ?? "🤖";

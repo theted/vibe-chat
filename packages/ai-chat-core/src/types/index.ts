@@ -362,7 +362,3 @@ export const isServiceResponse = (obj: unknown): obj is ServiceResponse => {
     typeof (obj as ServiceResponse).content === "string"
   );
 };
-
-// Constants
-export const DEFAULT_TEMPERATURE = 0.7;
-export const DEFAULT_MAX_TOKENS = 4000;

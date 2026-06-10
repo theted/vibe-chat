@@ -4,11 +4,11 @@ import path from "path";
 import process from "process";
 import { fileURLToPath } from "url";
 import { createWorkspaceIndexer } from "@ai-chat/mcp-assistant/indexer";
-import { MCP_ERROR_CODES } from "@ai-chat/mcp-assistant";
-
-const DEFAULT_COLLECTION_NAME =
-  process.env.CHAT_ASSISTANT_COLLECTION || "ai-chat-workspace";
-const DEFAULT_CHROMA_URL = process.env.CHROMA_URL || "http://localhost:8000";
+import {
+  MCP_ERROR_CODES,
+  DEFAULT_CHROMA_URL,
+  DEFAULT_COLLECTION_NAME,
+} from "@ai-chat/mcp-assistant";
 
 type IndexArgs = {
   chunkSize?: number;
