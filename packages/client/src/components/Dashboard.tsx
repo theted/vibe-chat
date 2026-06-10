@@ -1,150 +1,25 @@
 /**
- * Dashboard Component - Real-time metrics display
+ * Dashboard Component - Real-time metrics display (layout & composition;
+ * socket wiring lives in useDashboardMetrics)
  */
 
-import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { useSocket } from "@/hooks/useSocket";
 import StatusCard from "./StatusCard";
 import MetricCard from "./MetricCard";
 import ProgressBar from "./ProgressBar";
-import SortIndicator from "./SortIndicator";
-import type { SortColumn, SortDirection } from "./SortIndicator";
-import { SERVER_URL } from "@/constants/chat";
+import ProviderStatsTable from "./ProviderStatsTable";
+import ErrorLogsPanel from "./ErrorLogsPanel";
+import EnabledParticipantsPanel from "./EnabledParticipantsPanel";
+import { useDashboardMetrics } from "@/hooks/useDashboardMetrics";
 import {
-  formatUptime,
-  formatTime,
-  formatDateTime,
-  formatResponseTime,
-  getPercentage,
-} from "@/utils/formatters";
-import type { DashboardMetrics, ConnectionStatus, ProviderModelStat } from "@/types";
-import type { AiParticipant } from "@/config/aiParticipants";
-import { SOCKET_EVENTS } from "@ai-chat/ai-configs";
-
-const METRICS_REFRESH_INTERVAL_MS = 30_000;
-const METRICS_HISTORY_DURATION_MS = 60 * 60 * 1000;
-
-const ACTIVITY_VERY_HIGH_THRESHOLD = 10;
-const ACTIVITY_HIGH_THRESHOLD = 5;
-const ACTIVITY_MODERATE_THRESHOLD = 1;
-
-const ACTIVITY_LEVELS = [
-  { threshold: ACTIVITY_VERY_HIGH_THRESHOLD, label: "Very High", className: "text-red-600" },
-  { threshold: ACTIVITY_HIGH_THRESHOLD, label: "High", className: "text-orange-600" },
-  { threshold: ACTIVITY_MODERATE_THRESHOLD, label: "Moderate", className: "text-green-600" },
-] as const;
-
-const ACTIVITY_LEVEL_DEFAULT = { label: "Low", className: "text-gray-600" } as const;
-
-const resolveActivityLevel = (messagesPerMinute: number) =>
-  ACTIVITY_LEVELS.find((level) => messagesPerMinute > level.threshold) ?? ACTIVITY_LEVEL_DEFAULT;
-
-const styles = {
-  card: "bg-white rounded-2xl p-6 shadow-md border border-gray-200",
-  cardTitle: "text-xl font-semibold text-gray-900 mb-6",
-  headerPill: "bg-white rounded-lg px-4 py-2 shadow-sm",
-};
-
-const INITIAL_METRICS: DashboardMetrics = {
-  totalAIMessages: 0,
-  totalUserMessages: 0,
-  totalMessages: 0,
-  messagesPerMinute: 0,
-  activeUsers: 0,
-  activeRooms: 0,
-  providerModelStats: [],
-  errorLogs: [],
-  uptime: 0,
-  timestamp: Date.now(),
-};
+  DASHBOARD_STYLES as styles,
+  METRICS_REFRESH_INTERVAL_MS,
+  resolveActivityLevel,
+} from "@/config/dashboard";
+import { formatUptime, formatTime, getPercentage } from "@/utils/formatters";
 
 const Dashboard = () => {
-  const [metrics, setMetrics] = useState<DashboardMetrics>(INITIAL_METRICS);
-  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>({
-    connected: false,
-  });
-  const [aiParticipants, setAiParticipants] = useState<AiParticipant[]>([]);
-  const [sortColumn, setSortColumn] = useState<SortColumn>("provider");
-  const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
-
-  const { on, off, emit } = useSocket(SERVER_URL);
-
-  useEffect(() => {
-    const handleConnect = () => {
-      setConnectionStatus({ connected: true });
-      emit(SOCKET_EVENTS.JOIN_DASHBOARD);
-      emit(SOCKET_EVENTS.GET_METRICS);
-      emit(SOCKET_EVENTS.GET_METRICS_HISTORY, { duration: METRICS_HISTORY_DURATION_MS });
-      emit(SOCKET_EVENTS.GET_AI_PARTICIPANTS);
-    };
-
-    const handleDisconnect = () => {
-      setConnectionStatus({ connected: false });
-    };
-
-    const handleMetrics = (data: unknown) => {
-      setMetrics(data as DashboardMetrics);
-    };
-
-    const handleAiParticipants = (data: unknown) => {
-      setAiParticipants(Array.isArray(data) ? data : []);
-    };
-
-    on("connect", handleConnect);
-    on("disconnect", handleDisconnect);
-    on(SOCKET_EVENTS.METRICS_UPDATE, handleMetrics);
-    on(SOCKET_EVENTS.AI_PARTICIPANTS, handleAiParticipants);
-
-    emit(SOCKET_EVENTS.JOIN_DASHBOARD);
-    emit(SOCKET_EVENTS.GET_AI_PARTICIPANTS);
-
-    return () => {
-      off("connect", handleConnect);
-      off("disconnect", handleDisconnect);
-      off(SOCKET_EVENTS.METRICS_UPDATE, handleMetrics);
-      off(SOCKET_EVENTS.AI_PARTICIPANTS, handleAiParticipants);
-    };
-  }, [on, off, emit]);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (connectionStatus.connected) {
-        emit(SOCKET_EVENTS.GET_METRICS);
-      }
-    }, METRICS_REFRESH_INTERVAL_MS);
-
-    return () => clearInterval(interval);
-  }, [connectionStatus.connected, emit]);
-
-  const handleSort = (column: SortColumn) => {
-    if (sortColumn === column) {
-      setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
-    } else {
-      setSortColumn(column);
-      setSortDirection("asc");
-    }
-  };
-
-  const sortedProviderStats = [...(metrics.providerModelStats || [])].sort(
-    (a: ProviderModelStat, b: ProviderModelStat) => {
-      const multiplier = sortDirection === "asc" ? 1 : -1;
-      const aVal = a[sortColumn];
-      const bVal = b[sortColumn];
-
-      if (typeof aVal === "string" && typeof bVal === "string") {
-        return multiplier * aVal.localeCompare(bVal);
-      }
-      return multiplier * ((aVal as number) - (bVal as number));
-    }
-  );
-
-  const activeAiParticipants = aiParticipants
-    .filter((participant) => participant.status === "active")
-    .sort((first, second) =>
-      (first.name || "").localeCompare(second.name || ""),
-    );
-
+  const { metrics, connectionStatus, aiParticipants } = useDashboardMetrics();
   const activityLevel = resolveActivityLevel(metrics.messagesPerMinute);
 
   return (
@@ -234,109 +109,16 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           <div className={styles.card}>
             <h3 className={styles.cardTitle}>Provider Performance</h3>
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-left text-sm">
-                <thead>
-                  <tr className="border-b border-gray-200 text-gray-500 uppercase text-xs tracking-wide">
-                    {(["provider", "model", "requests", "errors", "meanResponseTimeMs"] as const).map((col) => (
-                      <th
-                        key={col}
-                        className="py-2 pr-4 font-semibold cursor-pointer hover:text-gray-700 select-none"
-                        onClick={() => handleSort(col)}
-                      >
-                        {col === "meanResponseTimeMs" ? "Mean Response" : col.charAt(0).toUpperCase() + col.slice(1)}
-                        <SortIndicator column={col} activeColumn={sortColumn} direction={sortDirection} />
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {sortedProviderStats.length === 0 ? (
-                    <tr>
-                      <td colSpan={5} className="py-4 text-gray-500">
-                        No provider activity yet.
-                      </td>
-                    </tr>
-                  ) : (
-                    sortedProviderStats.map((stat) => (
-                      <tr key={`${stat.provider}-${stat.model}`} className="border-b border-gray-100">
-                        <td className="py-2 pr-4 font-medium text-gray-900">{stat.provider}</td>
-                        <td className="py-2 pr-4 text-gray-700">{stat.model}</td>
-                        <td className="py-2 pr-4 text-gray-700">{stat.requests}</td>
-                        <td className="py-2 pr-4 text-gray-700">{stat.errors}</td>
-                        <td className="py-2 pr-4 text-gray-700">{formatResponseTime(stat.meanResponseTimeMs)}</td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
+            <ProviderStatsTable providerModelStats={metrics.providerModelStats || []} />
           </div>
 
           <div className={styles.card}>
             <h3 className={styles.cardTitle}>Recent AI Errors</h3>
-            <div className="space-y-4 max-h-96 overflow-y-auto">
-              {(metrics.errorLogs || []).length === 0 ? (
-                <p className="text-gray-500 text-sm">No recent AI errors.</p>
-              ) : (
-                metrics.errorLogs.map((entry, index) => (
-                  <div
-                    key={`${entry.provider}-${entry.model}-${entry.timestamp}-${index}`}
-                    className="border border-gray-100 rounded-xl p-4"
-                  >
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div className="text-sm font-medium text-gray-900">
-                        {entry.provider} · {entry.model}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        {formatDateTime(entry.timestamp)}
-                      </div>
-                    </div>
-                    <p className="text-sm text-gray-600 mt-2 whitespace-pre-wrap">
-                      {entry.message}
-                    </p>
-                  </div>
-                ))
-              )}
-            </div>
+            <ErrorLogsPanel errorLogs={metrics.errorLogs} />
           </div>
         </div>
 
-        <div className={`${styles.card} mb-8`}>
-          <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-            <h3 className="text-xl font-semibold text-gray-900">
-              Enabled AI Participants
-            </h3>
-            <span className="text-sm text-gray-500">
-              {activeAiParticipants.length} enabled
-            </span>
-          </div>
-
-          {activeAiParticipants.length === 0 ? (
-            <p className="text-sm text-gray-500">
-              No active AI participants are currently enabled.
-            </p>
-          ) : (
-            <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {activeAiParticipants.map((participant) => (
-                <li
-                  key={participant.id}
-                  className="flex items-center gap-4 rounded-xl border border-gray-100 bg-gray-50 px-4 py-3"
-                >
-                  <span className="text-2xl" aria-hidden="true">
-                    {participant.emoji || "🤖"}
-                  </span>
-                  <div className="flex-1">
-                    <p className="text-sm font-semibold text-gray-900">{participant.name}</p>
-                    <p className="text-xs text-gray-500">@{participant.alias}</p>
-                    <p className="text-xs text-gray-400 mt-1">Provider: {participant.provider || "Unknown"}</p>
-                  </div>
-                  <span className="text-xs font-semibold uppercase tracking-wide text-green-600">Active</span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+        <EnabledParticipantsPanel aiParticipants={aiParticipants} />
 
         <div className="text-center text-gray-500 text-sm">
           <p>Dashboard updates automatically every {METRICS_REFRESH_INTERVAL_MS / 1000} seconds</p>
