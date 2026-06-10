@@ -4,10 +4,11 @@
 
 import { Link } from "react-router-dom";
 import Icon from "./Icon";
+import {
+  MODAL_BACKDROP_CLASSES,
+  SECTION_LABEL_CLASSES,
+} from "@/constants/modalStyles";
 import type { Theme } from "@/types";
-
-const MODAL_BACKDROP =
-  "absolute inset-0 bg-slate-950/60 backdrop-blur-sm transition-opacity duration-200 ease-out";
 
 const PRIMARY_ICON_BUTTON =
   "glass-btn flex items-center justify-center gap-2 rounded-xl border border-primary-200/70 bg-primary-50/90 px-4 py-3 text-sm font-semibold text-primary-700 transition-colors hover:bg-primary-100 dark:border-primary-500/40 dark:bg-primary-500/10 dark:text-primary-200 dark:hover:bg-primary-500/20";
@@ -42,7 +43,7 @@ const SettingsModal = ({
       }`}
     >
       <div
-        className={`${MODAL_BACKDROP} ${isOpen ? "opacity-100" : "opacity-0"}`}
+        className={`${MODAL_BACKDROP_CLASSES} ${isOpen ? "opacity-100" : "opacity-0"}`}
         role="button"
         tabIndex={-1}
         aria-label="Close settings menu"
@@ -67,7 +68,7 @@ const SettingsModal = ({
             <Icon name="cog" className="w-5 h-5 text-primary-500" />
           </div>
           <div>
-            <p className="text-xs uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
+            <p className={SECTION_LABEL_CLASSES}>
               Quick actions
             </p>
             <p className="text-lg font-semibold text-slate-800 dark:text-slate-100">

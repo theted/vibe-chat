@@ -3,13 +3,13 @@
  */
 
 import { useState, useEffect, useCallback } from "react";
+import { getStorageItem, setStorageItem } from "@/utils/storage";
+import { STORAGE_KEYS } from "@/constants/storage";
 import type { Theme } from "@/types";
-
-const STORAGE_KEY = "ai-chat-theme";
 
 const getInitialTheme = (): Theme => {
   if (typeof window === "undefined") return "light";
-  const stored = localStorage.getItem(STORAGE_KEY);
+  const stored = getStorageItem(STORAGE_KEYS.THEME);
   if (stored === "dark" || stored === "light") return stored;
   return window.matchMedia("(prefers-color-scheme: dark)").matches
     ? "dark"
@@ -24,7 +24,7 @@ export const useTheme = () => {
     const root = document.documentElement;
     root.classList.toggle("dark", theme === "dark");
     root.dataset.theme = theme;
-    localStorage.setItem(STORAGE_KEY, theme);
+    setStorageItem(STORAGE_KEYS.THEME, theme);
   }, [theme]);
 
   const toggleTheme = useCallback(() => {

@@ -1,6 +1,18 @@
+/**
+ * Client-side AI helpers. Components should import shared-package helpers
+ * (normalizeAliasKey & friends) through this module, not from
+ * @ai-chat/ai-configs directly, so the client has one wrapper to adjust.
+ *
+ * Note: resolveEmoji and mapMentionsToAiNames here deliberately differ from
+ * the @ai-chat/ai-configs versions — the client variants do prefix matching
+ * over the UI emoji lookup and array-based mention mapping for the mention
+ * dialog, while the shared versions do text-level formatting.
+ */
 import { normalizeAliasKey } from "@ai-chat/ai-configs";
 import { DEFAULT_AI_PARTICIPANTS } from "@/config/aiParticipants";
 import { AI_EMOJI_LOOKUP, AI_MENTION_MAPPINGS } from "@/constants/chat.ts";
+
+export { normalizeAliasKey };
 
 const normalizedMentionLookup = Object.entries(AI_MENTION_MAPPINGS).reduce(
   (lookup, [key, value]) => {

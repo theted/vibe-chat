@@ -12,6 +12,13 @@ export const formatUptime = (seconds: number): string => {
 export const formatTime = (timestamp: number): string =>
   new Date(timestamp).toLocaleTimeString();
 
+/** Compact HH:MM stamp used next to chat messages (locale-stable). */
+export const formatMessageTime = (timestamp: number): string =>
+  new Date(timestamp).toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
 export const formatDateTime = (timestamp: number | undefined): string => {
   if (!timestamp) return "";
   return new Date(timestamp).toLocaleString();
