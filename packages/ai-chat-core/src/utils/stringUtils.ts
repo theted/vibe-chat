@@ -52,13 +52,21 @@ export const getEnvFlag = (name: string): string | undefined => {
 };
 
 /**
+ * Single source of truth for the @mention token pattern.
+ * Returns a fresh RegExp per call so callers never share lastIndex state.
+ * Note: matches single-word tokens only; the client's display-name matcher
+ * (client/src/utils/mentions.ts) intentionally has different semantics.
+ */
+export const createMentionTokenRegex = (): RegExp => /@([^\s@]+)/g;
+
+/**
  * Parse @mentions from message content
  * Returns both raw mentions and normalized versions
  */
 export const parseMentions = (
   content = "",
 ): { mentions: string[]; normalized: string[] } => {
-  const mentionRegex = /@([^\s@]+)/g;
+  const mentionRegex = createMentionTokenRegex();
   const mentions: string[] = [];
   const normalized: string[] = [];
   const seen = new Set<string>();

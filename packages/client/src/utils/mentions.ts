@@ -1,3 +1,10 @@
+/**
+ * UI mention matcher. Deliberately separate from the orchestrator's
+ * token parser (ai-chat-core stringUtils.createMentionTokenRegex):
+ * this one matches known multi-word display names (e.g. "@Claude Opus 4.8")
+ * against a candidate list for highlighting, which a single-token regex
+ * cannot express.
+ */
 import { DEFAULT_AI_PARTICIPANTS } from "@/config/aiParticipants";
 import { AI_MENTION_MAPPINGS } from "@/constants/chat";
 import type { AiParticipant } from "@/config/aiParticipants";

@@ -2,30 +2,13 @@ import {
   MENTION_FORMATS,
   MENTION_LIMITS,
 } from "@/orchestrator/constants.js";
-import { normalizeAlias, toMentionAlias } from "@/utils/stringUtils.js";
+import {
+  createMentionTokenRegex,
+  normalizeAlias,
+  parseMentions,
+  toMentionAlias,
+} from "@/utils/stringUtils.js";
 import { findAIByNormalizedAlias, getMentionTokenForAI } from "./aiLookup.js";
-
-const mentionRegex = /@([^\s@]+)/g;
-
-const getUniqueMentions = (content = ""): Set<string> => {
-  const uniqueMentions = new Set<string>();
-  if (!content) {
-    return uniqueMentions;
-  }
-
-  mentionRegex.lastIndex = 0;
-  let match;
-  while ((match = mentionRegex.exec(content)) !== null) {
-    const token = match[1];
-    if (!token) continue;
-    const normalizedToken = normalizeAlias(token);
-    if (normalizedToken) {
-      uniqueMentions.add(normalizedToken);
-    }
-  }
-
-  return uniqueMentions;
-};
 
 export const limitMentionsInResponse = (
   response = "",
@@ -38,8 +21,7 @@ export const limitMentionsInResponse = (
   const seenMentions = new Set<string>();
   let uniqueCount = 0;
 
-  mentionRegex.lastIndex = 0;
-  return response.replace(mentionRegex, (match, token: string) => {
+  return response.replace(createMentionTokenRegex(), (match, token: string) => {
     if (!token) {
       return match;
     }
@@ -104,8 +86,8 @@ export const addMentionToResponse = (aiServices, response, targetAI) => {
     return response;
   }
 
-  const existingMentions = getUniqueMentions(response);
-  if (existingMentions.size >= MENTION_LIMITS.MAX_UNIQUE_PER_RESPONSE) {
+  const existingMentions = parseMentions(response).normalized;
+  if (existingMentions.length >= MENTION_LIMITS.MAX_UNIQUE_PER_RESPONSE) {
     return response;
   }
 
