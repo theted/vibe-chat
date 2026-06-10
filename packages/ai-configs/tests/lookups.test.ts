@@ -14,7 +14,7 @@ describe("lookups", () => {
 
   it("resolves emojis for known aliases and partial matches", () => {
     expect(resolveEmoji("gpt-4o")).toBe("🌍");
-    expect(resolveEmoji("grok-4-heavy")).toBe("🕹️");
+    expect(resolveEmoji("grok-4.20")).toBe("🎳");
     expect(resolveEmoji("gpt-4o-mini")).toBe("🌏");
   });
 

@@ -15,7 +15,7 @@ const baseConfig: AIServiceConfig = {
     apiKeyEnvVar: "KIMI_API_KEY",
   },
   model: {
-    id: "moonshot-v1-8k",
+    id: "kimi-k2.6",
   },
 };
 

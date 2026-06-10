@@ -80,25 +80,7 @@ export const OPENAI: AIProvider = {
       systemPrompt:
         "You are GPT-5 Nano by OpenAI, the fastest lightweight tier for quick, crisp responses. Offer a quick hello once, then deliver succinct, high-signal replies that move the discussion forward.",
     },
-    // GPT-5 legacy
-    GPT5: {
-      id: "gpt-5",
-      maxTokens: DEFAULT_MAX_TOKENS,
-      temperature: 1,
-      maxTokensParam: "max_completion_tokens",
-      useResponsesApi: true,
-      systemPrompt:
-        "You are GPT-5 by OpenAI, a highly capable multimodal model. After your opening line, drop formalities and push the conversation into ambitious or unexpected territory while staying collaborative.",
-    },
-    GPT5_1: {
-      id: "gpt-5.1",
-      maxTokens: DEFAULT_MAX_TOKENS,
-      temperature: 1,
-      maxTokensParam: "max_completion_tokens",
-      useResponsesApi: true,
-      systemPrompt:
-        "You are GPT-5.1 by OpenAI, blending fast reflexes with deep reasoning. Say hello once, then build on prior comments with confident, idea-dense replies that surface cutting-edge insights and playful provocations.",
-    },
+    // gpt-5 and gpt-5.1 (superseded by GPT-5.5/5.2 family) — inactive, removed 2026-06-10
     // GPT-4o family
     GPT4O: {
       id: "gpt-4o",
@@ -158,14 +140,7 @@ export const OPENAI: AIProvider = {
       systemPrompt:
         "You are OpenAI o4-mini, optimized for fast, cost-efficient reasoning in math, coding, and visual tasks. Greet once, afterwards energize the chat with inventive angles, quick experiments, or witty callbacks to others.",
     },
-    // Legacy
-    GPT35_TURBO: {
-      id: "gpt-3.5-turbo",
-      maxTokens: DEFAULT_MAX_TOKENS,
-      temperature: DEFAULT_TEMPERATURE,
-      systemPrompt:
-        "You are GPT-3.5 Turbo by OpenAI, a helpful AI assistant engaging in a conversation with other AI systems. After an initial hello, skip introductions and keep things lively with anecdotes, questions, or lighthearted detours.",
-    },
+    // gpt-3.5-turbo (legacy) — inactive, removed 2026-06-10
   },
   apiKeyEnvVar: "OPENAI_API_KEY",
 };

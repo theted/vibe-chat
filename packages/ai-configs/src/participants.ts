@@ -84,38 +84,12 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     emoji: "🎵",
   },
   {
-    id: "ANTHROPIC_CLAUDE_OPUS_4_5",
-    name: "Claude 4.5 Opus",
-    alias: "opus-4-5",
-    provider: "Anthropic",
-    status: "inactive",
-    emoji: "🎻",
-  },
-  {
     id: "ANTHROPIC_CLAUDE_OPUS_4_1",
     name: "Claude Opus 4.1",
     alias: "claude-opus-4-1",
     provider: "Anthropic",
     status: "active",
     emoji: "🎺",
-  },
-  {
-    // retires 2026-06-15
-    id: "ANTHROPIC_CLAUDE_SONNET_4",
-    name: "Claude Sonnet 4",
-    alias: "claude-sonnet-4",
-    provider: "Anthropic",
-    status: "inactive",
-    emoji: "🎼",
-  },
-  {
-    // retires 2026-06-15
-    id: "ANTHROPIC_CLAUDE_OPUS_4",
-    name: "Claude Opus 4",
-    alias: "claude-opus-4",
-    provider: "Anthropic",
-    status: "inactive",
-    emoji: "🎭",
   },
 
   // OpenAI Models - Space/cosmos
@@ -166,22 +140,6 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     provider: "OpenAI",
     status: "active",
     emoji: "✳️",
-  },
-  {
-    id: "OPENAI_GPT5",
-    name: "GPT-5",
-    alias: "gpt-5",
-    provider: "OpenAI",
-    status: "inactive",
-    emoji: "🚀",
-  },
-  {
-    id: "OPENAI_GPT5_1",
-    name: "GPT-5.1",
-    alias: "gpt-5.1",
-    provider: "OpenAI",
-    status: "inactive",
-    emoji: "☄️",
   },
   {
     id: "OPENAI_GPT4O",
@@ -247,14 +205,6 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     status: "active",
     emoji: "🌠",
   },
-  {
-    id: "OPENAI_GPT35_TURBO",
-    name: "GPT-3.5 Turbo",
-    alias: "gpt-3-5",
-    provider: "OpenAI",
-    status: "inactive",
-    emoji: "⭐",
-  },
 
   // xAI/Grok Models - Gaming/arcade
   {
@@ -288,79 +238,6 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     provider: "xAI",
     status: "active",
     emoji: "🪀",
-  },
-  {
-    // deprecated May 15, 2026 (redirects to grok-4.3; retires Aug 15, 2026)
-    id: "GROK_GROK_4_0709",
-    name: "Grok 4",
-    alias: "grok-4",
-    provider: "xAI",
-    status: "inactive",
-    emoji: "👾",
-  },
-  {
-    id: "GROK_GROK_4_FAST_NON_REASONING",
-    name: "Grok 4 Fast",
-    alias: "grok-4-fast",
-    provider: "xAI",
-    status: "inactive",
-    emoji: "🏎️",
-  },
-  {
-    id: "GROK_GROK_4_FAST_REASONING",
-    name: "Grok 4 Fast Reasoning",
-    alias: "grok-4-reasoning",
-    provider: "xAI",
-    status: "inactive",
-    emoji: "🎮",
-  },
-  {
-    id: "GROK_GROK_4_HEAVY",
-    name: "Grok 4 Heavy",
-    alias: "grok-4-heavy",
-    provider: "xAI",
-    status: "inactive",
-    emoji: "🕹️",
-  },
-  {
-    id: "GROK_GROK_4_1_FAST_NON_REASONING",
-    name: "Grok 4.1 Fast",
-    alias: "grok-4.1-fast",
-    provider: "xAI",
-    status: "inactive",
-    emoji: "🎰",
-  },
-  {
-    id: "GROK_GROK_4_1_FAST_REASONING",
-    name: "Grok 4.1 Fast Reasoning",
-    alias: "grok-4.1-reasoning",
-    provider: "xAI",
-    status: "inactive",
-    emoji: "🎲",
-  },
-  {
-    id: "GROK_GROK_3",
-    name: "Grok 3",
-    alias: "grok-3",
-    provider: "xAI",
-    status: "inactive",
-    emoji: "🃏",
-  },
-  {
-    id: "GROK_GROK_3_MINI",
-    name: "Grok 3 Mini",
-    alias: "grok-3-mini",
-    provider: "xAI",
-    status: "inactive",
-    emoji: "🎯",
-  },
-  {
-    id: "GROK_GROK_CODE_FAST_1",
-    name: "Grok Code",
-    alias: "grok-code",
-    provider: "xAI",
-    status: "inactive",
-    emoji: "💾",
   },
 
   // Google/Gemini Models - Gems/crystals
@@ -636,30 +513,6 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     status: "active",
     emoji: "🌘",
   },
-  {
-    id: "KIMI_KIMI_8K",
-    name: "Moonshot v1 8K",
-    alias: "moonshot-v1-8k",
-    provider: "Moonshot AI",
-    status: "inactive",
-    emoji: "🌗",
-  },
-  {
-    id: "KIMI_KIMI_32K",
-    name: "Moonshot v1 32K",
-    alias: "moonshot-v1-32k",
-    provider: "Moonshot AI",
-    status: "inactive",
-    emoji: "🌖",
-  },
-  {
-    id: "KIMI_KIMI_128K",
-    name: "Moonshot v1 128K",
-    alias: "moonshot-v1-128k",
-    provider: "Moonshot AI",
-    status: "inactive",
-    emoji: "🌓",
-  },
 
   // Qwen/Alibaba Models - East Asian culture
   {
@@ -701,14 +554,6 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     provider: "Qwen",
     status: "active",
     emoji: "🎎",
-  },
-  {
-    id: "QWEN_QWEN_MAX",
-    name: "Qwen Max",
-    alias: "qwen-max",
-    provider: "Qwen",
-    status: "inactive",
-    emoji: "🐉",
   },
   {
     id: "QWEN_QWEN_PLUS",
