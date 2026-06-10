@@ -6,33 +6,16 @@
 
 import { OpenAIService } from "./OpenAIService.js";
 import { AnthropicService } from "./AnthropicService.js";
-import { DeepseekService } from "./DeepseekService.js";
 import { MistralService } from "./MistralService.js";
 import { GeminiService } from "./GeminiService.js";
-import { GrokService } from "./GrokService.js";
-import { QwenService } from "./QwenService.js";
-import { KimiService } from "./KimiService.js";
 import { ZaiService } from "./ZaiService.js";
-import { CohereService } from "./CohereService.js";
-import { LlamaService } from "./LlamaService.js";
 import { PerplexityService } from "./PerplexityService.js";
-import { AmazonService } from "./AmazonService.js";
-import { NvidiaService } from "./NvidiaService.js";
-import { XiaomiService } from "./XiaomiService.js";
-import { MinimaxService } from "./MinimaxService.js";
-import { BaiduService } from "./BaiduService.js";
-import { BytedanceService } from "./BytedanceService.js";
-import { HuggingFaceService } from "./HuggingFaceService.js";
-import { ArceeService } from "./ArceeService.js";
-import { StepFunService } from "./StepFunService.js";
-import { InflectionService } from "./InflectionService.js";
-import { ZeroOneAIService } from "./ZeroOneAIService.js";
-import { DatabricksService } from "./DatabricksService.js";
-import { NousService } from "./NousService.js";
-import { PhindService } from "./PhindService.js";
-import { MicrosoftService } from "./MicrosoftService.js";
-import { SnowflakeService } from "./SnowflakeService.js";
+import {
+  openAICompatibleServiceClass,
+  openRouterServiceClass,
+} from "./serviceClassFactory.js";
 import { AI_PROVIDERS } from "@/config/aiProviders/index.js";
+import { PROVIDER_BASE_URLS } from "@/config/aiProviders/constants.js";
 import type { AIServiceConfig, IAIService } from "@/types/index.js";
 import type {
   ServiceConstructor,
@@ -40,36 +23,69 @@ import type {
 } from "@/types/services.js";
 import { BaseAIService } from "./base/BaseAIService.js";
 
+// Providers proxied through OpenRouter with no provider-specific behavior;
+// their display name is identical to the provider name.
+const OPENROUTER_PROVIDERS = [
+  AI_PROVIDERS.AMAZON,
+  AI_PROVIDERS.ARCEE,
+  AI_PROVIDERS.BAIDU,
+  AI_PROVIDERS.BYTEDANCE,
+  AI_PROVIDERS.DATABRICKS,
+  AI_PROVIDERS.HUGGINGFACE,
+  AI_PROVIDERS.INFLECTION,
+  AI_PROVIDERS.MICROSOFT,
+  AI_PROVIDERS.MINIMAX,
+  AI_PROVIDERS.NOUS,
+  AI_PROVIDERS.NVIDIA,
+  AI_PROVIDERS.PHIND,
+  AI_PROVIDERS.SNOWFLAKE,
+  AI_PROVIDERS.STEPFUN,
+  AI_PROVIDERS.XIAOMI,
+  AI_PROVIDERS.ZEROONEAI,
+];
+
 export class AIServiceFactory {
   private static serviceRegistry: Record<string, ServiceConstructor> = {
     [AI_PROVIDERS.GEMINI.name]: GeminiService,
     [AI_PROVIDERS.MISTRAL.name]: MistralService,
     [AI_PROVIDERS.OPENAI.name]: OpenAIService,
     [AI_PROVIDERS.ANTHROPIC.name]: AnthropicService,
-    [AI_PROVIDERS.DEEPSEEK.name]: DeepseekService,
-    [AI_PROVIDERS.GROK.name]: GrokService,
-    [AI_PROVIDERS.QWEN.name]: QwenService,
-    [AI_PROVIDERS.KIMI.name]: KimiService,
     [AI_PROVIDERS.ZAI.name]: ZaiService,
-    [AI_PROVIDERS.COHERE.name]: CohereService,
-    [AI_PROVIDERS.LLAMA.name]: LlamaService,
-    [AI_PROVIDERS.AMAZON.name]: AmazonService,
-    [AI_PROVIDERS.NVIDIA.name]: NvidiaService,
-    [AI_PROVIDERS.XIAOMI.name]: XiaomiService,
-    [AI_PROVIDERS.MINIMAX.name]: MinimaxService,
-    [AI_PROVIDERS.BAIDU.name]: BaiduService,
-    [AI_PROVIDERS.BYTEDANCE.name]: BytedanceService,
-    [AI_PROVIDERS.HUGGINGFACE.name]: HuggingFaceService,
     [AI_PROVIDERS.PERPLEXITY.name]: PerplexityService,
-    [AI_PROVIDERS.ARCEE.name]: ArceeService,
-    [AI_PROVIDERS.STEPFUN.name]: StepFunService,
-    [AI_PROVIDERS.INFLECTION.name]: InflectionService,
-    [AI_PROVIDERS.ZEROONEAI.name]: ZeroOneAIService,
-    [AI_PROVIDERS.DATABRICKS.name]: DatabricksService,
-    [AI_PROVIDERS.NOUS.name]: NousService,
-    [AI_PROVIDERS.PHIND.name]: PhindService,
-    [AI_PROVIDERS.MICROSOFT.name]: MicrosoftService,
-    [AI_PROVIDERS.SNOWFLAKE.name]: SnowflakeService,
+    // Direct OpenAI-compatible APIs differing from the base only in display
+    // name and default base URL. Display names are deliberate data: e.g.
+    // "Deepseek" intentionally differs from AI_PROVIDERS.DEEPSEEK.name
+    // ("DeepSeek"); deriving them would change service.getName() output.
+    [AI_PROVIDERS.DEEPSEEK.name]: openAICompatibleServiceClass(
+      "Deepseek",
+      PROVIDER_BASE_URLS.DEEPSEEK,
+    ),
+    [AI_PROVIDERS.GROK.name]: openAICompatibleServiceClass(
+      "Grok",
+      PROVIDER_BASE_URLS.GROK,
+    ),
+    [AI_PROVIDERS.QWEN.name]: openAICompatibleServiceClass(
+      "Qwen",
+      PROVIDER_BASE_URLS.QWEN,
+    ),
+    [AI_PROVIDERS.KIMI.name]: openAICompatibleServiceClass(
+      "Kimi",
+      PROVIDER_BASE_URLS.KIMI,
+    ),
+    [AI_PROVIDERS.COHERE.name]: openAICompatibleServiceClass(
+      "Cohere",
+      PROVIDER_BASE_URLS.COHERE,
+    ),
+    [AI_PROVIDERS.LLAMA.name]: openAICompatibleServiceClass(
+      "Meta",
+      PROVIDER_BASE_URLS.LLAMA,
+    ),
+    ...Object.fromEntries(
+      OPENROUTER_PROVIDERS.map((provider) => [
+        provider.name,
+        openRouterServiceClass(provider.name),
+      ]),
+    ),
   };
 
   /**

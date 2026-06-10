@@ -6,6 +6,7 @@ import { fileURLToPath } from "url";
 import {
   createLocalCodeMcpServer,
   MCP_ERROR_CODES,
+  DEFAULT_CHROMA_URL,
 } from "@ai-chat/mcp-assistant";
 
 type RunArgs = {
@@ -72,7 +73,7 @@ const main = async (): Promise<void> => {
     if (error?.code === MCP_ERROR_CODES.VECTOR_STORE_UNAVAILABLE) {
       console.error(
         `MCP embedding lookup failed: could not reach Chroma at ${
-          process.env.CHROMA_URL || "http://localhost:8000"
+          process.env.CHROMA_URL || DEFAULT_CHROMA_URL
         }. ${error?.message || error}`,
       );
     } else {

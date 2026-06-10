@@ -37,33 +37,20 @@ export {
   NetworkError,
 } from "./types/index.js";
 
-// Constants
-export { DEFAULT_TEMPERATURE, DEFAULT_MAX_TOKENS } from "./types/index.js";
-
 // AI Service base & factory
 export { BaseAIService } from "./services/base/BaseAIService.js";
 export { AIServiceFactory } from "./services/AIServiceFactory.js";
 
-// Individual provider services
+// Individual provider services (only providers with custom logic have
+// dedicated classes; the rest are data-driven entries in AIServiceFactory)
 export { OpenAIService } from "./services/OpenAIService.js";
 export { AnthropicService } from "./services/AnthropicService.js";
 export { GeminiService } from "./services/GeminiService.js";
-export { GrokService } from "./services/GrokService.js";
 export { MistralService } from "./services/MistralService.js";
-export { CohereService } from "./services/CohereService.js";
-export { DeepseekService } from "./services/DeepseekService.js";
-export { QwenService } from "./services/QwenService.js";
-export { KimiService } from "./services/KimiService.js";
 export { ZaiService } from "./services/ZaiService.js";
-export { LlamaService } from "./services/LlamaService.js";
 export { PerplexityService } from "./services/PerplexityService.js";
-export { AmazonService } from "./services/AmazonService.js";
-export { NvidiaService } from "./services/NvidiaService.js";
-export { XiaomiService } from "./services/XiaomiService.js";
-export { MinimaxService } from "./services/MinimaxService.js";
-export { BaiduService } from "./services/BaiduService.js";
-export { BytedanceService } from "./services/BytedanceService.js";
-export { HuggingFaceService } from "./services/HuggingFaceService.js";
+export { OpenAICompatibleService } from "./services/base/OpenAICompatibleService.js";
+export { OpenRouterCompatibleService } from "./services/base/OpenRouterCompatibleService.js";
 
 // AI provider configuration helpers
 export {
@@ -71,8 +58,8 @@ export {
   DEFAULT_MODELS,
   getRandomAIConfig,
   DEFAULT_CONVERSATION_CONFIG,
-  DEFAULT_TEMPERATURE as CONFIG_DEFAULT_TEMPERATURE,
-  DEFAULT_MAX_TOKENS as CONFIG_DEFAULT_MAX_TOKENS,
+  DEFAULT_TEMPERATURE,
+  DEFAULT_MAX_TOKENS,
   SHORT_RESPONSE_MAX_TOKENS,
 } from "./config/aiProviders/index.js";
 export {
@@ -91,6 +78,7 @@ export {
   getActiveParticipants,
   getParticipantsByProvider,
   normalizeAlias,
+  normalizeAliasKey,
   resolveEmoji,
   mapMentionsToAiNames,
   type AiParticipant,

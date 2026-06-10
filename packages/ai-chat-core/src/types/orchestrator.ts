@@ -261,21 +261,6 @@ export interface IInteractionStrategyManager {
   ): void;
 }
 
-// Mention handler interface
-export interface IMentionHandler {
-  detectMentions(
-    message: Message,
-    participants: AIParticipant[],
-  ): MentionContext;
-  findAIByAlias(
-    alias: string,
-    participants: AIParticipant[],
-  ): AIParticipant | undefined;
-  normalizeAlias(alias: string): string;
-  addMentionToResponse(response: string, targetAI: AIParticipant): string;
-  getMentionTokenForAI(ai: AIParticipant): string;
-}
-
 // Response scheduler interface
 export interface IResponseScheduler {
   scheduleResponses(
