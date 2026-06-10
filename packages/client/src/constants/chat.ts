@@ -1,31 +1,9 @@
 /**
  * Re-export AI lookups from @ai-chat/ai-configs package.
  */
+import { parseBooleanFlag } from "@ai-chat/ai-configs";
+
 export { AI_EMOJI_LOOKUP, AI_MENTION_MAPPINGS } from "@ai-chat/ai-configs";
-
-const resolveBooleanFlag = (
-  value: string | undefined,
-  defaultValue: boolean,
-): boolean => {
-  if (!value) {
-    return defaultValue;
-  }
-
-  const normalized = value.trim().toLowerCase();
-  if (!normalized) {
-    return defaultValue;
-  }
-
-  if (["1", "true", "yes", "on"].includes(normalized)) {
-    return true;
-  }
-
-  if (["0", "false", "no", "off"].includes(normalized)) {
-    return false;
-  }
-
-  return defaultValue;
-};
 
 const resolveServerUrl = (): string => {
   const envUrl = (import.meta.env.VITE_SERVER_URL || "").trim();
@@ -47,7 +25,7 @@ const resolveServerUrl = (): string => {
 };
 
 export const SERVER_URL = resolveServerUrl();
-export const PRIVATE_CONVERSATIONS_ENABLED = resolveBooleanFlag(
+export const PRIVATE_CONVERSATIONS_ENABLED = parseBooleanFlag(
   import.meta.env.VITE_PRIVATE_CONVERSATIONS_ENABLED,
   true,
 );
