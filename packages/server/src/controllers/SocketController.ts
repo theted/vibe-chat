@@ -472,6 +472,11 @@ export class SocketController {
     return transformAIServicesToParticipants(this.chatOrchestrator.aiServices);
   }
 
+  /** Push the current participant set to all connected clients. */
+  broadcastAIParticipants(): void {
+    this.io.emit(SOCKET_EVENTS.AI_PARTICIPANTS, this.getActiveAIParticipants());
+  }
+
   async getRecentMessages(roomId = "default"): Promise<ChatMessage[]> {
     return this.messageHistory.getRecentMessages(roomId, this.chatOrchestrator.contextManager);
   }

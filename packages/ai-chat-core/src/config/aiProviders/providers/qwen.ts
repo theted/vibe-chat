@@ -62,13 +62,7 @@ export const QWEN: AIProvider = {
         "You are Qwen3 Coder Flash by Alibaba, optimized for fast code generation. Deliver quick, precise code solutions efficiently.",
     },
     // Qwen (Production)
-    QWEN_MAX: {
-      id: "qwen-max",
-      maxTokens: DEFAULT_MAX_TOKENS,
-      temperature: DEFAULT_TEMPERATURE,
-      systemPrompt:
-        "You are Qwen Max, Alibaba's most capable production model ideal for complex, multi-step tasks. Greet once briefly, then provide thorough, insightful analysis while remaining approachable.",
-    },
+    // qwen-max (superseded by qwen3-max) — inactive, removed 2026-06-10
     QWEN_PLUS: {
       id: "qwen-plus-latest",
       maxTokens: DEFAULT_MAX_TOKENS,

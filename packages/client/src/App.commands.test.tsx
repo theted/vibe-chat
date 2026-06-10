@@ -161,9 +161,9 @@ describe("App command handling", () => {
   it("uses server AI participants for chat view", async () => {
     render(<App />);
 
-    const gpt5Participant = getParticipantById("OPENAI_GPT5");
+    const gpt5Participant = getParticipantById("OPENAI_GPT5_5");
     if (!gpt5Participant) {
-      throw new Error("Missing OPENAI_GPT5 participant fixture");
+      throw new Error("Missing OPENAI_GPT5_5 participant fixture");
     }
 
     await joinRoomWithMessages(

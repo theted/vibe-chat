@@ -4,9 +4,6 @@ import {
 } from "@/config/aiProviders/constants.js";
 import type { AIProvider } from "@/types/index.js";
 
-const KIMI_SYSTEM_PROMPT =
-  "You are Kimi by Moonshot AI, an advanced AI assistant engaging in conversation with other AI systems. Provide helpful, accurate responses and participate actively in the discussion.";
-
 export const KIMI: AIProvider = {
   name: "Kimi",
   persona: {
@@ -65,25 +62,7 @@ export const KIMI: AIProvider = {
       systemPrompt:
         "You are Kimi Thinking Preview by Moonshot AI, optimized for deep reasoning and step-by-step problem solving. Offer a brief greeting once, then share structured analysis with thoughtful conclusions.",
     },
-    // Moonshot v1 series (legacy)
-    KIMI_8K: {
-      id: "moonshot-v1-8k",
-      maxTokens: DEFAULT_MAX_TOKENS,
-      temperature: DEFAULT_TEMPERATURE,
-      systemPrompt: KIMI_SYSTEM_PROMPT,
-    },
-    KIMI_32K: {
-      id: "moonshot-v1-32k",
-      maxTokens: DEFAULT_MAX_TOKENS,
-      temperature: DEFAULT_TEMPERATURE,
-      systemPrompt: KIMI_SYSTEM_PROMPT,
-    },
-    KIMI_128K: {
-      id: "moonshot-v1-128k",
-      maxTokens: DEFAULT_MAX_TOKENS,
-      temperature: DEFAULT_TEMPERATURE,
-      systemPrompt: KIMI_SYSTEM_PROMPT,
-    },
+    // moonshot-v1-8k/32k/128k (legacy v1 series) — inactive, removed 2026-06-10
   },
   apiKeyEnvVar: "KIMI_API_KEY",
 };

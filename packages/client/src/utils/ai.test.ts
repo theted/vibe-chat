@@ -95,8 +95,6 @@ describe("resolveEmoji", () => {
   it("should resolve partial matches", () => {
     // "claude-opus" normalizes to "claudeopus", matches "claude" prefix
     expect(resolveEmoji("claude-opus")).toBe(resolveParticipantEmoji(CLAUDE_FLAGSHIP));
-    // "gpt-3.5-turbo" normalizes to "gpt35turbo", matches "gpt35" prefix -> ⭐
-    expect(resolveEmoji("gpt-3.5-turbo")).toBe("⭐");
     expect(resolveEmoji("gemini-pro")).toBe(resolveParticipantEmoji(GEMINI_FLAGSHIP));
     expect(resolveEmoji("mistral-large")).toBe("🌪️");
   });

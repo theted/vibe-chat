@@ -76,7 +76,7 @@ services:
     volumes:
       - ./packages/ai-chat-cli/dist/scripts:/app/scripts:ro
       - ./packages/mcp-assistant/src:/app/mcp-assistant/src:ro
-      - ./startup-log.json:/app/startup-log.json
+      - ./model-health.json:/app/model-health.json
     restart: always
     networks:
       - ai-chat-network

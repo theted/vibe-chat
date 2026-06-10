@@ -77,7 +77,6 @@ describe("chat constants", () => {
       expect(AI_EMOJI_LOOKUP.gpt).toBe(expected);
       expect(AI_EMOJI_LOOKUP.openai).toBe(expected);
       expect(AI_EMOJI_LOOKUP.gpt4).toBe(resolveParticipantEmoji("gpt-4o"));
-      expect(AI_EMOJI_LOOKUP.gpt35).toBe(resolveParticipantEmoji("gpt-3-5"));
     });
 
     it("should map Grok/X.AI to the flagship participant emoji", () => {

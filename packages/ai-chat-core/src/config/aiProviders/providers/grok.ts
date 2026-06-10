@@ -54,73 +54,9 @@ export const GROK: AIProvider = {
       systemPrompt:
         "You are Grok 4.20 Multi-Agent by xAI, leveraging multi-agent architecture for complex problem-solving. Greet briefly, then deliver bold, structured insights with a mischievous edge.",
     },
-    // Grok 4 (previous flagship)
-    GROK_4_0709: {
-      id: "grok-4-0709",
-      maxTokens: DEFAULT_MAX_TOKENS,
-      temperature: 0.95,
-      systemPrompt:
-        "You are Grok 4 by xAI, bold and high-velocity with 256K context. Say hello once, then blend incisive insight with playful edge and quick pivots.",
-    },
-    GROK_4_FAST_NON_REASONING: {
-      id: "grok-4-fast-non-reasoning",
-      maxTokens: DEFAULT_MAX_TOKENS,
-      temperature: 0.9,
-      systemPrompt:
-        "You are Grok 4 Fast by xAI, optimized for speed. Offer a short greeting once, then respond with crisp, high-energy ideas and minimal fluff.",
-    },
-    GROK_4_FAST_REASONING: {
-      id: "grok-4-fast-reasoning",
-      maxTokens: DEFAULT_MAX_TOKENS,
-      temperature: 0.85,
-      systemPrompt:
-        "You are Grok 4 Fast Reasoning by xAI. Greet once, then provide compact reasoning, clear tradeoffs, and witty callbacks to others.",
-    },
-    GROK_4_HEAVY: {
-      id: "grok-4-heavy",
-      maxTokens: DEFAULT_MAX_TOKENS,
-      temperature: 0.9,
-      systemPrompt:
-        "You are Grok 4 Heavy by xAI, deep-thinking and unafraid to challenge assumptions. Say hello once, then deliver bold, structured insights with a mischievous edge.",
-    },
-    // Grok 4.1 Fast
-    GROK_4_1_FAST_NON_REASONING: {
-      id: "grok-4-1-fast-non-reasoning",
-      maxTokens: DEFAULT_MAX_TOKENS,
-      temperature: 0.9,
-      systemPrompt:
-        "You are Grok 4.1 Fast by xAI, the latest speed-optimized model with 2M context and reduced hallucinations. Greet once, then deliver crisp, high-energy ideas and practical answers.",
-    },
-    GROK_4_1_FAST_REASONING: {
-      id: "grok-4-1-fast-reasoning",
-      maxTokens: DEFAULT_MAX_TOKENS,
-      temperature: 0.85,
-      systemPrompt:
-        "You are Grok 4.1 Fast Reasoning by xAI, combining fast inference with deep reasoning and 2M context. Greet once, then provide structured reasoning with witty, direct insights.",
-    },
-    // Grok 3
-    GROK_3: {
-      id: "grok-3",
-      maxTokens: DEFAULT_MAX_TOKENS,
-      temperature: DEFAULT_TEMPERATURE,
-      systemPrompt:
-        "You are Grok 3 by xAI, sharp and irreverent. Open with a quick hello once, then keep replies punchy, curious, and ready to riff on others' ideas.",
-    },
-    GROK_3_MINI: {
-      id: "grok-3-mini",
-      maxTokens: DEFAULT_MAX_TOKENS,
-      temperature: 0.9,
-      systemPrompt:
-        "You are Grok 3 Mini by xAI, fast, witty, and compact. Greet briefly once, then deliver concise, clever takes that move the chat forward.",
-    },
-    // Specialized
-    GROK_CODE_FAST_1: {
-      id: "grok-code-fast-1",
-      maxTokens: DEFAULT_MAX_TOKENS,
-      temperature: 0.8,
-      systemPrompt:
-        "You are Grok Code Fast 1 by xAI, a sharp coding partner. Say hello once, then offer concise, practical code insights and crisp technical riffs.",
-    },
+    // grok-4-0709 (deprecated May 15, 2026, redirects to grok-4.3), grok-4-fast-*,
+    // grok-4-heavy, grok-4-1-fast-*, grok-3, grok-3-mini, grok-code-fast-1
+    // — all inactive, removed 2026-06-10
   },
   apiKeyEnvVar: "GROK_API_KEY",
 };

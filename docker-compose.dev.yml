@@ -81,7 +81,7 @@ services:
       - ./packages/server/tsconfig.json:/app/server/tsconfig.json
       - ./packages/ai-chat-cli/dist/scripts:/app/scripts:ro
       - ./packages/mcp-assistant/src:/app/mcp-assistant/src:ro
-      - ./startup-log.json:/app/server/startup-log.json
+      - ./model-health.json:/app/server/model-health.json
     restart: unless-stopped
     networks:
       - ai-chat-network

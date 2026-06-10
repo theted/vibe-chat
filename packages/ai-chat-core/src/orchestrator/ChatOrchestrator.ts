@@ -74,7 +74,7 @@ export type ModelInitResult = {
 /**
  * Run async tasks with a concurrency limit.
  */
-const runWithConcurrencyLimit = async (
+export const runWithConcurrencyLimit = async (
   tasks: Array<() => Promise<void>>,
   limit: number,
 ): Promise<void> => {
@@ -274,6 +274,18 @@ export class ChatOrchestrator extends EventEmitter {
     }
 
     return results;
+  }
+
+  /**
+   * Remove an AI service from the orchestrator (e.g. after a failed
+   * background health check). Returns true if the service existed.
+   */
+  removeAI(aiId: string): boolean {
+    const existed = this.aiServices.delete(aiId);
+    if (existed) {
+      this.activeAIs = this.activeAIs.filter((id) => id !== aiId);
+    }
+    return existed;
   }
 
   async handleMessage(message) {
