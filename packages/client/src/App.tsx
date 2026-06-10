@@ -15,6 +15,8 @@ import { useTheme } from "./hooks/useTheme";
 import { useToasts } from "./hooks/useToasts";
 import { useScrollToBottom } from "./hooks/useScrollToBottom";
 import { useMessagePersistence } from "./hooks/useMessagePersistence";
+import { usePreviewState } from "./hooks/usePreviewState";
+import { useChatAutoScroll } from "./hooks/useChatAutoScroll";
 import ToastContainer from "./components/ToastContainer";
 import ChatView from "./components/ChatView";
 import LoadingOverlay from "./components/LoadingOverlay";
@@ -34,9 +36,8 @@ import type {
 import type { AiParticipant } from "./config/aiParticipants";
 
 const RECENT_MESSAGES_FOR_AI_CONTEXT = 10;
-const SCROLL_ON_JOIN_DELAY_MS = 100;
 
-function App() {
+const App = () => {
   // Core state
   const [username, setUsername] = useState("");
   const [isJoined, setIsJoined] = useState(false);
@@ -48,9 +49,6 @@ function App() {
   const [typingAIs, setTypingAIs] = useState<TypingAI[]>([]);
   const [hasSavedUsername, setHasSavedUsername] = useState(false);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
-  const [previewMessages, setPreviewMessages] = useState<Message[]>([]);
-  const [previewParticipants, setPreviewParticipants] = useState<Participant[]>([]);
-  const [previewAiParticipants, setPreviewAiParticipants] = useState<AiParticipant[]>([]);
   const [roomInfo, setRoomInfo] = useState<RoomInfo>({ topic: "General discussion" });
   const [error, setError] = useState<string | null>(null);
   const [participants, setParticipants] = useState<Participant[]>([]);
@@ -60,22 +58,27 @@ function App() {
   const { theme, setTheme, toggleTheme } = useTheme();
   const { toasts, showToast } = useToasts();
   const { on, off, emit, triggerAI } = useSocket(SERVER_URL);
+  const {
+    previewMessages,
+    setPreviewMessages,
+    previewParticipants,
+    setPreviewParticipants,
+    previewAiParticipants,
+    setPreviewAiParticipants,
+    previewMessagesRef,
+    previewParticipantsRef,
+    previewAiParticipantsRef,
+  } = usePreviewState();
 
   // Refs
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const usernameRef = useRef("");
   const isJoinedRef = useRef(false);
-  const previewMessagesRef = useRef<Message[]>([]);
-  const previewParticipantsRef = useRef<Participant[]>([]);
-  const previewAiParticipantsRef = useRef<AiParticipant[]>([]);
 
   // Keep refs in sync
   useEffect(() => { usernameRef.current = username || ""; }, [username]);
   useEffect(() => { isJoinedRef.current = isJoined; }, [isJoined]);
-  useEffect(() => { previewMessagesRef.current = previewMessages; }, [previewMessages]);
-  useEffect(() => { previewParticipantsRef.current = previewParticipants; }, [previewParticipants]);
-  useEffect(() => { previewAiParticipantsRef.current = previewAiParticipants; }, [previewAiParticipants]);
 
   const { showScrollButton, scrollToBottom } = useScrollToBottom(
     messagesContainerRef,
@@ -134,20 +137,7 @@ function App() {
     if (isJoined) setIsAuthLoading(false);
   }, [isJoined]);
 
-  // Auto-scroll on new messages
-  useEffect(() => {
-    if (!messagesEndRef.current) return;
-    if (!showScrollButton) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [messages, showScrollButton]);
-
-  // Scroll to bottom on join
-  useEffect(() => {
-    if (isJoined && messagesEndRef.current) {
-      setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "instant" }), SCROLL_ON_JOIN_DELAY_MS);
-    }
-  }, [isJoined]);
+  useChatAutoScroll(messagesEndRef, messages, showScrollButton, isJoined);
 
   // Handlers
   const handleJoinRoom = (e: FormEvent<HTMLFormElement>) => {
@@ -246,6 +236,6 @@ function App() {
       <ToastContainer toasts={toasts} />
     </ThemeContext.Provider>
   );
-}
+};
 
 export default App;

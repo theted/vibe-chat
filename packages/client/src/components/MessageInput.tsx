@@ -1,5 +1,6 @@
 /**
- * MessageInput Component - Input area for sending messages
+ * MessageInput Component - Input area for sending messages (textarea sizing,
+ * typing signals, and mention detection are extracted hooks)
  */
 
 import {
@@ -13,11 +14,13 @@ import {
 import AISelectionDialog from "./AISelectionDialog";
 import Icon from "./Icon";
 import { extractMentionsFromText } from "@/utils/mentions";
-import type { MessageInputProps, DialogPosition } from "@/types";
+import { useAutoResizeTextarea } from "@/hooks/useAutoResizeTextarea";
+import { useMentionDetection } from "@/hooks/useMentionDetection";
+import { useTypingSignal } from "@/hooks/useTypingSignal";
+import type { MessageInputProps } from "@/types";
 
 const MAX_MESSAGE_LENGTH = 5_000;
 const MESSAGE_LENGTH_WARNING_THRESHOLD = 4_500;
-const TYPING_INACTIVITY_TIMEOUT_MS = 2_000;
 const TEXTAREA_MIN_HEIGHT = "52px";
 const TEXTAREA_MAX_HEIGHT = "200px";
 
@@ -29,33 +32,22 @@ const MessageInput = ({
   onTypingStop,
 }: MessageInputProps) => {
   const [message, setMessage] = useState("");
-  const [showAIDialog, setShowAIDialog] = useState(false);
-  const [mentionPosition, setMentionPosition] = useState<DialogPosition>({
-    x: 0,
-    y: 0,
-  });
-  const [currentMention, setCurrentMention] = useState("");
-  const [isTyping, setIsTyping] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const resolveCursorPosition = (
-    value: string,
-    target: HTMLTextAreaElement | null,
-  ) => {
-    const selectionStart = target?.selectionStart;
-    const selectionEnd = target?.selectionEnd;
-    if (typeof selectionStart === "number") {
-      if (typeof selectionEnd === "number" && selectionEnd > selectionStart) {
-        return selectionEnd;
-      }
-      return selectionStart;
-    }
-    if (typeof selectionEnd === "number") {
-      return selectionEnd;
-    }
-    return value.length;
-  };
+  const { signalActivity, stopTyping } = useTypingSignal({
+    onTypingStart,
+    onTypingStop,
+  });
+  const {
+    showAIDialog,
+    mentionPosition,
+    currentMention,
+    detectMention,
+    closeDialog,
+    insertMention,
+  } = useMentionDetection(textareaRef);
+
+  useAutoResizeTextarea(textareaRef, message);
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -67,13 +59,7 @@ const MessageInput = ({
       }
       onSendMessage(message.trim());
       setMessage("");
-
-      // Stop typing indicator when message is sent
-      if (isTyping && onTypingStop) {
-        onTypingStop();
-        setIsTyping(false);
-      }
-
+      stopTyping();
       textareaRef.current?.focus();
     }
   };
@@ -88,101 +74,21 @@ const MessageInput = ({
   const handleChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
     setMessage(value);
-
-    // Handle typing indicators
-    if (value.trim() && !isTyping && onTypingStart) {
-      onTypingStart();
-      setIsTyping(true);
-    }
-
-    // Clear previous timeout and set new one
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current);
-    }
-
-    if (value.trim()) {
-      typingTimeoutRef.current = setTimeout(() => {
-        if (isTyping && onTypingStop) {
-          onTypingStop();
-          setIsTyping(false);
-        }
-      }, TYPING_INACTIVITY_TIMEOUT_MS);
-    } else if (isTyping && onTypingStop) {
-      onTypingStop();
-      setIsTyping(false);
-    }
-
-    // Check for @ trigger to show AI selection
-    const cursorPosition = resolveCursorPosition(value, e.target);
-    const textBeforeCursor = value.substring(0, cursorPosition);
-    const mentionMatch = textBeforeCursor.match(/@([^\s@]*)$/);
-
-    if (mentionMatch) {
-      setCurrentMention(mentionMatch[1] || "");
-      setShowAIDialog(true);
-
-      // Calculate position for dialog
-      const textarea = textareaRef.current;
-      if (textarea) {
-        const rect = textarea.getBoundingClientRect();
-        const scrollX = typeof window !== "undefined" ? window.scrollX : 0;
-        const scrollY = typeof window !== "undefined" ? window.scrollY : 0;
-        setMentionPosition({
-          x: rect.left + scrollX + rect.width * 0.1,
-          y: rect.top + scrollY,
-        });
-      }
-    } else {
-      setShowAIDialog(false);
-      setCurrentMention("");
-    }
+    signalActivity(value);
+    detectMention(value, e.target);
   };
 
   const handleAISelect = (aiName: string) => {
-    const cursorPosition = textareaRef.current?.selectionStart || 0;
-    const textBeforeCursor = message.substring(0, cursorPosition);
-    const textAfterCursor = message.substring(cursorPosition);
-
-    // Replace the current @mention with the selected AI
-    const mentionMatch = textBeforeCursor.match(/@([^\s@]*)$/);
-    if (mentionMatch) {
-      const beforeMention = textBeforeCursor.substring(0, mentionMatch.index);
-      const newMessage = beforeMention + "@" + aiName + " " + textAfterCursor;
+    const newMessage = insertMention(message, aiName);
+    if (newMessage !== null) {
       setMessage(newMessage);
-
-      // Position cursor after the mention
-      setTimeout(() => {
-        const newCursorPos = beforeMention.length + aiName.length + 2;
-        textareaRef.current?.setSelectionRange(newCursorPos, newCursorPos);
-        textareaRef.current?.focus();
-      }, 0);
     }
-
-    setShowAIDialog(false);
-    setCurrentMention("");
+    closeDialog();
   };
-
-  // Auto-resize textarea
-  useEffect(() => {
-    const textarea = textareaRef.current;
-    if (textarea) {
-      textarea.style.height = "auto";
-      textarea.style.height = `${textarea.scrollHeight}px`;
-    }
-  }, [message]);
 
   // Focus on mount
   useEffect(() => {
     textareaRef.current?.focus();
-  }, []);
-
-  // Cleanup typing timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (typingTimeoutRef.current) {
-        clearTimeout(typingTimeoutRef.current);
-      }
-    };
   }, []);
 
   return (
@@ -225,7 +131,7 @@ const MessageInput = ({
       {showAIDialog && (
         <AISelectionDialog
           isOpen={showAIDialog}
-          onClose={() => setShowAIDialog(false)}
+          onClose={closeDialog}
           onSelect={handleAISelect}
           searchTerm={currentMention}
           position={mentionPosition}
