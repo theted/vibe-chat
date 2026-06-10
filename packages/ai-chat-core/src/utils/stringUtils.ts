@@ -4,7 +4,7 @@
  * Common string manipulation functions used across the orchestrator and services.
  */
 
-import { normalizeAliasKey } from "@ai-chat/ai-configs";
+import { normalizeAliasKey, parseBooleanFlag } from "@ai-chat/ai-configs";
 
 /**
  * Normalize an alias/name to lowercase alphanumeric characters only
@@ -34,12 +34,8 @@ export const toMentionAlias = (
  * Parse boolean from environment variable string
  * Returns true for: "1", "true", "yes", "on" (case insensitive)
  */
-export const parseBooleanEnvFlag = (value?: string | null): boolean => {
-  if (typeof value !== "string") return false;
-  const normalized = value.trim().toLowerCase();
-  if (!normalized) return false;
-  return ["1", "true", "yes", "on"].includes(normalized);
-};
+export const parseBooleanEnvFlag = (value?: string | null): boolean =>
+  parseBooleanFlag(value);
 
 /**
  * Safely get environment variable value

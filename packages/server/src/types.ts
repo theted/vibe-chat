@@ -1,22 +1,14 @@
-export type SenderType = "user" | "ai" | "system" | "assistant";
+import type { ChatMessageBase, WireSenderType } from "@ai-chat/ai-configs";
 
-export type ChatMessage = {
-  id?: string;
-  sender: string;
-  displayName?: string;
-  alias?: string;
+export type SenderType = WireSenderType;
+
+// Shared wire fields come from ChatMessageBase; the rest is server-internal
+export type ChatMessage = ChatMessageBase & {
   normalizedAlias?: string;
-  content: string;
-  senderType: SenderType;
   roomId?: string;
   priority?: number;
   suppressAIResponses?: boolean;
-  timestamp?: number;
   storedAt?: number;
-  aiId?: string;
-  aiName?: string;
-  modelKey?: string;
-  emoji?: string;
   isInternalResponder?: boolean;
   mentionsTriggerSender?: string | null;
   contextQuestion?: string | null;

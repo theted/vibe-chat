@@ -3,6 +3,7 @@
  */
 
 import type { RefObject, ReactNode, FormEvent } from "react";
+import type { ChatMessageBase, WireSenderType } from "@ai-chat/ai-configs";
 
 // Re-export AI participant types from config
 export type {
@@ -10,25 +11,19 @@ export type {
   AiParticipantStatus,
 } from "@/config/aiParticipants";
 
-// Message types
-export type SenderType = "user" | "ai" | "system";
+// Message types — the client never receives "assistant" messages
+export type SenderType = Exclude<WireSenderType, "assistant">;
 
-export interface Message {
+// Shared wire fields come from ChatMessageBase; the client narrows id and
+// timestamp to required (the server always sets them before emitting) and
+// adds display-only extras.
+export interface Message extends ChatMessageBase {
   id: string;
-  sender: string;
-  content: string;
   senderType: SenderType;
   timestamp: number;
-  // AI-specific fields
-  aiId?: string;
-  aiName?: string;
-  alias?: string;
-  displayName?: string;
   modelName?: string;
-  modelKey?: string;
   modelId?: string;
   providerKey?: string;
-  emoji?: string;
   aiEmoji?: string;
 }
 
