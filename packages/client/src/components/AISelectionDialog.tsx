@@ -7,7 +7,7 @@
 
 import { useState, useEffect, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { normalizeAliasKey } from "@ai-chat/ai-configs";
+import { normalizeAliasKey } from "@/utils/ai";
 import { DEFAULT_AI_PARTICIPANTS } from "@/config/aiParticipants";
 import { EXTRA_AI_PARTICIPANTS } from "@/config/extraAiParticipants";
 import Icon from "./Icon";

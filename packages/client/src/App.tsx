@@ -21,6 +21,8 @@ import LoadingOverlay from "./components/LoadingOverlay";
 import { ThemeContext } from "./context/ThemeContext";
 import { PRIVATE_CONVERSATIONS_ENABLED, SERVER_URL } from "./constants/chat";
 import { mapMentionsToAiNames, normalizeAlias } from "./utils/ai";
+import { getStorageItem, removeStorageItem, setStorageItem } from "./utils/storage";
+import { STORAGE_KEYS } from "./constants/storage";
 import type {
   Message,
   ConnectionStatus,
@@ -111,7 +113,7 @@ function App() {
 
   // Load saved username on mount
   useEffect(() => {
-    const saved = localStorage.getItem("ai-chat-username");
+    const saved = getStorageItem(STORAGE_KEYS.USERNAME);
     if (saved) {
       setUsername(saved);
       setHasSavedUsername(true);
@@ -151,14 +153,14 @@ function App() {
   const handleJoinRoom = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (username.trim()) {
-      localStorage.setItem("ai-chat-username", username.trim());
+      setStorageItem(STORAGE_KEYS.USERNAME, username.trim());
       setHasSavedUsername(true);
       joinRoom(username.trim(), "default");
     }
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("ai-chat-username");
+    removeStorageItem(STORAGE_KEYS.USERNAME);
     setUsername("");
     setIsJoined(false);
     setMessages(

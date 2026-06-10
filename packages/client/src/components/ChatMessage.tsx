@@ -8,6 +8,7 @@ import { motion } from "framer-motion";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism/index.js";
 import { normalizeAlias, resolveEmoji } from "@/utils/ai";
+import { formatMessageTime } from "@/utils/formatters";
 import { findMentionMatches } from "@/utils/mentions";
 import {
   getSenderLabelClasses,
@@ -26,12 +27,6 @@ const SYNTAX_HIGHLIGHTER_STYLE: React.CSSProperties = {
 };
 const CODE_TAG_STYLE: React.CSSProperties = { fontFamily: "inherit" };
 const DEFAULT_AI_DISPLAY_NAME = "AI Assistant";
-
-const formatTime = (timestamp: number): string =>
-  new Date(timestamp).toLocaleTimeString("en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
 
 const ChatMessage = ({
   message,
@@ -275,7 +270,7 @@ const ChatMessage = ({
         )}
       </div>
       <div className={`text-xs mt-2 ${getTimestampClasses(message.senderType)}`}>
-        {formatTime(message.timestamp)}
+        {formatMessageTime(message.timestamp)}
       </div>
     </motion.div>
   );

@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { DEFAULT_AI_PARTICIPANTS } from "@/config/aiParticipants";
 import { useModal } from "@/hooks/useModal";
+import { getStorageItem, setStorageItem } from "@/utils/storage";
+import { STORAGE_KEYS } from "@/constants/storage";
 import ChatMessage from "./ChatMessage";
 import MessageInput from "./MessageInput";
 import ParticipantsList from "./ParticipantsList";
@@ -42,11 +44,11 @@ const ChatView = ({
   const login = useModal();
 
   const [darkChatBg, setDarkChatBg] = useState(
-    () => localStorage.getItem("chat-dark-bg") === "true"
+    () => getStorageItem(STORAGE_KEYS.CHAT_DARK_BG) === "true"
   );
   const toggleDarkChatBg = () => {
     setDarkChatBg((prev) => {
-      localStorage.setItem("chat-dark-bg", String(!prev));
+      setStorageItem(STORAGE_KEYS.CHAT_DARK_BG, String(!prev));
       return !prev;
     });
   };

@@ -4,10 +4,11 @@
 
 import { useEffect, useRef, type FormEvent } from "react";
 import Icon from "./Icon";
+import {
+  MODAL_BACKDROP_CLASSES,
+  SECTION_LABEL_CLASSES,
+} from "@/constants/modalStyles";
 import type { ConnectionStatus } from "@/types";
-
-const MODAL_BACKDROP =
-  "absolute inset-0 bg-slate-950/60 backdrop-blur-sm transition-opacity duration-200 ease-out";
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -55,7 +56,7 @@ const LoginModal = ({
       }`}
     >
       <div
-        className={`${MODAL_BACKDROP} ${isOpen ? "opacity-100" : "opacity-0"}`}
+        className={`${MODAL_BACKDROP_CLASSES} ${isOpen ? "opacity-100" : "opacity-0"}`}
         role="button"
         tabIndex={-1}
         aria-label="Close login dialog"
@@ -79,7 +80,7 @@ const LoginModal = ({
         <div className="absolute -bottom-8 left-8 h-24 w-24 rounded-full bg-indigo-500/20 blur-2xl" />
         <div className="relative flex items-start justify-between gap-3">
           <div>
-            <p className="text-xs uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
+            <p className={SECTION_LABEL_CLASSES}>
               Welcome to the room
             </p>
             <p className="text-2xl font-semibold text-slate-800 dark:text-slate-100">
