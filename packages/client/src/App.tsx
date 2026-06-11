@@ -22,7 +22,7 @@ import ChatView from "./components/ChatView";
 import LoadingOverlay from "./components/LoadingOverlay";
 import { ThemeContext } from "./context/ThemeContext";
 import { PRIVATE_CONVERSATIONS_ENABLED, SERVER_URL } from "./constants/chat";
-import { mapMentionsToAiNames, normalizeAlias } from "./utils/ai";
+import { normalizeAlias } from "./utils/ai";
 import { getStorageItem, removeStorageItem, setStorageItem } from "./utils/storage";
 import { STORAGE_KEYS } from "./constants/storage";
 import type {
@@ -35,7 +35,6 @@ import type {
 } from "./types";
 import type { AiParticipant } from "./config/aiParticipants";
 
-const RECENT_MESSAGES_FOR_AI_CONTEXT = 10;
 
 const App = () => {
   // Core state
@@ -57,7 +56,7 @@ const App = () => {
   // Hooks
   const { theme, setTheme, toggleTheme } = useTheme();
   const { toasts, showToast } = useToasts();
-  const { on, off, emit, triggerAI } = useSocket(SERVER_URL);
+  const { on, off, emit } = useSocket(SERVER_URL);
   const {
     previewMessages,
     setPreviewMessages,
@@ -174,14 +173,6 @@ const App = () => {
     sendMessage(content);
   };
 
-  const handleAIMention = (mentions: string[], message: string) => {
-    const aiNames = mapMentionsToAiNames(mentions);
-    if (aiNames.length > 0) {
-      const recentMessages = messages.slice(-RECENT_MESSAGES_FOR_AI_CONTEXT);
-      triggerAI(aiNames as string[], message, recentMessages);
-    }
-  };
-
   const handlePrivateConversationStart = useCallback(
     (ai: AiParticipant) => {
       if (!PRIVATE_CONVERSATIONS_ENABLED) return;
@@ -223,7 +214,6 @@ const App = () => {
           onJoin={handleJoinRoom}
           onUsernameChange={setUsername}
           onSendMessage={handleSendMessage}
-          onAIMention={handleAIMention}
           onTypingStart={startTyping}
           onTypingStop={stopTyping}
           onPrivateConversationStart={handlePrivateConversationStart}

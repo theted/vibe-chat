@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { DEFAULT_AI_PARTICIPANTS } from "@/config/aiParticipants";
 import { AI_MENTION_MAPPINGS } from "@/constants/chat.ts";
-import { normalizeAlias, resolveEmoji, mapMentionsToAiNames } from "./ai.ts";
+import { normalizeAlias, resolveEmoji } from "./ai.ts";
 
 const resolveParticipantEmoji = (alias: string): string => {
   const participant = DEFAULT_AI_PARTICIPANTS.find(
@@ -116,114 +116,5 @@ describe("resolveEmoji", () => {
     expect(resolveEmoji("google")).toBe(resolveParticipantEmoji(GEMINI_FLAGSHIP));
     expect(resolveEmoji("bard")).toBe(resolveParticipantEmoji(GEMINI_FLAGSHIP));
     expect(resolveEmoji("moonshot")).toBe(kimiEmoji);
-  });
-});
-
-describe("mapMentionsToAiNames", () => {
-  it("should map mentions to canonical AI names", () => {
-    const mentions = ["claude", "gpt", "gemini", "perplexity", "qwen"];
-    const result = mapMentionsToAiNames(mentions);
-    expect(result).toEqual([
-      CLAUDE_FLAGSHIP,
-      GPT_FLAGSHIP,
-      GEMINI_FLAGSHIP,
-      "sonar-pro",
-      "qwen3.6-max",
-    ]);
-  });
-
-  it("should handle aliases correctly", () => {
-    const mentions = ["anthropic", "openai", "google"];
-    const result = mapMentionsToAiNames(mentions);
-    expect(result).toEqual([
-      CLAUDE_FLAGSHIP,
-      GPT_FLAGSHIP,
-      GEMINI_FLAGSHIP,
-    ]);
-  });
-
-  it("should remove duplicate mentions", () => {
-    const mentions = ["claude", "anthropic", "claude"];
-    const result = mapMentionsToAiNames(mentions);
-    expect(result).toEqual([CLAUDE_FLAGSHIP]);
-  });
-
-  it("should handle empty array", () => {
-    expect(mapMentionsToAiNames([])).toEqual([]);
-  });
-
-  it("should handle undefined input", () => {
-    expect(mapMentionsToAiNames()).toEqual([]);
-  });
-
-  it("should preserve unknown mentions", () => {
-    const mentions = ["claude", "unknown-ai", "gpt"];
-    const result = mapMentionsToAiNames(mentions);
-    expect(result).toEqual([CLAUDE_FLAGSHIP, "unknown-ai", GPT_FLAGSHIP]);
-  });
-
-  it("should handle case variations", () => {
-    const mentions = ["CLAUDE", "OpenAI", "GeMiNi"];
-    const result = mapMentionsToAiNames(mentions);
-    expect(result).toEqual([
-      CLAUDE_FLAGSHIP,
-      GPT_FLAGSHIP,
-      GEMINI_FLAGSHIP,
-    ]);
-  });
-
-  it("should map display names with spaces", () => {
-    const mentions = ["Claude Haiku 4.5", "ChatGPT 5.1 Mini"];
-    const result = mapMentionsToAiNames(mentions);
-    expect(result).toEqual(["claude-haiku-4-5", "gpt-5-mini"]);
-  });
-
-  it("should handle null values in array", () => {
-    const mentions = ["claude", null, "gpt", undefined];
-    const result = mapMentionsToAiNames(mentions);
-    expect(result).toContain(CLAUDE_FLAGSHIP);
-    expect(result).toContain(GPT_FLAGSHIP);
-  });
-
-  it("should map all supported providers correctly", () => {
-    const mentions = [
-      "gpt4",
-      "chatgpt",
-      "grok",
-      "xai",
-      "bard",
-      "command",
-      "commandr",
-      "z",
-      "zai",
-    ];
-    const result = mapMentionsToAiNames(mentions);
-    expect(result).toEqual([
-      "gpt-4o",
-      GPT_FLAGSHIP,
-      GROK_FLAGSHIP,
-      GEMINI_FLAGSHIP,
-      "cohere",
-      "command-r",
-      "z.ai",
-    ]);
-  });
-
-  it("should handle mixed valid and invalid mentions", () => {
-    const mentions = ["claude", "invalid1", "gpt", "invalid2", "gemini"];
-    const result = mapMentionsToAiNames(mentions);
-    expect(result).toEqual([
-      CLAUDE_FLAGSHIP,
-      "invalid1",
-      GPT_FLAGSHIP,
-      "invalid2",
-      GEMINI_FLAGSHIP,
-    ]);
-  });
-
-  it("should handle mentions without toLowerCase method", () => {
-    const mentions = [123, "claude", true];
-    const result = mapMentionsToAiNames(mentions);
-    expect(result.length).toBeGreaterThan(0);
   });
 });

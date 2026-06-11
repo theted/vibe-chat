@@ -16,7 +16,6 @@ vi.mock("./hooks/useSocket", () => ({
     },
     off: vi.fn(),
     emit: emitMock,
-    triggerAI: vi.fn(),
   }),
 }));
 

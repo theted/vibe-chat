@@ -20,7 +20,6 @@ export const SOCKET_EVENTS = {
   JOIN_DASHBOARD: "join-dashboard",
   ADMIN_WAKE_AIS: "admin-wake-ais",
   ADMIN_SLEEP_AIS: "admin-sleep-ais",
-  TRIGGER_AI: "trigger-ai",
   USER_TYPING_START: "user-typing-start",
   USER_TYPING_STOP: "user-typing-stop",
 
