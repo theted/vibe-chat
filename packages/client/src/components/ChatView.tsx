@@ -30,7 +30,6 @@ const ChatView = ({
   onJoin,
   onUsernameChange,
   onSendMessage,
-  onAIMention,
   onTypingStart,
   onTypingStop,
   onPrivateConversationStart,
@@ -197,7 +196,6 @@ const ChatView = ({
 
             <MessageInput
               onSendMessage={onSendMessage}
-              onAIMention={onAIMention}
               onTypingStart={onTypingStart}
               onTypingStop={onTypingStop}
               disabled={!connectionStatus.connected || !isAuthenticated}

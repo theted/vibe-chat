@@ -17,7 +17,6 @@ vi.mock("./Icon", () => ({
 describe("MessageInput", () => {
   const defaultProps = {
     onSendMessage: vi.fn(),
-    onAIMention: vi.fn(),
     onTypingStart: vi.fn(),
     onTypingStop: vi.fn(),
     disabled: false,

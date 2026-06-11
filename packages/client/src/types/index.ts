@@ -150,7 +150,6 @@ export interface ChatViewProps {
   onJoin: (event: FormEvent<HTMLFormElement>) => void;
   onUsernameChange: (username: string) => void;
   onSendMessage: (content: string) => void;
-  onAIMention: (mentions: string[], message: string) => void;
   onTypingStart: () => void;
   onTypingStop: () => void;
   onPrivateConversationStart?: (ai: AiParticipant) => void;
@@ -177,7 +176,6 @@ export interface LoginViewProps {
 export interface MessageInputProps {
   onSendMessage: (content: string) => void;
   disabled?: boolean;
-  onAIMention?: (mentions: string[], message: string) => void;
   onTypingStart?: () => void;
   onTypingStop?: () => void;
 }

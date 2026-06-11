@@ -36,6 +36,7 @@ export {
   normalizeAlias,
   resolveEmoji,
   mapMentionsToAiNames,
+  resolveMentionTarget,
 } from "./lookups.js";
 
 // Alias utilities

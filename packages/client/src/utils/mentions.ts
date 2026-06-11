@@ -101,10 +101,3 @@ export const findMentionMatches = (
   return matches;
 };
 
-export const extractMentionsFromText = (
-  text: string,
-  aiParticipants: AiParticipant[] = [],
-): string[] =>
-  findMentionMatches(text, aiParticipants)
-    .map((match) => match.mention.toLowerCase())
-    .filter(Boolean);

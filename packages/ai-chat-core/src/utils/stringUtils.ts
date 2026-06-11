@@ -4,7 +4,11 @@
  * Common string manipulation functions used across the orchestrator and services.
  */
 
-import { normalizeAliasKey, parseBooleanFlag } from "@ai-chat/ai-configs";
+import {
+  normalizeAliasKey,
+  parseBooleanFlag,
+  resolveMentionTarget,
+} from "@ai-chat/ai-configs";
 
 /**
  * Normalize an alias/name to lowercase alphanumeric characters only
@@ -56,8 +60,11 @@ export const getEnvFlag = (name: string): string | undefined => {
 export const createMentionTokenRegex = (): RegExp => /@([^\s@]+)/g;
 
 /**
- * Parse @mentions from message content
- * Returns both raw mentions and normalized versions
+ * Parse @mentions from message content.
+ * Returns raw mentions plus normalized targets: generic aliases are resolved
+ * to canonical participant aliases first (e.g. "@chatgpt" -> "gpt55"), so
+ * mention targeting works for the whole alias vocabulary, not just exact
+ * participant aliases.
  */
 export const parseMentions = (
   content = "",
@@ -71,7 +78,7 @@ export const parseMentions = (
   while ((match = mentionRegex.exec(content)) !== null) {
     const token = match[1];
     if (!token) continue;
-    const normalizedToken = normalizeAlias(token);
+    const normalizedToken = normalizeAlias(resolveMentionTarget(token));
     if (normalizedToken && !seen.has(normalizedToken)) {
       mentions.push(token);
       normalized.push(normalizedToken);
