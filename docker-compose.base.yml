@@ -1,0 +1,100 @@
+# Shared service definitions for all environments.
+#
+# Never run this file alone — combine it with an environment override:
+#   docker compose -f docker-compose.base.yml -f docker-compose.dev.yml up
+#   docker compose -f docker-compose.base.yml -f docker-compose.prod.yml up
+#   docker compose -f docker-compose.base.yml -f docker-compose.ec2.yml up
+#   docker compose -f docker-compose.base.yml -f docker-compose.debug.yml up
+#
+# Overrides own anything environment-specific: container names, published
+# ports vs expose, redis/chroma profiles, NODE_ENV, extra volumes, logging.
+# (docker-compose.yml remains a self-contained file for the e2e workflow.)
+
+services:
+  redis:
+    image: redis:7.4-alpine
+    command: redis-server --save 60 1 --appendonly yes --loglevel warning
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+    networks:
+      - ai-chat-network
+
+  chroma:
+    image: chromadb/chroma:latest
+    restart: unless-stopped
+    networks:
+      - ai-chat-network
+    volumes:
+      - chroma-data:/chroma/chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+      - ANONYMIZED_TELEMETRY=FALSE
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  ai-chat-server:
+    build:
+      context: .
+      dockerfile: packages/server/Dockerfile
+    environment:
+      - CLIENT_URL=${CLIENT_URL:-*}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - GROK_API_KEY=${GROK_API_KEY}
+      - GOOGLE_AI_API_KEY=${GOOGLE_AI_API_KEY}
+      - MISTRAL_API_KEY=${MISTRAL_API_KEY}
+      - COHERE_API_KEY=${COHERE_API_KEY}
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
+      - QWEN_API_KEY=${QWEN_API_KEY}
+      - KIMI_API_KEY=${KIMI_API_KEY}
+      - Z_API_KEY=${Z_API_KEY}
+      - LLAMA_API_KEY=${LLAMA_API_KEY}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - OPENROUTER_APP_NAME=${OPENROUTER_APP_NAME:-}
+      - OPENROUTER_APP_URL=${OPENROUTER_APP_URL:-}
+      - PERPLEXITY_API_KEY=${PERPLEXITY_API_KEY}
+      - AI_CHAT_VERBOSE_CONTEXT=${AI_CHAT_VERBOSE_CONTEXT:-false}
+      - AI_CHAT_ENABLE_PERSONAS=${AI_CHAT_ENABLE_PERSONAS:-false}
+      - AI_CHAT_SKIP_HEALTHCHECK=${AI_CHAT_SKIP_HEALTHCHECK:-false}
+      - AI_CHAT_RECHECK_AVAILABILITY=${AI_CHAT_RECHECK_AVAILABILITY:-false}
+      - AI_CHAT_HEALTH_TTL_MS=${AI_CHAT_HEALTH_TTL_MS:-}
+      - DISABLED_AI_MODELS=${DISABLED_AI_MODELS:-}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+      - CHAT_ASSISTANT_SCRIPT=/app/scripts/run-mcp-chat.js
+      - CHAT_ASSISTANT_AUTO_INDEX=true
+      - NODE_PATH=/app/server/node_modules
+      - CHROMA_URL=${CHROMA_URL:-http://chroma:8000}
+      - CHAT_ASSISTANT_COLLECTION=ai-chat-workspace
+    volumes:
+      - ./packages/ai-chat-cli/dist/scripts:/app/scripts:ro
+      - ./packages/mcp-assistant/src:/app/mcp-assistant/src:ro
+    restart: unless-stopped
+    networks:
+      - ai-chat-network
+    # Note: no depends_on for redis/chroma — handled by network + health
+    # checks in code; external instances may be used via profiles.
+
+  ai-chat-client:
+    build:
+      context: .
+      dockerfile: packages/client/Dockerfile
+      args:
+        - VITE_SERVER_URL=${SERVER_URL:-http://localhost:3001}
+    depends_on:
+      - ai-chat-server
+    restart: unless-stopped
+    networks:
+      - ai-chat-network
+
+networks:
+  ai-chat-network:
+    driver: bridge
+
+volumes:
+  redis-data:
+  chroma-data:
