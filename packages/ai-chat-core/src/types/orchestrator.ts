@@ -247,20 +247,6 @@ export interface IChatOrchestrator extends EventEmitter {
   shutdown(): Promise<void>;
 }
 
-// Strategy manager interface
-export interface IInteractionStrategyManager {
-  determineStrategy(context: StrategyContext): StrategyDecision;
-  applyStrategy(
-    strategy: InteractionStrategy,
-    context: StrategyContext,
-  ): Record<string, unknown>;
-  getStrategyWeights(context: StrategyContext): StrategyWeight[];
-  registerStrategy(config: InteractionStrategyConfig): void;
-  updateStrategyWeights(
-    updates: Partial<Record<InteractionStrategy, number>>,
-  ): void;
-}
-
 // Response scheduler interface
 export interface IResponseScheduler {
   scheduleResponses(
