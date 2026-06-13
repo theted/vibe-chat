@@ -241,10 +241,7 @@ export const createTestOrchestrator = async (
   // The constructor calls startBackgroundConversation() before AIs are
   // initialized, causing it to schedule a 30s retry (SLEEP_RETRY_INTERVAL).
   // Restart it now so the background timer uses the actual configured delays.
-  if (orchestrator.backgroundConversationTimer) {
-    clearTimeout(orchestrator.backgroundConversationTimer);
-    orchestrator.backgroundConversationTimer = null;
-  }
+  orchestrator.stopBackgroundConversation();
   orchestrator.startBackgroundConversation();
 
   return { orchestrator, aiConfigs };

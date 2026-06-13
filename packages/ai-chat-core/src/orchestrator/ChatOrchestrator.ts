@@ -12,7 +12,8 @@ import type { GenerateResponseOptions } from "./ResponseQueue.js";
 import { RoomScope } from "./RoomScope.js";
 import { ResponseScheduler } from "./ResponseScheduler.js";
 import { ResponseGenerator } from "./ResponseGenerator.js";
-import { DEFAULTS, TIMING } from "./constants.js";
+import { BackgroundConversationLoop } from "./BackgroundConversationLoop.js";
+import { DEFAULTS } from "./constants.js";
 import {
   findAIByNormalizedAlias,
   findAIFromContextMessage,
@@ -61,13 +62,13 @@ export class ChatOrchestrator extends EventEmitter {
   maxBackgroundDelay: number;
   minDelayBetweenAI: number;
   maxDelayBetweenAI: number;
-  backgroundConversationTimer: NodeJS.Timeout | null;
   topicChangeChance: number;
   verboseContextLogging: boolean;
   private responseQueue: ResponseQueue;
   private roomScope: RoomScope;
   private scheduler: ResponseScheduler;
   private generator: ResponseGenerator;
+  private backgroundLoop: BackgroundConversationLoop;
 
   constructor(options: ChatOrchestratorOptions = {}) {
     super();
@@ -95,7 +96,6 @@ export class ChatOrchestrator extends EventEmitter {
     this.maxDelayBetweenAI =
       options.maxDelayBetweenAI || DEFAULTS.MAX_DELAY_BETWEEN_AI;
 
-    this.backgroundConversationTimer = null;
     this.topicChangeChance =
       options.topicChangeChance || DEFAULTS.TOPIC_CHANGE_CHANCE;
     this.roomScope = new RoomScope();
@@ -130,6 +130,17 @@ export class ChatOrchestrator extends EventEmitter {
         maxBackgroundDelay: this.maxBackgroundDelay,
         minDelayBetweenAI: this.minDelayBetweenAI,
         maxDelayBetweenAI: this.maxDelayBetweenAI,
+      }),
+    });
+
+    this.backgroundLoop = new BackgroundConversationLoop({
+      isAsleep: () => this.messageTracker.isAsleep,
+      hasActiveAIs: () => this.activeAIs.length > 0,
+      getLastAIMessageTime: () => this.lastAIMessageTime,
+      triggerBackgroundResponses: () => this.scheduleAIResponses("default", false),
+      getDelays: () => ({
+        minBackgroundDelay: this.minBackgroundDelay,
+        maxBackgroundDelay: this.maxBackgroundDelay,
       }),
     });
 
@@ -293,7 +304,7 @@ export class ChatOrchestrator extends EventEmitter {
     this.messageTracker.isAsleep = false;
     this.emit("ais-awakened");
 
-    if (!this.backgroundConversationTimer) {
+    if (!this.backgroundLoop.isRunning) {
       this.startBackgroundConversation();
     }
   }
@@ -334,39 +345,15 @@ export class ChatOrchestrator extends EventEmitter {
   // --- Background conversation ---
 
   startBackgroundConversation() {
-    const scheduleNextMessage = () => {
-      if (this.messageTracker.isAsleep || this.activeAIs.length === 0) {
-        this.backgroundConversationTimer = setTimeout(
-          scheduleNextMessage,
-          TIMING.SLEEP_RETRY_INTERVAL,
-        );
-        return;
-      }
+    this.backgroundLoop.start();
+  }
 
-      const delay =
-        this.minBackgroundDelay +
-        Math.random() * (this.maxBackgroundDelay - this.minBackgroundDelay);
-
-      this.backgroundConversationTimer = setTimeout(() => {
-        const timeSinceLastMessage = Date.now() - this.lastAIMessageTime;
-        if (timeSinceLastMessage > TIMING.SILENCE_TIMEOUT) {
-          scheduleNextMessage();
-          return;
-        }
-
-        this.scheduleAIResponses("default", false);
-        scheduleNextMessage();
-      }, delay);
-    };
-
-    scheduleNextMessage();
+  stopBackgroundConversation() {
+    this.backgroundLoop.stop();
   }
 
   cleanup() {
-    if (this.backgroundConversationTimer) {
-      clearTimeout(this.backgroundConversationTimer);
-      this.backgroundConversationTimer = null;
-    }
+    this.backgroundLoop.stop();
     this.messageBroker.removeAllListeners();
     this.removeAllListeners();
     this.registry.clear();
