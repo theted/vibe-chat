@@ -3,7 +3,8 @@
  */
 
 import { EventEmitter } from "events";
-import { AIServiceFactory } from "@/services/AIServiceFactory.js";
+import { AIRegistry } from "./AIRegistry.js";
+import type { ModelInitResult } from "./AIRegistry.js";
 import { ContextManager } from "./ContextManager.js";
 import { MessageBroker } from "./MessageBroker.js";
 import { ResponseQueue } from "./ResponseQueue.js";
@@ -43,9 +44,7 @@ import {
 } from "@/utils/orchestrator/strategyUtils.js";
 import {
   getEnvFlag,
-  normalizeAlias,
   parseBooleanEnvFlag,
-  toMentionAlias,
 } from "@/utils/stringUtils.js";
 
 type ChatOrchestratorOptions = {
@@ -62,49 +61,13 @@ type ChatOrchestratorOptions = {
   verboseContextLogging?: boolean;
 };
 
-const MAX_PARALLEL_AI_INITIALIZATIONS = 8;
-
-export type ModelInitResult = {
-  providerKey: string;
-  modelKey: string;
-  status: "ok" | "error";
-  error?: string;
-};
-
-/**
- * Run async tasks with a concurrency limit.
- */
-export const runWithConcurrencyLimit = async (
-  tasks: Array<() => Promise<void>>,
-  limit: number,
-): Promise<void> => {
-  if (tasks.length === 0) return;
-
-  const concurrency = Math.max(1, limit);
-  let nextIndex = 0;
-  const workerCount = Math.min(concurrency, tasks.length);
-
-  const workers = Array.from({ length: workerCount }, async () => {
-    while (true) {
-      const currentIndex = nextIndex;
-      nextIndex += 1;
-      const task = tasks[currentIndex];
-      if (!task) return;
-      await task();
-    }
-  });
-
-  await Promise.all(workers);
-};
-
 /**
  * Orchestrates multi-AI conversations and background scheduling.
  */
 export class ChatOrchestrator extends EventEmitter {
+  private registry: AIRegistry;
   contextManager: ContextManager;
   messageBroker: MessageBroker;
-  aiServices: Map<string, OrchestratorAIService>;
-  activeAIs: string[];
   messageTracker: {
     aiMessageCount: number;
     maxAIMessages: number;
@@ -129,8 +92,7 @@ export class ChatOrchestrator extends EventEmitter {
       options.maxMessages || DEFAULTS.MAX_MESSAGES,
     );
     this.messageBroker = new MessageBroker();
-    this.aiServices = new Map();
-    this.activeAIs = [];
+    this.registry = new AIRegistry();
     this.messageTracker = {
       aiMessageCount: 0,
       maxAIMessages: options.maxAIMessages || DEFAULTS.MAX_AI_MESSAGES,
@@ -174,6 +136,16 @@ export class ChatOrchestrator extends EventEmitter {
     this.startBackgroundConversation();
   }
 
+  /** Live AI service map (mutated directly by some callers). */
+  get aiServices(): Map<string, OrchestratorAIService> {
+    return this.registry.services;
+  }
+
+  /** Live list of active AI ids. */
+  get activeAIs(): string[] {
+    return this.registry.activeIds;
+  }
+
   setupMessageBroker() {
     this.messageBroker.on("message-ready", (message) => {
       this.handleMessage(message);
@@ -192,88 +164,10 @@ export class ChatOrchestrator extends EventEmitter {
     aiConfigs,
     options?: { skipHealthCheck?: boolean },
   ): Promise<ModelInitResult[]> {
-    const results: ModelInitResult[] = [];
-    const failedConfigs = [];
     const skipHealthCheck =
       options?.skipHealthCheck ??
       parseBooleanEnvFlag(getEnvFlag("AI_CHAT_SKIP_HEALTHCHECK"));
-    const tasks = aiConfigs.map((config) => async () => {
-      try {
-        const service = AIServiceFactory.createServiceByName(
-          config.providerKey,
-          config.modelKey,
-        );
-        await service.initialize({ validateOnInit: !skipHealthCheck });
-
-        const aiId = `${config.providerKey}_${config.modelKey}`;
-        const displayName =
-          config.displayName || `${service.getName()} ${service.getModel()}`;
-        const rawAlias = config.alias || displayName;
-        const alias = toMentionAlias(rawAlias, displayName);
-        const emoji = config.emoji || "🤖";
-
-        this.aiServices.set(aiId, {
-          service,
-          config,
-          id: aiId,
-          name: service.getName(),
-          displayName,
-          displayAlias: rawAlias,
-          alias,
-          normalizedAlias: normalizeAlias(alias),
-          emoji,
-          isActive: true,
-          lastMessageTime: 0,
-        });
-
-        this.activeAIs.push(aiId);
-        results.push({
-          providerKey: config.providerKey,
-          modelKey: config.modelKey,
-          status: "ok",
-        });
-      } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : String(error);
-        console.error(
-          `Failed to initialize AI ${config.providerKey}_${config.modelKey}:`,
-          error,
-        );
-        results.push({
-          providerKey: config.providerKey,
-          modelKey: config.modelKey,
-          status: "error",
-          error: errorMessage,
-        });
-        failedConfigs.push({
-          providerKey: config.providerKey,
-          modelKey: config.modelKey,
-          displayName: config.displayName,
-          alias: config.alias,
-        });
-      }
-    });
-
-    await runWithConcurrencyLimit(tasks, MAX_PARALLEL_AI_INITIALIZATIONS);
-
-    console.log(`Initialized ${this.aiServices.size} AI services`);
-
-    if (failedConfigs.length > 0) {
-      console.warn(
-        `⚠️  ${failedConfigs.length} AI model(s) failed to initialize:`,
-      );
-      failedConfigs.forEach((failed) => {
-        const label =
-          failed.displayName ||
-          failed.alias ||
-          `${failed.providerKey}_${failed.modelKey}`;
-        console.warn(
-          `   • ${label} (${failed.providerKey}_${failed.modelKey})`,
-        );
-      });
-    }
-
-    return results;
+    return this.registry.initialize(aiConfigs, { skipHealthCheck });
   }
 
   /**
@@ -281,11 +175,7 @@ export class ChatOrchestrator extends EventEmitter {
    * background health check). Returns true if the service existed.
    */
   removeAI(aiId: string): boolean {
-    const existed = this.aiServices.delete(aiId);
-    if (existed) {
-      this.activeAIs = this.activeAIs.filter((id) => id !== aiId);
-    }
-    return existed;
+    return this.registry.remove(aiId);
   }
 
   async handleMessage(message) {
@@ -686,8 +576,7 @@ export class ChatOrchestrator extends EventEmitter {
     }
     this.messageBroker.removeAllListeners();
     this.removeAllListeners();
-    this.aiServices.clear();
-    this.activeAIs = [];
+    this.registry.clear();
     this.contextManager.clear();
     this.messageBroker.clearQueue();
     this.responseQueue.clear();

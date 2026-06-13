@@ -112,7 +112,7 @@ export { createEnhancedSystemPrompt } from "./utils/orchestrator/promptBuilder.j
 export { MessageBroker } from "./orchestrator/MessageBroker.js";
 export {
   ChatOrchestrator,
-  runWithConcurrencyLimit,
 } from "./orchestrator/ChatOrchestrator.js";
-export type { ModelInitResult } from "./orchestrator/ChatOrchestrator.js";
+export { runWithConcurrencyLimit } from "./utils/concurrency.js";
+export type { ModelInitResult } from "./orchestrator/AIRegistry.js";
 export { ContextManager } from "./orchestrator/ContextManager.js";
