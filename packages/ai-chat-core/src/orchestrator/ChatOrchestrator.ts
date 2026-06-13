@@ -9,12 +9,13 @@ import { ContextManager } from "./ContextManager.js";
 import { MessageBroker } from "./MessageBroker.js";
 import { ResponseQueue } from "./ResponseQueue.js";
 import type { GenerateResponseOptions } from "./ResponseQueue.js";
+import { RoomScope } from "./RoomScope.js";
+import { ResponseScheduler } from "./ResponseScheduler.js";
 import type { ContextMessage } from "@/types/orchestrator.js";
 import {
   DEFAULTS,
   CONTEXT_LIMITS,
   TIMING,
-  RESPONDER_CONFIG,
 } from "./constants.js";
 import {
   findAIByNormalizedAlias,
@@ -33,10 +34,6 @@ import {
   limitMentionsInResponse,
 } from "@/utils/orchestrator/mentionUtils.js";
 import { createEnhancedSystemPrompt } from "@/utils/orchestrator/promptBuilder.js";
-import {
-  calculateResponseDelay,
-  selectRespondingAIs,
-} from "@/utils/orchestrator/responseScheduling.js";
 import { truncateResponse } from "@/utils/orchestrator/responseUtils.js";
 import {
   applyInteractionStrategy,
@@ -84,7 +81,8 @@ export class ChatOrchestrator extends EventEmitter {
   topicChangeChance: number;
   verboseContextLogging: boolean;
   private responseQueue: ResponseQueue;
-  private roomAllowedAIs: Map<string, Set<string>>;
+  private roomScope: RoomScope;
+  private scheduler: ResponseScheduler;
 
   constructor(options: ChatOrchestratorOptions = {}) {
     super();
@@ -115,13 +113,29 @@ export class ChatOrchestrator extends EventEmitter {
     this.backgroundConversationTimer = null;
     this.topicChangeChance =
       options.topicChangeChance || DEFAULTS.TOPIC_CHANGE_CHANCE;
-    this.roomAllowedAIs = new Map();
+    this.roomScope = new RoomScope();
 
     this.responseQueue = new ResponseQueue({
       maxConcurrent: options.maxConcurrentResponses || DEFAULTS.MAX_CONCURRENT_RESPONSES,
       isSleeping: () => this.messageTracker.isAsleep,
       onDispatch: (aiId, roomId, isUserResponse, opts) =>
         this.generateAIResponse(aiId, roomId, isUserResponse, opts),
+    });
+
+    this.scheduler = new ResponseScheduler({
+      registry: this.registry,
+      getLastMessage: () => this.contextManager.getLastMessage(),
+      filterAIsForRoom: (roomId, aiIds) => this.filterAIsForRoom(roomId, aiIds),
+      enqueueBatch: (responses) => this.responseQueue.enqueueBatch(responses),
+      isAsleep: () => this.messageTracker.isAsleep,
+      getDelays: () => ({
+        minUserResponseDelay: this.minUserResponseDelay,
+        maxUserResponseDelay: this.maxUserResponseDelay,
+        minBackgroundDelay: this.minBackgroundDelay,
+        maxBackgroundDelay: this.maxBackgroundDelay,
+        minDelayBetweenAI: this.minDelayBetweenAI,
+        maxDelayBetweenAI: this.maxDelayBetweenAI,
+      }),
     });
 
     const envVerboseFlag = parseBooleanEnvFlag(
@@ -215,98 +229,7 @@ export class ChatOrchestrator extends EventEmitter {
   }
 
   scheduleAIResponses(roomId, isUserResponse = true) {
-    const roomScopedAIs = this.filterAIsForRoom(roomId, this.activeAIs);
-
-    if (this.messageTracker.isAsleep || roomScopedAIs.length === 0) return;
-
-    const typingAICount = roomScopedAIs.filter((aiId) => {
-      const ai = this.aiServices.get(aiId);
-      return ai?.isGenerating;
-    }).length;
-
-    const eligibleAIs = roomScopedAIs.filter((aiId) => {
-      const ai = this.aiServices.get(aiId);
-      return (
-        ai?.isActive &&
-        !ai.isGenerating &&
-        (isUserResponse || !ai.justResponded)
-      );
-    });
-
-    if (eligibleAIs.length === 0) return;
-
-    const activeCount = eligibleAIs.length;
-    const baseMaxResponders = isUserResponse
-      ? Math.max(
-          RESPONDER_CONFIG.USER_RESPONSE_MIN_COUNT,
-          Math.ceil(activeCount * RESPONDER_CONFIG.USER_RESPONSE_MAX_MULTIPLIER),
-        )
-      : Math.max(
-          RESPONDER_CONFIG.BACKGROUND_MIN_COUNT,
-          Math.ceil(activeCount * RESPONDER_CONFIG.BACKGROUND_MAX_MULTIPLIER),
-        );
-    const baseMinResponders = isUserResponse
-      ? RESPONDER_CONFIG.USER_RESPONSE_MIN_BASE
-      : RESPONDER_CONFIG.BACKGROUND_MIN_BASE;
-
-    const lastMessage = this.contextManager.getLastMessage();
-    const mentionTargets = new Set(lastMessage?.mentionsNormalized || []);
-
-    const mentionedAIs = eligibleAIs
-      .map((aiId) => this.aiServices.get(aiId))
-      .filter((ai) => ai && mentionTargets.has(ai.normalizedAlias))
-      .map((ai) => ai.id);
-
-    const uniqueMentioned = Array.from(new Set(mentionedAIs));
-
-    const finalMin = Math.max(baseMinResponders, uniqueMentioned.length || baseMinResponders);
-    const finalMax = Math.max(baseMaxResponders, finalMin);
-
-    const availableForRandom = eligibleAIs.filter(
-      (aiId) => !uniqueMentioned.includes(aiId),
-    );
-
-    const minAdditional = Math.max(finalMin - uniqueMentioned.length, 0);
-    const maxAdditional = Math.max(finalMax - uniqueMentioned.length, 0);
-
-    const additionalResponders =
-      maxAdditional > 0
-        ? selectRespondingAIs(
-            this.aiServices,
-            this.activeAIs,
-            minAdditional,
-            maxAdditional,
-            availableForRandom,
-          )
-        : [];
-
-    const responders = [...uniqueMentioned, ...additionalResponders];
-
-    const queuedResponses = responders.map((aiId, index) => {
-      const isMentioned = uniqueMentioned.includes(aiId);
-      const delay = calculateResponseDelay({
-        index,
-        isUserResponse,
-        isMentioned,
-        typingAICount,
-        minUserResponseDelay: this.minUserResponseDelay,
-        maxUserResponseDelay: this.maxUserResponseDelay,
-        minBackgroundDelay: this.minBackgroundDelay,
-        maxBackgroundDelay: this.maxBackgroundDelay,
-        minDelayBetweenAI: this.minDelayBetweenAI,
-        maxDelayBetweenAI: this.maxDelayBetweenAI,
-      });
-
-      return {
-        aiId,
-        roomId,
-        isUserResponse,
-        options: { isMentioned, triggerMessage: lastMessage },
-        scheduledTime: Date.now() + delay,
-      };
-    });
-
-    this.responseQueue.enqueueBatch(queuedResponses);
+    this.scheduler.schedule(roomId, isUserResponse);
   }
 
   async generateAIResponse(
@@ -438,23 +361,15 @@ export class ChatOrchestrator extends EventEmitter {
   // --- Room AI filtering ---
 
   setRoomAllowedAIs(roomId: string, aiIds: string[]): void {
-    if (!roomId) return;
-    const uniqueIds = Array.from(new Set<string>(aiIds.filter(Boolean)));
-    if (uniqueIds.length === 0) {
-      this.roomAllowedAIs.delete(roomId);
-      return;
-    }
-    this.roomAllowedAIs.set(roomId, new Set<string>(uniqueIds));
+    this.roomScope.setAllowed(roomId, aiIds);
   }
 
   clearRoomAllowedAIs(roomId: string): void {
-    this.roomAllowedAIs.delete(roomId);
+    this.roomScope.clear(roomId);
   }
 
   filterAIsForRoom(roomId: string, aiIds: string[]): string[] {
-    const allowed = this.roomAllowedAIs.get(roomId);
-    if (!allowed || allowed.size === 0) return aiIds;
-    return aiIds.filter((aiId) => allowed.has(aiId));
+    return this.roomScope.filter(roomId, aiIds);
   }
 
   // --- Delegate lookups (convenience wrappers used by tests and external callers) ---
