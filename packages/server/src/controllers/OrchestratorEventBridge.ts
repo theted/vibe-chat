@@ -7,6 +7,7 @@ import type { ChatOrchestrator } from "@ai-chat/core";
 import type { MetricsService } from "@/services/MetricsService.js";
 import type { ChatMessage } from "@/types.js";
 import { SOCKET_EVENTS } from "@ai-chat/ai-configs";
+import { describeError } from "@/utils/socketErrors.js";
 
 type BroadcastHandler = (message: ChatMessage, roomId: string) => Promise<void>;
 
@@ -27,8 +28,10 @@ export const setupOrchestratorEventBridge = (options: {
       try {
         await onBroadcast(message, roomId);
       } catch (error) {
-        const msg = error instanceof Error ? error.message : String(error);
-        console.error(`[OrchestratorEventBridge] Failed to broadcast message in room ${roomId}:`, msg);
+        console.error(
+          `[OrchestratorEventBridge] Failed to broadcast message in room ${roomId}:`,
+          describeError(error),
+        );
       }
     },
   );
