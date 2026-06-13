@@ -11,12 +11,8 @@ import { ResponseQueue } from "./ResponseQueue.js";
 import type { GenerateResponseOptions } from "./ResponseQueue.js";
 import { RoomScope } from "./RoomScope.js";
 import { ResponseScheduler } from "./ResponseScheduler.js";
-import type { ContextMessage } from "@/types/orchestrator.js";
-import {
-  DEFAULTS,
-  CONTEXT_LIMITS,
-  TIMING,
-} from "./constants.js";
+import { ResponseGenerator } from "./ResponseGenerator.js";
+import { DEFAULTS, TIMING } from "./constants.js";
 import {
   findAIByNormalizedAlias,
   findAIFromContextMessage,
@@ -25,24 +21,12 @@ import {
   OrchestratorAIService,
 } from "@/utils/orchestrator/aiLookup.js";
 import {
-  enhanceContextForComment,
-  enhanceContextForTopicChange,
-} from "@/utils/orchestrator/contextEnhancers.js";
-import { logAIContext } from "@/utils/orchestrator/logging.js";
-import {
   addMentionToResponse,
   limitMentionsInResponse,
 } from "@/utils/orchestrator/mentionUtils.js";
 import { createEnhancedSystemPrompt } from "@/utils/orchestrator/promptBuilder.js";
-import { truncateResponse } from "@/utils/orchestrator/responseUtils.js";
-import {
-  applyInteractionStrategy,
-  determineInteractionStrategy,
-} from "@/utils/orchestrator/strategyUtils.js";
-import {
-  getEnvFlag,
-  parseBooleanEnvFlag,
-} from "@/utils/stringUtils.js";
+import { determineInteractionStrategy } from "@/utils/orchestrator/strategyUtils.js";
+import { getEnvFlag, parseBooleanEnvFlag } from "@/utils/stringUtils.js";
 
 type ChatOrchestratorOptions = {
   maxMessages?: number;
@@ -83,6 +67,7 @@ export class ChatOrchestrator extends EventEmitter {
   private responseQueue: ResponseQueue;
   private roomScope: RoomScope;
   private scheduler: ResponseScheduler;
+  private generator: ResponseGenerator;
 
   constructor(options: ChatOrchestratorOptions = {}) {
     super();
@@ -114,6 +99,16 @@ export class ChatOrchestrator extends EventEmitter {
     this.topicChangeChance =
       options.topicChangeChance || DEFAULTS.TOPIC_CHANGE_CHANCE;
     this.roomScope = new RoomScope();
+
+    this.generator = new ResponseGenerator({
+      registry: this.registry,
+      contextManager: this.contextManager,
+      emit: (event, payload) => this.emit(event, payload),
+      enqueueMessage: (message) => this.messageBroker.enqueueMessage(message as any),
+      onResponseComplete: () => this.responseQueue.onResponseComplete(),
+      isAsleep: () => this.messageTracker.isAsleep,
+      isVerbose: () => this.verboseContextLogging,
+    });
 
     this.responseQueue = new ResponseQueue({
       maxConcurrent: options.maxConcurrentResponses || DEFAULTS.MAX_CONCURRENT_RESPONSES,
@@ -238,124 +233,7 @@ export class ChatOrchestrator extends EventEmitter {
     isUserResponse = true,
     options: GenerateResponseOptions = {},
   ) {
-    if (this.messageTracker.isAsleep) return;
-
-    const aiService = this.aiServices.get(aiId);
-    if (!aiService?.isActive) return;
-
-    const aiMeta = {
-      aiId,
-      displayName: aiService.displayName || aiService.name,
-      alias: aiService.alias,
-      normalizedAlias: aiService.normalizedAlias,
-      emoji: aiService.emoji,
-      providerKey: aiService.config?.providerKey,
-      modelKey: aiService.config?.modelKey,
-      roomId,
-      isUserResponse,
-      isMentioned: options.isMentioned || false,
-    };
-
-    this.emit("ai-generating-start", aiMeta);
-    aiService.isGenerating = true;
-    const responseStartTime = Date.now();
-
-    try {
-      console.log(
-        `🤖 ${aiService.name} is generating ${
-          isUserResponse ? "user response" : "background message"
-        }...`,
-      );
-
-      let context = this.contextManager.getContextForAI(CONTEXT_LIMITS.AI_CONTEXT_SIZE);
-      const interactionStrategy = determineInteractionStrategy(
-        aiService,
-        context,
-        isUserResponse,
-        (message) => findAIFromContextMessage(this.aiServices, message),
-        (ai) => getMentionTokenForAI(ai),
-      );
-
-      context = applyInteractionStrategy(
-        context,
-        interactionStrategy,
-        aiService,
-        context[context.length - 1],
-      );
-
-      const systemPrompt = createEnhancedSystemPrompt(
-        aiService,
-        context,
-        isUserResponse,
-        this.aiServices,
-      );
-      const systemMessage: ContextMessage = {
-        role: "system",
-        content: systemPrompt,
-        senderType: "system",
-        isInternal: true,
-      };
-      const messagesWithSystem = [systemMessage, ...context];
-
-      logAIContext(aiService, messagesWithSystem, this.verboseContextLogging);
-
-      const response =
-        await aiService.service.generateResponse(messagesWithSystem);
-      const responseTimeMs = Date.now() - responseStartTime;
-      let processedResponse = truncateResponse(response);
-      aiService.lastMessageTime = Date.now();
-
-      if (interactionStrategy.shouldMention && interactionStrategy.targetAI) {
-        processedResponse = addMentionToResponse(
-          this.aiServices,
-          processedResponse,
-          interactionStrategy.targetAI,
-        );
-      }
-
-      processedResponse = limitMentionsInResponse(processedResponse);
-
-      console.log(
-        `✨ ${aiService.name} ${interactionStrategy.type}: ${processedResponse.substring(0, 100)}${processedResponse.length > 100 ? "..." : ""}`,
-      );
-
-      const aiMessage = {
-        sender: aiService.displayName || aiService.name,
-        displayName: aiService.displayName || aiService.name,
-        alias: aiService.alias,
-        normalizedAlias: aiService.normalizedAlias,
-        content: processedResponse,
-        senderType: "ai",
-        roomId,
-        aiId,
-        aiName: aiService.displayName || aiService.name,
-        modelKey: aiService.config?.modelKey,
-        modelId: aiService.service?.getModel?.() || aiService.config?.modelKey,
-        providerKey: aiService.config?.providerKey,
-        mentionsTriggerMessageId:
-          options.isMentioned && options.triggerMessage
-            ? options.triggerMessage.id
-            : null,
-        mentionsTriggerSender:
-          options.isMentioned && options.triggerMessage
-            ? options.triggerMessage.sender
-            : null,
-        responseType: interactionStrategy.type,
-        interactionStrategy: interactionStrategy.type,
-        priority: isUserResponse ? 500 : 0,
-      };
-
-      this.messageBroker.enqueueMessage(aiMessage as any);
-      this.emit("ai-response", { ...aiMeta, responseTimeMs });
-    } catch (error) {
-      const responseTimeMs = Date.now() - responseStartTime;
-      console.error(`❌ AI ${aiId} failed to generate response:`, error.message);
-      this.emit("ai-error", { ...aiMeta, aiId, error, responseTimeMs });
-    } finally {
-      aiService.isGenerating = false;
-      this.responseQueue.onResponseComplete();
-      this.emit("ai-generating-stop", aiMeta);
-    }
+    return this.generator.generate(aiId, roomId, isUserResponse, options);
   }
 
   // --- Room AI filtering ---
