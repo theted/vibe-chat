@@ -24,7 +24,10 @@ export const OPENAI: AIProvider = {
     ],
   },
   models: {
-    // GPT-5.5 (latest flagship)
+    // GPT-5.6 family (Sol / Terra / Luna) previewed 2026-06-26 — model ids gpt-5.6-sol,
+    // gpt-5.6-terra, gpt-5.6-luna. Gated to ~20 trusted-partner orgs (per US gov), not yet GA;
+    // promote to active entries once OpenAI opens general API access.
+    // GPT-5.5 (current flagship; gpt-5.5-instant powers chat-latest)
     GPT5_5: {
       id: "gpt-5.5",
       maxTokens: DEFAULT_MAX_TOKENS,

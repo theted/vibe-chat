@@ -12,10 +12,10 @@ export const normalizeAlias = (alias: string): string =>
  */
 export const AI_MENTION_MAPPINGS: Record<string, string> = {
   // Anthropic/Claude
-  claude: "claude-fable-5",
-  anthropic: "claude-fable-5",
-  fable: "claude-fable-5",
-  "claude-fable-5": "claude-fable-5",
+  // claude-fable-5 suspended 2026-06-12 (US export-control directive); bare aliases now resolve
+  // to the most capable generally-available model, Opus 4.8.
+  claude: "claude-opus-4-8",
+  anthropic: "claude-opus-4-8",
   haiku: "claude-haiku-4-5",
   sonnet: "claude-sonnet-4-6",
   opus: "claude-opus-4-8",

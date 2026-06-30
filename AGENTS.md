@@ -21,7 +21,7 @@ This is a monorepo with multiple packages under `/packages/`:
 
 ### Root-level files
 
-- `/package.json` – Workspace root with npm workspace configuration and unified scripts.
+- `/package.json` – Workspace root with Bun workspace configuration and unified Turbo scripts.
 - `/docker-compose*.yml` – Docker Compose files for development, production, and debugging.
 - `/tests/e2e/` – End-to-end tests that span multiple packages.
 - `/deploy/` – Deployment-related scripts and configurations.
@@ -44,42 +44,43 @@ If you add new folders, extend this list so future contributors (and agents) sta
 
 ## AI model management
 
-This project supports 28+ AI providers (including 16 OpenRouter-based providers). Model lifecycle is controlled through two layers that must stay in sync.
+This project supports 28+ AI providers (including OpenRouter-based providers). Model lifecycle is controlled by **participant status** as the single source of truth — there is no hand-maintained allowlist to keep in sync.
 
 ### How model activation works
 
-A model must pass **three gates** before the server initializes it:
+A model is initialized by the server when it passes **two gates**:
 
-1. **Provider config** (`packages/ai-chat-core/src/config/aiProviders/providers/{provider}.ts`) – model must be defined in the provider's `models` object.
-2. **Participants list** (`packages/ai-configs/src/participants.ts`) – model must have `status: "active"`. Models with `status: "inactive"` are blocked from initialization at the server layer, regardless of other settings.
-3. **Enabled models list** (`packages/server/src/config/aiModels.ts`) – model ID must be present (uncommented) in `ENABLED_AI_MODELS`.
+1. **Provider config** (`packages/ai-chat-core/src/config/aiProviders/providers/{provider}.ts`) – model must be defined in the provider's `models` object with a valid API `id`.
+2. **Participant status** (`packages/ai-configs/src/participants.ts`) – model must have `status: "active"`. Entries with `status: "inactive"` (or absent) are never loaded.
 
-The server's `getProviderAIConfigs()` checks all three. If any gate rejects the model, it is not loaded.
+The server's `ENABLED_AI_MODELS` (`packages/server/src/config/aiModels.ts`) is **derived automatically** from active participants via `deriveEnabledModels(getActiveParticipants())` — do not edit it by hand. For a server-only disable without touching participants, list the participant ID(s) in the `DISABLED_AI_MODELS` env var (comma-separated).
+
+**Startup is stale-while-revalidate** (see project memory / `model-health.json`): every active model instantiates instantly with no API call; untrusted ones are health-checked in the background (8 in parallel) and removed live on failure. So a wrong/retired API `id` will not crash startup — it silently drops out after the background check. Verify IDs against provider docs rather than relying on a clean boot.
 
 ### Adding a new model
 
-1. Add model definition in the provider config file (with `id`, `maxTokens`, `temperature`, `systemPrompt`).
-2. Add participant entry in `participants.ts` with `status: "active"` and a unique emoji.
-3. Add mention mappings in `lookups.ts` (alias -> canonical name).
-4. Add the `PROVIDER_MODEL_KEY` string to `ENABLED_AI_MODELS` in `packages/server/src/config/aiModels.ts`.
-5. Update `defaults.ts` if the new model should become the provider default.
-6. **Do not** edit `displayInfo.ts` – it auto-derives from participants.
+1. Add the model definition in the provider config file (with `id`, `maxTokens`, `temperature`, `systemPrompt`). Use the exact API `id` from the provider's docs.
+2. Add a participant entry in `participants.ts` with `status: "active"` and a unique emoji.
+3. Add mention mappings in `lookups.ts` (alias -> canonical name) if it needs a shorthand or should claim a bare provider alias.
+4. Update `defaults.ts` if the new model should become the provider default.
+5. **Do not** edit `displayInfo.ts` (auto-derives from participants) or `ENABLED_AI_MODELS` (auto-derives from active participants).
 
-### Deprecating a model
+### Deprecating / removing a model
 
-1. Set `status: "inactive"` in `participants.ts`. This is the single source of truth for model lifecycle.
-2. Comment out the entry in `ENABLED_AI_MODELS` (prefix with `// inactive:` for clarity).
-3. Keep the model definition in the provider config for historical reference.
-4. Update `defaults.ts` if the deprecated model was the provider default.
-5. Update mention mappings in `lookups.ts` if generic aliases (e.g., `opus`, `kimi`) pointed to it.
+A model that is retired or pulled by the provider (e.g. `claude-fable-5`, suspended 2026-06-12 by US export-control directive) must be taken out of the active set:
+
+1. Remove the participant entry from `participants.ts` (or set `status: "inactive"` to keep it for reference). This alone removes it from `ENABLED_AI_MODELS`.
+2. Keep — or remove — the provider-config definition; leave a dated `//` comment noting why it went away.
+3. Update `defaults.ts` if the model was the provider default (point it at the most capable generally-available model).
+4. Update `lookups.ts` if any generic/bare alias (e.g., `claude`, `opus`, `kimi`) resolved to it.
 
 ### Conventions
 
-- **Participant ID format**: `PROVIDER_MODEL_KEY` (e.g., `ANTHROPIC_CLAUDE_OPUS_4_6`).
+- **Participant ID format**: `PROVIDER_MODEL_KEY` (e.g., `ANTHROPIC_CLAUDE_OPUS_4_8`).
 - **Model key format**: `UPPER_SNAKE_CASE` in provider files.
-- **Aliases**: lowercase with hyphens (e.g., `claude-opus-4-6`).
+- **Aliases**: lowercase with hyphens (e.g., `claude-opus-4-8`).
 - **Emojis**: unique per model within a provider; reuse across providers is fine.
-- **Commented-out models**: use `// inactive:` prefix in `ENABLED_AI_MODELS` to distinguish from temporarily disabled models (plain `//`).
+- **Dropped models**: leave a short dated comment (e.g., `// gpt-5.1 superseded — removed 2026-06-10`) in the provider file instead of silent deletion.
 
 ## Git & review workflow
 
