@@ -7,6 +7,7 @@
  */
 
 import { useState, useEffect, useMemo, useRef } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAISearch } from "@/hooks/useAISearch";
 import { DIALOG_SPRING } from "@/config/dialogAnimations";
@@ -121,7 +122,14 @@ const AISelectionDialog = ({
     return { x: 0, y: 0 };
   }, [position]);
 
-  return (
+  // Portal to <body>: the dialog is positioned with viewport coords from
+  // getBoundingClientRect, but its mount point lives inside the chat surface,
+  // which uses backdrop-blur (a containing block for position: fixed) plus
+  // overflow-hidden. Rendered in place, the dialog is repositioned relative to
+  // that box and clipped out of view. A body portal escapes both.
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <motion.div
@@ -162,7 +170,8 @@ const AISelectionDialog = ({
           </AnimatePresence>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   );
 };
 
