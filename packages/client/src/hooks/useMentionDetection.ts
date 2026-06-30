@@ -48,12 +48,12 @@ export const useMentionDetection = (
 
       const textarea = textareaRef.current;
       if (textarea) {
+        // Viewport coords: the dialog is position: fixed (portaled to body),
+        // so scroll offsets must NOT be added.
         const rect = textarea.getBoundingClientRect();
-        const scrollX = typeof window !== "undefined" ? window.scrollX : 0;
-        const scrollY = typeof window !== "undefined" ? window.scrollY : 0;
         setMentionPosition({
-          x: rect.left + scrollX + rect.width * 0.1,
-          y: rect.top + scrollY,
+          x: rect.left + rect.width * 0.1,
+          y: rect.top,
         });
       }
     } else {

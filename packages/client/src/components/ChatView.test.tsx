@@ -124,7 +124,6 @@ describe("ChatView Component", () => {
     onJoin: vi.fn(),
     onUsernameChange: vi.fn(),
     onSendMessage: vi.fn(),
-    onAIMention: vi.fn(),
     onTypingStart: vi.fn(),
     onTypingStop: vi.fn(),
     onPrivateConversationStart: vi.fn(),

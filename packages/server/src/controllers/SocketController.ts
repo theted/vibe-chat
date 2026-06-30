@@ -13,6 +13,11 @@ import { setupOrchestratorEventBridge } from "./OrchestratorEventBridge.js";
 import { getClientIp } from "@/utils/httpUtils.js";
 import { transformAIServicesToParticipants } from "@/utils/aiServiceUtils.js";
 import {
+  logSocketError,
+  replySocketError,
+  warnSocketError,
+} from "@/utils/socketErrors.js";
+import {
   USER_MESSAGE_LIMIT,
   USER_MESSAGE_WINDOW_MS,
   USERNAME_MAX_LENGTH,
@@ -111,8 +116,7 @@ export class SocketController {
     try {
       await this.messageHistory.storeMessage(roomId, message);
     } catch (error) {
-      const msg = error instanceof Error ? error.message : String(error);
-      console.warn("Failed to persist message history:", msg);
+      warnSocketError("Failed to persist message history", error);
     }
 
     this.io.to(roomId).emit(SOCKET_EVENTS.NEW_MESSAGE, message);
@@ -163,8 +167,7 @@ export class SocketController {
     });
 
     this.sendRecentMessages(socket).catch((error) => {
-      const msg = error instanceof Error ? error.message : String(error);
-      console.warn("Failed to send recent messages on connect:", msg);
+      warnSocketError("Failed to send recent messages on connect", error);
     });
   }
 
@@ -255,15 +258,13 @@ export class SocketController {
 
       socket.leave(this.previewRoomId);
       this.sendRecentMessages(socket, roomId).catch((error) => {
-        const msg = error instanceof Error ? error.message : String(error);
-        console.warn("Failed to send room history after join:", msg);
+        warnSocketError("Failed to send room history after join", error);
       });
 
       socket.to(roomId).emit(SOCKET_EVENTS.USER_JOINED, { username: userData.username, timestamp: Date.now() });
       console.log(`${userData.username} joined room ${roomId}`);
     } catch (error) {
-      console.error("Error handling join room:", error);
-      socket.emit(SOCKET_EVENTS.ERROR, { message: "Failed to join room" });
+      replySocketError(socket, "handling join room", error, "Failed to join room");
     }
   }
 
@@ -339,8 +340,7 @@ export class SocketController {
         });
       }
     } catch (error) {
-      console.error("Error handling user message:", error);
-      socket.emit(SOCKET_EVENTS.ERROR, { message: "Failed to send message" });
+      replySocketError(socket, "handling user message", error, "Failed to send message");
     }
   }
 
@@ -352,7 +352,7 @@ export class SocketController {
       const eventName = isTyping ? "user-typing-start" : "user-typing-stop";
       this.io.to(user.roomId).emit(eventName, { username: user.username, roomId: user.roomId });
     } catch (error) {
-      console.error("Error handling user typing state:", error);
+      logSocketError("handling user typing state", error);
     }
   }
 
@@ -386,8 +386,7 @@ export class SocketController {
       this.chatOrchestrator.changeTopic(newTopic, user.username, user.roomId);
       console.log(`${user.username} changed topic in ${user.roomId} to: ${newTopic}`);
     } catch (error) {
-      console.error("Error handling topic change:", error);
-      socket.emit(SOCKET_EVENTS.ERROR, { message: "Failed to change topic" });
+      replySocketError(socket, "handling topic change", error, "Failed to change topic");
     }
   }
 
@@ -406,8 +405,7 @@ export class SocketController {
         aiParticipants: this.getActiveAIParticipants(),
       });
     } catch (error) {
-      console.error("Error getting room info:", error);
-      socket.emit(SOCKET_EVENTS.ERROR, { message: "Failed to get room info" });
+      replySocketError(socket, "getting room info", error, "Failed to get room info");
     }
   }
 
@@ -418,8 +416,7 @@ export class SocketController {
         tracker: this.aiTracker.getStats(),
       });
     } catch (error) {
-      console.error("Error getting AI status:", error);
-      socket.emit(SOCKET_EVENTS.ERROR, { message: "Failed to get AI status" });
+      replySocketError(socket, "getting AI status", error, "Failed to get AI status");
     }
   }
 
@@ -431,7 +428,7 @@ export class SocketController {
       this.chatOrchestrator.wakeUpAIs();
       socket.to(user.roomId).emit(SOCKET_EVENTS.ADMIN_ACTION, { action: "wake-ais", by: user.username });
     } catch (error) {
-      console.error("Error waking AIs:", error);
+      logSocketError("waking AIs", error);
     }
   }
 
@@ -443,7 +440,7 @@ export class SocketController {
       this.chatOrchestrator.putAIsToSleep();
       socket.to(user.roomId).emit(SOCKET_EVENTS.ADMIN_ACTION, { action: "sleep-ais", by: user.username });
     } catch (error) {
-      console.error("Error sleeping AIs:", error);
+      logSocketError("sleeping AIs", error);
     }
   }
 
@@ -462,7 +459,7 @@ export class SocketController {
       this.metricsService.updateActiveUsers(this.connectedUsers.size);
       this.metricsService.updateActiveRooms(this.roomManager.getStats().totalRooms);
     } catch (error) {
-      console.error("Error handling disconnect:", error);
+      logSocketError("handling disconnect", error);
     }
   }
 
@@ -491,8 +488,7 @@ export class SocketController {
 
       socket.emit(SOCKET_EVENTS.RECENT_MESSAGES, { roomId, messages, participants, aiParticipants });
     } catch (error) {
-      const msg = error instanceof Error ? error.message : String(error);
-      console.warn("Failed to send recent messages:", msg);
+      warnSocketError("Failed to send recent messages", error);
     }
   }
 

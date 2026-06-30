@@ -1,4 +1,5 @@
 import { DEFAULT_AI_PARTICIPANTS } from "./participants.js";
+import { normalizeAliasKey } from "./aliasUtils.js";
 
 /**
  * Normalize an alias string for lookup
@@ -12,10 +13,10 @@ export const normalizeAlias = (alias: string): string =>
  */
 export const AI_MENTION_MAPPINGS: Record<string, string> = {
   // Anthropic/Claude
-  claude: "claude-fable-5",
-  anthropic: "claude-fable-5",
-  fable: "claude-fable-5",
-  "claude-fable-5": "claude-fable-5",
+  // claude-fable-5 suspended 2026-06-12 (US export-control directive); bare aliases now resolve
+  // to the most capable generally-available model, Opus 4.8.
+  claude: "claude-opus-4-8",
+  anthropic: "claude-opus-4-8",
   haiku: "claude-haiku-4-5",
   sonnet: "claude-sonnet-4-6",
   opus: "claude-opus-4-8",
@@ -326,3 +327,29 @@ export const mapMentionsToAiNames = (text: string): string => {
     return `@${AI_MENTION_MAPPINGS[normalized] || mention}`;
   });
 };
+
+// Strict-normalized mapping keys so tokens with stray punctuation
+// ("chatgpt," / "GPT-4!") still resolve. First mapping wins on collisions.
+const STRICT_MENTION_LOOKUP: Record<string, string> = Object.entries(
+  AI_MENTION_MAPPINGS,
+).reduce(
+  (lookup, [key, value]) => {
+    const strictKey = normalizeAliasKey(key);
+    if (strictKey && !(strictKey in lookup)) {
+      lookup[strictKey] = value;
+    }
+    return lookup;
+  },
+  {} as Record<string, string>,
+);
+
+/**
+ * Resolve a single mention token (without the "@") to its canonical
+ * participant alias via AI_MENTION_MAPPINGS, e.g. "chatgpt" -> "gpt-5.5".
+ * Returns the token unchanged when no mapping exists, so exact aliases
+ * and usernames pass through.
+ */
+export const resolveMentionTarget = (token: string): string =>
+  AI_MENTION_MAPPINGS[normalizeAlias(token)] ??
+  STRICT_MENTION_LOOKUP[normalizeAliasKey(token)] ??
+  token;

@@ -26,13 +26,6 @@ export const ANTHROPIC: AIProvider = {
   },
   models: {
     // Latest (recommended)
-    CLAUDE_FABLE_5: {
-      id: "claude-fable-5",
-      maxTokens: DEFAULT_MAX_TOKENS,
-      temperature: DEFAULT_TEMPERATURE,
-      systemPrompt:
-        "You are Claude Fable 5 by Anthropic. The most powerful and intelligent Claude model, a new tier above Opus, with a 1M token context window. Provide thorough, insightful responses with deep analytical thinking.",
-    },
     CLAUDE_OPUS_4_8: {
       id: "claude-opus-4-8",
       maxTokens: DEFAULT_MAX_TOKENS,
@@ -85,6 +78,9 @@ export const ANTHROPIC: AIProvider = {
     },
     // claude-3-7-sonnet and claude-3-5-haiku retired Feb 19, 2026 (API returns 404) — removed
     // claude-sonnet-4 and claude-opus-4 retire 2026-06-15; claude-opus-4-5 inactive — removed 2026-06-10
+    // claude-fable-5 / claude-mythos-5 (Mythos-class tier) suspended 2026-06-12 by US export-control
+    //   directive (API returns error). Mythos 5 partially restored 2026-06-26 to ~100 approved orgs
+    //   only; neither is generally available — removed, default repointed to claude-opus-4-8.
   },
   apiKeyEnvVar: "ANTHROPIC_API_KEY",
 };

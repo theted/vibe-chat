@@ -27,14 +27,8 @@ import type { AiParticipant } from "./types.js";
  */
 export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
   // Anthropic Models - Music/performing arts
-  {
-    id: "ANTHROPIC_CLAUDE_FABLE_5",
-    name: "Claude Fable 5",
-    alias: "claude-fable-5",
-    provider: "Anthropic",
-    status: "active",
-    emoji: "🎸",
-  },
+  // claude-fable-5 (Fable/Mythos-class tier) suspended 2026-06-12 by US export-control directive,
+  // not generally available — removed.
   {
     id: "ANTHROPIC_CLAUDE_OPUS_4_8",
     name: "Claude Opus 4.8",

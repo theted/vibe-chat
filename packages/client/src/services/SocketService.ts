@@ -170,10 +170,6 @@ class SocketService {
     this.emit(SOCKET_EVENTS.ADMIN_SLEEP_AIS);
   }
 
-  triggerAI(aiNames: string[], message: string, context: unknown[] = []): void {
-    this.emit(SOCKET_EVENTS.TRIGGER_AI, { aiNames, message, context });
-  }
-
   startTyping(): void {
     console.log("📝 Sending user-typing-start event");
     this.emit(SOCKET_EVENTS.USER_TYPING_START);

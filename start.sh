@@ -264,7 +264,8 @@ compose_with_profiles() {
     for profile in "${ACTIVE_PROFILES[@]}"; do
         compose_args+=("--profile" "$profile")
     done
-    compose_args+=("-f" "$compose_file")
+    # Environment files are thin overrides on top of the shared base
+    compose_args+=("-f" "docker-compose.base.yml" "-f" "$compose_file")
     compose_args+=("$@")
     "${compose_args[@]}"
 }

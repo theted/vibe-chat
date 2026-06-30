@@ -4,6 +4,7 @@
 
 import type { Server } from "socket.io";
 import type { ChatOrchestrator } from "@ai-chat/core";
+import { describeError } from "@/utils/socketErrors.js";
 import type { ChatAssistantService } from "@/services/ChatAssistantService.js";
 import type {
   ChatAssistantMetadata,
@@ -128,7 +129,7 @@ export class ChatAssistantHandler {
     } catch (error) {
       console.error(
         "Failed to dispatch chat assistant response:",
-        error instanceof Error ? error.message : String(error),
+        describeError(error),
       );
     }
   }

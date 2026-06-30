@@ -22,7 +22,7 @@ jobs:
             cd /opt/vibe-chat
             git fetch origin
             git checkout ${{ github.sha }}
-            docker compose -f docker-compose.ec2.yml --env-file .env up -d --build
+            docker compose -f docker-compose.base.yml -f docker-compose.ec2.yml --env-file .env up -d --build
             docker image prune -f
 
   deploy-frontend:

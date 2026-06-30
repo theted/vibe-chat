@@ -13,7 +13,6 @@ import {
 } from "react";
 import AISelectionDialog from "./AISelectionDialog";
 import Icon from "./Icon";
-import { extractMentionsFromText } from "@/utils/mentions";
 import { useAutoResizeTextarea } from "@/hooks/useAutoResizeTextarea";
 import { useMentionDetection } from "@/hooks/useMentionDetection";
 import { useTypingSignal } from "@/hooks/useTypingSignal";
@@ -27,7 +26,6 @@ const TEXTAREA_MAX_HEIGHT = "200px";
 const MessageInput = ({
   onSendMessage,
   disabled = false,
-  onAIMention,
   onTypingStart,
   onTypingStop,
 }: MessageInputProps) => {
@@ -52,11 +50,7 @@ const MessageInput = ({
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (message.trim() && !disabled) {
-      // Check for @mentions and trigger AI if mentioned
-      const mentions = extractMentionsFromText(message);
-      if (mentions.length > 0 && onAIMention) {
-        onAIMention(mentions, message.trim());
-      }
+      // Mentions are parsed server-side from the message content
       onSendMessage(message.trim());
       setMessage("");
       stopTyping();
