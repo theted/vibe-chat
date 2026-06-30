@@ -463,7 +463,7 @@ export interface ContextManagerConfig {
 }
 
 export interface IContextManager {
-  addMessage(message: Message): void;
+  addMessage(message: ContextMessage): void;
   getContext(maxMessages?: number): ContextMessage[];
   clear(): void;
   updateConfig(config: Partial<ContextManagerConfig>): void;

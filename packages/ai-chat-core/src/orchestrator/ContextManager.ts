@@ -7,7 +7,6 @@ import {
   ContextMessage,
   ContextManagerConfig,
 } from "@/types/orchestrator.js";
-import { Message } from "@/types/index.js";
 import { normalizeAlias, parseMentions } from "@/utils/stringUtils.js";
 
 export class ContextManager implements IContextManager {
@@ -25,34 +24,34 @@ export class ContextManager implements IContextManager {
   /**
    * Add a message to the context
    */
-  addMessage(message: Message): void {
+  addMessage(message: ContextMessage): void {
     // Skip internal system messages - they're only for AI prompting
-    if ((message as any).isInternal) {
+    if (message.isInternal) {
       return;
     }
 
     const { mentions, normalized } = parseMentions(message.content);
 
-    const displayName = (message as any).displayName || (message as any).sender;
-    const alias = (message as any).alias || displayName;
+    const displayName = message.displayName || message.sender;
+    const alias = message.alias || displayName;
     const normalizedAlias =
-      (message as any).normalizedAlias || normalizeAlias(alias);
+      message.normalizedAlias || normalizeAlias(alias ?? "");
 
     const contextMessage: ContextMessage = {
-      role: (message as any).senderType === "user" ? "user" : "assistant",
+      role: message.senderType === "user" ? "user" : "assistant",
       content: message.content,
       timestamp: message.timestamp,
-      sender: (message as any).sender,
-      senderType: (message as any).senderType,
+      sender: message.sender,
+      senderType: message.senderType,
       displayName,
       alias,
       normalizedAlias,
-      aiId: (message as any).aiId,
-      providerKey: (message as any).providerKey,
-      modelKey: (message as any).modelKey,
+      aiId: message.aiId,
+      providerKey: message.providerKey,
+      modelKey: message.modelKey,
       mentions,
       mentionsNormalized: normalized,
-      id: (message as any).id,
+      id: message.id,
     };
 
     if (this.messages.length >= this.config.maxMessages) {
