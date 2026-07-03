@@ -10,7 +10,6 @@ export type ChatMessage = ChatMessageBase & {
   suppressAIResponses?: boolean;
   storedAt?: number;
   isInternalResponder?: boolean;
-  mentionsTriggerSender?: string | null;
   contextQuestion?: string | null;
   provider?: string;
 };

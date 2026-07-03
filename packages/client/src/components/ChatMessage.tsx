@@ -20,12 +20,14 @@ import {
 } from "@/utils/messageStyles";
 import { useAIMetadata } from "@/hooks/useAIMetadata";
 import MarkdownCodeBlock from "./MarkdownCodeBlock";
+import ReplyQuote from "./ReplyQuote";
 import type { ChatMessageProps } from "@/types";
 
 const ChatMessage = ({
   message,
   aiParticipants = [],
   participants = [],
+  quotedMessage,
 }: ChatMessageProps) => {
   const participantMentions = useMemo(
     () => participants.map((participant) => participant.username),
@@ -56,6 +58,12 @@ const ChatMessage = ({
         <div className={getSenderLabelClasses(message.senderType)}>
           {senderDisplay}
         </div>
+      )}
+      {message.mentionsTriggerMessageId && (
+        <ReplyQuote
+          quotedMessage={quotedMessage}
+          fallbackSender={message.mentionsTriggerSender}
+        />
       )}
       <div className={`${message.senderType === "ai" ? "markdown-content" : ""} leading-relaxed break-words`}>
         {message.senderType === "ai" ? (
