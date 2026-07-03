@@ -13,7 +13,6 @@ export const DEFAULTS = {
   MAX_BACKGROUND_DELAY: 90000, // 90 seconds
   MIN_DELAY_BETWEEN_AI: 6000, // 6 seconds - stagger between AI responses
   MAX_DELAY_BETWEEN_AI: 18000, // 18 seconds
-  TOPIC_CHANGE_CHANCE: 0.1, // 10% chance
   // First AI responder delay - gives conversation breathing room
   MIN_FIRST_RESPONDER_DELAY: 2500, // 2.5 seconds
   MAX_FIRST_RESPONDER_DELAY: 4500, // 4.5 seconds
@@ -26,6 +25,7 @@ export const CONTEXT_LIMITS = {
   RECENT_MESSAGES_FOR_STRATEGY: 8, // Messages to analyze for interaction strategy
   MAX_SENTENCES: 15, // Max sentences in AI response
   POTENTIAL_MENTION_TARGETS: 3, // Max potential targets to consider for mentions
+  QUOTE_EXCERPT_LENGTH: 140, // Max chars when quoting a message back in instructions
 } as const;
 
 // Timing thresholds
@@ -62,6 +62,24 @@ export const MENTION_CONFIG = {
   RANDOM_MENTION_PROBABILITY: 0.35, // 35% chance to mention when not directly mentioned
 } as const;
 
+// Response energy - varies message length per response so the chat isn't a
+// uniform stream of 1-3 sentence replies
+export const RESPONSE_ENERGY_WEIGHTS = {
+  terse: 0.25,
+  normal: 0.6,
+  expansive: 0.15,
+} as const;
+
+export type ResponseEnergy = keyof typeof RESPONSE_ENERGY_WEIGHTS;
+
+export const RESPONSE_ENERGY_INSTRUCTIONS: Record<ResponseEnergy, string> = {
+  terse:
+    "Keep it very short this time: a quick reaction, quip, or single short sentence.",
+  normal: "",
+  expansive:
+    "Take a bit more room this time: develop your thought across 4-6 sentences before wrapping up.",
+} as const;
+
 export const MENTION_LIMITS = {
   MAX_UNIQUE_PER_RESPONSE: 2,
 } as const;
@@ -82,6 +100,22 @@ export const DELAY_CALC = {
   CATCH_UP_POWER: 2, // Power function for catch-up delay
 } as const;
 
+// Heavy-tailed (log-normal) delay sampling - most replies land early in the
+// [min, max] band with occasional stragglers, instead of an even spread
+export const DELAY_DISTRIBUTION = {
+  SIGMA: 0.6, // Log-normal shape; higher = more variance
+  MEDIAN_BAND_POSITION: 0.35, // Median delay lands ~35% into the band
+  MAX_OVERSHOOT: 1.5, // Rare stragglers may exceed max by up to 50%
+} as const;
+
+// Simulated typing after generation - message is held while the typing
+// indicator stays visible, proportional to response length
+export const TYPING_SIMULATION = {
+  CHARS_PER_SECOND: 40,
+  MIN_HOLD_MS: 600,
+  MAX_HOLD_MS: 4000,
+} as const;
+
 // System prompt templates - easily configurable conversation guidelines
 export const SYSTEM_PROMPT = {
   // Introduction based on context
@@ -92,7 +126,7 @@ export const SYSTEM_PROMPT = {
   // Core conversation guidelines
   GUIDELINES: `
 Key guidelines:
-• Keep responses 1-3 sentences and conversational
+• Usually keep responses 1-3 sentences and conversational - but follow any specific length instruction you're given, and don't be afraid of an occasional one-word reaction
 • Reference recent messages and build on ideas
 • Use @mentions naturally when addressing someone - weave them into your response organically:
   - Start with mention: "@Claude, that's an interesting take on..."
@@ -114,10 +148,14 @@ Key guidelines:
 
 // Interaction strategy instruction templates
 export const STRATEGY_INSTRUCTIONS = {
-  MENTIONED_BY_AI: (mentionerToken: string) =>
-    `You were directly mentioned by ${mentionerToken}. Respond specifically to their message and address the key points they raised.`,
-  MENTIONED_BY_USER:
-    "You were directly mentioned by the user. Respond directly to their message and focus on answering or acknowledging their mention.",
+  MENTIONED_BY_AI: (mentionerToken: string, excerpt?: string) =>
+    excerpt
+      ? `You were directly mentioned by ${mentionerToken}, who said: "${excerpt}". Respond specifically to that message and address the key points they raised.`
+      : `You were directly mentioned by ${mentionerToken}. Respond specifically to their message and address the key points they raised.`,
+  MENTIONED_BY_USER: (excerpt?: string) =>
+    excerpt
+      ? `You were directly mentioned by the user, who said: "${excerpt}". Respond directly to that message and focus on answering or acknowledging their mention.`
+      : "You were directly mentioned by the user. Respond directly to their message and focus on answering or acknowledging their mention.",
   AGREE_EXPAND: (senderName: string) =>
     `Build on ${senderName}'s point and add your own insights. Show agreement but expand with new information or examples.`,
   CHALLENGE: (senderName: string) =>

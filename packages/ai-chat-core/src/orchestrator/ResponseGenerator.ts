@@ -20,6 +20,7 @@ import {
   limitMentionsInResponse,
 } from "@/utils/orchestrator/mentionUtils.js";
 import { createEnhancedSystemPrompt } from "@/utils/orchestrator/promptBuilder.js";
+import { calculateTypingHold } from "@/utils/orchestrator/responseScheduling.js";
 import { truncateResponse } from "@/utils/orchestrator/responseUtils.js";
 import {
   applyInteractionStrategy,
@@ -68,6 +69,7 @@ export class ResponseGenerator {
     emit("ai-generating-start", aiMeta);
     aiService.isGenerating = true;
     const responseStartTime = Date.now();
+    let queueSlotReleased = false;
 
     try {
       console.log(
@@ -85,11 +87,17 @@ export class ResponseGenerator {
         (ai) => getMentionTokenForAI(ai),
       );
 
+      // Quote the message that triggered this response - by generation time
+      // newer messages may have arrived, so the last message isn't always it
+      const replyTarget =
+        (options.isMentioned && options.triggerMessage) ||
+        context[context.length - 1];
+
       context = applyInteractionStrategy(
         context,
         interactionStrategy,
         aiService,
-        context[context.length - 1],
+        replyTarget,
       );
 
       const systemPrompt = createEnhancedSystemPrompt(
@@ -154,6 +162,16 @@ export class ResponseGenerator {
         priority: isUserResponse ? 500 : 0,
       };
 
+      // Free the API concurrency slot before the simulated-typing hold so
+      // other AIs can start generating while this one "types"
+      this.deps.onResponseComplete();
+      queueSlotReleased = true;
+
+      // Hold the finished message while the typing indicator stays visible,
+      // so long responses visibly take longer to "type" than quick quips
+      const typingHoldMs = calculateTypingHold(processedResponse.length);
+      await new Promise((resolve) => setTimeout(resolve, typingHoldMs));
+
       this.deps.enqueueMessage(aiMessage);
       emit("ai-response", { ...aiMeta, responseTimeMs });
     } catch (error) {
@@ -165,7 +183,9 @@ export class ResponseGenerator {
       emit("ai-error", { ...aiMeta, aiId, error, responseTimeMs });
     } finally {
       aiService.isGenerating = false;
-      this.deps.onResponseComplete();
+      if (!queueSlotReleased) {
+        this.deps.onResponseComplete();
+      }
       emit("ai-generating-stop", aiMeta);
     }
   }

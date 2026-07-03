@@ -39,7 +39,6 @@ type ChatOrchestratorOptions = {
   maxBackgroundDelay?: number;
   minDelayBetweenAI?: number;
   maxDelayBetweenAI?: number;
-  topicChangeChance?: number;
   verboseContextLogging?: boolean;
 };
 
@@ -62,7 +61,6 @@ export class ChatOrchestrator extends EventEmitter {
   maxBackgroundDelay: number;
   minDelayBetweenAI: number;
   maxDelayBetweenAI: number;
-  topicChangeChance: number;
   verboseContextLogging: boolean;
   private responseQueue: ResponseQueue;
   private roomScope: RoomScope;
@@ -96,8 +94,6 @@ export class ChatOrchestrator extends EventEmitter {
     this.maxDelayBetweenAI =
       options.maxDelayBetweenAI || DEFAULTS.MAX_DELAY_BETWEEN_AI;
 
-    this.topicChangeChance =
-      options.topicChangeChance || DEFAULTS.TOPIC_CHANGE_CHANCE;
     this.roomScope = new RoomScope();
 
     this.generator = new ResponseGenerator({
@@ -200,6 +196,7 @@ export class ChatOrchestrator extends EventEmitter {
 
   async handleMessage(message) {
     this.contextManager.addMessage(message);
+    this.updateJustRespondedFlags(message);
 
     if (message.senderType === "user") {
       await this.handleUserMessage(message);
@@ -208,6 +205,17 @@ export class ChatOrchestrator extends EventEmitter {
     }
 
     this.messageBroker.broadcastMessage(message, message.roomId);
+  }
+
+  /**
+   * Track which AI spoke last so background scheduling can skip it -
+   * prevents the same AI posting twice in a row without anyone replying.
+   */
+  updateJustRespondedFlags(message) {
+    const senderAIId = message.senderType === "ai" ? message.aiId : null;
+    for (const ai of this.aiServices.values()) {
+      ai.justResponded = ai.id === senderAIId;
+    }
   }
 
   async handleUserMessage(message) {

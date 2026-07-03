@@ -3,6 +3,7 @@
  */
 
 import { TIMING } from "./constants.js";
+import type { ContextMessage } from "@/types/orchestrator.js";
 
 type QueuedResponse = {
   aiId: string;
@@ -14,7 +15,7 @@ type QueuedResponse = {
 
 type GenerateResponseOptions = {
   isMentioned?: boolean;
-  triggerMessage?: { id?: string; sender?: string };
+  triggerMessage?: ContextMessage;
 };
 
 type ResponseHandler = (
