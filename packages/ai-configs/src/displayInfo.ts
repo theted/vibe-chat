@@ -12,6 +12,7 @@ export const AI_DISPLAY_INFO: AiDisplayInfoMap = DEFAULT_AI_PARTICIPANTS.reduce(
       displayName: participant.name,
       alias: participant.alias,
       emoji: participant.emoji,
+      ...(participant.traits ? { traits: participant.traits } : {}),
     };
     return acc;
   },

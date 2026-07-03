@@ -182,6 +182,7 @@ export const determineInteractionStrategy = (
     targetAI,
     mentionsCurrentAI,
     energy,
+    windingDown: false,
   };
 };
 
@@ -209,7 +210,11 @@ export const applyInteractionStrategy = (
       ? excerptForQuote(lastMessage.content)
       : "";
 
-  if (mentionsCurrentAI) {
+  // Reopening overrides the reactive branches - the last message is stale,
+  // so responding to it or its mentions would read strangely after a lull
+  if (strategy.type === "reopen") {
+    instructionPrompt = STRATEGY_INSTRUCTIONS.REOPEN;
+  } else if (mentionsCurrentAI) {
     if (lastMessage?.senderType === "ai" && mentionerToken) {
       instructionPrompt = STRATEGY_INSTRUCTIONS.MENTIONED_BY_AI(
         mentionerToken,
@@ -250,8 +255,19 @@ export const applyInteractionStrategy = (
     }
   }
 
-  const energyInstruction = RESPONSE_ENERGY_INSTRUCTIONS[strategy.energy] || "";
-  const combinedInstruction = [instructionPrompt, energyInstruction]
+  // Winding down replaces the energy roll - an "expansive" instruction would
+  // fight the request to keep things brief
+  const energyInstruction = strategy.windingDown
+    ? ""
+    : RESPONSE_ENERGY_INSTRUCTIONS[strategy.energy] || "";
+  const windDownInstruction = strategy.windingDown
+    ? STRATEGY_INSTRUCTIONS.WIND_DOWN
+    : "";
+  const combinedInstruction = [
+    instructionPrompt,
+    energyInstruction,
+    windDownInstruction,
+  ]
     .filter(Boolean)
     .join(" ");
 

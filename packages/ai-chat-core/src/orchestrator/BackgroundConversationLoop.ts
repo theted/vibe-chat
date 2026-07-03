@@ -3,17 +3,20 @@
  * background chatter while users are silent.
  *
  * While asleep or with no active AIs it idles on a short retry interval;
- * otherwise it waits a random background delay and, if the room has been
- * quiet past the silence timeout, triggers a round of background responses.
+ * otherwise it waits a random background delay and, if the room is still
+ * lively, triggers a round of background responses. Once the room has been
+ * quiet past the silence timeout, it occasionally has a single AI reopen the
+ * conversation instead of staying silent forever.
  */
 
-import { TIMING } from "./constants.js";
+import { REOPENING, TIMING } from "./constants.js";
 
 type BackgroundLoopDeps = {
   isAsleep: () => boolean;
   hasActiveAIs: () => boolean;
   getLastAIMessageTime: () => number;
   triggerBackgroundResponses: () => void;
+  triggerReopening: () => void;
   getDelays: () => { minBackgroundDelay: number; maxBackgroundDelay: number };
 };
 
@@ -42,6 +45,14 @@ export class BackgroundConversationLoop {
         const timeSinceLastMessage =
           Date.now() - this.deps.getLastAIMessageTime();
         if (timeSinceLastMessage > TIMING.SILENCE_TIMEOUT) {
+          // Long silence: occasionally have one AI break the lull, unless
+          // the room has been dead so long a reopening would feel random
+          const shouldReopen =
+            timeSinceLastMessage < REOPENING.MAX_SILENCE_MS &&
+            Math.random() < REOPENING.PROBABILITY_PER_TICK;
+          if (shouldReopen) {
+            this.deps.triggerReopening();
+          }
           scheduleNext();
           return;
         }

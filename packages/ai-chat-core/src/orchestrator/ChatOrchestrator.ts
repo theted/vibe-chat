@@ -103,6 +103,7 @@ export class ChatOrchestrator extends EventEmitter {
       enqueueMessage: (message) => this.messageBroker.enqueueMessage(message as any),
       onResponseComplete: () => this.responseQueue.onResponseComplete(),
       isAsleep: () => this.messageTracker.isAsleep,
+      getFatigue: () => this.getFatigue(),
       isVerbose: () => this.verboseContextLogging,
     });
 
@@ -119,6 +120,7 @@ export class ChatOrchestrator extends EventEmitter {
       filterAIsForRoom: (roomId, aiIds) => this.filterAIsForRoom(roomId, aiIds),
       enqueueBatch: (responses) => this.responseQueue.enqueueBatch(responses),
       isAsleep: () => this.messageTracker.isAsleep,
+      getFatigue: () => this.getFatigue(),
       getDelays: () => ({
         minUserResponseDelay: this.minUserResponseDelay,
         maxUserResponseDelay: this.maxUserResponseDelay,
@@ -134,6 +136,8 @@ export class ChatOrchestrator extends EventEmitter {
       hasActiveAIs: () => this.activeAIs.length > 0,
       getLastAIMessageTime: () => this.lastAIMessageTime,
       triggerBackgroundResponses: () => this.scheduleAIResponses("default", false),
+      triggerReopening: () =>
+        this.scheduler.schedule("default", false, { isReopening: true }),
       getDelays: () => ({
         minBackgroundDelay: this.minBackgroundDelay,
         maxBackgroundDelay: this.maxBackgroundDelay,
@@ -244,6 +248,15 @@ export class ChatOrchestrator extends EventEmitter {
 
   scheduleAIResponses(roomId, isUserResponse = true) {
     this.scheduler.schedule(roomId, isUserResponse);
+  }
+
+  /** How close the AI-message budget is to running out, 0..1. */
+  getFatigue(): number {
+    if (this.messageTracker.maxAIMessages <= 0) return 0;
+    return Math.min(
+      this.messageTracker.aiMessageCount / this.messageTracker.maxAIMessages,
+      1,
+    );
   }
 
   async generateAIResponse(

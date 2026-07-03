@@ -16,6 +16,8 @@ type QueuedResponse = {
 type GenerateResponseOptions = {
   isMentioned?: boolean;
   triggerMessage?: ContextMessage;
+  /** Response is reopening a room that went quiet - prompts a casual restart. */
+  isReopening?: boolean;
 };
 
 type ResponseHandler = (

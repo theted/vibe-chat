@@ -116,6 +116,34 @@ export const TYPING_SIMULATION = {
   MAX_HOLD_MS: 4000,
 } as const;
 
+// Per-AI temperament defaults. AIs without explicit traits in participant
+// config get stable values hashed from their id within these bands, so every
+// AI has a slightly different feel without hand-tuning each one.
+export const TRAIT_DEFAULTS = {
+  MIN_TEMPO: 0.8, // Fastest derived delay multiplier
+  MAX_TEMPO: 1.3, // Slowest derived delay multiplier
+  MIN_CHATTINESS: 0.7, // Least talkative derived selection weight
+  MAX_CHATTINESS: 1.4, // Most talkative derived selection weight
+} as const;
+
+// Fade-out sleep - instead of a hard stop at maxAIMessages, background
+// chatter gets sparser and slower as the message budget runs out
+export const FADE_OUT = {
+  START_RATIO: 0.6, // Fatigue level where fading begins
+  MIN_RESPONSE_PROBABILITY: 0.25, // Response chance at full fatigue
+  MAX_DELAY_STRETCH: 2.0, // Delay multiplier at full fatigue
+  WIND_DOWN_RATIO: 0.8, // Fatigue level where prompts start winding down
+} as const;
+
+// Silence-aware reopening - occasionally have one AI reopen a room that has
+// gone quiet past the silence timeout, instead of staying silent forever
+export const REOPENING = {
+  PROBABILITY_PER_TICK: 0.2, // Chance per background tick during silence
+  MAX_SILENCE_MS: 30 * 60_000, // Give up reopening after this much silence
+  MIN_DELAY_MS: 3000, // Reopener responds fairly promptly...
+  MAX_DELAY_MS: 15000, // ...the room is already quiet
+} as const;
+
 // System prompt templates - easily configurable conversation guidelines
 export const SYSTEM_PROMPT = {
   // Introduction based on context
@@ -165,6 +193,10 @@ export const STRATEGY_INSTRUCTIONS = {
   QUESTION:
     "Ask a thought-provoking question that will get the other AIs thinking and responding.",
   DIRECT: "Respond directly to the most recent message with your perspective.",
+  REOPEN:
+    "The room has been quiet for a while. Casually reopen the conversation - pick up a loose thread from earlier, share a new thought on the topic, or nudge someone with a question. Keep it light and natural, like breaking a lull.",
+  WIND_DOWN:
+    "The conversation is naturally winding down. Keep this brief - a closing thought, a light sign-off remark, or a short reaction rather than opening new threads.",
 } as const;
 
 // Mention format templates - natural conversation patterns

@@ -6,6 +6,35 @@ import {
   TYPING_SIMULATION,
 } from "@/orchestrator/constants.js";
 
+/**
+ * Weighted sample without replacement - chattier AIs speak up more often but
+ * everyone still gets a turn eventually.
+ */
+const sampleByChattiness = (aiServices, candidates, count) => {
+  const remaining = [...candidates];
+  const selected = [];
+
+  while (selected.length < count && remaining.length > 0) {
+    const weights = remaining.map(
+      (aiId) => aiServices.get(aiId)?.traits?.chattiness ?? 1,
+    );
+    const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
+    let roll = Math.random() * totalWeight;
+    let pickedIndex = remaining.length - 1;
+    for (let i = 0; i < remaining.length; i++) {
+      roll -= weights[i];
+      if (roll <= 0) {
+        pickedIndex = i;
+        break;
+      }
+    }
+    selected.push(remaining[pickedIndex]);
+    remaining.splice(pickedIndex, 1);
+  }
+
+  return selected;
+};
+
 export const selectRespondingAIs = (
   aiServices,
   activeAIs,
@@ -24,8 +53,7 @@ export const selectRespondingAIs = (
       minResponders,
     availableAIs.length,
   );
-  const shuffled = [...availableAIs].sort(() => Math.random() - 0.5);
-  return shuffled.slice(0, numResponders);
+  return sampleByChattiness(aiServices, availableAIs, numResponders);
 };
 
 /**

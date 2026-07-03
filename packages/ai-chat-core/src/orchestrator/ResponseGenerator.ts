@@ -9,7 +9,7 @@ import type { AIRegistry } from "./AIRegistry.js";
 import type { ContextManager } from "./ContextManager.js";
 import type { GenerateResponseOptions } from "./ResponseQueue.js";
 import type { ContextMessage } from "@/types/orchestrator.js";
-import { CONTEXT_LIMITS } from "./constants.js";
+import { CONTEXT_LIMITS, FADE_OUT } from "./constants.js";
 import {
   findAIFromContextMessage,
   getMentionTokenForAI,
@@ -34,6 +34,8 @@ type ResponseGeneratorDeps = {
   enqueueMessage: (message: unknown) => void;
   onResponseComplete: () => void;
   isAsleep: () => boolean;
+  /** How close the AI-message budget is to running out, 0..1. */
+  getFatigue: () => number;
   isVerbose: () => boolean;
 };
 
@@ -79,13 +81,28 @@ export class ResponseGenerator {
       );
 
       let context = contextManager.getContextForAI(CONTEXT_LIMITS.AI_CONTEXT_SIZE);
-      const interactionStrategy = determineInteractionStrategy(
+      let interactionStrategy = determineInteractionStrategy(
         aiService,
         context,
         isUserResponse,
         (message) => findAIFromContextMessage(aiServices, message),
         (ai) => getMentionTokenForAI(ai),
       );
+
+      if (options.isReopening) {
+        // Reopening a quiet room replaces the usual reactive strategies -
+        // the last message is stale, so don't reply to or mention its sender
+        interactionStrategy = {
+          ...interactionStrategy,
+          type: "reopen",
+          shouldMention: false,
+          targetAI: null,
+        };
+      }
+
+      if (!isUserResponse && this.deps.getFatigue() >= FADE_OUT.WIND_DOWN_RATIO) {
+        interactionStrategy = { ...interactionStrategy, windingDown: true };
+      }
 
       // Quote the message that triggered this response - by generation time
       // newer messages may have arrived, so the last message isn't always it
