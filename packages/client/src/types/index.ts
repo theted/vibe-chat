@@ -185,6 +185,8 @@ export interface ChatMessageProps {
   message: Message;
   aiParticipants?: AiParticipant[];
   participants?: Participant[];
+  /** The message this one replies to, when still in the loaded history */
+  quotedMessage?: Message;
 }
 
 // Component prop types - ParticipantsList

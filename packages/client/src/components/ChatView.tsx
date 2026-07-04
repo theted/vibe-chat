@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { DEFAULT_AI_PARTICIPANTS } from "@/config/aiParticipants";
 import { useModal } from "@/hooks/useModal";
 import { getStorageItem, setStorageItem } from "@/utils/storage";
@@ -41,6 +41,13 @@ const ChatView = ({
     aiParticipants.length > 0 ? aiParticipants : DEFAULT_AI_PARTICIPANTS;
   const menu = useModal();
   const login = useModal();
+
+  // Lookup for reply-quote rendering - resolves a reply's trigger id to the
+  // quoted message while it is still in the loaded history
+  const messagesById = useMemo(
+    () => new Map(messages.map((message) => [message.id, message])),
+    [messages],
+  );
 
   const [darkChatBg, setDarkChatBg] = useState(
     () => getStorageItem(STORAGE_KEYS.CHAT_DARK_BG) === "true"
@@ -144,6 +151,11 @@ const ChatView = ({
                   message={message}
                   aiParticipants={aiParticipantList}
                   participants={participants}
+                  quotedMessage={
+                    message.mentionsTriggerMessageId
+                      ? messagesById.get(message.mentionsTriggerMessageId)
+                      : undefined
+                  }
                 />
               ))}
               <div ref={messagesEndRef} />

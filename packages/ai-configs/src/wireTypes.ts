@@ -23,4 +23,8 @@ export interface ChatMessageBase {
   displayName?: string;
   modelKey?: string;
   emoji?: string;
+  // Reply metadata - set when an AI responds to a message that @mentioned it,
+  // so clients can render a quote of the message being replied to
+  mentionsTriggerMessageId?: string | null;
+  mentionsTriggerSender?: string | null;
 }
