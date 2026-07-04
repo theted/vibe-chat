@@ -36,6 +36,8 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     provider: "Anthropic",
     status: "active",
     emoji: "🎙️",
+    // Measured and deliberate: slower to reply, doesn't dominate the room
+    traits: { tempo: 1.25, chattiness: 0.9 },
   },
   {
     id: "ANTHROPIC_CLAUDE_OPUS_4_7",
@@ -208,6 +210,8 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     provider: "xAI",
     status: "active",
     emoji: "♟️",
+    // Brand personality: quick-draw and talkative
+    traits: { tempo: 0.7, chattiness: 1.4 },
   },
   {
     id: "GROK_GROK_4_20",

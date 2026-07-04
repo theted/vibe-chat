@@ -13,7 +13,6 @@ export const DEFAULTS = {
   MAX_BACKGROUND_DELAY: 90000, // 90 seconds
   MIN_DELAY_BETWEEN_AI: 6000, // 6 seconds - stagger between AI responses
   MAX_DELAY_BETWEEN_AI: 18000, // 18 seconds
-  TOPIC_CHANGE_CHANCE: 0.1, // 10% chance
   // First AI responder delay - gives conversation breathing room
   MIN_FIRST_RESPONDER_DELAY: 2500, // 2.5 seconds
   MAX_FIRST_RESPONDER_DELAY: 4500, // 4.5 seconds
@@ -26,6 +25,7 @@ export const CONTEXT_LIMITS = {
   RECENT_MESSAGES_FOR_STRATEGY: 8, // Messages to analyze for interaction strategy
   MAX_SENTENCES: 15, // Max sentences in AI response
   POTENTIAL_MENTION_TARGETS: 3, // Max potential targets to consider for mentions
+  QUOTE_EXCERPT_LENGTH: 140, // Max chars when quoting a message back in instructions
 } as const;
 
 // Timing thresholds
@@ -62,6 +62,24 @@ export const MENTION_CONFIG = {
   RANDOM_MENTION_PROBABILITY: 0.35, // 35% chance to mention when not directly mentioned
 } as const;
 
+// Response energy - varies message length per response so the chat isn't a
+// uniform stream of 1-3 sentence replies
+export const RESPONSE_ENERGY_WEIGHTS = {
+  terse: 0.25,
+  normal: 0.6,
+  expansive: 0.15,
+} as const;
+
+export type ResponseEnergy = keyof typeof RESPONSE_ENERGY_WEIGHTS;
+
+export const RESPONSE_ENERGY_INSTRUCTIONS: Record<ResponseEnergy, string> = {
+  terse:
+    "Keep it very short this time: a quick reaction, quip, or single short sentence.",
+  normal: "",
+  expansive:
+    "Take a bit more room this time: develop your thought across 4-6 sentences before wrapping up.",
+} as const;
+
 export const MENTION_LIMITS = {
   MAX_UNIQUE_PER_RESPONSE: 2,
 } as const;
@@ -82,6 +100,50 @@ export const DELAY_CALC = {
   CATCH_UP_POWER: 2, // Power function for catch-up delay
 } as const;
 
+// Heavy-tailed (log-normal) delay sampling - most replies land early in the
+// [min, max] band with occasional stragglers, instead of an even spread
+export const DELAY_DISTRIBUTION = {
+  SIGMA: 0.6, // Log-normal shape; higher = more variance
+  MEDIAN_BAND_POSITION: 0.35, // Median delay lands ~35% into the band
+  MAX_OVERSHOOT: 1.5, // Rare stragglers may exceed max by up to 50%
+} as const;
+
+// Simulated typing after generation - message is held while the typing
+// indicator stays visible, proportional to response length
+export const TYPING_SIMULATION = {
+  CHARS_PER_SECOND: 40,
+  MIN_HOLD_MS: 600,
+  MAX_HOLD_MS: 4000,
+} as const;
+
+// Per-AI temperament defaults. AIs without explicit traits in participant
+// config get stable values hashed from their id within these bands, so every
+// AI has a slightly different feel without hand-tuning each one.
+export const TRAIT_DEFAULTS = {
+  MIN_TEMPO: 0.8, // Fastest derived delay multiplier
+  MAX_TEMPO: 1.3, // Slowest derived delay multiplier
+  MIN_CHATTINESS: 0.7, // Least talkative derived selection weight
+  MAX_CHATTINESS: 1.4, // Most talkative derived selection weight
+} as const;
+
+// Fade-out sleep - instead of a hard stop at maxAIMessages, background
+// chatter gets sparser and slower as the message budget runs out
+export const FADE_OUT = {
+  START_RATIO: 0.6, // Fatigue level where fading begins
+  MIN_RESPONSE_PROBABILITY: 0.25, // Response chance at full fatigue
+  MAX_DELAY_STRETCH: 2.0, // Delay multiplier at full fatigue
+  WIND_DOWN_RATIO: 0.8, // Fatigue level where prompts start winding down
+} as const;
+
+// Silence-aware reopening - occasionally have one AI reopen a room that has
+// gone quiet past the silence timeout, instead of staying silent forever
+export const REOPENING = {
+  PROBABILITY_PER_TICK: 0.2, // Chance per background tick during silence
+  MAX_SILENCE_MS: 30 * 60_000, // Give up reopening after this much silence
+  MIN_DELAY_MS: 3000, // Reopener responds fairly promptly...
+  MAX_DELAY_MS: 15000, // ...the room is already quiet
+} as const;
+
 // System prompt templates - easily configurable conversation guidelines
 export const SYSTEM_PROMPT = {
   // Introduction based on context
@@ -92,7 +154,7 @@ export const SYSTEM_PROMPT = {
   // Core conversation guidelines
   GUIDELINES: `
 Key guidelines:
-• Keep responses 1-3 sentences and conversational
+• Usually keep responses 1-3 sentences and conversational - but follow any specific length instruction you're given, and don't be afraid of an occasional one-word reaction
 • Reference recent messages and build on ideas
 • Use @mentions naturally when addressing someone - weave them into your response organically:
   - Start with mention: "@Claude, that's an interesting take on..."
@@ -114,10 +176,14 @@ Key guidelines:
 
 // Interaction strategy instruction templates
 export const STRATEGY_INSTRUCTIONS = {
-  MENTIONED_BY_AI: (mentionerToken: string) =>
-    `You were directly mentioned by ${mentionerToken}. Respond specifically to their message and address the key points they raised.`,
-  MENTIONED_BY_USER:
-    "You were directly mentioned by the user. Respond directly to their message and focus on answering or acknowledging their mention.",
+  MENTIONED_BY_AI: (mentionerToken: string, excerpt?: string) =>
+    excerpt
+      ? `You were directly mentioned by ${mentionerToken}, who said: "${excerpt}". Respond specifically to that message and address the key points they raised.`
+      : `You were directly mentioned by ${mentionerToken}. Respond specifically to their message and address the key points they raised.`,
+  MENTIONED_BY_USER: (excerpt?: string) =>
+    excerpt
+      ? `You were directly mentioned by the user, who said: "${excerpt}". Respond directly to that message and focus on answering or acknowledging their mention.`
+      : "You were directly mentioned by the user. Respond directly to their message and focus on answering or acknowledging their mention.",
   AGREE_EXPAND: (senderName: string) =>
     `Build on ${senderName}'s point and add your own insights. Show agreement but expand with new information or examples.`,
   CHALLENGE: (senderName: string) =>
@@ -127,6 +193,10 @@ export const STRATEGY_INSTRUCTIONS = {
   QUESTION:
     "Ask a thought-provoking question that will get the other AIs thinking and responding.",
   DIRECT: "Respond directly to the most recent message with your perspective.",
+  REOPEN:
+    "The room has been quiet for a while. Casually reopen the conversation - pick up a loose thread from earlier, share a new thought on the topic, or nudge someone with a question. Keep it light and natural, like breaking a lull.",
+  WIND_DOWN:
+    "The conversation is naturally winding down. Keep this brief - a closing thought, a light sign-off remark, or a short reaction rather than opening new threads.",
 } as const;
 
 // Mention format templates - natural conversation patterns

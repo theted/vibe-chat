@@ -9,7 +9,7 @@ import type { AIRegistry } from "./AIRegistry.js";
 import type { ContextManager } from "./ContextManager.js";
 import type { GenerateResponseOptions } from "./ResponseQueue.js";
 import type { ContextMessage } from "@/types/orchestrator.js";
-import { CONTEXT_LIMITS } from "./constants.js";
+import { CONTEXT_LIMITS, FADE_OUT } from "./constants.js";
 import {
   findAIFromContextMessage,
   getMentionTokenForAI,
@@ -20,6 +20,7 @@ import {
   limitMentionsInResponse,
 } from "@/utils/orchestrator/mentionUtils.js";
 import { createEnhancedSystemPrompt } from "@/utils/orchestrator/promptBuilder.js";
+import { calculateTypingHold } from "@/utils/orchestrator/responseScheduling.js";
 import { truncateResponse } from "@/utils/orchestrator/responseUtils.js";
 import {
   applyInteractionStrategy,
@@ -33,6 +34,8 @@ type ResponseGeneratorDeps = {
   enqueueMessage: (message: unknown) => void;
   onResponseComplete: () => void;
   isAsleep: () => boolean;
+  /** How close the AI-message budget is to running out, 0..1. */
+  getFatigue: () => number;
   isVerbose: () => boolean;
 };
 
@@ -68,6 +71,7 @@ export class ResponseGenerator {
     emit("ai-generating-start", aiMeta);
     aiService.isGenerating = true;
     const responseStartTime = Date.now();
+    let queueSlotReleased = false;
 
     try {
       console.log(
@@ -77,7 +81,7 @@ export class ResponseGenerator {
       );
 
       let context = contextManager.getContextForAI(CONTEXT_LIMITS.AI_CONTEXT_SIZE);
-      const interactionStrategy = determineInteractionStrategy(
+      let interactionStrategy = determineInteractionStrategy(
         aiService,
         context,
         isUserResponse,
@@ -85,11 +89,32 @@ export class ResponseGenerator {
         (ai) => getMentionTokenForAI(ai),
       );
 
+      if (options.isReopening) {
+        // Reopening a quiet room replaces the usual reactive strategies -
+        // the last message is stale, so don't reply to or mention its sender
+        interactionStrategy = {
+          ...interactionStrategy,
+          type: "reopen",
+          shouldMention: false,
+          targetAI: null,
+        };
+      }
+
+      if (!isUserResponse && this.deps.getFatigue() >= FADE_OUT.WIND_DOWN_RATIO) {
+        interactionStrategy = { ...interactionStrategy, windingDown: true };
+      }
+
+      // Quote the message that triggered this response - by generation time
+      // newer messages may have arrived, so the last message isn't always it
+      const replyTarget =
+        (options.isMentioned && options.triggerMessage) ||
+        context[context.length - 1];
+
       context = applyInteractionStrategy(
         context,
         interactionStrategy,
         aiService,
-        context[context.length - 1],
+        replyTarget,
       );
 
       const systemPrompt = createEnhancedSystemPrompt(
@@ -154,6 +179,16 @@ export class ResponseGenerator {
         priority: isUserResponse ? 500 : 0,
       };
 
+      // Free the API concurrency slot before the simulated-typing hold so
+      // other AIs can start generating while this one "types"
+      this.deps.onResponseComplete();
+      queueSlotReleased = true;
+
+      // Hold the finished message while the typing indicator stays visible,
+      // so long responses visibly take longer to "type" than quick quips
+      const typingHoldMs = calculateTypingHold(processedResponse.length);
+      await new Promise((resolve) => setTimeout(resolve, typingHoldMs));
+
       this.deps.enqueueMessage(aiMessage);
       emit("ai-response", { ...aiMeta, responseTimeMs });
     } catch (error) {
@@ -165,7 +200,9 @@ export class ResponseGenerator {
       emit("ai-error", { ...aiMeta, aiId, error, responseTimeMs });
     } finally {
       aiService.isGenerating = false;
-      this.deps.onResponseComplete();
+      if (!queueSlotReleased) {
+        this.deps.onResponseComplete();
+      }
       emit("ai-generating-stop", aiMeta);
     }
   }

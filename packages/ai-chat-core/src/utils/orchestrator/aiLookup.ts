@@ -1,4 +1,8 @@
 import type { IAIService } from "@/types/index.js";
+import type {
+  ConfiguredTraits,
+  ResolvedTraits,
+} from "@/utils/orchestrator/traits.js";
 import { normalizeAlias, toMentionAlias } from "@/utils/stringUtils.js";
 
 export type OrchestratorAIService = {
@@ -13,11 +17,13 @@ export type OrchestratorAIService = {
   isGenerating?: boolean;
   justResponded?: boolean;
   lastMessageTime?: number;
+  traits?: ResolvedTraits;
   config?: {
     providerKey?: string;
     modelKey?: string;
     displayName?: string;
     alias?: string;
+    traits?: ConfiguredTraits;
   };
   service?: IAIService;
 };

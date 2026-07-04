@@ -18,6 +18,7 @@ export type AIConfig = {
   displayName?: string;
   alias?: string;
   emoji?: string;
+  traits?: { tempo?: number; chattiness?: number };
 };
 
 /**

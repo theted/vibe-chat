@@ -1,15 +1,36 @@
 import {
   CONTEXT_LIMITS,
   MENTION_CONFIG,
+  RESPONSE_ENERGY_INSTRUCTIONS,
+  RESPONSE_ENERGY_WEIGHTS,
   STRATEGY_ADJUSTMENTS,
   STRATEGY_INSTRUCTIONS,
   STRATEGY_WEIGHTS,
+  type ResponseEnergy,
 } from "@/orchestrator/constants.js";
+import { excerptForQuote } from "@/utils/orchestrator/responseUtils.js";
 import { normalizeAlias } from "@/utils/stringUtils.js";
 
 type StrategyOption = {
   type: string;
   weight: number;
+};
+
+/**
+ * Sample a response energy so message length varies naturally - occasional
+ * one-line quips and longer riffs instead of uniform 1-3 sentence replies.
+ */
+const sampleResponseEnergy = (): ResponseEnergy => {
+  const entries = Object.entries(RESPONSE_ENERGY_WEIGHTS) as Array<
+    [ResponseEnergy, number]
+  >;
+  const totalWeight = entries.reduce((sum, [, weight]) => sum + weight, 0);
+  let remaining = Math.random() * totalWeight;
+  for (const [energy, weight] of entries) {
+    remaining -= weight;
+    if (remaining <= 0) return energy;
+  }
+  return "normal";
 };
 
 export const determineInteractionStrategy = (
@@ -80,6 +101,7 @@ export const determineInteractionStrategy = (
     }
   }
 
+  const energy = sampleResponseEnergy();
   let shouldMention = false;
   let targetAI = null;
 
@@ -139,7 +161,9 @@ export const determineInteractionStrategy = (
       }
     }
 
-    if (potentialTargets.length > 0) {
+    // Terse replies read as quick reactions - skip the optional mention, but
+    // direct-mention replies above still acknowledge whoever addressed us
+    if (potentialTargets.length > 0 && energy !== "terse") {
       shouldMention = Math.random() < MENTION_CONFIG.RANDOM_MENTION_PROBABILITY;
       if (shouldMention) {
         const selected = potentialTargets[0];
@@ -157,6 +181,8 @@ export const determineInteractionStrategy = (
     shouldMention,
     targetAI,
     mentionsCurrentAI,
+    energy,
+    windingDown: false,
   };
 };
 
@@ -179,11 +205,23 @@ export const applyInteractionStrategy = (
   const mentionerAlias = lastMessage?.alias || lastMessage?.normalizedAlias;
   const mentionerToken = mentionerAlias ? `@${mentionerAlias}` : mentionerName;
 
-  if (mentionsCurrentAI) {
+  const quotedExcerpt =
+    typeof lastMessage?.content === "string"
+      ? excerptForQuote(lastMessage.content)
+      : "";
+
+  // Reopening overrides the reactive branches - the last message is stale,
+  // so responding to it or its mentions would read strangely after a lull
+  if (strategy.type === "reopen") {
+    instructionPrompt = STRATEGY_INSTRUCTIONS.REOPEN;
+  } else if (mentionsCurrentAI) {
     if (lastMessage?.senderType === "ai" && mentionerToken) {
-      instructionPrompt = STRATEGY_INSTRUCTIONS.MENTIONED_BY_AI(mentionerToken);
+      instructionPrompt = STRATEGY_INSTRUCTIONS.MENTIONED_BY_AI(
+        mentionerToken,
+        quotedExcerpt,
+      );
     } else {
-      instructionPrompt = STRATEGY_INSTRUCTIONS.MENTIONED_BY_USER;
+      instructionPrompt = STRATEGY_INSTRUCTIONS.MENTIONED_BY_USER(quotedExcerpt);
     }
   } else {
     switch (strategy.type) {
@@ -217,10 +255,26 @@ export const applyInteractionStrategy = (
     }
   }
 
-  if (instructionPrompt) {
+  // Winding down replaces the energy roll - an "expansive" instruction would
+  // fight the request to keep things brief
+  const energyInstruction = strategy.windingDown
+    ? ""
+    : RESPONSE_ENERGY_INSTRUCTIONS[strategy.energy] || "";
+  const windDownInstruction = strategy.windingDown
+    ? STRATEGY_INSTRUCTIONS.WIND_DOWN
+    : "";
+  const combinedInstruction = [
+    instructionPrompt,
+    energyInstruction,
+    windDownInstruction,
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  if (combinedInstruction) {
     enhancedContext.push({
       sender: "System",
-      content: instructionPrompt,
+      content: combinedInstruction,
       senderType: "system",
       role: "system",
       isInternal: true,

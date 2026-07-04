@@ -8,6 +8,7 @@
 
 import { AIServiceFactory } from "@/services/AIServiceFactory.js";
 import type { OrchestratorAIService } from "@/utils/orchestrator/aiLookup.js";
+import { resolveTraits } from "@/utils/orchestrator/traits.js";
 import { normalizeAlias, toMentionAlias } from "@/utils/stringUtils.js";
 import { runWithConcurrencyLimit } from "@/utils/concurrency.js";
 
@@ -63,6 +64,7 @@ export class AIRegistry {
           emoji,
           isActive: true,
           lastMessageTime: 0,
+          traits: resolveTraits(aiId, config.traits),
         });
 
         this.activeIds.push(aiId);
