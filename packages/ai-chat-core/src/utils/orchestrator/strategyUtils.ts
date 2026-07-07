@@ -180,10 +180,25 @@ export const determineInteractionStrategy = (
     ...selectedStrategy,
     shouldMention,
     targetAI,
+    mentionHandle: shouldMention ? resolveMentionHandle(targetAI) : null,
     mentionsCurrentAI,
     energy,
     windingDown: false,
   };
+};
+
+/**
+ * Resolve a strategy mention target (user object or AI mention token) to the
+ * literal @handle the model should write, preserving original casing.
+ */
+const resolveMentionHandle = (targetAI): string | null => {
+  const source =
+    typeof targetAI === "object"
+      ? (targetAI?.displayName || targetAI?.alias || "").toString().trim()
+      : (targetAI || "").toString().trim();
+
+  if (!source) return null;
+  return source.startsWith("@") ? source : `@${source}`;
 };
 
 export const applyInteractionStrategy = (
@@ -255,6 +270,18 @@ export const applyInteractionStrategy = (
     }
   }
 
+  // Prompt-driven mentions: ask the model to weave the @handle in itself
+  // instead of templating it onto the finished response afterwards. Skip when
+  // the strategy instruction already names the same handle (e.g. MENTIONED_BY_AI)
+  // so the prompt doesn't push the mention twice
+  const handleAlreadyReferenced =
+    strategy.mentionHandle &&
+    instructionPrompt.toLowerCase().includes(strategy.mentionHandle.toLowerCase());
+  const mentionInstruction =
+    strategy.shouldMention && strategy.mentionHandle && !handleAlreadyReferenced
+      ? STRATEGY_INSTRUCTIONS.MENTION_TARGET(strategy.mentionHandle)
+      : "";
+
   // Winding down replaces the energy roll - an "expansive" instruction would
   // fight the request to keep things brief
   const energyInstruction = strategy.windingDown
@@ -265,6 +292,7 @@ export const applyInteractionStrategy = (
     : "";
   const combinedInstruction = [
     instructionPrompt,
+    mentionInstruction,
     energyInstruction,
     windDownInstruction,
   ]

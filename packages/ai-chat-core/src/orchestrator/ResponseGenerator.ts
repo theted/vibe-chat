@@ -15,10 +15,7 @@ import {
   getMentionTokenForAI,
 } from "@/utils/orchestrator/aiLookup.js";
 import { logAIContext } from "@/utils/orchestrator/logging.js";
-import {
-  addMentionToResponse,
-  limitMentionsInResponse,
-} from "@/utils/orchestrator/mentionUtils.js";
+import { limitMentionsInResponse } from "@/utils/orchestrator/mentionUtils.js";
 import { createEnhancedSystemPrompt } from "@/utils/orchestrator/promptBuilder.js";
 import { calculateTypingHold } from "@/utils/orchestrator/responseScheduling.js";
 import { truncateResponse } from "@/utils/orchestrator/responseUtils.js";
@@ -139,14 +136,8 @@ export class ResponseGenerator {
       let processedResponse = truncateResponse(response);
       aiService.lastMessageTime = Date.now();
 
-      if (interactionStrategy.shouldMention && interactionStrategy.targetAI) {
-        processedResponse = addMentionToResponse(
-          aiServices,
-          processedResponse,
-          interactionStrategy.targetAI,
-        );
-      }
-
+      // Mentions are prompt-driven (MENTION_TARGET instruction); only cap
+      // runaway @mentions here rather than templating any in post-hoc
       processedResponse = limitMentionsInResponse(processedResponse);
 
       console.log(

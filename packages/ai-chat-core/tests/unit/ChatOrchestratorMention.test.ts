@@ -1,5 +1,6 @@
 import { afterEach, describe, it, expect } from "bun:test";
 import { ChatOrchestrator } from "@ai-chat/core";
+import { applyInteractionStrategy } from "@/utils/orchestrator/strategyUtils.js";
 
 describe("ChatOrchestrator user mention behavior", () => {
   let orchestrator: ChatOrchestrator | null = null;
@@ -48,29 +49,32 @@ describe("ChatOrchestrator user mention behavior", () => {
     expect(strategy.targetAI.type).toBe("user");
     expect(strategy.targetAI.alias).toBe("Bob");
     expect(strategy.targetAI.displayName).toBe("Bob");
+    // Prompt-driven mentions: the literal handle preserves original casing
+    expect(strategy.mentionHandle).toBe("@Bob");
   });
 
-  it("injects a user @mention preserving the original casing", () => {
-    orchestrator = new ChatOrchestrator({
-      minBackgroundDelay: 1_000_000,
-      maxBackgroundDelay: 1_000_000,
-    });
+  it("injects a mention instruction into the context instead of templating", () => {
+    const aiService = {
+      id: "anthropic_claude",
+      name: "Claude",
+      displayName: "Claude",
+      alias: "claude",
+      normalizedAlias: "claude",
+    };
+    const strategy = {
+      type: "direct",
+      shouldMention: true,
+      targetAI: { type: "user", alias: "Bob", displayName: "Bob" },
+      mentionHandle: "@Bob",
+      energy: "normal",
+      windingDown: false,
+    };
 
-    const message = "Thanks for the question!";
-    const mentionTarget = {
-      type: "user",
-      alias: "Bob",
-      displayName: "Bob",
-    } as const;
-    // @ai-chat/core types only accept a string target today; runtime supports object mention targets.
-    const updated = orchestrator.addMentionToResponse(
-      message,
-      mentionTarget as unknown as string,
-    );
+    const enhanced = applyInteractionStrategy([], strategy, aiService, null);
+    const instruction = enhanced[enhanced.length - 1];
 
-    expect(updated).not.toBe(message);
-    expect(updated.includes("@Bob")).toBeTruthy();
-    expect(!updated.includes("@bob")).toBeTruthy();
+    expect(instruction.senderType).toBe("system");
+    expect(instruction.content).toContain("@Bob");
   });
 
   it("limits unique @mentions to two per response", () => {
