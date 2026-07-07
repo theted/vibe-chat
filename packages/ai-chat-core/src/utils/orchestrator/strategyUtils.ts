@@ -8,13 +8,28 @@ import {
   STRATEGY_WEIGHTS,
   type ResponseEnergy,
 } from "@/orchestrator/constants.js";
+import type {
+  ContextMessage,
+  InteractionStrategy,
+  InteractionStrategyDecision,
+  MentionTarget,
+} from "@/types/orchestrator.js";
+import type { OrchestratorAIService } from "@/utils/orchestrator/aiLookup.js";
 import { excerptForQuote } from "@/utils/orchestrator/responseUtils.js";
 import { normalizeAlias } from "@/utils/stringUtils.js";
 
 type StrategyOption = {
-  type: string;
+  type: InteractionStrategy;
   weight: number;
 };
+
+type FindAIFromContextMessage = (
+  message: ContextMessage,
+) => OrchestratorAIService | null | undefined;
+
+type GetMentionTokenForAI = (
+  ai: OrchestratorAIService,
+) => string | null | undefined;
 
 /**
  * Sample a response energy so message length varies naturally - occasional
@@ -34,12 +49,12 @@ const sampleResponseEnergy = (): ResponseEnergy => {
 };
 
 export const determineInteractionStrategy = (
-  aiService,
-  context,
-  isUserResponse,
-  findAIFromContextMessage,
-  getMentionTokenForAI,
-) => {
+  aiService: OrchestratorAIService,
+  context: ContextMessage[],
+  isUserResponse: boolean,
+  findAIFromContextMessage: FindAIFromContextMessage,
+  getMentionTokenForAI: GetMentionTokenForAI,
+): InteractionStrategyDecision => {
   const recentMessages = context.slice(
     -CONTEXT_LIMITS.RECENT_MESSAGES_FOR_STRATEGY,
   );
@@ -103,7 +118,7 @@ export const determineInteractionStrategy = (
 
   const energy = sampleResponseEnergy();
   let shouldMention = false;
-  let targetAI = null;
+  let targetAI: MentionTarget | null = null;
 
   const mentionCandidateRaw =
     lastMessage?.alias || lastMessage?.displayName || lastMessage?.sender || "";
@@ -131,11 +146,11 @@ export const determineInteractionStrategy = (
       const sourceAI = findAIFromContextMessage(lastMessage);
       if (sourceAI && sourceAI.id !== aiService.id) {
         shouldMention = true;
-        targetAI = getMentionTokenForAI(sourceAI);
+        targetAI = getMentionTokenForAI(sourceAI) ?? null;
       }
     }
   } else {
-    const potentialTargets = [];
+    const potentialTargets: OrchestratorAIService[] = [];
 
     if (lastMessage?.senderType === "ai") {
       const lastAI = findAIFromContextMessage(lastMessage);
@@ -167,7 +182,7 @@ export const determineInteractionStrategy = (
       shouldMention = Math.random() < MENTION_CONFIG.RANDOM_MENTION_PROBABILITY;
       if (shouldMention) {
         const selected = potentialTargets[0];
-        targetAI = getMentionTokenForAI(selected);
+        targetAI = getMentionTokenForAI(selected) ?? null;
       }
     }
   }
@@ -191,22 +206,24 @@ export const determineInteractionStrategy = (
  * Resolve a strategy mention target (user object or AI mention token) to the
  * literal @handle the model should write, preserving original casing.
  */
-const resolveMentionHandle = (targetAI): string | null => {
+const resolveMentionHandle = (
+  targetAI: MentionTarget | null,
+): string | null => {
   const source =
     typeof targetAI === "object"
-      ? (targetAI?.displayName || targetAI?.alias || "").toString().trim()
-      : (targetAI || "").toString().trim();
+      ? (targetAI?.displayName || targetAI?.alias || "").trim()
+      : (targetAI || "").trim();
 
   if (!source) return null;
   return source.startsWith("@") ? source : `@${source}`;
 };
 
 export const applyInteractionStrategy = (
-  context,
-  strategy,
-  aiService,
-  lastMessage,
-) => {
+  context: ContextMessage[],
+  strategy: InteractionStrategyDecision,
+  aiService: OrchestratorAIService,
+  lastMessage: ContextMessage | null | undefined,
+): ContextMessage[] => {
   const enhancedContext = [...context];
 
   let instructionPrompt = "";

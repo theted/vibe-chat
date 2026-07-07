@@ -14,6 +14,7 @@ import { ResponseScheduler } from "./ResponseScheduler.js";
 import { ResponseGenerator } from "./ResponseGenerator.js";
 import { BackgroundConversationLoop } from "./BackgroundConversationLoop.js";
 import { DEFAULTS } from "./constants.js";
+import type { ContextMessage } from "@/types/orchestrator.js";
 import {
   findAIByNormalizedAlias,
   findAIFromContextMessage,
@@ -297,7 +298,11 @@ export class ChatOrchestrator extends EventEmitter {
     return createEnhancedSystemPrompt(aiService, context, isUserResponse, this.aiServices);
   }
 
-  determineInteractionStrategy(aiService, context, isUserResponse) {
+  determineInteractionStrategy(
+    aiService: OrchestratorAIService,
+    context: ContextMessage[],
+    isUserResponse: boolean,
+  ) {
     return determineInteractionStrategy(
       aiService,
       context,
