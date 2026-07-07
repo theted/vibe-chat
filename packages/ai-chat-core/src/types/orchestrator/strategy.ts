@@ -1,9 +1,12 @@
 /**
  * Interaction strategy types: how AIs decide to respond.
+ *
+ * Models the object `determineInteractionStrategy` actually returns and
+ * `applyInteractionStrategy` consumes - the per-response decision about
+ * strategy, mention target, energy, and wind-down.
  */
 
-import { Message } from "../index.js";
-import type { AIParticipant } from "./participants.js";
+import type { ResponseEnergy } from "../../orchestrator/constants.js";
 
 export type InteractionStrategy =
   | "agree-expand"
@@ -11,50 +14,32 @@ export type InteractionStrategy =
   | "redirect"
   | "question"
   | "direct"
-  | "support"
-  | "analyze";
+  | "reopen";
 
-export interface InteractionStrategyConfig {
+/** A human participant selected as mention target (AIs resolve to tokens). */
+export interface UserMentionTarget {
+  type: "user";
+  alias: string;
+  displayName: string;
+}
+
+/**
+ * Who a response should @mention: AI targets arrive pre-resolved to their
+ * mention token string, user targets carry alias info for handle building.
+ */
+export type MentionTarget = string | UserMentionTarget;
+
+/** Per-response decision produced by `determineInteractionStrategy`. */
+export interface InteractionStrategyDecision {
   type: InteractionStrategy;
   weight: number;
-  description: string;
-  triggers: string[];
-  constraints?: {
-    maxConsecutive?: number;
-    cooldownMs?: number;
-    requiresContext?: boolean;
-  };
-}
-
-export interface StrategyWeight {
-  strategy: InteractionStrategy;
-  weight: number;
-  reason?: string;
-}
-
-export interface StrategyContext {
-  recentMessages: Message[];
-  aiParticipants: AIParticipant[];
-  currentSpeaker?: string;
-  messageCount: number;
-  silenceDurationMs: number;
-  lastStrategyUsed?: InteractionStrategy;
-}
-
-export interface StrategyDecision {
-  selectedStrategy: InteractionStrategy;
-  confidence: number;
-  weights: StrategyWeight[];
-  reasoning: string;
-}
-
-export class StrategyError extends Error {
-  constructor(
-    message: string,
-    public readonly strategy?: InteractionStrategy,
-    public readonly context?: StrategyContext,
-  ) {
-    super(message);
-    this.name = "StrategyError";
-  }
+  shouldMention: boolean;
+  targetAI: MentionTarget | null;
+  /** Literal @handle the model is asked to write, original casing kept. */
+  mentionHandle: string | null;
+  /** Whether the last message @mentioned the responding AI. */
+  mentionsCurrentAI: boolean;
+  energy: ResponseEnergy;
+  /** Message budget nearly spent - instruct a brief, closing response. */
+  windingDown: boolean;
 }
