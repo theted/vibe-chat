@@ -21,10 +21,7 @@ import {
   getMentionTokenForAI,
   OrchestratorAIService,
 } from "@/utils/orchestrator/aiLookup.js";
-import {
-  addMentionToResponse,
-  limitMentionsInResponse,
-} from "@/utils/orchestrator/mentionUtils.js";
+import { limitMentionsInResponse } from "@/utils/orchestrator/mentionUtils.js";
 import { createEnhancedSystemPrompt } from "@/utils/orchestrator/promptBuilder.js";
 import { determineInteractionStrategy } from "@/utils/orchestrator/strategyUtils.js";
 import { getEnvFlag, parseBooleanEnvFlag } from "@/utils/stringUtils.js";
@@ -308,10 +305,6 @@ export class ChatOrchestrator extends EventEmitter {
       (message) => findAIFromContextMessage(this.aiServices, message),
       (ai) => getMentionTokenForAI(ai),
     );
-  }
-
-  addMentionToResponse(response, targetAI) {
-    return addMentionToResponse(this.aiServices, response, targetAI);
   }
 
   limitMentionsInResponse(response) {
