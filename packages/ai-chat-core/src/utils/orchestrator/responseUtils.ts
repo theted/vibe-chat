@@ -1,4 +1,5 @@
 import { CONTEXT_LIMITS } from "@/orchestrator/constants.js";
+import type { ServiceResponse } from "@/types/index.js";
 
 /**
  * Shorten a message for quoting inside prompt instructions.
@@ -12,21 +13,24 @@ export const excerptForQuote = (
   return `${trimmed.slice(0, maxLength - 1).trimEnd()}…`;
 };
 
-export const truncateResponse = (response) => {
-  if (response && typeof response === "object" && "content" in response) {
-    response = response.content;
+export const truncateResponse = (
+  response: string | ServiceResponse | null | undefined,
+): string => {
+  const content =
+    response && typeof response === "object" && "content" in response
+      ? response.content
+      : response;
+
+  if (!content || typeof content !== "string") {
+    return "";
   }
 
-  if (!response || typeof response !== "string") {
-    return response;
-  }
-
-  const sentences = response
+  const sentences = content
     .split(/(?<=[.!?])\s+/)
     .filter((s) => s.trim().length > 0);
 
   if (sentences.length <= CONTEXT_LIMITS.MAX_SENTENCES) {
-    return response.trim();
+    return content.trim();
   }
 
   let truncated = sentences

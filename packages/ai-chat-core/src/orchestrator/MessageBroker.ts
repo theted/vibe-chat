@@ -4,6 +4,7 @@
 
 import { EventEmitter } from "events";
 import {
+  ContextMessage,
   IMessageBroker,
   MessageBrokerConfig,
   QueuedMessage,
@@ -95,7 +96,7 @@ export class MessageBroker extends EventEmitter implements IMessageBroker {
   /**
    * Broadcast message to all connected clients
    */
-  broadcastMessage(message: Message, roomId?: string): void {
+  broadcastMessage(message: ContextMessage, roomId?: string): void {
     this.emit("broadcast" as BrokerEvent, { message, roomId });
   }
 

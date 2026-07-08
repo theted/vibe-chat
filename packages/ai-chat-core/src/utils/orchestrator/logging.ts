@@ -1,4 +1,11 @@
-export const logAIContext = (aiService, messages, verboseContextLogging) => {
+import type { ContextMessage } from "@/types/orchestrator.js";
+import type { OrchestratorAIService } from "@/utils/orchestrator/aiLookup.js";
+
+export const logAIContext = (
+  aiService: OrchestratorAIService,
+  messages: ContextMessage[],
+  verboseContextLogging: boolean,
+) => {
   if (!verboseContextLogging || !Array.isArray(messages)) {
     return;
   }

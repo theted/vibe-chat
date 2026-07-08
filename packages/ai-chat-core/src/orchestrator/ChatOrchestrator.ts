@@ -4,7 +4,7 @@
 
 import { EventEmitter } from "events";
 import { AIRegistry } from "./AIRegistry.js";
-import type { ModelInitResult } from "./AIRegistry.js";
+import type { AIInitConfig, ModelInitResult } from "./AIRegistry.js";
 import { ContextManager } from "./ContextManager.js";
 import { MessageBroker } from "./MessageBroker.js";
 import { ResponseQueue } from "./ResponseQueue.js";
@@ -26,6 +26,16 @@ import { limitMentionsInResponse } from "@/utils/orchestrator/mentionUtils.js";
 import { createEnhancedSystemPrompt } from "@/utils/orchestrator/promptBuilder.js";
 import { determineInteractionStrategy } from "@/utils/orchestrator/strategyUtils.js";
 import { getEnvFlag, parseBooleanEnvFlag } from "@/utils/stringUtils.js";
+
+/**
+ * Messages flowing through the orchestrator: room chat messages carry sender
+ * metadata and routing fields; `role` is only set on internal prompt messages.
+ */
+type OrchestratorMessage = ContextMessage & {
+  roomId?: string;
+  suppressAIResponses?: boolean;
+  priority?: number;
+};
 
 type ChatOrchestratorOptions = {
   maxMessages?: number;
@@ -179,7 +189,7 @@ export class ChatOrchestrator extends EventEmitter {
   }
 
   async initializeAIs(
-    aiConfigs,
+    aiConfigs: AIInitConfig[],
     options?: { skipHealthCheck?: boolean },
   ): Promise<ModelInitResult[]> {
     const skipHealthCheck =
@@ -196,7 +206,7 @@ export class ChatOrchestrator extends EventEmitter {
     return this.registry.remove(aiId);
   }
 
-  async handleMessage(message) {
+  async handleMessage(message: OrchestratorMessage) {
     this.contextManager.addMessage(message);
     this.updateJustRespondedFlags(message);
 
@@ -213,14 +223,14 @@ export class ChatOrchestrator extends EventEmitter {
    * Track which AI spoke last so background scheduling can skip it -
    * prevents the same AI posting twice in a row without anyone replying.
    */
-  updateJustRespondedFlags(message) {
+  updateJustRespondedFlags(message: OrchestratorMessage) {
     const senderAIId = message.senderType === "ai" ? message.aiId : null;
     for (const ai of this.aiServices.values()) {
       ai.justResponded = ai.id === senderAIId;
     }
   }
 
-  async handleUserMessage(message) {
+  async handleUserMessage(message: OrchestratorMessage) {
     this.wakeUpAIs();
 
     if (message?.suppressAIResponses) {
@@ -233,7 +243,7 @@ export class ChatOrchestrator extends EventEmitter {
     this.scheduleAIResponses(message.roomId);
   }
 
-  async handleAIMessage(message) {
+  async handleAIMessage(message: OrchestratorMessage) {
     this.lastAIMessageTime = Date.now();
 
     if (this.messageTracker.isAsleep) return;
@@ -244,7 +254,7 @@ export class ChatOrchestrator extends EventEmitter {
     }
   }
 
-  scheduleAIResponses(roomId, isUserResponse = true) {
+  scheduleAIResponses(roomId: string | undefined, isUserResponse = true) {
     this.scheduler.schedule(roomId, isUserResponse);
   }
 
@@ -258,8 +268,8 @@ export class ChatOrchestrator extends EventEmitter {
   }
 
   async generateAIResponse(
-    aiId,
-    roomId,
+    aiId: string,
+    roomId: string,
     isUserResponse = true,
     options: GenerateResponseOptions = {},
   ) {
@@ -282,19 +292,23 @@ export class ChatOrchestrator extends EventEmitter {
 
   // --- Delegate lookups (convenience wrappers used by tests and external callers) ---
 
-  findAIByNormalizedAlias(normalizedAlias) {
+  findAIByNormalizedAlias(normalizedAlias: string | null | undefined) {
     return findAIByNormalizedAlias(this.aiServices, normalizedAlias);
   }
 
-  getAIDisplayName(aiService) {
+  getAIDisplayName(aiService: OrchestratorAIService | null) {
     return getAIDisplayName(aiService);
   }
 
-  getMentionTokenForAI(ai) {
+  getMentionTokenForAI(ai: OrchestratorAIService | null) {
     return getMentionTokenForAI(ai);
   }
 
-  createEnhancedSystemPrompt(aiService, context, isUserResponse) {
+  createEnhancedSystemPrompt(
+    aiService: OrchestratorAIService,
+    context: ContextMessage[],
+    isUserResponse: boolean,
+  ) {
     return createEnhancedSystemPrompt(aiService, context, isUserResponse, this.aiServices);
   }
 
@@ -312,7 +326,7 @@ export class ChatOrchestrator extends EventEmitter {
     );
   }
 
-  limitMentionsInResponse(response) {
+  limitMentionsInResponse(response: string) {
     return limitMentionsInResponse(response);
   }
 
@@ -335,12 +349,12 @@ export class ChatOrchestrator extends EventEmitter {
 
   // --- Public API ---
 
-  addMessage(message) {
+  addMessage(message: OrchestratorMessage) {
     this.messageBroker.enqueueMessage(message as any);
   }
 
-  changeTopic(newTopic, changedBy, roomId) {
-    const topicMessage = {
+  changeTopic(newTopic: string, changedBy: string, roomId?: string) {
+    const topicMessage: OrchestratorMessage = {
       sender: "System",
       content: `Topic changed to: "${newTopic}" by ${changedBy}`,
       senderType: "system",

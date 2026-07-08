@@ -5,13 +5,14 @@ import {
 } from "@/utils/personaUtils.js";
 import { getEnvFlag, parseBooleanEnvFlag } from "@/utils/stringUtils.js";
 import { SYSTEM_PROMPT } from "@/orchestrator/constants.js";
-import { getAIDisplayName } from "./aiLookup.js";
+import type { ContextMessage } from "@/types/orchestrator.js";
+import { getAIDisplayName, type OrchestratorAIService } from "./aiLookup.js";
 
 export const createEnhancedSystemPrompt = (
-  aiService,
-  context,
-  isUserResponse,
-  aiServices,
+  aiService: OrchestratorAIService,
+  context: ContextMessage[],
+  isUserResponse: boolean,
+  aiServices: Map<string, OrchestratorAIService>,
 ) => {
   let prompt = `You are ${aiService.name}, an AI participating in a dynamic group chat. `;
 
@@ -42,9 +43,7 @@ ${SYSTEM_PROMPT.CLOSING}`;
     ? AI_PROVIDERS[providerKey as keyof typeof AI_PROVIDERS]
     : undefined;
   const personaProvider =
-    aiService?.service?.config?.provider ||
-    aiService?.config?.provider ||
-    fallbackProvider;
+    aiService?.service?.config?.provider || fallbackProvider;
   const persona = personasEnabled
     ? getPersonaFromProvider(personaProvider)
     : null;

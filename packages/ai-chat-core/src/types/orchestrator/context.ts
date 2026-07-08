@@ -4,11 +4,14 @@
 
 import { Message } from "../index.js";
 
-export interface ContextMessage extends Message {
+export interface ContextMessage extends Omit<Message, "role"> {
+  /** Optional on input - ContextManager derives it from senderType on add. */
+  role?: Message["role"];
   importance?: number;
   tokens?: number;
   sender?: string;
-  senderType?: "user" | "ai" | "system";
+  // "assistant" is a legacy wire value (@Chat) - treated as a non-user sender
+  senderType?: "user" | "ai" | "system" | "assistant";
   displayName?: string;
   alias?: string;
   normalizedAlias?: string;

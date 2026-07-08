@@ -8,6 +8,7 @@
 import type { AIRegistry } from "./AIRegistry.js";
 import type { ContextManager } from "./ContextManager.js";
 import type { GenerateResponseOptions } from "./ResponseQueue.js";
+import type { Message } from "@/types/index.js";
 import type { ContextMessage } from "@/types/orchestrator.js";
 import { CONTEXT_LIMITS, FADE_OUT } from "./constants.js";
 import {
@@ -130,8 +131,11 @@ export class ResponseGenerator {
 
       logAIContext(aiService, messagesWithSystem, this.deps.isVerbose());
 
-      const response =
-        await aiService.service.generateResponse(messagesWithSystem);
+      // Safe cast: ContextManager derives `role` for every stored message and
+      // the instruction/system messages above set it explicitly
+      const response = await aiService.service.generateResponse(
+        messagesWithSystem as Message[],
+      );
       const responseTimeMs = Date.now() - responseStartTime;
       let processedResponse = truncateResponse(response);
       aiService.lastMessageTime = Date.now();
