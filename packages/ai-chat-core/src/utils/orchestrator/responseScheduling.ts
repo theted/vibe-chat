@@ -5,14 +5,21 @@ import {
   TIMING,
   TYPING_SIMULATION,
 } from "@/orchestrator/constants.js";
+import type { OrchestratorAIService } from "@/utils/orchestrator/aiLookup.js";
+
+type AIServiceMap = Map<string, OrchestratorAIService>;
 
 /**
  * Weighted sample without replacement - chattier AIs speak up more often but
  * everyone still gets a turn eventually.
  */
-const sampleByChattiness = (aiServices, candidates, count) => {
+const sampleByChattiness = (
+  aiServices: AIServiceMap,
+  candidates: string[],
+  count: number,
+) => {
   const remaining = [...candidates];
-  const selected = [];
+  const selected: string[] = [];
 
   while (selected.length < count && remaining.length > 0) {
     const weights = remaining.map(
@@ -36,11 +43,11 @@ const sampleByChattiness = (aiServices, candidates, count) => {
 };
 
 export const selectRespondingAIs = (
-  aiServices,
-  activeAIs,
+  aiServices: AIServiceMap,
+  activeAIs: string[],
   minResponders = 1,
   maxResponders = 3,
-  candidateList = null,
+  candidateList: string[] | null = null,
 ) => {
   const pool = candidateList || activeAIs;
   const availableAIs = pool.filter((aiId) => {
@@ -104,6 +111,17 @@ export const calculateResponseDelay = ({
   maxBackgroundDelay,
   minDelayBetweenAI,
   maxDelayBetweenAI,
+}: {
+  index: number;
+  isUserResponse?: boolean;
+  isMentioned?: boolean;
+  typingAICount?: number;
+  minUserResponseDelay: number;
+  maxUserResponseDelay: number;
+  minBackgroundDelay: number;
+  maxBackgroundDelay: number;
+  minDelayBetweenAI: number;
+  maxDelayBetweenAI: number;
 }) => {
   if (index === 0 && isUserResponse) {
     const firstResponderDelay =

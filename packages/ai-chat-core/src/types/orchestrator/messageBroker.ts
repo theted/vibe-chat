@@ -4,6 +4,7 @@
 
 import EventEmitter from "events";
 import { Message } from "../index.js";
+import { ContextMessage } from "./context.js";
 
 export interface MessageBrokerConfig {
   maxQueueSize: number;
@@ -44,7 +45,7 @@ export type BrokerEvent =
 export interface IMessageBroker extends EventEmitter {
   enqueueMessage(message: Message, priority?: number): void;
   processQueue(): Promise<void>;
-  broadcastMessage(message: Message, roomId?: string): void;
+  broadcastMessage(message: ContextMessage, roomId?: string): void;
   getQueueStatus(): QueueStatus;
   clearQueue(): void;
   getQueuedMessagesForRoom(roomId: string): QueuedMessage[];

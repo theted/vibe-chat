@@ -1,4 +1,5 @@
 import type { IAIService } from "@/types/index.js";
+import type { ContextMessage } from "@/types/orchestrator.js";
 import type {
   ConfiguredTraits,
   ResolvedTraits,
@@ -45,7 +46,7 @@ export const findAIByNormalizedAlias = (
 
 export const findAIFromContextMessage = (
   aiServices: Map<string, OrchestratorAIService>,
-  message,
+  message: ContextMessage | null | undefined,
 ) => {
   if (!message) return null;
 

@@ -8,7 +8,7 @@
 
 import { AIServiceFactory } from "@/services/AIServiceFactory.js";
 import type { OrchestratorAIService } from "@/utils/orchestrator/aiLookup.js";
-import { resolveTraits } from "@/utils/orchestrator/traits.js";
+import { resolveTraits, type ConfiguredTraits } from "@/utils/orchestrator/traits.js";
 import { normalizeAlias, toMentionAlias } from "@/utils/stringUtils.js";
 import { runWithConcurrencyLimit } from "@/utils/concurrency.js";
 
@@ -21,6 +21,15 @@ export type ModelInitResult = {
   error?: string;
 };
 
+export type AIInitConfig = {
+  providerKey: string;
+  modelKey: string;
+  displayName?: string;
+  alias?: string;
+  emoji?: string;
+  traits?: ConfiguredTraits;
+};
+
 export class AIRegistry {
   readonly services: Map<string, OrchestratorAIService> = new Map();
   readonly activeIds: string[] = [];
@@ -30,11 +39,14 @@ export class AIRegistry {
    * service is added to `services` and `activeIds`.
    */
   async initialize(
-    aiConfigs,
+    aiConfigs: AIInitConfig[],
     options?: { skipHealthCheck?: boolean },
   ): Promise<ModelInitResult[]> {
     const results: ModelInitResult[] = [];
-    const failedConfigs = [];
+    const failedConfigs: Pick<
+      AIInitConfig,
+      "providerKey" | "modelKey" | "displayName" | "alias"
+    >[] = [];
     const skipHealthCheck = options?.skipHealthCheck ?? false;
 
     const tasks = aiConfigs.map((config) => async () => {
