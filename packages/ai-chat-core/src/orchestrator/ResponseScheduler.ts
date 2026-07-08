@@ -110,10 +110,10 @@ export class ResponseScheduler {
     const lastMessage = this.deps.getLastMessage();
     const mentionTargets = new Set(lastMessage?.mentionsNormalized || []);
 
-    const mentionedAIs = eligibleAIs
-      .map((aiId) => aiServices.get(aiId))
-      .filter((ai) => ai && mentionTargets.has(ai.normalizedAlias))
-      .map((ai) => ai.id);
+    const mentionedAIs = eligibleAIs.filter((aiId) => {
+      const alias = aiServices.get(aiId)?.normalizedAlias;
+      return alias != null && mentionTargets.has(alias);
+    });
 
     const uniqueMentioned = Array.from(new Set(mentionedAIs));
 

@@ -258,7 +258,7 @@ export const applyInteractionStrategy = (
   } else {
     switch (strategy.type) {
       case "agree-expand":
-        if (lastMessage?.senderType === "ai") {
+        if (lastMessage?.senderType === "ai" && lastMessage.sender) {
           instructionPrompt = STRATEGY_INSTRUCTIONS.AGREE_EXPAND(
             lastMessage.sender,
           );
@@ -266,7 +266,7 @@ export const applyInteractionStrategy = (
         break;
 
       case "challenge":
-        if (lastMessage?.senderType === "ai") {
+        if (lastMessage?.senderType === "ai" && lastMessage.sender) {
           instructionPrompt = STRATEGY_INSTRUCTIONS.CHALLENGE(
             lastMessage.sender,
           );

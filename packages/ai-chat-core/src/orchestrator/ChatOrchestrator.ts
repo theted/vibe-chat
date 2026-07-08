@@ -124,7 +124,7 @@ export class ChatOrchestrator extends EventEmitter {
 
     this.scheduler = new ResponseScheduler({
       registry: this.registry,
-      getLastMessage: () => this.contextManager.getLastMessage(),
+      getLastMessage: () => this.contextManager.getLastMessage() ?? undefined,
       filterAIsForRoom: (roomId, aiIds) => this.filterAIsForRoom(roomId, aiIds),
       enqueueBatch: (responses) => this.responseQueue.enqueueBatch(responses),
       isAsleep: () => this.messageTracker.isAsleep,
@@ -255,7 +255,8 @@ export class ChatOrchestrator extends EventEmitter {
   }
 
   scheduleAIResponses(roomId: string | undefined, isUserResponse = true) {
-    this.scheduler.schedule(roomId, isUserResponse);
+    // Messages without a room fall back to the background loop's room
+    this.scheduler.schedule(roomId ?? "default", isUserResponse);
   }
 
   /** How close the AI-message budget is to running out, 0..1. */

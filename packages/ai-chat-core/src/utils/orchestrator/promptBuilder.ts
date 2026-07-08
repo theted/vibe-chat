@@ -44,9 +44,10 @@ ${SYSTEM_PROMPT.CLOSING}`;
     : undefined;
   const personaProvider =
     aiService?.service?.config?.provider || fallbackProvider;
-  const persona = personasEnabled
-    ? getPersonaFromProvider(personaProvider)
-    : null;
+  const persona =
+    personasEnabled && personaProvider
+      ? getPersonaFromProvider(personaProvider)
+      : null;
 
   if (persona) {
     prompt = enhanceSystemPromptWithPersona(prompt, persona);
