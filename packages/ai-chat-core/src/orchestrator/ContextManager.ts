@@ -169,11 +169,12 @@ export class ContextManager implements IContextManager {
         (this.messages.length / this.config.maxMessages) * 100,
       oldestMessageAge:
         this.messages.length > 0
-          ? Date.now() - this.messages[0].timestamp
+          ? Date.now() - (this.messages[0].timestamp ?? Date.now())
           : null,
       newestMessageAge:
         this.messages.length > 0
-          ? Date.now() - this.messages[this.messages.length - 1].timestamp
+          ? Date.now() -
+            (this.messages[this.messages.length - 1].timestamp ?? Date.now())
           : null,
     };
   }

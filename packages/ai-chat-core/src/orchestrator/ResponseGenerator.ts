@@ -51,7 +51,7 @@ export class ResponseGenerator {
 
     const aiServices = registry.services;
     const aiService = aiServices.get(aiId);
-    if (!aiService?.isActive) return;
+    if (!aiService?.isActive || !aiService.service) return;
 
     const aiMeta = {
       aiId,

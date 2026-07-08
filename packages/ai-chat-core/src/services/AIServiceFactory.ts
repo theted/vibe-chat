@@ -86,7 +86,10 @@ export class AIServiceFactory {
         openRouterServiceClass(provider.name),
       ]),
     ),
-  };
+    // Concrete services accept provider-specific config subtypes; the factory
+    // always passes the matching provider's config, so the wider constructor
+    // signature is safe here
+  } as Record<string, ServiceConstructor>;
 
   /**
    * Create an AI service instance based on the provider configuration
