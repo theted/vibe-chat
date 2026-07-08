@@ -22,8 +22,6 @@ export interface Message extends ChatMessageBase {
   senderType: SenderType;
   timestamp: number;
   modelName?: string;
-  modelId?: string;
-  providerKey?: string;
   aiEmoji?: string;
 }
 
