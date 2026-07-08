@@ -22,6 +22,8 @@ export interface ChatMessageBase {
   alias?: string;
   displayName?: string;
   modelKey?: string;
+  modelId?: string;
+  providerKey?: string;
   emoji?: string;
   // Reply metadata - set when an AI responds to a message that @mentioned it,
   // so clients can render a quote of the message being replied to
