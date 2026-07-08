@@ -2,25 +2,36 @@
  * Context manager types: the rolling message window fed to AIs.
  */
 
+import type { ChatMessageBase } from "@ai-chat/ai-configs";
 import { Message } from "../index.js";
 
-export interface ContextMessage extends Omit<Message, "role"> {
-  /** Optional on input - ContextManager derives it from senderType on add. */
+/**
+ * A room chat message inside the orchestrator. Extends the shared wire shape
+ * (ChatMessageBase) so server/client messages flow in without casts;
+ * sender/senderType are optional here because internal prompt-instruction
+ * messages don't carry them.
+ */
+export interface ContextMessage
+  extends Omit<ChatMessageBase, "sender" | "senderType"> {
+  sender?: ChatMessageBase["sender"];
+  senderType?: ChatMessageBase["senderType"];
+  /** LLM prompt role - ContextManager derives it from senderType on add. */
   role?: Message["role"];
+  // Orchestration / routing
+  roomId?: string;
+  priority?: number;
+  suppressAIResponses?: boolean;
+  normalizedAlias?: string;
+  /** Strategy that produced this AI message (diagnostics only). */
+  responseType?: string;
+  interactionStrategy?: string;
+  // Context-window bookkeeping
   importance?: number;
   tokens?: number;
-  sender?: string;
-  // "assistant" is a legacy wire value (@Chat) - treated as a non-user sender
-  senderType?: "user" | "ai" | "system" | "assistant";
-  displayName?: string;
-  alias?: string;
-  normalizedAlias?: string;
-  aiId?: string;
-  providerKey?: string;
-  modelKey?: string;
   mentions?: string[];
   mentionsNormalized?: string[];
   isInternal?: boolean;
+  metadata?: Record<string, unknown>;
 }
 
 export interface ContextManagerConfig {

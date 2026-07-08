@@ -3,7 +3,6 @@
  */
 
 import EventEmitter from "events";
-import { Message } from "../index.js";
 import { ContextMessage } from "./context.js";
 
 export interface MessageBrokerConfig {
@@ -14,7 +13,7 @@ export interface MessageBrokerConfig {
   enablePriorityQueuing: boolean;
 }
 
-export interface QueuedMessage extends Message {
+export interface QueuedMessage extends ContextMessage {
   priority: number;
   queuedAt: number;
 }
@@ -43,7 +42,7 @@ export type BrokerEvent =
   | "error";
 
 export interface IMessageBroker extends EventEmitter {
-  enqueueMessage(message: Message, priority?: number): void;
+  enqueueMessage(message: ContextMessage, priority?: number): void;
   processQueue(): Promise<void>;
   broadcastMessage(message: ContextMessage, roomId?: string): void;
   getQueueStatus(): QueueStatus;

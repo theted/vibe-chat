@@ -29,7 +29,7 @@ type ResponseGeneratorDeps = {
   registry: AIRegistry;
   contextManager: ContextManager;
   emit: (event: string, payload: unknown) => void;
-  enqueueMessage: (message: unknown) => void;
+  enqueueMessage: (message: ContextMessage) => void;
   onResponseComplete: () => void;
   isAsleep: () => boolean;
   /** How close the AI-message budget is to running out, 0..1. */
@@ -148,7 +148,7 @@ export class ResponseGenerator {
         `✨ ${aiService.name} ${interactionStrategy.type}: ${processedResponse.substring(0, 100)}${processedResponse.length > 100 ? "..." : ""}`,
       );
 
-      const aiMessage = {
+      const aiMessage: ContextMessage = {
         sender: aiService.displayName || aiService.name,
         displayName: aiService.displayName || aiService.name,
         alias: aiService.alias,
