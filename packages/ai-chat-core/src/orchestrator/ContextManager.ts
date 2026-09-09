@@ -7,11 +7,15 @@ import {
   ContextMessage,
   ContextManagerConfig,
 } from "@/types/orchestrator.js";
+import { CONVERSATION_DIGEST } from "./constants.js";
+import { excerptForQuote } from "@/utils/orchestrator/responseUtils.js";
 import { normalizeAlias, parseMentions } from "@/utils/stringUtils.js";
 
 export class ContextManager implements IContextManager {
   private messages: ContextMessage[] = [];
   private config: ContextManagerConfig;
+  /** One-liners of messages evicted from the window - see getConversationDigest. */
+  private digest: string[] = [];
 
   constructor(maxMessages = 100) {
     this.config = {
@@ -55,10 +59,35 @@ export class ContextManager implements IContextManager {
     };
 
     if (this.messages.length >= this.config.maxMessages) {
-      this.messages.shift(); // Remove oldest message
+      const evicted = this.messages.shift();
+      if (evicted) this.addToDigest(evicted);
     }
 
     this.messages.push(contextMessage);
+  }
+
+  /** Fold an evicted message into the rolling digest, dropping the oldest
+   *  digest lines once the cap is reached. */
+  private addToDigest(message: ContextMessage): void {
+    const speaker = message.displayName || message.sender || "Someone";
+    const excerpt = excerptForQuote(
+      message.content,
+      CONVERSATION_DIGEST.EXCERPT_LENGTH,
+    );
+    if (!excerpt) return;
+
+    this.digest.push(`${speaker}: ${excerpt}`);
+    if (this.digest.length > CONVERSATION_DIGEST.MAX_ENTRIES) {
+      this.digest.shift();
+    }
+  }
+
+  /**
+   * Rolling summary of messages that scrolled out of the context window,
+   * oldest first. Empty string until the window has overflowed.
+   */
+  getConversationDigest(): string {
+    return this.digest.join("\n");
   }
 
   /**
@@ -88,6 +117,7 @@ export class ContextManager implements IContextManager {
    */
   clear(): void {
     this.messages = [];
+    this.digest = [];
   }
 
   /**

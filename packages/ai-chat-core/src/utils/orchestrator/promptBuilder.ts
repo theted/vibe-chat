@@ -13,6 +13,7 @@ export const createEnhancedSystemPrompt = (
   context: ContextMessage[],
   isUserResponse: boolean,
   aiServices: Map<string, OrchestratorAIService>,
+  conversationDigest = "",
 ) => {
   let prompt = `You are ${aiService.name}, an AI participating in a dynamic group chat. `;
 
@@ -31,7 +32,18 @@ export const createEnhancedSystemPrompt = (
 
   prompt += `
 
-Other AIs in this chat: ${otherAINames.join(", ")}
+Other AIs in this chat: ${otherAINames.join(", ")}`;
+
+  // Older messages evicted from the sliding window survive as one-line
+  // excerpts, so long conversations keep a memory beyond the context cap
+  if (conversationDigest) {
+    prompt += `
+
+${SYSTEM_PROMPT.DIGEST_HEADER}
+${conversationDigest}`;
+  }
+
+  prompt += `
 
 ${SYSTEM_PROMPT.CLOSING}`;
 

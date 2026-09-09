@@ -120,6 +120,7 @@ export class ResponseGenerator {
         context,
         isUserResponse,
         aiServices,
+        contextManager.getConversationDigest(),
       );
       const systemMessage: ContextMessage = {
         role: "system",

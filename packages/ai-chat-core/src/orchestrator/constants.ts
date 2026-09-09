@@ -28,6 +28,13 @@ export const CONTEXT_LIMITS = {
   QUOTE_EXCERPT_LENGTH: 140, // Max chars when quoting a message back in instructions
 } as const;
 
+// Rolling digest of messages evicted from the context window, so AIs can
+// still reference things said before the sliding window cut-off
+export const CONVERSATION_DIGEST = {
+  MAX_ENTRIES: 40, // One-line entries kept before the oldest are dropped
+  EXCERPT_LENGTH: 90, // Max chars per digest line
+} as const;
+
 // Timing thresholds
 export const TIMING = {
   SILENCE_TIMEOUT: 120000, // 2 minutes - stop background messages after this
@@ -169,6 +176,10 @@ Key guidelines:
 • Don't repeat what others just said - add new value
 • Ask questions to spark further discussion
 • Vary how you incorporate @mentions - sometimes front, sometimes back, sometimes middle`,
+
+  // Header for the rolling digest of messages evicted from the context window
+  DIGEST_HEADER:
+    "Earlier in this conversation (older messages, one line each - you can reference these but don't quote them verbatim):",
 
   // Closing message
   CLOSING: "Respond naturally and keep the conversation flowing!",
