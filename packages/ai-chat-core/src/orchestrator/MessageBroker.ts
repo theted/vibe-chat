@@ -11,7 +11,6 @@ import {
   QueueStatus,
   BrokerEvent,
 } from "@/types/orchestrator.js";
-import { Message } from "@/types/index.js";
 
 export class MessageBroker extends EventEmitter implements IMessageBroker {
   private messageQueue: QueuedMessage[] = [];
@@ -33,7 +32,7 @@ export class MessageBroker extends EventEmitter implements IMessageBroker {
   /**
    * Add a message to the processing queue
    */
-  enqueueMessage(message: Message, priority?: number): void {
+  enqueueMessage(message: ContextMessage, priority?: number): void {
     // Check queue size limit
     if (this.messageQueue.length >= this.config.maxQueueSize) {
       this.emit("error" as BrokerEvent, new Error("Message queue is full"));
@@ -132,7 +131,7 @@ export class MessageBroker extends EventEmitter implements IMessageBroker {
    * Get messages for a specific room
    */
   getQueuedMessagesForRoom(roomId: string): QueuedMessage[] {
-    return this.messageQueue.filter((msg) => (msg as any).roomId === roomId);
+    return this.messageQueue.filter((msg) => msg.roomId === roomId);
   }
 
   /**
@@ -237,20 +236,18 @@ export class MessageBroker extends EventEmitter implements IMessageBroker {
    * Determine message priority
    */
   private determinePriority(
-    message: Message,
+    message: ContextMessage,
     explicitPriority?: number,
   ): number {
     if (explicitPriority !== undefined) {
       return explicitPriority;
     }
 
-    // Determine priority based on message properties
-    const senderType = (message as any).senderType;
-    if (senderType === "user") {
+    if (message.senderType === "user") {
       return this.config.defaultUserPriority;
     }
 
-    return (message as any).priority ?? this.config.defaultAIPriority;
+    return message.priority ?? this.config.defaultAIPriority;
   }
 
   /**

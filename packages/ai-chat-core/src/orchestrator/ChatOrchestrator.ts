@@ -27,16 +27,6 @@ import { createEnhancedSystemPrompt } from "@/utils/orchestrator/promptBuilder.j
 import { determineInteractionStrategy } from "@/utils/orchestrator/strategyUtils.js";
 import { getEnvFlag, parseBooleanEnvFlag } from "@/utils/stringUtils.js";
 
-/**
- * Messages flowing through the orchestrator: room chat messages carry sender
- * metadata and routing fields; `role` is only set on internal prompt messages.
- */
-type OrchestratorMessage = ContextMessage & {
-  roomId?: string;
-  suppressAIResponses?: boolean;
-  priority?: number;
-};
-
 type ChatOrchestratorOptions = {
   maxMessages?: number;
   maxAIMessages?: number;
@@ -108,7 +98,7 @@ export class ChatOrchestrator extends EventEmitter {
       registry: this.registry,
       contextManager: this.contextManager,
       emit: (event, payload) => this.emit(event, payload),
-      enqueueMessage: (message) => this.messageBroker.enqueueMessage(message as any),
+      enqueueMessage: (message) => this.messageBroker.enqueueMessage(message),
       onResponseComplete: () => this.responseQueue.onResponseComplete(),
       isAsleep: () => this.messageTracker.isAsleep,
       getFatigue: () => this.getFatigue(),
@@ -206,7 +196,7 @@ export class ChatOrchestrator extends EventEmitter {
     return this.registry.remove(aiId);
   }
 
-  async handleMessage(message: OrchestratorMessage) {
+  async handleMessage(message: ContextMessage) {
     this.contextManager.addMessage(message);
     this.updateJustRespondedFlags(message);
 
@@ -223,14 +213,14 @@ export class ChatOrchestrator extends EventEmitter {
    * Track which AI spoke last so background scheduling can skip it -
    * prevents the same AI posting twice in a row without anyone replying.
    */
-  updateJustRespondedFlags(message: OrchestratorMessage) {
+  updateJustRespondedFlags(message: ContextMessage) {
     const senderAIId = message.senderType === "ai" ? message.aiId : null;
     for (const ai of this.aiServices.values()) {
       ai.justResponded = ai.id === senderAIId;
     }
   }
 
-  async handleUserMessage(message: OrchestratorMessage) {
+  async handleUserMessage(message: ContextMessage) {
     this.wakeUpAIs();
 
     if (message?.suppressAIResponses) {
@@ -243,7 +233,7 @@ export class ChatOrchestrator extends EventEmitter {
     this.scheduleAIResponses(message.roomId);
   }
 
-  async handleAIMessage(message: OrchestratorMessage) {
+  async handleAIMessage(message: ContextMessage) {
     this.lastAIMessageTime = Date.now();
 
     if (this.messageTracker.isAsleep) return;
@@ -350,12 +340,12 @@ export class ChatOrchestrator extends EventEmitter {
 
   // --- Public API ---
 
-  addMessage(message: OrchestratorMessage) {
-    this.messageBroker.enqueueMessage(message as any);
+  addMessage(message: ContextMessage) {
+    this.messageBroker.enqueueMessage(message);
   }
 
   changeTopic(newTopic: string, changedBy: string, roomId?: string) {
-    const topicMessage: OrchestratorMessage = {
+    const topicMessage: ContextMessage = {
       sender: "System",
       content: `Topic changed to: "${newTopic}" by ${changedBy}`,
       senderType: "system",
