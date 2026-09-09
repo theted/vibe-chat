@@ -16,7 +16,10 @@ import {
   getMentionTokenForAI,
 } from "@/utils/orchestrator/aiLookup.js";
 import { logAIContext } from "@/utils/orchestrator/logging.js";
-import { limitMentionsInResponse } from "@/utils/orchestrator/mentionUtils.js";
+import {
+  limitMentionsInResponse,
+  responseIncludesMention,
+} from "@/utils/orchestrator/mentionUtils.js";
 import { createEnhancedSystemPrompt } from "@/utils/orchestrator/promptBuilder.js";
 import { calculateTypingHold } from "@/utils/orchestrator/responseScheduling.js";
 import { truncateResponse } from "@/utils/orchestrator/responseUtils.js";
@@ -144,6 +147,28 @@ export class ResponseGenerator {
       // Mentions are prompt-driven (MENTION_TARGET instruction); only cap
       // runaway @mentions here rather than templating any in post-hoc
       processedResponse = limitMentionsInResponse(processedResponse);
+
+      // Telemetry: the MENTION_TARGET instruction lets the model skip forced
+      // mentions - track follow-through to tune the wording and probability
+      if (interactionStrategy.shouldMention && interactionStrategy.mentionHandle) {
+        const mentionIncluded = responseIncludesMention(
+          processedResponse,
+          interactionStrategy.mentionHandle,
+        );
+        console.log(
+          `📊 Mention telemetry: ${aiService.name} → ${interactionStrategy.mentionHandle} included=${mentionIncluded} (strategy=${interactionStrategy.type}, energy=${interactionStrategy.energy})`,
+        );
+        emit("mention-telemetry", {
+          aiId,
+          aiName: aiService.displayName || aiService.name,
+          mentionHandle: interactionStrategy.mentionHandle,
+          included: mentionIncluded,
+          strategy: interactionStrategy.type,
+          energy: interactionStrategy.energy,
+          isUserResponse,
+          roomId,
+        });
+      }
 
       console.log(
         `✨ ${aiService.name} ${interactionStrategy.type}: ${processedResponse.substring(0, 100)}${processedResponse.length > 100 ? "..." : ""}`,
