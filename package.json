@@ -18,6 +18,8 @@
     "build:client": "turbo run build --filter=@ai-chat/client",
     "build": "turbo run build",
     "test": "turbo run test",
+    "validate:models": "bun scripts/validate-ai-models.ts",
+    "validate:models:live": "bun scripts/validate-ai-models.ts --live",
     "test:configs": "turbo run test --filter=@ai-chat/ai-configs",
     "test:core": "turbo run test --filter=@ai-chat/core",
     "test:client": "turbo run test --filter=@ai-chat/client",

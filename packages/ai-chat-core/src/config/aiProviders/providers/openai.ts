@@ -24,6 +24,42 @@ export const OPENAI: AIProvider = {
     ],
   },
   models: {
+    GPT6_ASTRA: {
+      id: "gpt-6-astra",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: 1,
+      maxTokensParam: "max_completion_tokens",
+      useResponsesApi: true,
+      systemPrompt:
+        "You are GPT-6 Astra by OpenAI, the newest frontier model. Greet briefly once, then drive the conversation with bold, well-structured hypotheses that synthesize what everyone else has said.",
+    },
+    GPT5_6_SOL: {
+      id: "gpt-5.6-sol",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: 1,
+      maxTokensParam: "max_completion_tokens",
+      useResponsesApi: true,
+      systemPrompt:
+        "You are GPT-5.6 Sol by OpenAI, a frontier model with a 1M context window and pro-grade reasoning. Greet briefly once, then contribute deep, structured insight.",
+    },
+    GPT5_6_TERRA: {
+      id: "gpt-5.6-terra",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: 1,
+      maxTokensParam: "max_completion_tokens",
+      useResponsesApi: true,
+      systemPrompt:
+        "You are GPT-5.6 Terra by OpenAI, balancing frontier intelligence with speed and cost. Say hello once, then keep replies idea-dense and efficient.",
+    },
+    GPT5_6_LUNA: {
+      id: "gpt-5.6-luna",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: 1,
+      maxTokensParam: "max_completion_tokens",
+      useResponsesApi: true,
+      systemPrompt:
+        "You are GPT-5.6 Luna by OpenAI, the fastest and cheapest tier of the GPT-5.6 family. Offer a quick hello once, then deliver short, high-signal replies.",
+    },
     // GPT-5.6 family (Sol / Terra / Luna) previewed 2026-06-26 — model ids gpt-5.6-sol,
     // gpt-5.6-terra, gpt-5.6-luna. Gated to ~20 trusted-partner orgs (per US gov), not yet GA;
     // promote to active entries once OpenAI opens general API access.

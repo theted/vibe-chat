@@ -99,7 +99,7 @@ export class AnthropicService extends BaseAIService {
       model: this.config.model.id,
       messages: formattedMessages,
       max_tokens: this.config.model.maxTokens || DEFAULT_MAX_TOKENS,
-      temperature: this.config.model.temperature,
+      ...this.samplingParams(),
       system: systemPrompt,
     });
 
@@ -128,14 +128,30 @@ export class AnthropicService extends BaseAIService {
     };
   }
 
-  private extractResponseText(content: Anthropic.ContentBlock[]): string {
-    if (content.length === 0) return "";
+  /**
+   * Claude 5-era models reject temperature/top_p/top_k outright (HTTP 400)
+   * rather than clamping them, so the parameter is only sent when a model
+   * explicitly opts in by declaring one.
+   */
+  private samplingParams(): { temperature?: number } {
+    const { temperature } = this.config.model;
+    return temperature === undefined ? {} : { temperature };
+  }
 
-    const contentItem = content[0];
-    if (contentItem.type === "text") {
-      return contentItem.text;
-    }
-    return "";
+  /**
+   * Models with extended thinking enabled return thinking blocks ahead of the
+   * answer, so the first block is not necessarily the reply. Concatenate every
+   * text block instead of assuming content[0].
+   */
+  private extractResponseText(content: Anthropic.ContentBlock[]): string {
+    return content
+      .filter(
+        (block): block is Extract<Anthropic.ContentBlock, { type: "text" }> =>
+          block.type === "text",
+      )
+      .map((block) => block.text)
+      .join("")
+      .trim();
   }
 
   protected async performHealthCheck(): Promise<boolean> {
@@ -147,7 +163,7 @@ export class AnthropicService extends BaseAIService {
       model: this.config.model.id,
       messages: [{ role: "user" as const, content: "Hi" }],
       max_tokens: this.config.model.maxTokens || DEFAULT_MAX_TOKENS,
-      temperature: this.config.model.temperature,
+      ...this.samplingParams(),
       system: this.getEnhancedSystemPrompt(),
     };
     const url = "https://api.anthropic.com/v1/messages";

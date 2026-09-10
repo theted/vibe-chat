@@ -25,6 +25,18 @@ export const ANTHROPIC: AIProvider = {
     ],
   },
   models: {
+    CLAUDE_OPUS_5: {
+      id: "claude-opus-5",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      systemPrompt:
+        "You are Claude Opus 5 by Anthropic. Built for complex agentic coding and long-horizon autonomous work, with a step change in deep reasoning over Claude Opus 4.8. Provide thorough, insightful responses with deep analytical thinking.",
+    },
+    CLAUDE_SONNET_5: {
+      id: "claude-sonnet-5",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      systemPrompt:
+        "You are Claude Sonnet 5 by Anthropic. The best combination of speed and intelligence, reaching near-Opus quality on coding and agentic work. Provide thorough, detailed responses with clear explanations.",
+    },
     // Latest (recommended)
     CLAUDE_OPUS_4_8: {
       id: "claude-opus-4-8",

@@ -57,25 +57,36 @@ Add entry to `DEFAULT_AI_PARTICIPANTS` array:
 },
 ```
 
-### 3. Display Info
-**Path:** `packages/ai-configs/src/displayInfo.ts`
+### 3. Nothing else — the rest is derived
 
-Add entry to `AI_DISPLAY_INFO` object:
-```typescript
-PROVIDER_MODEL_KEY: {
-  displayName: "Display Name",
-  alias: "shorthand-alias",
-  emoji: "🆕",
-},
-```
+Two registries that used to be hand-maintained are now computed, so do **not**
+add entries to them:
 
-### 4. Default Model (if applicable)
+- `packages/ai-configs/src/displayInfo.ts` — `AI_DISPLAY_INFO` is built from
+  `DEFAULT_AI_PARTICIPANTS`.
+- `packages/server/src/config/aiModels.ts` — `ENABLED_AI_MODELS` is built from
+  participants whose `status` is `"active"`. To disable a model, set its
+  participant status to `"inactive"`; `DISABLED_AI_MODELS` exists only as an
+  ops-side override.
+
+### 4. Default Model (only if it isn't the newest)
 **Path:** `packages/ai-chat-core/src/config/aiProviders/defaults.ts`
 
-Update if new model should be default:
-```typescript
-[PROVIDER.name]: PROVIDER.models.NEW_MODEL_KEY,
+Each provider defaults to the **first** model in its `models` object, which by
+convention is the newest. So adding a new flagship at the top of the file is
+usually enough. Add an `EXPLICIT_DEFAULTS` entry only when the default should
+be something other than the first model.
+
+### 5. Validate
+
+```bash
+bun run validate:models        # cross-references every registry
+bun run validate:models:live   # also checks ids against the live OpenRouter catalog
 ```
+
+This runs in CI. It catches dangling participants, models that never load,
+alias/emoji collisions, providers missing an env var mapping, and — with
+`--live` — OpenRouter ids that have been delisted upstream.
 
 ### OpenRouter-Backed Providers
 

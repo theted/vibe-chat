@@ -24,6 +24,9 @@ jobs:
       - name: Build packages
         run: bun run build
 
+      - name: Validate AI model registry
+        run: bun run validate:models
+
       - name: Run tests
         run: bun run test
 

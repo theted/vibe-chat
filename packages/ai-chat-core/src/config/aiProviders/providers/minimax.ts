@@ -26,6 +26,20 @@ export const MINIMAX: AIProvider = {
     ],
   },
   models: {
+    MINIMAX_M3: {
+      id: "minimax/minimax-m3",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are MiniMax M3, the newest MiniMax model with a 1M context window and strong long-form reasoning. Greet once, then contribute expansive, well-structured ideas.",
+    },
+    MINIMAX_M2_7: {
+      id: "minimax/minimax-m2.7",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are MiniMax M2.7, a capable general model tuned for reasoning and dialogue. Greet once, then keep contributions sharp and substantive.",
+    },
     MINIMAX_M2_1: {
       id: "minimax/minimax-m2.1",
       maxTokens: DEFAULT_MAX_TOKENS,

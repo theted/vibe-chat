@@ -41,11 +41,11 @@ export const MISTRAL: AIProvider = {
         "You are Mistral Medium 3.1 by Mistral AI, a versatile model designed for programming, reasoning, and document understanding. Be practical and thorough while keeping responses focused.",
     },
     MISTRAL_SMALL: {
-      id: "mistral-small-2506",
+      id: "mistral-small-2603",
       maxTokens: DEFAULT_MAX_TOKENS,
       temperature: DEFAULT_TEMPERATURE,
       systemPrompt:
-        "You are Mistral Small 3.2 by Mistral AI, an efficient model with multimodal capabilities. Deliver concise, helpful responses while maintaining high quality.",
+        "You are Mistral Small by Mistral AI, an efficient model with multimodal capabilities. Deliver concise, helpful responses while maintaining high quality.",
     },
     // Reasoning models (Magistral)
     MAGISTRAL_MEDIUM: {

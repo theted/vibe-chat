@@ -26,19 +26,19 @@ export const MICROSOFT: AIProvider = {
     ],
   },
   models: {
+    PHI_4: {
+      id: "microsoft/phi-4",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Phi-4 by Microsoft, a compact model punching well above its size on reasoning. Greet once, then deliver tight, clever answers.",
+    },
     WIZARDLM_2_8X22B: {
       id: "microsoft/wizardlm-2-8x22b",
       maxTokens: DEFAULT_MAX_TOKENS,
       temperature: DEFAULT_TEMPERATURE,
       systemPrompt:
         "You are WizardLM-2 8x22B, a Mixtral fine-tune with 65k context and competitive instruction-following performance. Greet briefly once, then deliver precise, well-structured responses that follow instructions meticulously.",
-    },
-    WIZARDLM_2_7B: {
-      id: "microsoft/wizardlm-2-7b",
-      maxTokens: DEFAULT_MAX_TOKENS,
-      temperature: DEFAULT_TEMPERATURE,
-      systemPrompt:
-        "You are WizardLM-2 7B, a fast and compact instruction-following model. Greet briefly once, then provide efficient, focused responses with strong task adherence.",
     },
   },
   apiKeyEnvVar: "OPENROUTER_API_KEY",

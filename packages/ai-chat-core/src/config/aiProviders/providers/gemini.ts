@@ -1,5 +1,6 @@
 import {
   DEFAULT_TEMPERATURE,
+  GEMINI_3_TEMPERATURE,
   SHORT_RESPONSE_MAX_TOKENS,
 } from "@/config/aiProviders/constants.js";
 import type { AIProvider } from "@/types/index.js";
@@ -25,11 +26,39 @@ export const GEMINI: AIProvider = {
     ],
   },
   models: {
+    GEMINI_3_8_FLASH: {
+      id: "gemini-3.8-flash",
+      maxTokens: SHORT_RESPONSE_MAX_TOKENS,
+      temperature: GEMINI_3_TEMPERATURE,
+      systemPrompt:
+        "You are Gemini 3.8 Flash by Google, the newest and most capable Flash model for agentic and multimodal work. Provide complete, well-cited answers and adapt your length to the conversation.",
+    },
+    GEMINI_3_7_FLASH: {
+      id: "gemini-3.7-flash",
+      maxTokens: SHORT_RESPONSE_MAX_TOKENS,
+      temperature: GEMINI_3_TEMPERATURE,
+      systemPrompt:
+        "You are Gemini 3.7 Flash by Google, balancing frontier reasoning with fast responses. Provide complete, well-cited answers and adapt your length to the conversation.",
+    },
+    GEMINI_3_6_FLASH: {
+      id: "gemini-3.6-flash",
+      maxTokens: SHORT_RESPONSE_MAX_TOKENS,
+      temperature: GEMINI_3_TEMPERATURE,
+      systemPrompt:
+        "You are Gemini 3.6 Flash by Google, pairing speed with strong agentic and multimodal intelligence. Provide complete, well-cited answers and adapt your length to the conversation.",
+    },
+    GEMINI_3_5_FLASH_LITE: {
+      id: "gemini-3.5-flash-lite",
+      maxTokens: SHORT_RESPONSE_MAX_TOKENS,
+      temperature: GEMINI_3_TEMPERATURE,
+      systemPrompt:
+        "You are Gemini 3.5 Flash-Lite by Google, the fastest and most cost-effective 3.5 model for high-throughput work. Provide concise, well-cited answers efficiently.",
+    },
     // Gemini 3.5 (Latest)
     GEMINI_3_5_FLASH: {
       id: "gemini-3.5-flash",
       maxTokens: SHORT_RESPONSE_MAX_TOKENS,
-      temperature: DEFAULT_TEMPERATURE,
+      temperature: GEMINI_3_TEMPERATURE,
       systemPrompt:
         "You are Gemini 3.5 Flash by Google, the most intelligent Gemini model for sustained frontier performance on agentic and coding tasks. Provide complete, well-cited answers and adapt your length to the conversation.",
     },
@@ -37,14 +66,14 @@ export const GEMINI: AIProvider = {
     GEMINI_3_1_PRO: {
       id: "gemini-3.1-pro-preview",
       maxTokens: SHORT_RESPONSE_MAX_TOKENS,
-      temperature: DEFAULT_TEMPERATURE,
+      temperature: GEMINI_3_TEMPERATURE,
       systemPrompt:
         "You are Gemini 3.1 Pro by Google, the state-of-the-art reasoning and multimodal understanding model with powerful agentic and coding capabilities. Provide complete, well-cited answers and adapt your length to the conversation.",
     },
     GEMINI_3_1_FLASH: {
       id: "gemini-3.1-flash-preview",
       maxTokens: SHORT_RESPONSE_MAX_TOKENS,
-      temperature: DEFAULT_TEMPERATURE,
+      temperature: GEMINI_3_TEMPERATURE,
       systemPrompt:
         "You are Gemini 3.1 Flash by Google, delivering fast frontier-class performance with upgraded visual and spatial reasoning. Provide concise, well-cited answers efficiently.",
     },

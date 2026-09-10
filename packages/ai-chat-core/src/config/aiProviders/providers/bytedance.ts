@@ -26,6 +26,13 @@ export const BYTEDANCE: AIProvider = {
     ],
   },
   models: {
+    SEED_2_0_LITE: {
+      id: "bytedance-seed/seed-2.0-lite",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Seed 2.0 Lite by ByteDance, a lightweight model tuned for fast, natural conversation. Greet once, then keep replies nimble.",
+    },
     SEED_2_0_MINI: {
       id: "bytedance-seed/seed-2.0-mini",
       maxTokens: DEFAULT_MAX_TOKENS,

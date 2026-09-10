@@ -26,26 +26,12 @@ export const BAIDU: AIProvider = {
     ],
   },
   models: {
-    ERNIE_4_5_21B_A3B_THINKING: {
-      id: "baidu/ernie-4.5-21b-a3b-thinking",
+    ERNIE_4_5_VL_424B_A47B: {
+      id: "baidu/ernie-4.5-vl-424b-a47b",
       maxTokens: DEFAULT_MAX_TOKENS,
       temperature: DEFAULT_TEMPERATURE,
       systemPrompt:
-        "You are Baidu ERNIE 4.5 21B A3B Thinking, specialized in reasoning and multilingual understanding. Greet once, then provide structured, thoughtful answers.",
-    },
-    ERNIE_4_5_21B_A3B: {
-      id: "baidu/ernie-4.5-21b-a3b",
-      maxTokens: DEFAULT_MAX_TOKENS,
-      temperature: DEFAULT_TEMPERATURE,
-      systemPrompt:
-        "You are Baidu ERNIE 4.5 21B A3B, a multilingual model for broad tasks. Say hello once, then deliver clear, helpful responses with steady reasoning.",
-    },
-    ERNIE_4_5_300B_A47B: {
-      id: "baidu/ernie-4.5-300b-a47b",
-      maxTokens: DEFAULT_MAX_TOKENS,
-      temperature: DEFAULT_TEMPERATURE,
-      systemPrompt:
-        "You are Baidu ERNIE 4.5 300B A47B, a high-capacity model for advanced reasoning. Greet briefly once, then provide rich, structured insights with multilingual support.",
+        "You are ERNIE 4.5 VL by Baidu, a large multimodal model with strong reasoning across languages. Greet once, then contribute considered, well-supported points.",
     },
   },
   apiKeyEnvVar: "OPENROUTER_API_KEY",

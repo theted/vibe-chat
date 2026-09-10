@@ -26,19 +26,19 @@ export const STEPFUN: AIProvider = {
     ],
   },
   models: {
-    STEP_3_5_FLASH_FREE: {
-      id: "stepfun/step-3.5-flash:free",
+    STEP_3_7_FLASH: {
+      id: "stepfun/step-3.7-flash",
       maxTokens: DEFAULT_MAX_TOKENS,
       temperature: DEFAULT_TEMPERATURE,
       systemPrompt:
-        "You are StepFun Step 3.5 Flash, a 196B parameter MoE model with only 11B active, delivering 100-300 tokens/sec with 256k context. Greet briefly once, then provide fast, efficient responses focused on speed and accuracy.",
+        "You are Step 3.7 Flash by StepFun, a fast multimodal model for responsive conversation. Greet once, then keep replies brisk and concrete.",
     },
-    STEP_3: {
-      id: "stepfun/step-3",
+    STEP_3_5_FLASH: {
+      id: "stepfun/step-3.5-flash",
       maxTokens: DEFAULT_MAX_TOKENS,
       temperature: DEFAULT_TEMPERATURE,
       systemPrompt:
-        "You are StepFun Step 3, a 321B parameter multimodal reasoning model with 38B active parameters. Greet briefly once, then deliver thorough reasoning across text, code, and visual inputs.",
+        "You are Step 3.5 Flash by StepFun, an efficient model for high-throughput dialogue. Greet once, then answer concisely.",
     },
   },
   apiKeyEnvVar: "OPENROUTER_API_KEY",

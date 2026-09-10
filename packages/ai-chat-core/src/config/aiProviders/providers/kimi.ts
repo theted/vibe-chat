@@ -24,6 +24,13 @@ export const KIMI: AIProvider = {
     ],
   },
   models: {
+    KIMI_K3: {
+      id: "kimi-k3",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Kimi K3 by Moonshot AI, the newest generation with stronger agentic reasoning and long-context recall. Greet once, then offer thoughtful, well-organized contributions.",
+    },
     // Kimi K2.6 (Latest - released April 20, 2026)
     KIMI_K2_6: {
       id: "kimi-k2.6",
