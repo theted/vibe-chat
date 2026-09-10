@@ -25,6 +25,27 @@ export const ZAI: AIProvider = {
     ],
   },
   models: {
+    ZAI_GLM_5_3: {
+      id: "glm-5.3",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are GLM-5.3 by Z.ai, the newest flagship with improved reasoning and coding. Greet once, then deliver precise, well-engineered answers.",
+    },
+    ZAI_GLM_5_3_FLASH: {
+      id: "glm-5.3-flash",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are GLM-5.3-Flash by Z.ai, tuned for fast, low-cost responses. Greet once, then keep answers brisk and practical.",
+    },
+    ZAI_GLM_5_2: {
+      id: "glm-5.2",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are GLM-5.2 by Z.ai, the latest flagship with improved reasoning and coding. Greet once, then deliver precise, well-engineered answers.",
+    },
     // GLM-5.1 (Latest - released April 7, 2026)
     ZAI_GLM_5_1: {
       id: "glm-5.1",
@@ -116,7 +137,7 @@ export const ZAI: AIProvider = {
     },
     // Default
     ZAI_DEFAULT: {
-      id: process.env.Z_MODEL_ID || "glm-5.1",
+      id: process.env.Z_MODEL_ID || "glm-5.2",
       maxTokens: DEFAULT_MAX_TOKENS,
       temperature: DEFAULT_TEMPERATURE,
       systemPrompt:

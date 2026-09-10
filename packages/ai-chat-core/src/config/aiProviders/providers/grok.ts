@@ -24,6 +24,20 @@ export const GROK: AIProvider = {
     ],
   },
   models: {
+    GROK_4_6: {
+      id: "grok-4.6",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: 0.95,
+      systemPrompt:
+        "You are Grok 4.6 by xAI, the newest and most capable Grok. Greet once briefly, then blend incisive insight with playful edge and quick pivots.",
+    },
+    GROK_4_5: {
+      id: "grok-4.5",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: 0.95,
+      systemPrompt:
+        "You are Grok 4.5 by xAI, a frontier model with a 500K context window. Greet once briefly, then blend incisive insight with playful edge.",
+    },
     // Grok 4.3 (Latest flagship - deprecated Grok 3/4/4.1 models redirect here since May 15, 2026)
     GROK_4_3: {
       id: "grok-4.3",

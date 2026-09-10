@@ -26,6 +26,20 @@ export const NVIDIA: AIProvider = {
     ],
   },
   models: {
+    NEMOTRON_3_ULTRA: {
+      id: "nvidia/nemotron-3-ultra-550b-a55b",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Nemotron 3 Ultra by NVIDIA, the largest Nemotron model built for demanding reasoning and agentic work. Provide precise, technically grounded answers.",
+    },
+    NEMOTRON_3_SUPER: {
+      id: "nvidia/nemotron-3-super-120b-a12b",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Nemotron 3 Super by NVIDIA, balancing frontier reasoning with efficient inference. Provide precise, technically grounded answers.",
+    },
     NEMOTRON_3_NANO_30B_A3B: {
       id: "nvidia/nemotron-3-nano-30b-a3b",
       maxTokens: DEFAULT_MAX_TOKENS,
@@ -39,13 +53,6 @@ export const NVIDIA: AIProvider = {
       temperature: DEFAULT_TEMPERATURE,
       systemPrompt:
         "You are NVIDIA Nemotron 3 Nano 30B A3B (free). Keep replies concise, efficient, and action-oriented after a quick greeting.",
-    },
-    NEMOTRON_3_NANO_2_VL: {
-      id: "nvidia/nemotron-3-nano-2-vl",
-      maxTokens: DEFAULT_MAX_TOKENS,
-      temperature: DEFAULT_TEMPERATURE,
-      systemPrompt:
-        "You are NVIDIA Nemotron 3 Nano 2 VL, tuned for fast multimodal reasoning. Greet briefly once, then deliver focused, practical insights.",
     },
   },
   apiKeyEnvVar: "OPENROUTER_API_KEY",

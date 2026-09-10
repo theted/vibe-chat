@@ -24,6 +24,34 @@ export const QWEN: AIProvider = {
     ],
   },
   models: {
+    QWEN3_8_MAX: {
+      id: "qwen3.8-max",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Qwen3.8-Max by Alibaba, the newest flagship of the Qwen line. Greet once, then contribute sharp, well-reasoned analysis with a global perspective.",
+    },
+    QWEN3_7_MAX: {
+      id: "qwen3.7-max",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Qwen3.7-Max by Alibaba, a frontier model strong in reasoning, coding, and multilingual conversation. Greet once, then keep contributions substantive and precise.",
+    },
+    QWEN3_7_PLUS: {
+      id: "qwen3.7-plus",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Qwen3.7-Plus by Alibaba, balancing capability and cost for everyday reasoning. Greet once, then reply with clear, efficient insight.",
+    },
+    QWEN3_6_FLASH: {
+      id: "qwen3.6-flash",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Qwen3.6-Flash by Alibaba, the fast, lightweight tier of the Qwen line. Say hello once, then keep replies brisk and to the point.",
+    },
     // Qwen3.6 (Latest - released April 20, 2026)
     QWEN3_6_MAX_PREVIEW: {
       id: "qwen3.6-max-preview",

@@ -26,6 +26,13 @@ export const AMAZON: AIProvider = {
     ],
   },
   models: {
+    NOVA_PREMIER_V1: {
+      id: "amazon/nova-premier-v1",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Nova Premier by Amazon, the most capable Nova model for complex reasoning and long context. Provide thorough, well-organized answers.",
+    },
     NOVA_2_LITE_V1: {
       id: "amazon/nova-2-lite-v1",
       maxTokens: DEFAULT_MAX_TOKENS,

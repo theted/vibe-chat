@@ -12,14 +12,41 @@ export const normalizeAlias = (alias: string): string =>
  * Used to resolve user mentions to standardized AI identifiers.
  */
 export const AI_MENTION_MAPPINGS: Record<string, string> = {
+  "claude-opus-5": "claude-opus-5",
+  "claude-sonnet-5": "claude-sonnet-5",
+  "gpt-6-astra": "gpt-6-astra",
+  "gpt-6": "gpt-6-astra",
+  astra: "gpt-6-astra",
+  "gpt-5.6": "gpt-5.6-sol",
+  sol: "gpt-5.6-sol",
+  terra: "gpt-5.6-terra",
+  luna: "gpt-5.6-luna",
+  "gemini-3.8": "gemini-3.8-flash",
+  "gemini-3.7": "gemini-3.7-flash",
+  "gemini-3.6": "gemini-3.6-flash",
+  "grok-4.6": "grok-4.6",
+  "grok-4.5": "grok-4.5",
+  "glm-5.3": "glm-5.3",
+  "glm-5.2": "glm-5.2",
+  "kimi-k3": "kimi-k3",
+  "qwen3.8": "qwen3.8-max",
+  "qwen3.7": "qwen3.7-max",
+  "command-a-plus": "command-a-plus",
+  xiaomi: "mimo-v2.5-pro",
+  mimo: "mimo-v2.5-pro",
+  baidu: "ernie-4.5-vl",
+  ernie: "ernie-4.5-vl",
+  arcee: "trinity-large-thinking",
+  trinity: "trinity-large-thinking",
+  phi: "phi-4",
   // Anthropic/Claude
   // claude-fable-5 suspended 2026-06-12 (US export-control directive); bare aliases now resolve
   // to the most capable generally-available model, Opus 4.8.
-  claude: "claude-opus-4-8",
-  anthropic: "claude-opus-4-8",
+  claude: "claude-opus-5",
+  anthropic: "claude-opus-5",
   haiku: "claude-haiku-4-5",
-  sonnet: "claude-sonnet-4-6",
-  opus: "claude-opus-4-8",
+  sonnet: "claude-sonnet-5",
+  opus: "claude-opus-5",
   "claude-opus-4-8": "claude-opus-4-8",
   "claude-opus-4-7": "claude-opus-4-7",
   "claude-opus-4-6": "claude-opus-4-6",
@@ -28,7 +55,7 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   "claude-opus-4-1": "claude-opus-4-1",
 
   // OpenAI/GPT
-  gpt: "gpt-5.5",
+  gpt: "gpt-6-astra",
   "gpt-5.5": "gpt-5.5",
   "gpt-5.5-pro": "gpt-5.5-pro",
   gpt4: "gpt-4o",
@@ -38,8 +65,8 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   "gpt-4.1": "gpt-4.1",
   "gpt-4.1-mini": "gpt-4.1-mini",
   "gpt-4.1-nano": "gpt-4.1-nano",
-  openai: "gpt-5.5",
-  chatgpt: "gpt-5.5",
+  openai: "gpt-6-astra",
+  chatgpt: "gpt-6-astra",
   "chatgpt-5-mini": "gpt-5-mini",
   "chatgpt-5.1-mini": "gpt-5-mini",
   "gpt-5.2": "gpt-5.2",
@@ -51,15 +78,15 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   "o4-mini": "o4-mini",
 
   // xAI/Grok
-  grok: "grok-4.3",
-  xai: "grok-4.3",
+  grok: "grok-4.6",
+  xai: "grok-4.6",
   "grok-4.3": "grok-4.3",
   "grok-4.20": "grok-4.20",
   "grok-4.20-reasoning": "grok-4.20-reasoning",
   "grok-4.20-multi-agent": "grok-4.20-multi-agent",
 
   // Google/Gemini
-  gemini: "gemini-3.5-flash",
+  gemini: "gemini-3.8-flash",
   "gemini-3.5": "gemini-3.5-flash",
   "gemini-3.5-flash": "gemini-3.5-flash",
   gemini3: "gemini-3.1-pro",
@@ -72,8 +99,8 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   "gemini-3.1-flash-lite": "gemini-3.1-flash-lite",
   "gemini-flash": "gemini-3.1-flash",
   "gemini-2.5": "gemini-2.5-pro",
-  google: "gemini-3.5-flash",
-  bard: "gemini-3.5-flash",
+  google: "gemini-3.8-flash",
+  bard: "gemini-3.8-flash",
 
   // Cohere
   command: "cohere",
@@ -105,7 +132,7 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   "deepseek-r1": "deepseek-r1",
 
   // Moonshot/Kimi
-  kimi: "kimi-k2.6",
+  kimi: "kimi-k3",
   "kimi-k2.6": "kimi-k2.6",
   "kimi-k2.6-thinking": "kimi-k2.6-thinking",
   "kimi-k2.5": "kimi-k2.5",
@@ -113,7 +140,7 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   "kimi-latest": "kimi-latest",
   "kimi-thinking": "kimi-thinking-preview",
   "kimi-thinking-preview": "kimi-thinking-preview",
-  moonshot: "kimi-k2.6",
+  moonshot: "kimi-k3",
 
   // Z.ai
   "z.ai": "z.ai",
@@ -142,7 +169,7 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   "sonar-deep-research": "sonar-deep-research",
 
   // Qwen/Alibaba
-  qwen: "qwen3.6-max",
+  qwen: "qwen3.8-max",
   alibaba: "qwen3.6-max",
   "qwen3.6": "qwen3.6-max",
   "qwen3.6-max": "qwen3.6-max",
@@ -168,29 +195,20 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   "nova-2-lite": "nova-2-lite",
 
   // NVIDIA (OpenRouter)
-  nvidia: "nemotron-3-nano-30b-a3b",
-  nemotron: "nemotron-3-nano-30b-a3b",
+  nvidia: "nemotron-3-ultra",
+  nemotron: "nemotron-3-ultra",
   "nemotron-3-nano-30b-a3b": "nemotron-3-nano-30b-a3b",
   "nemotron-3-nano-30b-a3b-free": "nemotron-3-nano-30b-a3b-free",
-  "nemotron-3-nano-2-vl": "nemotron-3-nano-2-vl",
 
   // Xiaomi (OpenRouter)
-  xiaomi: "mimo-v2-flash",
-  mimo: "mimo-v2-flash",
-  "mimo-v2-flash": "mimo-v2-flash",
 
   // MiniMax (OpenRouter)
-  minimax: "minimax-m2.1",
+  minimax: "minimax-m3",
   "minimax-m2.1": "minimax-m2.1",
   "minimax-m2": "minimax-m2",
   "minimax-m1": "minimax-m1",
 
   // Baidu (OpenRouter)
-  baidu: "ernie-4.5-21b",
-  ernie: "ernie-4.5-21b",
-  "ernie-4.5-21b-thinking": "ernie-4.5-21b-thinking",
-  "ernie-4.5-21b": "ernie-4.5-21b",
-  "ernie-4.5-300b": "ernie-4.5-300b",
 
   // ByteDance (OpenRouter)
   bytedance: "seed-2.0-mini",
@@ -200,51 +218,23 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   "seed-1.6": "seed-1.6",
 
   // Hugging Face (OpenRouter)
-  huggingface: "zephyr-141b",
-  "hugging-face": "zephyr-141b",
-  zephyr: "zephyr-141b",
-  "zephyr-141b": "zephyr-141b",
-  "zephyr-7b-beta": "zephyr-7b-beta",
 
   // Arcee AI (OpenRouter)
-  arcee: "trinity-large-free",
-  trinity: "trinity-large-free",
-  "trinity-large-free": "trinity-large-free",
-  "trinity-mini-free": "trinity-mini-free",
-  "arcee-coder": "arcee-coder",
-  "arcee-maestro": "arcee-maestro",
 
   // StepFun (OpenRouter)
-  stepfun: "step-3.5-flash-free",
-  "step-3.5-flash-free": "step-3.5-flash-free",
-  "step-3": "step-3",
+  stepfun: "step-3.7-flash",
 
   // Inflection AI (OpenRouter)
-  inflection: "pi",
-  pi: "pi",
-  "inflection-productivity": "inflection-productivity",
 
   // 01.AI (OpenRouter)
-  "01ai": "yi-1.5-34b",
-  yi: "yi-1.5-34b",
-  "yi-1.5-34b": "yi-1.5-34b",
-  "yi-coder-9b": "yi-coder-9b",
-  "yi-34b": "yi-34b",
 
   // Databricks (OpenRouter)
-  databricks: "dbrx",
-  dbrx: "dbrx",
 
   // Nous Research (OpenRouter)
-  nous: "hermes-4-405b-free",
-  hermes: "hermes-4-405b-free",
-  "hermes-4-405b-free": "hermes-4-405b-free",
-  "hermes-4-70b": "hermes-4-70b",
-  "deephermes-3": "deephermes-3",
+  nous: "hermes-4-405b",
+  hermes: "hermes-4-405b",
 
   // Phind (OpenRouter)
-  phind: "phind-codellama",
-  "phind-codellama": "phind-codellama",
 
   // Microsoft AI (OpenRouter)
   microsoft: "wizardlm-2-8x22b",
@@ -253,8 +243,6 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   "wizardlm-2-7b": "wizardlm-2-7b",
 
   // Snowflake (OpenRouter)
-  snowflake: "arctic",
-  arctic: "arctic",
 };
 
 const buildEmojiLookup = (): Record<string, string> => {

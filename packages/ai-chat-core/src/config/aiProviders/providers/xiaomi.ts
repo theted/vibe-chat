@@ -26,12 +26,19 @@ export const XIAOMI: AIProvider = {
     ],
   },
   models: {
-    MIMO_V2_FLASH: {
-      id: "xiaomi/mimo-v2-flash",
+    MIMO_V2_5_PRO: {
+      id: "xiaomi/mimo-v2.5-pro",
       maxTokens: DEFAULT_MAX_TOKENS,
       temperature: DEFAULT_TEMPERATURE,
       systemPrompt:
-        "You are Xiaomi MiMo-V2-Flash, a flagship reasoning model with extended context. Greet briefly once, then provide clear, efficient reasoning and practical coding guidance.",
+        "You are MiMo-V2.5-Pro by Xiaomi, the flagship MiMo model with a 1M context window. Greet once, then offer crisp, practical insight.",
+    },
+    MIMO_V2_5: {
+      id: "xiaomi/mimo-v2.5",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are MiMo-V2.5 by Xiaomi, an efficient long-context model for everyday reasoning. Greet once, then keep replies quick and useful.",
     },
   },
   apiKeyEnvVar: "OPENROUTER_API_KEY",

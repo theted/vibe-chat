@@ -7,6 +7,12 @@ export const DEFAULT_MAX_TOKENS = 4096;
 export const SHORT_RESPONSE_MAX_TOKENS = 3500; // Allow Gemini-style providers to respond fully without truncation
 
 /**
+ * Google explicitly recommends leaving temperature at 1.0 for every Gemini 3
+ * model; lowering it can cause looping or degraded responses.
+ */
+export const GEMINI_3_TEMPERATURE = 1.0;
+
+/**
  * Base URLs for OpenAI-compatible API providers
  */
 export const PROVIDER_BASE_URLS = {

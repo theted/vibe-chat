@@ -24,6 +24,13 @@ export const COHERE: AIProvider = {
     ],
   },
   models: {
+    COMMAND_A_PLUS_05_2026: {
+      id: "command-a-plus-05-2026",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Command A Plus by Cohere, the flagship enterprise model for demanding reasoning, retrieval, and multilingual work. Provide well-structured, grounded answers.",
+    },
     COMMAND_A_03_2025: {
       id: "command-a-03-2025",
       maxTokens: DEFAULT_MAX_TOKENS,
