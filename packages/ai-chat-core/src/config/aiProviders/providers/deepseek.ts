@@ -24,7 +24,18 @@ export const DEEPSEEK: AIProvider = {
     ],
   },
   models: {
-    // DeepSeek V4 (Latest - released April 24, 2026)
+    // `deepseek-flash` is DeepSeek's moving name for its newest Flash model
+    // (V4.1 Flash as of 2026-09-10).
+    DEEPSEEK_FLASH: {
+      id: "deepseek-flash",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are DeepSeek V4.1 Flash, DeepSeek's newest mixture-of-experts model with a 1M token context. Greet once briefly, then deliver focused, deeply reasoned analysis.",
+    },
+    // Participants parked 2026-09-11: DeepSeek serves both ids with V4.1 Flash
+    // (deepseek-v4-flash now, deepseek-v4-pro from 2026-09-14), so they would
+    // be indistinguishable from DEEPSEEK_FLASH.
     DEEPSEEK_V4_PRO: {
       id: "deepseek-v4-pro",
       maxTokens: DEFAULT_MAX_TOKENS,
@@ -39,21 +50,7 @@ export const DEEPSEEK: AIProvider = {
       systemPrompt:
         "You are DeepSeek V4 Flash, a 284B parameter MoE model with 13B active parameters and 1M token context, optimized for fast yet capable responses. Greet once, then deliver focused, insightful analysis efficiently.",
     },
-    // Legacy aliases (will deprecate 2026-07-24, route to V4 Flash)
-    DEEPSEEK_CHAT: {
-      id: "deepseek-chat",
-      maxTokens: DEFAULT_MAX_TOKENS,
-      temperature: DEFAULT_TEMPERATURE,
-      systemPrompt:
-        "You are DeepSeek Chat, an AI assistant known for deep analytical thinking and problem-solving. Greet once briefly, then focus on providing insightful analysis and building on the conversation with thoughtful perspectives.",
-    },
-    DEEPSEEK_R1: {
-      id: "deepseek-reasoner",
-      maxTokens: DEFAULT_MAX_TOKENS,
-      temperature: undefined,
-      systemPrompt:
-        "You are DeepSeek-R1, an advanced reasoning model that excels at complex problem-solving through chain-of-thought reasoning. Greet briefly, then provide thorough step-by-step analysis for challenging questions, breaking down problems logically before reaching conclusions.",
-    },
+    // deepseek-chat and deepseek-reasoner discontinued 2026-07-24 — removed 2026-09-11
   },
   apiKeyEnvVar: "DEEPSEEK_API_KEY",
 };

@@ -40,6 +40,13 @@ export const NVIDIA: AIProvider = {
       systemPrompt:
         "You are Nemotron 3 Super by NVIDIA, balancing frontier reasoning with efficient inference. Provide precise, technically grounded answers.",
     },
+    NEMOTRON_3_5_LIGHTNING: {
+      id: "nvidia/nemotron-3.5-lightning",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Nemotron 3.5 Lightning by NVIDIA, an open mixture-of-experts model with 3B active parameters built for high-throughput work. Greet once, then keep answers fast, crisp, and structured.",
+    },
     NEMOTRON_3_NANO_30B_A3B: {
       id: "nvidia/nemotron-3-nano-30b-a3b",
       maxTokens: DEFAULT_MAX_TOKENS,

@@ -26,6 +26,13 @@ export const BYTEDANCE: AIProvider = {
     ],
   },
   models: {
+    SEED_2_1_TURBO: {
+      id: "bytedance-seed/seed-2-1-turbo",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Seed 2.1 Turbo by ByteDance, a multimodal model built for coding and long-horizon agent work. Greet once, then give direct, capable answers that move the discussion forward.",
+    },
     SEED_2_0_LITE: {
       id: "bytedance-seed/seed-2.0-lite",
       maxTokens: DEFAULT_MAX_TOKENS,

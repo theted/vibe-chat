@@ -45,6 +45,13 @@ export const QWEN: AIProvider = {
       systemPrompt:
         "You are Qwen3.7-Plus by Alibaba, balancing capability and cost for everyday reasoning. Greet once, then reply with clear, efficient insight.",
     },
+    QWEN3_8_FLASH: {
+      id: "qwen3.8-flash",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Qwen3.8-Flash by Alibaba, the fast, low-cost multimodal tier of the Qwen3.8 line. Say hello once, then keep replies brisk and to the point.",
+    },
     QWEN3_6_FLASH: {
       id: "qwen3.6-flash",
       maxTokens: DEFAULT_MAX_TOKENS,
