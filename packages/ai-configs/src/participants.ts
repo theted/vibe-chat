@@ -24,11 +24,13 @@ import type { AiParticipant } from "./types.js";
  *   Perplexity   - Sonar/signal
  *   Nous Research - Greek/wisdom ("Nous" = mind)
  *   Microsoft AI - Magic/wizards
+ *   Inception    - Quicksilver ("Mercury")
+ *   Sakana AI    - Fish ("sakana" is Japanese for fish)
  */
 export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
   // Anthropic Models - Music/performing arts
-  // claude-fable-5 (Fable/Mythos-class tier) suspended 2026-06-12 by US export-control directive,
-  // not generally available — removed.
+  // claude-fable-5 suspended 2026-06-12 by US export-control directive — removed. Its successor
+  // claude-fable-5-1 is generally available (see providers/anthropic.ts).
   {
     id: "ANTHROPIC_CLAUDE_OPUS_4_8",
     name: "Claude Opus 4.8",
@@ -437,12 +439,14 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
   },
 
   // DeepSeek Models - Deep ocean creatures
+  // V4 Pro / V4 Flash parked 2026-09-11: DeepSeek serves both ids with V4.1 Flash.
+  // deepseek-chat / deepseek-reasoner discontinued 2026-07-24 — removed.
   {
     id: "DEEPSEEK_DEEPSEEK_V4_PRO",
     name: "DeepSeek V4 Pro",
     alias: "deepseek-v4-pro",
     provider: "DeepSeek",
-    status: "active",
+    status: "inactive",
     emoji: "🐋",
   },
   {
@@ -450,24 +454,8 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     name: "DeepSeek V4 Flash",
     alias: "deepseek-v4-flash",
     provider: "DeepSeek",
-    status: "active",
+    status: "inactive",
     emoji: "🐬",
-  },
-  {
-    id: "DEEPSEEK_DEEPSEEK_CHAT",
-    name: "DeepSeek Chat",
-    alias: "deepseek",
-    provider: "DeepSeek",
-    status: "active",
-    emoji: "🐙",
-  },
-  {
-    id: "DEEPSEEK_DEEPSEEK_R1",
-    name: "DeepSeek R1",
-    alias: "deepseek-r1",
-    provider: "DeepSeek",
-    status: "active",
-    emoji: "🦑",
   },
 
   // Moonshot/Kimi Models - Moon phases
@@ -1246,6 +1234,72 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     provider: "Z.ai",
     status: "active",
     emoji: "🪓",
+  },
+  {
+    id: "ANTHROPIC_CLAUDE_FABLE_5_1",
+    name: "Claude Fable 5.1",
+    alias: "claude-fable-5-1",
+    provider: "Anthropic",
+    status: "active",
+    emoji: "🎻",
+    // Slowest and priciest model in the room: replies less often so it doesn't dominate cost
+    traits: { tempo: 1.35, chattiness: 0.8 },
+  },
+  {
+    id: "DEEPSEEK_DEEPSEEK_FLASH",
+    name: "DeepSeek V4.1 Flash",
+    alias: "deepseek-v4.1-flash",
+    provider: "DeepSeek",
+    status: "active",
+    emoji: "🦈",
+  },
+  {
+    id: "QWEN_QWEN3_8_FLASH",
+    name: "Qwen3.8-Flash",
+    alias: "qwen3.8-flash",
+    provider: "Qwen",
+    status: "active",
+    emoji: "🎐",
+  },
+  {
+    id: "NVIDIA_NEMOTRON_3_5_LIGHTNING",
+    name: "Nemotron 3.5 Lightning",
+    alias: "nemotron-3.5-lightning",
+    provider: "NVIDIA",
+    status: "active",
+    emoji: "🍏",
+  },
+  {
+    id: "BYTEDANCE_SEED_2_1_TURBO",
+    name: "Seed 2.1 Turbo",
+    alias: "seed-2.1-turbo",
+    provider: "ByteDance",
+    status: "active",
+    emoji: "🌳",
+  },
+  {
+    id: "META_MUSE_SPARK_1_3",
+    name: "Muse Spark 1.3",
+    alias: "muse-spark-1.3",
+    provider: "Meta",
+    status: "active",
+    emoji: "🐐",
+  },
+  {
+    id: "INCEPTION_MERCURY_2_5",
+    name: "Mercury 2.5",
+    alias: "mercury-2.5",
+    provider: "Inception",
+    status: "active",
+    emoji: "🌡️",
+  },
+  {
+    id: "SAKANA_FUGU_MAX",
+    name: "Fugu Max",
+    alias: "fugu-max",
+    provider: "Sakana AI",
+    status: "active",
+    emoji: "🐟",
   },
 ];
 

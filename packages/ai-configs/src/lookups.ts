@@ -40,13 +40,16 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   trinity: "trinity-large-thinking",
   phi: "phi-4",
   // Anthropic/Claude
-  // claude-fable-5 suspended 2026-06-12 (US export-control directive); bare aliases now resolve
-  // to the most capable generally-available model, Opus 4.8.
+  // Bare aliases stay on Opus 5, Anthropic's recommended default; Fable 5.1 costs twice as much.
   claude: "claude-opus-5",
   anthropic: "claude-opus-5",
   haiku: "claude-haiku-4-5",
   sonnet: "claude-sonnet-5",
   opus: "claude-opus-5",
+  fable: "claude-fable-5-1",
+  "claude-fable": "claude-fable-5-1",
+  "claude-fable-5-1": "claude-fable-5-1",
+  "claude-fable-5.1": "claude-fable-5-1",
   "claude-opus-4-8": "claude-opus-4-8",
   "claude-opus-4-7": "claude-opus-4-7",
   "claude-opus-4-6": "claude-opus-4-6",
@@ -121,15 +124,17 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   "devstral-small": "devstral-small",
   "ministral-8b": "ministral-8b",
 
-  // DeepSeek
-  deepseek: "deepseek-v4-pro",
-  "deepseek-v4": "deepseek-v4-pro",
-  "deepseek-v4-pro": "deepseek-v4-pro",
-  "deepseek-v4-flash": "deepseek-v4-flash",
-  "deepseek-v3": "deepseek",
-  "deepseek-v3.2": "deepseek",
-  "deepseek-chat": "deepseek",
-  "deepseek-r1": "deepseek-r1",
+  // DeepSeek: older names point at V4.1 Flash, which DeepSeek now serves in their place
+  deepseek: "deepseek-v4.1-flash",
+  "deepseek-flash": "deepseek-v4.1-flash",
+  "deepseek-v4.1": "deepseek-v4.1-flash",
+  "deepseek-v4": "deepseek-v4.1-flash",
+  "deepseek-v4-pro": "deepseek-v4.1-flash",
+  "deepseek-v4-flash": "deepseek-v4.1-flash",
+  "deepseek-v3": "deepseek-v4.1-flash",
+  "deepseek-v3.2": "deepseek-v4.1-flash",
+  "deepseek-chat": "deepseek-v4.1-flash",
+  "deepseek-r1": "deepseek-v4.1-flash",
 
   // Moonshot/Kimi
   kimi: "kimi-k3",
@@ -170,7 +175,7 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
 
   // Qwen/Alibaba
   qwen: "qwen3.8-max",
-  alibaba: "qwen3.6-max",
+  alibaba: "qwen3.8-max",
   "qwen3.6": "qwen3.6-max",
   "qwen3.6-max": "qwen3.6-max",
   "qwen-turbo": "qwen-turbo",
@@ -180,9 +185,11 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   "qwen3-235b": "qwen3-235b",
   "qwen3-coder": "qwen3-coder-plus",
 
-  // Meta/Llama (OpenRouter)
+  // Meta (Llama via Llama API, Muse via OpenRouter)
   llama: "llama-3.3-70b",
-  meta: "llama-3.3-70b",
+  meta: "muse-spark-1.3",
+  muse: "muse-spark-1.3",
+  "muse-spark": "muse-spark-1.3",
   "llama-3.3-70b": "llama-3.3-70b",
   "llama-3.3-70b-free": "llama-3.3-70b-free",
   "llama-4-maverick": "llama-4-maverick",
@@ -197,6 +204,7 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   // NVIDIA (OpenRouter)
   nvidia: "nemotron-3-ultra",
   nemotron: "nemotron-3-ultra",
+  "nemotron-3.5": "nemotron-3.5-lightning",
   "nemotron-3-nano-30b-a3b": "nemotron-3-nano-30b-a3b",
   "nemotron-3-nano-30b-a3b-free": "nemotron-3-nano-30b-a3b-free",
 
@@ -211,8 +219,9 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   // Baidu (OpenRouter)
 
   // ByteDance (OpenRouter)
-  bytedance: "seed-2.0-mini",
-  seed: "seed-2.0-mini",
+  bytedance: "seed-2.1-turbo",
+  seed: "seed-2.1-turbo",
+  "seed-2.1": "seed-2.1-turbo",
   "seed-2.0-mini": "seed-2.0-mini",
   "seed-1.6-flash": "seed-1.6-flash",
   "seed-1.6": "seed-1.6",
@@ -243,6 +252,14 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   "wizardlm-2-7b": "wizardlm-2-7b",
 
   // Snowflake (OpenRouter)
+
+  // Inception (OpenRouter)
+  inception: "mercury-2.5",
+  mercury: "mercury-2.5",
+
+  // Sakana AI (OpenRouter)
+  sakana: "fugu-max",
+  fugu: "fugu-max",
 };
 
 const buildEmojiLookup = (): Record<string, string> => {

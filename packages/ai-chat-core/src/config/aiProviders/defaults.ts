@@ -31,6 +31,9 @@ import { NOUS } from "./providers/nous.js";
 import { PHIND } from "./providers/phind.js";
 import { MICROSOFT } from "./providers/microsoft.js";
 import { SNOWFLAKE } from "./providers/snowflake.js";
+import { INCEPTION } from "./providers/inception.js";
+import { SAKANA } from "./providers/sakana.js";
+import { META_MUSE } from "./providers/metamuse.js";
 import type { AIModel, AIProvider } from "@/types/index.js";
 
 /**
@@ -43,11 +46,11 @@ import type { AIModel, AIProvider } from "@/types/index.js";
  * callers omitting a model got `undefined`.
  */
 const EXPLICIT_DEFAULTS = new Map<AIProvider, string>([
+  // Fable 5.1 is listed first but costs twice Opus 5, Anthropic's recommended default.
+  [ANTHROPIC, "CLAUDE_OPUS_5"],
   [MISTRAL, "MISTRAL_LARGE"],
-  [DEEPSEEK, "DEEPSEEK_V4_FLASH"],
   [LLAMA, "LLAMA_4_MAVERICK"],
   [AMAZON, "NOVA_PRO_V1"],
-  [BYTEDANCE, "SEED_1_6"],
   [PERPLEXITY, "SONAR_PRO"],
   [NOUS, "HERMES_4_405B"],
 ]);
@@ -81,6 +84,9 @@ const ALL_PROVIDERS: AIProvider[] = [
   PHIND,
   MICROSOFT,
   SNOWFLAKE,
+  INCEPTION,
+  SAKANA,
+  META_MUSE,
 ];
 
 const resolveDefaultModel = (provider: AIProvider): AIModel => {

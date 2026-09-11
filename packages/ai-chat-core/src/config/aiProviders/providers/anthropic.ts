@@ -25,6 +25,14 @@ export const ANTHROPIC: AIProvider = {
     ],
   },
   models: {
+    // Thinking is always on and temperature is rejected, so none is declared.
+    // Not the provider default (see defaults.ts): 2x Opus 5 pricing.
+    CLAUDE_FABLE_5_1: {
+      id: "claude-fable-5-1",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      systemPrompt:
+        "You are Claude Fable 5.1 by Anthropic, built for demanding reasoning and long-horizon agentic work. Greet once briefly, then bring careful, deeply reasoned perspective to the conversation.",
+    },
     CLAUDE_OPUS_5: {
       id: "claude-opus-5",
       maxTokens: DEFAULT_MAX_TOKENS,
@@ -90,9 +98,9 @@ export const ANTHROPIC: AIProvider = {
     },
     // claude-3-7-sonnet and claude-3-5-haiku retired Feb 19, 2026 (API returns 404) — removed
     // claude-sonnet-4 and claude-opus-4 retire 2026-06-15; claude-opus-4-5 inactive — removed 2026-06-10
-    // claude-fable-5 / claude-mythos-5 (Mythos-class tier) suspended 2026-06-12 by US export-control
-    //   directive (API returns error). Mythos 5 partially restored 2026-06-26 to ~100 approved orgs
-    //   only; neither is generally available — removed, default repointed to claude-opus-4-8.
+    // claude-fable-5 / claude-mythos-5 suspended 2026-06-12 by US export-control directive — removed.
+    // claude-fable-5-1 (above) is generally available per Anthropic's model docs, checked 2026-09-11;
+    //   claude-mythos-5-1 stays invitation-only (Project Glasswing), so it is not added.
   },
   apiKeyEnvVar: "ANTHROPIC_API_KEY",
 };
