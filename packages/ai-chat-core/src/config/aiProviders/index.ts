@@ -47,6 +47,9 @@ export { NOUS } from "./providers/nous.js";
 export { PHIND } from "./providers/phind.js";
 export { MICROSOFT } from "./providers/microsoft.js";
 export { SNOWFLAKE } from "./providers/snowflake.js";
+export { INCEPTION } from "./providers/inception.js";
+export { SAKANA } from "./providers/sakana.js";
+export { META_MUSE } from "./providers/metamuse.js";
 
 // Import all providers for the main collection
 import { ANTHROPIC } from "./providers/anthropic.js";
@@ -77,6 +80,9 @@ import { NOUS } from "./providers/nous.js";
 import { PHIND } from "./providers/phind.js";
 import { MICROSOFT } from "./providers/microsoft.js";
 import { SNOWFLAKE } from "./providers/snowflake.js";
+import { INCEPTION } from "./providers/inception.js";
+import { SAKANA } from "./providers/sakana.js";
+import { META_MUSE } from "./providers/metamuse.js";
 
 /**
  * All AI providers collection - maintains backward compatibility
@@ -110,6 +116,9 @@ export const AI_PROVIDERS = {
   PHIND,
   MICROSOFT,
   SNOWFLAKE,
+  INCEPTION,
+  SAKANA,
+  META_MUSE,
 } as const;
 
 /**
