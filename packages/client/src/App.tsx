@@ -52,14 +52,16 @@ const App = () => {
   const [roomInfo, setRoomInfo] = useState<RoomInfo>({ topic: "General discussion" });
   const [error, setError] = useState<string | null>(null);
   const [participants, setParticipants] = useState<Participant[]>([]);
-  const [aiParticipants, setAiParticipants] = useState<AiParticipant[]>([]);
+  // null until the server reports; see usePreviewState for why [] differs
+  const [aiParticipants, setAiParticipants] = useState<AiParticipant[] | null>(
+    null,
+  );
 
   // Hooks
   const { theme, setTheme, toggleTheme } = useTheme();
   const { toasts, showToast } = useToasts();
   const { on, off, emit } = useSocket(SERVER_URL);
   const {
-    previewMessages,
     setPreviewMessages,
     previewParticipants,
     setPreviewParticipants,
@@ -154,7 +156,7 @@ const App = () => {
     leavePrivateConversation,
   } = usePrivateConversation({
     roomInfo,
-    aiParticipants: isJoined ? aiParticipants : previewAiParticipants,
+    aiParticipants: (isJoined ? aiParticipants : previewAiParticipants) ?? [],
     usernameRef,
     joinRoom,
     resetConversationView,

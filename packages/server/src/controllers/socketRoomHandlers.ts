@@ -41,7 +41,7 @@ export const handleJoinRoom = (
     }
 
     socket.join(roomId);
-    applyRoomAIScope(context.chatOrchestrator, roomId);
+    const roomScope = applyRoomAIScope(context.chatOrchestrator, roomId);
 
     context.connectedUsers.set(socket.id, { ...userData, roomId });
     context.aiTracker.initializeRoom(roomId);
@@ -56,7 +56,17 @@ export const handleJoinRoom = (
       topic: room.topic,
       participants: context.roomManager.getRoomParticipants(roomId),
       aiParticipants: context.getActiveAIParticipants(),
+      // Server truth: the client shows its private-chat UI off this, not off
+      // the room id, so it never promises a 1-1 chat that was not set up.
+      privateAiId: roomScope.privateAiId,
     });
+
+    if (roomScope.requestedPrivate && !roomScope.privateAiId) {
+      socket.emit(SOCKET_EVENTS.ERROR, {
+        message:
+          "That model is not available right now, so this room behaves like the main room.",
+      });
+    }
 
     socket.leave(context.previewRoomId);
     context.sendRecentMessages(socket, roomId).catch((error) => {

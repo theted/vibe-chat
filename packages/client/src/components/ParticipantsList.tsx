@@ -3,7 +3,6 @@
  * AI participants (sections, typing matching, and panel style are extracted)
  */
 
-import { DEFAULT_AI_PARTICIPANTS } from "@/config/aiParticipants";
 import { PANEL_STYLES } from "@/config/participantsPanel";
 import { usePanelStyle } from "@/hooks/usePanelStyle";
 import { useParticipantTyping } from "@/hooks/useParticipantTyping";
@@ -30,9 +29,8 @@ const ParticipantsList = ({
 
   if (!isVisible) return null;
 
-  const baseAIList =
-    aiParticipants.length > 0 ? aiParticipants : DEFAULT_AI_PARTICIPANTS;
-  const aiList = normalizeAiParticipants(baseAIList);
+  // ChatView already resolved the placeholder-vs-server distinction
+  const aiList = normalizeAiParticipants(aiParticipants);
 
   return (
     <div

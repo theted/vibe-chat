@@ -8,13 +8,8 @@
  */
 
 import { useCallback, useMemo } from "react";
-import {
-  DEFAULT_ROOM_ID,
-  buildPrivateRoomId,
-  getPrivateRoomAiId,
-  isPrivateRoomId,
-} from "@ai-chat/ai-configs";
-import { normalizeAlias } from "@/utils/ai";
+import { DEFAULT_ROOM_ID, buildPrivateRoomId } from "@ai-chat/ai-configs";
+import { normalizeAliasKey } from "@/utils/ai";
 import { PRIVATE_CONVERSATIONS_ENABLED } from "@/constants/chat";
 import type { AiParticipant } from "@/config/aiParticipants";
 import type { RoomInfo } from "@/types";
@@ -30,14 +25,14 @@ interface UsePrivateConversationOptions {
 
 /** The id App sends when opening a private chat, mirroring the server's lookup. */
 export const getParticipantRoomKey = (ai: AiParticipant): string =>
-  ai.id || normalizeAlias(ai.alias || ai.name || "");
+  ai.id || normalizeAliasKey(ai.alias || ai.name || "");
 
 const matchesRoomAi = (ai: AiParticipant, roomAiId: string): boolean => {
   if (ai.id === roomAiId) return true;
-  const normalizedRoomAiId = normalizeAlias(roomAiId);
+  const normalizedRoomAiId = normalizeAliasKey(roomAiId);
   return (
-    normalizeAlias(ai.alias || "") === normalizedRoomAiId ||
-    normalizeAlias(ai.name || "") === normalizedRoomAiId
+    normalizeAliasKey(ai.alias || "") === normalizedRoomAiId ||
+    normalizeAliasKey(ai.name || "") === normalizedRoomAiId
   );
 };
 
@@ -48,14 +43,16 @@ export const usePrivateConversation = ({
   joinRoom,
   resetConversationView,
 }: UsePrivateConversationOptions) => {
-  const isPrivateChat = isPrivateRoomId(roomInfo.roomId);
+  // The server reports which AI it scoped the room to. Deriving this from the
+  // room id instead would promise a 1-1 chat even when the named model was not
+  // loaded and the server quietly left the room unscoped.
+  const roomAiId = roomInfo.privateAiId ?? null;
+  const isPrivateChat = Boolean(roomAiId);
 
   const privateChatAi = useMemo(() => {
-    if (!isPrivateChat) return null;
-    const roomAiId = getPrivateRoomAiId(roomInfo.roomId ?? "");
     if (!roomAiId) return null;
     return aiParticipants.find((ai) => matchesRoomAi(ai, roomAiId)) ?? null;
-  }, [aiParticipants, isPrivateChat, roomInfo.roomId]);
+  }, [aiParticipants, roomAiId]);
 
   const startPrivateConversation = useCallback(
     (ai: AiParticipant) => {

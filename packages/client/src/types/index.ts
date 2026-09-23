@@ -63,6 +63,12 @@ export interface ConnectionStatus {
 export interface RoomInfo {
   topic: string;
   roomId?: string;
+  /**
+   * The AI the server actually scoped this room to, or null/undefined for an
+   * ordinary room. Server truth: a private room id naming a model this server
+   * never loaded comes back as null.
+   */
+  privateAiId?: string | null;
   participants?: Participant[];
   aiParticipants?: AiParticipant[];
 }
@@ -138,7 +144,8 @@ export interface ChatViewProps {
   username: string;
   isAuthenticated: boolean;
   participants: Participant[];
-  aiParticipants?: AiParticipant[];
+  /** null while the server has not reported its roster yet. */
+  aiParticipants?: AiParticipant[] | null;
   messages: Message[];
   typingUsers: TypingUser[];
   typingAIs: TypingAI[];
