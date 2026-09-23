@@ -12,40 +12,51 @@ export const normalizeAlias = (alias: string): string =>
  * Used to resolve user mentions to standardized AI identifiers.
  */
 export const AI_MENTION_MAPPINGS: Record<string, string> = {
+  "claude-opus-5-5": "claude-opus-5-5",
+  "claude-opus-5.5": "claude-opus-5-5",
   "claude-opus-5": "claude-opus-5",
   "claude-sonnet-5": "claude-sonnet-5",
   "gpt-6-astra": "gpt-6-astra",
   "gpt-6": "gpt-6-astra",
   astra: "gpt-6-astra",
-  "gpt-5.6": "gpt-5.6-sol",
-  sol: "gpt-5.6-sol",
+  // GPT-5.6 Sol/Luna are parked; their names resolve to the GPT-6 models that replaced them
+  "gpt-6-sol": "gpt-6-sol",
+  "gpt-6-luna": "gpt-6-luna",
+  "gpt-5.6": "gpt-5.6-terra",
+  "gpt-5.6-sol": "gpt-6-sol",
+  "gpt-5.6-luna": "gpt-6-luna",
+  sol: "gpt-6-sol",
   terra: "gpt-5.6-terra",
-  luna: "gpt-5.6-luna",
+  luna: "gpt-6-luna",
   "gemini-3.8": "gemini-3.8-flash",
   "gemini-3.7": "gemini-3.7-flash",
   "gemini-3.6": "gemini-3.6-flash",
+  "grok-4.7": "grok-4.7",
   "grok-4.6": "grok-4.6",
   "grok-4.5": "grok-4.5",
   "glm-5.3": "glm-5.3",
   "glm-5.2": "glm-5.2",
   "kimi-k3": "kimi-k3",
   "qwen3.8": "qwen3.8-max",
+  "qwen3.8-omni": "qwen3.8-omni-flash",
+  "qwen3.8-omni-flash": "qwen3.8-omni-flash",
   "qwen3.7": "qwen3.7-max",
   "command-a-plus": "command-a-plus",
-  xiaomi: "mimo-v2.5-pro",
-  mimo: "mimo-v2.5-pro",
+  xiaomi: "mimo-v2.6-pro",
+  mimo: "mimo-v2.6-pro",
+  "mimo-v2.6": "mimo-v2.6-pro",
   baidu: "ernie-4.5-vl",
   ernie: "ernie-4.5-vl",
   arcee: "trinity-large-thinking",
   trinity: "trinity-large-thinking",
   phi: "phi-4",
   // Anthropic/Claude
-  // Bare aliases stay on Opus 5, Anthropic's recommended default; Fable 5.1 costs twice as much.
-  claude: "claude-opus-5",
-  anthropic: "claude-opus-5",
+  // Bare aliases follow Anthropic's recommended default, now Opus 5.5; Fable 5.1 costs 2.5x.
+  claude: "claude-opus-5-5",
+  anthropic: "claude-opus-5-5",
   haiku: "claude-haiku-4-5",
   sonnet: "claude-sonnet-5",
-  opus: "claude-opus-5",
+  opus: "claude-opus-5-5",
   fable: "claude-fable-5-1",
   "claude-fable": "claude-fable-5-1",
   "claude-fable-5-1": "claude-fable-5-1",
@@ -81,8 +92,8 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   "o4-mini": "o4-mini",
 
   // xAI/Grok
-  grok: "grok-4.6",
-  xai: "grok-4.6",
+  grok: "grok-4.7",
+  xai: "grok-4.7",
   "grok-4.3": "grok-4.3",
   "grok-4.20": "grok-4.20",
   "grok-4.20-reasoning": "grok-4.20-reasoning",
@@ -158,6 +169,8 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   "glm-4.6": "glm-4.6",
   "glm-4.6v": "glm-4.6v",
   "glm-4.7": "glm-4.7",
+  "glm-5.3-flashx": "glm-5.3-flashx",
+  flashx: "glm-5.3-flashx",
   "glm-4.7-flash": "glm-4.7-flash",
   "glm-4.7v": "glm-4.7v",
   "glm-4.5-airx": "glm-4.5-airx",
@@ -209,6 +222,9 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   "nemotron-3-nano-30b-a3b-free": "nemotron-3-nano-30b-a3b-free",
 
   // Xiaomi (OpenRouter)
+  "mimo-v2.6-pro": "mimo-v2.6-pro",
+  "mimo-v2.6-flash": "mimo-v2.6-flash",
+  "mimo-v2.5": "mimo-v2.5",
 
   // MiniMax (OpenRouter)
   minimax: "minimax-m3",
@@ -257,9 +273,30 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   inception: "mercury-2.5",
   mercury: "mercury-2.5",
 
+  // PrismML (OpenRouter)
+  prismml: "ternary-bonsai-2-27b",
+  bonsai: "ternary-bonsai-2-27b",
+  "ternary-bonsai": "ternary-bonsai-2-27b",
+
+  // Unbiased (OpenRouter)
+  unbiased: "pareto",
+  pareto: "pareto",
+
+  // Nex AGI (OpenRouter)
+  nex: "nex-n2.5-pro",
+  "nex-agi": "nex-n2.5-pro",
+  "nex-n2.5": "nex-n2.5-pro",
+
+  // InclusionAI (OpenRouter)
+  inclusionai: "ling-3.0-flash-vl",
+  ling: "ling-3.0-flash-vl",
+  "ling-3.0": "ling-3.0-flash-vl",
+
   // Sakana AI (OpenRouter)
-  sakana: "fugu-max",
-  fugu: "fugu-max",
+  sakana: "fugu-ultra-v2",
+  fugu: "fugu-ultra-v2",
+  "fugu-ultra": "fugu-ultra-v2",
+  "fugu-max": "fugu-max",
 };
 
 const buildEmojiLookup = (): Record<string, string> => {

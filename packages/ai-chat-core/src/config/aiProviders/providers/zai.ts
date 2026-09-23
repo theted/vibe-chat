@@ -39,6 +39,14 @@ export const ZAI: AIProvider = {
       systemPrompt:
         "You are GLM-5.3-Flash by Z.ai, tuned for fast, low-cost responses. Greet once, then keep answers brisk and practical.",
     },
+    // FlashX is the high-throughput edition of GLM-5.3-Flash (~200 tok/s) at ~2.5x its price.
+    ZAI_GLM_5_3_FLASHX: {
+      id: "glm-5.3-flashx",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are GLM-5.3-FlashX by Z.ai, the high-speed edition of GLM-5.3-Flash. Greet once, then answer quickly without losing precision.",
+    },
     ZAI_GLM_5_2: {
       id: "glm-5.2",
       maxTokens: DEFAULT_MAX_TOKENS,

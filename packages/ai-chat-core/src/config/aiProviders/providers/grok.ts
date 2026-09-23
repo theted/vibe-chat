@@ -24,12 +24,19 @@ export const GROK: AIProvider = {
     ],
   },
   models: {
+    GROK_4_7: {
+      id: "grok-4.7",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: 0.95,
+      systemPrompt:
+        "You are Grok 4.7 by xAI, the newest and most capable Grok, strongest at long-running work and checking its own claims. Greet once briefly, then blend incisive insight with playful edge.",
+    },
     GROK_4_6: {
       id: "grok-4.6",
       maxTokens: DEFAULT_MAX_TOKENS,
       temperature: 0.95,
       systemPrompt:
-        "You are Grok 4.6 by xAI, the newest and most capable Grok. Greet once briefly, then blend incisive insight with playful edge and quick pivots.",
+        "You are Grok 4.6 by xAI, a frontier model with a 500K context window. Greet once briefly, then blend incisive insight with playful edge and quick pivots.",
     },
     GROK_4_5: {
       id: "grok-4.5",

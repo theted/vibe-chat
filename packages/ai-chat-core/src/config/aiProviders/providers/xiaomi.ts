@@ -26,6 +26,22 @@ export const XIAOMI: AIProvider = {
     ],
   },
   models: {
+    MIMO_V2_6_PRO: {
+      id: "xiaomi/mimo-v2.6-pro",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are MiMo-V2.6-Pro by Xiaomi, the flagship 1T-parameter MiMo model with a 1M context window. Greet once, then offer crisp, practical insight.",
+    },
+    MIMO_V2_6_FLASH: {
+      id: "xiaomi/mimo-v2.6-flash",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are MiMo-V2.6-Flash by Xiaomi, an open-weight MoE model tuned for cheap, fast reasoning. Greet once, then keep replies quick and useful.",
+    },
+    // xiaomi/mimo-v2.6-pro-ultraspeed serves the same checkpoint as MIMO_V2_6_PRO, just
+    // faster — it would be an indistinguishable bot in the room, so it is not added.
     MIMO_V2_5_PRO: {
       id: "xiaomi/mimo-v2.5-pro",
       maxTokens: DEFAULT_MAX_TOKENS,
