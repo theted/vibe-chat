@@ -33,7 +33,7 @@ const AISelectionDialog = ({
   const [view, setView] = useState<"list" | "detail">("list");
   const [selectedItem, setSelectedItem] = useState<MentionOption | null>(null);
 
-  const { filteredAIs, normalizedTerm, isLoading } = useAISearch(searchTerm);
+  const { filteredAIs, normalizedTerm } = useAISearch(searchTerm);
 
   // Reset on open/close
   useEffect(() => {
@@ -44,13 +44,15 @@ const AISelectionDialog = ({
     }
   }, [isOpen]);
 
-  // Return to list when search term changes while detail is open
+  // Typing a new term abandons whatever detail card was open. Tracking the
+  // previous term keeps `view` out of the dependency list — including it would
+  // reset the detail view the instant it opened.
+  const lastTermRef = useRef(normalizedTerm);
   useEffect(() => {
-    if (view === "detail" && normalizedTerm) {
-      setView("list");
-      setSelectedItem(null);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (lastTermRef.current === normalizedTerm) return;
+    lastTermRef.current = normalizedTerm;
+    setView("list");
+    setSelectedItem(null);
   }, [normalizedTerm]);
 
   useEffect(() => {
@@ -70,52 +72,66 @@ const AISelectionDialog = ({
     }
   };
 
-  // Keyboard handler — capture phase so Enter never leaks to the form
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (!isOpen) return;
+  // Keyboard handler — capture phase so Enter never leaks to the form.
+  // The listener is registered once and reads the current handler through a
+  // ref; binding it directly would re-subscribe on every keystroke, since
+  // filteredAIs and activeIndex change as the user types.
+  const handleKeyRef = useRef<(event: KeyboardEvent) => void>(() => {});
+  handleKeyRef.current = (e: KeyboardEvent) => {
+    if (!isOpen) return;
 
-      if (e.key === "Escape") {
-        e.preventDefault();
-        e.stopPropagation();
-        if (view === "detail") { setView("list"); setSelectedItem(null); }
-        else onClose();
-        return;
-      }
-
-      if (view === "list") {
-        if (e.key === "ArrowDown" && filteredAIs.length > 0) {
-          e.preventDefault(); e.stopPropagation();
-          setActiveIndex((p) => (p + 1) % filteredAIs.length);
-        } else if (e.key === "ArrowUp" && filteredAIs.length > 0) {
-          e.preventDefault(); e.stopPropagation();
-          setActiveIndex((p) => (p - 1 + filteredAIs.length) % filteredAIs.length);
-        } else if (e.key === "Enter" && filteredAIs.length > 0) {
-          e.preventDefault(); e.stopPropagation();
-          const item = filteredAIs[activeIndex] ?? filteredAIs[0];
-          if (item) openDetail(item);
-        }
-      } else if (view === "detail") {
-        if (e.key === "Enter") {
-          e.preventDefault(); e.stopPropagation();
-          confirmSelect();
-        }
-      }
+    const stop = () => {
+      e.preventDefault();
+      e.stopPropagation();
     };
 
-    // Capture phase — runs before React synthetic events on textarea
-    document.addEventListener("keydown", onKey, true);
-    return () => document.removeEventListener("keydown", onKey, true);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeIndex, filteredAIs, isOpen, view, selectedItem]);
+    if (e.key === "Escape") {
+      stop();
+      if (view === "detail") {
+        setView("list");
+        setSelectedItem(null);
+      } else {
+        onClose();
+      }
+      return;
+    }
+
+    if (view === "detail") {
+      if (e.key === "Enter") {
+        stop();
+        confirmSelect();
+      }
+      return;
+    }
+
+    if (filteredAIs.length === 0) return;
+
+    if (e.key === "ArrowDown") {
+      stop();
+      setActiveIndex((p) => (p + 1) % filteredAIs.length);
+    } else if (e.key === "ArrowUp") {
+      stop();
+      setActiveIndex((p) => (p - 1 + filteredAIs.length) % filteredAIs.length);
+    } else if (e.key === "Enter") {
+      stop();
+      const item = filteredAIs[activeIndex] ?? filteredAIs[0];
+      if (item) openDetail(item);
+    }
+  };
+
+  useEffect(() => {
+    const listener = (event: KeyboardEvent) => handleKeyRef.current(event);
+    document.addEventListener("keydown", listener, true);
+    return () => document.removeEventListener("keydown", listener, true);
+  }, []);
 
   // A spaced term that matches nothing is ordinary prose rather than a mention
   // in progress, so get the empty list out of the way instead of hovering it
   // over the input until the word cap is hit.
   useEffect(() => {
-    if (!isOpen || isLoading) return;
+    if (!isOpen) return;
     if (normalizedTerm.includes(" ") && filteredAIs.length === 0) onClose();
-  }, [filteredAIs.length, isLoading, isOpen, normalizedTerm, onClose]);
+  }, [filteredAIs.length, isOpen, normalizedTerm, onClose]);
 
   // Click outside
   useEffect(() => {
@@ -183,7 +199,6 @@ const AISelectionDialog = ({
                 filteredAIs={filteredAIs}
                 normalizedTerm={normalizedTerm}
                 searchTerm={searchTerm}
-                isLoading={isLoading}
                 activeIndex={activeIndex}
                 onActiveIndexChange={setActiveIndex}
                 onOpenDetail={openDetail}

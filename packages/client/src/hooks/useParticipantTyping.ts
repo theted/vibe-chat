@@ -4,7 +4,7 @@
  */
 
 import { useCallback } from "react";
-import { normalizeAlias } from "@/utils/ai";
+import { normalizeAliasKey } from "@/utils/ai";
 import type { NormalizedAiParticipant } from "@/utils/participants";
 import type { TypingAI, TypingUser } from "@/types";
 
@@ -25,7 +25,7 @@ export const useParticipantTyping = (
 
   const isAITyping = useCallback(
     (aiEntry: NormalizedAiParticipant): boolean => {
-      const normalizedTarget = normalizeAlias(
+      const normalizedTarget = normalizeAliasKey(
         aiEntry.alias || aiEntry.name || aiEntry.displayName,
       );
       return typingAIs.some((ai) => {
@@ -39,7 +39,7 @@ export const useParticipantTyping = (
         if (
           ai.alias &&
           normalizedTarget &&
-          normalizeAlias(ai.alias) === normalizedTarget
+          normalizeAliasKey(ai.alias) === normalizedTarget
         )
           return true;
         return false;

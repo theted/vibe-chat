@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { DEFAULT_AI_PARTICIPANTS } from "@/config/aiParticipants";
 import { AI_MENTION_MAPPINGS } from "@/constants/chat.ts";
-import { normalizeAlias, resolveEmoji } from "./ai.ts";
+import { normalizeAliasKey, resolveEmoji } from "./ai.ts";
 
 const resolveParticipantEmoji = (alias: string): string => {
   const participant = DEFAULT_AI_PARTICIPANTS.find(
@@ -19,38 +19,38 @@ const GPT_FLAGSHIP = AI_MENTION_MAPPINGS.gpt;
 const GEMINI_FLAGSHIP = AI_MENTION_MAPPINGS.gemini;
 const GROK_FLAGSHIP = AI_MENTION_MAPPINGS.grok;
 
-describe("normalizeAlias", () => {
+describe("normalizeAliasKey", () => {
   it("should convert string to lowercase and remove non-alphanumeric characters", () => {
-    expect(normalizeAlias("Claude-3")).toBe("claude3");
-    expect(normalizeAlias("GPT-4")).toBe("gpt4");
-    expect(normalizeAlias("z.ai")).toBe("zai");
+    expect(normalizeAliasKey("Claude-3")).toBe("claude3");
+    expect(normalizeAliasKey("GPT-4")).toBe("gpt4");
+    expect(normalizeAliasKey("z.ai")).toBe("zai");
   });
 
   it("should handle special characters and spaces", () => {
-    expect(normalizeAlias("Command R+")).toBe("commandr");
-    expect(normalizeAlias("Gemini 2.0")).toBe("gemini20");
-    expect(normalizeAlias("@claude")).toBe("claude");
+    expect(normalizeAliasKey("Command R+")).toBe("commandr");
+    expect(normalizeAliasKey("Gemini 2.0")).toBe("gemini20");
+    expect(normalizeAliasKey("@claude")).toBe("claude");
   });
 
   it("should handle empty and null values", () => {
-    expect(normalizeAlias("")).toBe("");
-    expect(normalizeAlias(null)).toBe("");
-    expect(normalizeAlias(undefined)).toBe("");
+    expect(normalizeAliasKey("")).toBe("");
+    expect(normalizeAliasKey(null)).toBe("");
+    expect(normalizeAliasKey(undefined)).toBe("");
   });
 
   it("should handle numeric values", () => {
-    expect(normalizeAlias(123)).toBe("123");
-    expect(normalizeAlias(0)).toBe("0");
+    expect(normalizeAliasKey(123)).toBe("123");
+    expect(normalizeAliasKey(0)).toBe("0");
   });
 
   it("should preserve alphanumeric characters only", () => {
-    expect(normalizeAlias("abc123XYZ")).toBe("abc123xyz");
-    expect(normalizeAlias("test@#$%test")).toBe("testtest");
+    expect(normalizeAliasKey("abc123XYZ")).toBe("abc123xyz");
+    expect(normalizeAliasKey("test@#$%test")).toBe("testtest");
   });
 
   it("should handle unicode characters", () => {
-    expect(normalizeAlias("cafe")).toBe("cafe");
-    expect(normalizeAlias("robot")).toBe("robot");
+    expect(normalizeAliasKey("cafe")).toBe("cafe");
+    expect(normalizeAliasKey("robot")).toBe("robot");
   });
 });
 
