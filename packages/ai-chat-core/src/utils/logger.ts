@@ -12,7 +12,7 @@ interface ConversationData {
   topic: string;
   timestamp: string;
   messages: Message[];
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
 }
 
 interface ConversationFileInfo {
@@ -42,7 +42,7 @@ export const ensureDirectoryExists = (dirPath: string): void => {
 export const saveConversationToFile = (
   conversationHistory: Message[],
   topic: string,
-  metadata: Record<string, any> = {},
+  metadata: Record<string, unknown> = {},
 ): string => {
   const conversationsDir = path.join(process.cwd(), "conversations");
   ensureDirectoryExists(conversationsDir);

@@ -103,7 +103,7 @@ describe("MessageHistoryService", () => {
 
     it("getRecentMessages uses contextManager fallback", async () => {
       const mockContextManager = {
-        getContextForAI: (limit: number) => [
+        getContextForAI: (_limit: number) => [
           {
             id: "ctx-1",
             sender: "user1",

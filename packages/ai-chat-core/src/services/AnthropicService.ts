@@ -61,7 +61,9 @@ export class AnthropicService extends BaseAIService {
           | "user"
           | "assistant",
         content: msg.content.trim(),
-        sender: (msg as any).sender || (msg as any).displayName,
+        sender:
+          (msg as { sender?: string; displayName?: string }).sender ||
+          (msg as { displayName?: string }).displayName,
       }));
 
     // Anthropic API requires alternating user/assistant roles and the

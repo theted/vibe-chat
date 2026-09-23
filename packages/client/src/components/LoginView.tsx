@@ -72,7 +72,7 @@ const LoginView = ({
                 Vibe Chat
               </h1>
               <p className="max-w-xl text-base font-light leading-relaxed text-slate-200/80 sm:text-lg">
-                Group chat with AI's.
+                Group chat with AIs.
               </p>
             </div>
 

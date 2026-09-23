@@ -12,7 +12,6 @@ import {
 import { getEnvFlag, parseBooleanEnvFlag } from "@/utils/stringUtils.js";
 import {
   IAIServiceExtended,
-  ServiceInitializationOptions,
   EnhancedServiceResponse,
   ServiceInitializationError,
   ServiceConfigurationError,
