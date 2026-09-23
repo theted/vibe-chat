@@ -1,17 +1,24 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { DEFAULT_AI_PARTICIPANTS } from "@/config/aiParticipants";
 import { useModal } from "@/hooks/useModal";
-import { getStorageItem, setStorageItem } from "@/utils/storage";
-import { STORAGE_KEYS } from "@/constants/storage";
+import { isContinuation } from "@/utils/messageGrouping";
+import ChatHeader from "./ChatHeader";
 import ChatMessage from "./ChatMessage";
+import GuestNotice from "./GuestNotice";
+import Icon from "./Icon";
+import LoginModal from "./LoginModal";
 import MessageInput from "./MessageInput";
 import ParticipantsList from "./ParticipantsList";
-import TypingIndicator from "./TypingIndicator";
-import SettingsModal from "./SettingsModal";
-import LoginModal from "./LoginModal";
 import PrivateChatBanner from "./PrivateChatBanner";
-import Icon from "./Icon";
+import SettingsModal from "./SettingsModal";
+import TypingIndicator from "./TypingIndicator";
 import type { ChatViewProps } from "@/types";
+
+// Transcript and composer share one measure so their left edges line up
+const COLUMN_CLASSES = "mx-auto w-full max-w-4xl";
+const ERROR_BORDER_STYLE = {
+  borderColor: "color-mix(in oklab, var(--danger) 40%, transparent)",
+};
 
 const ChatView = ({
   theme,
@@ -54,179 +61,99 @@ const ChatView = ({
     [messages],
   );
 
-  const [darkChatBg, setDarkChatBg] = useState(
-    () => getStorageItem(STORAGE_KEYS.CHAT_DARK_BG) === "true"
-  );
-  const toggleDarkChatBg = () => {
-    setDarkChatBg((prev) => {
-      setStorageItem(STORAGE_KEYS.CHAT_DARK_BG, String(!prev));
-      return !prev;
-    });
-  };
-
   return (
-    <div className="flex items-start lg:items-center justify-center min-h-dvh lg:min-h-screen p-0 lg:p-6">
-      <div className="glass-surface flex bg-white/95 backdrop-blur-xl lg:rounded-3xl lg:shadow-2xl max-w-7xl w-full h-dvh lg:h-auto lg:max-h-[95vh] overflow-hidden animate-fade-in lg:border lg:border-white/30 dark:bg-[rgba(0,22,32,0.80)] dark:border-teal-600/25 dark:shadow-[0_0_80px_rgba(0,100,130,0.25)]">
-        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-          <div className="bg-gradient-to-r from-slate-600/90 to-slate-700/90 backdrop-blur-sm text-white p-3 sm:p-4 lg:p-6 lg:rounded-tl-3xl border-b border-white/25 dark:from-teal-900/85 dark:to-[rgba(0,18,28,0.92)] dark:border-teal-600/20">
-            <div className="flex justify-between items-center gap-2 lg:gap-6">
-              <div className="flex items-center gap-2 sm:gap-3 lg:gap-4">
-                <div className="w-7 h-7 sm:w-8 sm:h-8 lg:w-10 lg:h-10 bg-gradient-to-br from-primary-400 to-primary-600 rounded-xl flex items-center justify-center shadow-lg">
-                  <Icon name="chat" className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-white" />
-                </div>
-                <div className="flex flex-col justify-center min-w-0">
-                  <h1 className="header-title header-title--compact">
-                    Vibe Chat
-                  </h1>
-                  {/* The server tracks a room topic and /topic changes it, but
-                      nothing ever surfaced it — the prop was passed and dropped. */}
-                  {roomInfo?.topic && (
-                    <p
-                      className="truncate text-[11px] leading-tight text-white/60 sm:text-xs"
-                      title={roomInfo.topic}
-                    >
-                      {roomInfo.topic}
-                    </p>
-                  )}
-                </div>
-              </div>
-              <div className="flex items-center gap-1.5 sm:gap-2 lg:gap-3">
-                  {!isAuthenticated && (
-                    <button
-                      type="button"
-                      onClick={login.open}
-                      className="glass-btn bg-primary-400/80 hover:bg-primary-400 text-white px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all flex items-center gap-1.5 shadow-lg shadow-primary-500/30"
-                      aria-label="Log in to chat"
-                    >
-                      <Icon name="login" className="w-4 h-4" />
-                      <span className="hidden lg:inline">Log in</span>
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    onClick={toggleDarkChatBg}
-                    className={`glass-btn px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-lg text-sm font-medium transition-all flex items-center ${
-                      darkChatBg
-                        ? "bg-teal-500/30 hover:bg-teal-500/40 text-teal-200 border border-teal-400/30 shadow-md shadow-teal-900/40"
-                        : "bg-white/10 hover:bg-white/20 text-white/60 hover:text-white/80"
-                    }`}
-                    aria-label="Toggle deep dark background"
-                    title="Toggle deep dark background"
-                  >
-                    <Icon name="sparkle" className="w-4 h-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={menu.open}
-                    className="glass-btn bg-white/10 hover:bg-white/20 text-white/80 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-lg text-sm font-medium transition-colors flex items-center dark:bg-teal-900/30 dark:hover:bg-teal-800/40 dark:text-teal-100 dark:border dark:border-teal-600/30"
-                    aria-label="Open settings menu"
-                    title="Open settings menu"
-                  >
-                    <Icon name="cog" className="w-4 h-4" />
-                  </button>
-                </div>
-            </div>
-          </div>
+    <div className="flex h-dvh overflow-hidden bg-canvas text-fg">
+      <main className="relative flex min-w-0 flex-1 flex-col">
+        <ChatHeader
+          topic={roomInfo?.topic}
+          isConnected={connectionStatus.connected}
+          isAuthenticated={isAuthenticated}
+          onLoginOpen={login.open}
+          onSettingsOpen={menu.open}
+        />
 
-          {isPrivateChat && onPrivateConversationEnd && (
-            <PrivateChatBanner
-              ai={privateChatAi}
-              onLeave={onPrivateConversationEnd}
-            />
-          )}
-
-          <SettingsModal
-            isOpen={menu.isOpen}
-            isVisible={menu.isVisible}
-            onClose={menu.close}
-            onLoginOpen={login.open}
-            theme={theme}
-            toggleTheme={toggleTheme}
-            isAuthenticated={isAuthenticated}
-            onLogout={onLogout}
+        {isPrivateChat && onPrivateConversationEnd && (
+          <PrivateChatBanner
+            ai={privateChatAi}
+            onLeave={onPrivateConversationEnd}
           />
+        )}
 
-          <LoginModal
-            isOpen={login.isOpen}
-            isVisible={login.isVisible}
-            onClose={login.close}
-            username={username}
-            onUsernameChange={onUsernameChange}
-            onJoin={onJoin}
-            connectionStatus={connectionStatus}
-          />
+        <SettingsModal
+          isOpen={menu.isOpen}
+          isVisible={menu.isVisible}
+          onClose={menu.close}
+          onLoginOpen={login.open}
+          theme={theme}
+          toggleTheme={toggleTheme}
+          isAuthenticated={isAuthenticated}
+          onLogout={onLogout}
+        />
 
-          <div
-            className="flex-1 relative overflow-y-auto overflow-x-hidden no-scrollbar bg-gradient-to-b from-slate-50/30 to-white/40 dark:from-transparent dark:to-transparent min-h-0"
-            ref={messagesContainerRef}
-          >
-            {/* Radial vignette — always-on teal depth effect, darker at edges */}
-            <div className="absolute inset-0 chat-vignette pointer-events-none dark:block hidden" />
-            {/* Deep vibrant teal overlay — fades in/out via opacity so gradient can cross-fade */}
-            <div
-              className={`absolute inset-0 chat-bg-deep pointer-events-none transition-opacity duration-700 ${darkChatBg ? "opacity-100" : "opacity-0"}`}
-            />
-            <div className="relative z-10 p-3 sm:p-5 lg:p-8 space-y-3 sm:space-y-5 lg:space-y-7">
-              {messages.map((message) => (
-                <ChatMessage
-                  key={message.id}
-                  message={message}
-                  aiParticipants={aiParticipantList}
-                  participants={participants}
-                  quotedMessage={
-                    message.mentionsTriggerMessageId
-                      ? messagesById.get(message.mentionsTriggerMessageId)
-                      : undefined
-                  }
-                />
-              ))}
-              <div ref={messagesEndRef} />
-            </div>
+        <LoginModal
+          isOpen={login.isOpen}
+          isVisible={login.isVisible}
+          onClose={login.close}
+          username={username}
+          onUsernameChange={onUsernameChange}
+          onJoin={onJoin}
+          connectionStatus={connectionStatus}
+        />
+
+        <div
+          className="thin-scrollbar min-h-0 flex-1 overflow-y-auto overflow-x-hidden"
+          ref={messagesContainerRef}
+        >
+          <div className={`${COLUMN_CLASSES} pb-6 pt-2`}>
+            {messages.length === 0 && (
+              <p className="px-6 pt-16 text-center text-sm text-muted">
+                Nothing said yet. Say hello, or type @ to bring a model in.
+              </p>
+            )}
+            {messages.map((message, index) => (
+              <ChatMessage
+                key={message.id}
+                message={message}
+                aiParticipants={aiParticipantList}
+                participants={participants}
+                isContinuation={isContinuation(messages[index - 1], message)}
+                quotedMessage={
+                  message.mentionsTriggerMessageId
+                    ? messagesById.get(message.mentionsTriggerMessageId)
+                    : undefined
+                }
+              />
+            ))}
+            <div ref={messagesEndRef} />
           </div>
+        </div>
 
-          <TypingIndicator typingUsers={typingUsers} typingAIs={typingAIs} />
-
+        <footer className="relative shrink-0 px-3 pb-3 sm:px-6 sm:pb-5">
           {showScrollButton && (
             <button
-              className="fixed bottom-32 right-8 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white p-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110 z-50 animate-bounce group dark:from-emerald-400 dark:to-teal-500"
+              type="button"
+              className="absolute -top-12 left-1/2 z-10 flex h-9 w-9 -translate-x-1/2 items-center justify-center rounded-full border border-line bg-raised text-muted shadow-lg shadow-black/20 transition-colors hover:text-fg animate-fade-in"
               onClick={onScrollToBottom}
+              aria-label="Jump to latest message"
             >
-              <Icon
-                name="arrow-down"
-                className="w-5 h-5 transform group-hover:translate-y-1 transition-transform duration-200"
-              />
+              <Icon name="arrow-down" className="h-4 w-4" />
             </button>
           )}
 
-          <div className="glass-surface border-t border-slate-100/50 bg-white/80 backdrop-blur-md p-2.5 sm:p-4 lg:p-8 space-y-2.5 sm:space-y-4 lg:space-y-6 lg:rounded-bl-3xl dark:bg-[rgba(0,18,28,0.88)] dark:border-teal-700/30">
+          <div className={`${COLUMN_CLASSES} space-y-2`}>
+            <TypingIndicator typingUsers={typingUsers} typingAIs={typingAIs} />
+
             {error && (
-              <div className="bg-red-50/70 backdrop-blur-sm border border-red-200/50 text-red-800 px-6 py-4 rounded-2xl text-center animate-slide-up shadow-sm dark:bg-red-500/10 dark:border-red-400/40 dark:text-red-200">
+              <div
+                className="rounded-lg border px-4 py-2.5 text-sm text-danger animate-rise-in"
+                style={ERROR_BORDER_STYLE}
+                role="alert"
+              >
                 {error}
               </div>
             )}
-            {!isAuthenticated && (
-              <div className="flex flex-col gap-3 rounded-2xl border border-primary-200/60 bg-primary-50/80 px-5 py-4 text-sm text-primary-800 shadow-inner dark:border-primary-500/40 dark:bg-primary-500/10 dark:text-primary-100">
-                <div className="flex items-center gap-3">
-                  <Icon name="login" className="w-5 h-5 text-primary-500" />
-                  <div>
-                    <p className="font-semibold">You are viewing as a guest.</p>
-                    <p className="text-xs text-primary-700/80 dark:text-primary-200/80">
-                      Log in to send messages and mention the AIs.
-                    </p>
-                  </div>
-                </div>
-                <div>
-                  <button
-                    type="button"
-                    onClick={login.open}
-                    className="inline-flex items-center gap-2 rounded-full bg-primary-500 px-4 py-2 text-xs font-semibold uppercase tracking-[0.28em] text-white shadow-lg shadow-primary-500/30 transition hover:bg-primary-400"
-                  >
-                    <Icon name="login" className="w-4 h-4" />
-                    Log in
-                  </button>
-                </div>
-              </div>
-            )}
+
+            {!isAuthenticated && <GuestNotice onJoin={login.open} />}
 
             <MessageInput
               onSendMessage={onSendMessage}
@@ -235,18 +162,18 @@ const ChatView = ({
               disabled={!connectionStatus.connected || !isAuthenticated}
             />
           </div>
-        </div>
+        </footer>
+      </main>
 
-        <ParticipantsList
-          participants={participants}
-          aiParticipants={aiParticipantList}
-          typingUsers={typingUsers}
-          typingAIs={typingAIs}
-          isVisible={true}
-          onAISelect={onPrivateConversationStart}
-          activePrivateAiId={privateChatAi?.id ?? null}
-        />
-      </div>
+      <ParticipantsList
+        participants={participants}
+        aiParticipants={aiParticipantList}
+        typingUsers={typingUsers}
+        typingAIs={typingAIs}
+        isVisible={true}
+        onAISelect={onPrivateConversationStart}
+        activePrivateAiId={privateChatAi?.id ?? null}
+      />
     </div>
   );
 };

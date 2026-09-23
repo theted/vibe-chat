@@ -133,18 +133,17 @@ export const ICON_PATHS: Record<IconName, IconDefinition> = {
         "M17.05 6.95l1.25-1.25",
       ],
     },
+    // Sliders rather than a gear: the rayed gear read as the sun icon
+    // that the theme toggle uses
     modern: {
-      strokeWidth: 1.4,
+      strokeWidth: 1.6,
       paths: [
-        "M12 7.5a4.5 4.5 0 100 9 4.5 4.5 0 000-9z",
-        "M4.25 12h1.5",
-        "M18.25 12h1.5",
-        "M12 4.25v1.5",
-        "M12 18.25v1.5",
-        "M6.35 6.35l1.05 1.05",
-        "M16.6 16.6l1.05 1.05",
-        "M6.35 17.65l1.05-1.05",
-        "M16.6 7.4l1.05-1.05",
+        "M4 8h9",
+        "M17 8h3",
+        "M13 8a2 2 0 104 0 2 2 0 10-4 0z",
+        "M4 16h3",
+        "M11 16h9",
+        "M7 16a2 2 0 104 0 2 2 0 10-4 0z",
       ],
     },
   },

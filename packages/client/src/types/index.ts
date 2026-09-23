@@ -2,7 +2,7 @@
  * Shared TypeScript type definitions for the client application
  */
 
-import type { RefObject, ReactNode, FormEvent } from "react";
+import type { RefObject, FormEvent } from "react";
 import type { ChatMessageBase, WireSenderType } from "@ai-chat/ai-configs";
 
 // Re-export AI participant types from config
@@ -197,6 +197,8 @@ export interface ChatMessageProps {
   participants?: Participant[];
   /** The message this one replies to, when still in the loaded history */
   quotedMessage?: Message;
+  /** Same sender as the row above: render without name and avatar */
+  isContinuation?: boolean;
 }
 
 // Component prop types - ParticipantsList
@@ -258,16 +260,8 @@ export interface StatusCardProps {
 
 // Component prop types - SectionHeader
 export interface SectionHeaderProps {
-  icon: string;
   title: string;
   count: number;
-}
-
-// Component prop types - AnimatedListItem
-export interface AnimatedListItemProps {
-  children: ReactNode;
-  index?: number;
-  className?: string;
 }
 
 // Component prop types - CircuitIcon
