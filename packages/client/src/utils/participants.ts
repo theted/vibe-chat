@@ -2,7 +2,7 @@
  * Helpers for normalizing and grouping AI participants for display.
  */
 
-import { normalizeAlias } from "@/utils/ai";
+import { normalizeAliasKey } from "@/utils/ai";
 import type { AiParticipant } from "@/config/aiParticipants";
 
 export interface NormalizedAiParticipant extends AiParticipant {
@@ -19,7 +19,7 @@ export const normalizeAiParticipants = (
       ...ai,
       displayName: ai.name,
       alias,
-      normalizedAlias: normalizeAlias(alias),
+      normalizedAlias: normalizeAliasKey(alias),
       status: ai.status || "active",
     };
   });

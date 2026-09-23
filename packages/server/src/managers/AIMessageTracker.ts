@@ -65,7 +65,7 @@ export class AIMessageTracker {
    * @param {string} roomId - Room identifier
    * @param {string} aiId - AI identifier
    */
-  onAIMessageSent(roomId: string, aiId: string): void {
+  onAIMessageSent(roomId: string, _aiId: string): void {
     const tracker = this.getOrCreateTracker(roomId);
     tracker.messageCount++;
     tracker.lastAIMessageTime = Date.now();
@@ -81,7 +81,7 @@ export class AIMessageTracker {
    * @param {string} username - Username
    */
   onUserMessage(roomId: string, username: string): void {
-    const tracker = this.getOrCreateTracker(roomId);
+    // wakeUpAIs creates the tracker itself; the extra lookup here was dead
     this.wakeUpAIs(roomId, `user-message-from-${username}`);
   }
 
@@ -101,7 +101,7 @@ export class AIMessageTracker {
    * @param {string} roomId - Room identifier
    * @param {string} reason - Wake reason
    */
-  wakeUpAIs(roomId: string, reason = "manual"): void {
+  wakeUpAIs(roomId: string, _reason = "manual"): void {
     const tracker = this.getOrCreateTracker(roomId);
     tracker.messageCount = 0;
     tracker.isAsleep = false;
@@ -145,7 +145,7 @@ export class AIMessageTracker {
    */
   getAllRoomStatuses(): Record<string, AITrackerStatus> {
     const statuses: Record<string, AITrackerStatus> = {};
-    for (const [roomId, tracker] of this.roomTrackers) {
+    for (const roomId of this.roomTrackers.keys()) {
       statuses[roomId] = this.getRoomStatus(roomId);
     }
     return statuses;

@@ -5,7 +5,6 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import Icon from "./Icon";
-import Spinner from "./Spinner";
 import { SLIDE_VARIANTS } from "@/config/dialogAnimations";
 import type { MentionOption } from "@/utils/aiSearch";
 
@@ -13,7 +12,6 @@ interface AIMentionListProps {
   filteredAIs: MentionOption[];
   normalizedTerm: string;
   searchTerm: string;
-  isLoading: boolean;
   activeIndex: number;
   onActiveIndexChange: (index: number) => void;
   onOpenDetail: (item: MentionOption) => void;
@@ -23,7 +21,6 @@ const AIMentionList = ({
   filteredAIs,
   normalizedTerm,
   searchTerm,
-  isLoading,
   activeIndex,
   onActiveIndexChange,
   onOpenDetail,
@@ -37,33 +34,9 @@ const AIMentionList = ({
   >
     {/* Header */}
     <div className="flex items-center gap-2 px-4 pt-4 pb-2 border-b border-slate-100/60 dark:border-slate-800/60">
-      <AnimatePresence mode="wait">
-        {isLoading ? (
-          <motion.span
-            key="spinner"
-            initial={{ opacity: 0, scale: 0.7 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.7 }}
-            transition={{ duration: 0.15 }}
-          >
-            <Spinner />
-          </motion.span>
-        ) : (
-          <motion.span
-            key="icon"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.1 }}
-          >
-            <Icon name="sparkle" className="w-3.5 h-3.5 text-primary-400" />
-          </motion.span>
-        )}
-      </AnimatePresence>
+      <Icon name="sparkle" className="w-3.5 h-3.5 text-primary-400" />
       <span className="text-xs text-slate-500 dark:text-slate-400">
-        {isLoading
-          ? "Searching…"
-          : normalizedTerm
+        {normalizedTerm
           ? `${filteredAIs.length} result${filteredAIs.length !== 1 ? "s" : ""}`
           : "Mention an AI"}
       </span>
@@ -72,7 +45,7 @@ const AIMentionList = ({
     {/* Results */}
     <div className="px-2 py-2 max-h-72 overflow-y-auto no-scrollbar" role="listbox">
       <AnimatePresence>
-        {!isLoading && filteredAIs.length === 0 && (
+        {filteredAIs.length === 0 && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -83,8 +56,7 @@ const AIMentionList = ({
         )}
       </AnimatePresence>
 
-      {!isLoading &&
-        filteredAIs.map((ai, index) => {
+      {filteredAIs.map((ai, index) => {
           const isActive = index === activeIndex;
           return (
             <motion.button

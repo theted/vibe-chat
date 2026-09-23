@@ -5,7 +5,7 @@
  */
 
 import { useMemo } from "react";
-import { normalizeAlias, resolveEmoji } from "@/utils/ai";
+import { normalizeAliasKey, resolveEmoji } from "@/utils/ai";
 import type { ChatMessageProps } from "@/types";
 import type { AiParticipant } from "@/config/aiParticipants";
 
@@ -20,14 +20,14 @@ const findMatchedAI = (
   if (message.senderType !== "ai") return null;
 
   const normalizedTargets = [
-    normalizeAlias(message.aiId),
-    normalizeAlias(message.aiName),
-    normalizeAlias(message.alias),
-    normalizeAlias(message.displayName),
-    normalizeAlias(message.modelName),
-    normalizeAlias(message.modelKey),
-    normalizeAlias(message.modelId),
-    normalizeAlias(message.sender),
+    normalizeAliasKey(message.aiId),
+    normalizeAliasKey(message.aiName),
+    normalizeAliasKey(message.alias),
+    normalizeAliasKey(message.displayName),
+    normalizeAliasKey(message.modelName),
+    normalizeAliasKey(message.modelKey),
+    normalizeAliasKey(message.modelId),
+    normalizeAliasKey(message.sender),
   ].filter(Boolean);
 
   if (normalizedTargets.length === 0) return null;
@@ -35,7 +35,7 @@ const findMatchedAI = (
   return (
     aiParticipants.find((participant) => {
       const candidateValues = [participant.id, participant.alias, participant.name]
-        .map(normalizeAlias)
+        .map(normalizeAliasKey)
         .filter(Boolean);
       return candidateValues.some((value) =>
         normalizedTargets.some((target) => target === value),
@@ -51,7 +51,7 @@ const getAIEmoji = (message: Message, matchedAI: AiParticipant | null): string =
   if (matchedAI?.emoji) return matchedAI.emoji;
 
   if (message.providerKey || message.modelKey) {
-    const combined = `${normalizeAlias(message.providerKey)}${normalizeAlias(message.modelKey)}`;
+    const combined = `${normalizeAliasKey(message.providerKey)}${normalizeAliasKey(message.modelKey)}`;
     const resolved = resolveEmoji(combined);
     if (resolved) return resolved;
   }

@@ -14,6 +14,7 @@ import {
 } from "@/config/aiProviders/constants.js";
 import {
   buildResponsesPayload,
+  asResponsesClient,
   ensureResponsesClient,
   extractTextFromResponses,
 } from "./openaiResponses.js";
@@ -178,7 +179,7 @@ export abstract class OpenAICompatibleService extends BaseAIService {
       reasoningEffort,
     });
 
-    const response = await (client as any).responses.create(payload);
+    const response = await asResponsesClient(client).responses.create(payload);
     const content = extractTextFromResponses(response, this.name);
 
     return {
@@ -338,7 +339,9 @@ export abstract class OpenAICompatibleService extends BaseAIService {
         const url = this.getHealthCheckURL("/responses");
         this.logHealthCheckDetails("request", { url, payload });
         const client = ensureResponsesClient(this.client, this.name);
-        const response = await (client as any).responses.create(payload);
+        const response = await asResponsesClient(client).responses.create(
+          payload,
+        );
         this.logHealthCheckDetails("response", { url, response });
 
         const content = extractTextFromResponses(response, this.name);

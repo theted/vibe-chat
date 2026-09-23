@@ -42,7 +42,7 @@ interface UseSocketEventsOptions {
   setIsJoined: StateSetter<boolean>;
   setRoomInfo: StateSetter<RoomInfo>;
   setParticipants: StateSetter<Participant[]>;
-  setAiParticipants: StateSetter<AiParticipant[]>;
+  setAiParticipants: StateSetter<AiParticipant[] | null>;
   setMessages: StateSetter<Message[]>;
   setTypingUsers: StateSetter<TypingUser[]>;
   setTypingAIs: StateSetter<TypingAI[]>;
@@ -53,13 +53,13 @@ interface UseSocketEventsOptions {
   // Preview state
   setPreviewMessages: StateSetter<Message[]>;
   setPreviewParticipants: StateSetter<Participant[]>;
-  setPreviewAiParticipants: StateSetter<AiParticipant[]>;
+  setPreviewAiParticipants: StateSetter<AiParticipant[] | null>;
 
   // Refs
   isJoinedRef: React.MutableRefObject<boolean>;
   previewMessagesRef: React.MutableRefObject<Message[]>;
   previewParticipantsRef: React.MutableRefObject<Participant[]>;
-  previewAiParticipantsRef: React.MutableRefObject<AiParticipant[]>;
+  previewAiParticipantsRef: React.MutableRefObject<AiParticipant[] | null>;
   usernameRef: React.MutableRefObject<string>;
 
   showToast: ShowToast;

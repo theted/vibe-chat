@@ -24,7 +24,7 @@ class MockAIService implements IAIService {
   getModel() {
     return this.config.model.id;
   }
-  getEnhancedSystemPrompt(additionalContext?: string) {
+  getEnhancedSystemPrompt(_additionalContext?: string) {
     return this.config.model.systemPrompt || "";
   }
   async validateConfiguration() {

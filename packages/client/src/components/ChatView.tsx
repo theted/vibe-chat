@@ -21,7 +21,7 @@ const ChatView = ({
   username,
   isAuthenticated,
   participants,
-  aiParticipants = [],
+  aiParticipants = null,
   messages,
   typingUsers,
   typingAIs,
@@ -41,8 +41,9 @@ const ChatView = ({
   messagesEndRef,
   messagesContainerRef,
 }: ChatViewProps) => {
-  const aiParticipantList =
-    aiParticipants.length > 0 ? aiParticipants : DEFAULT_AI_PARTICIPANTS;
+  // Bundled catalogue only as a placeholder before the server answers; once it
+  // has, an empty list is shown as empty rather than papered over.
+  const aiParticipantList = aiParticipants ?? DEFAULT_AI_PARTICIPANTS;
   const menu = useModal();
   const login = useModal();
 
@@ -73,10 +74,20 @@ const ChatView = ({
                 <div className="w-7 h-7 sm:w-8 sm:h-8 lg:w-10 lg:h-10 bg-gradient-to-br from-primary-400 to-primary-600 rounded-xl flex items-center justify-center shadow-lg">
                   <Icon name="chat" className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-white" />
                 </div>
-                <div className="flex flex-col justify-center">
+                <div className="flex flex-col justify-center min-w-0">
                   <h1 className="header-title header-title--compact">
                     Vibe Chat
                   </h1>
+                  {/* The server tracks a room topic and /topic changes it, but
+                      nothing ever surfaced it — the prop was passed and dropped. */}
+                  {roomInfo?.topic && (
+                    <p
+                      className="truncate text-[11px] leading-tight text-white/60 sm:text-xs"
+                      title={roomInfo.topic}
+                    >
+                      {roomInfo.topic}
+                    </p>
+                  )}
                 </div>
               </div>
               <div className="flex items-center gap-1.5 sm:gap-2 lg:gap-3">

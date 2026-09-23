@@ -237,7 +237,7 @@ export class ChatOrchestrator extends EventEmitter {
     this.scheduleAIResponses(message.roomId);
   }
 
-  async handleAIMessage(message: ContextMessage) {
+  async handleAIMessage(_message: ContextMessage) {
     this.lastAIMessageTime = Date.now();
 
     if (this.messageTracker.isAsleep) return;

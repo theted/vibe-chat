@@ -11,11 +11,16 @@ import type { AiParticipant } from "@/config/aiParticipants";
 export const usePreviewState = () => {
   const [previewMessages, setPreviewMessages] = useState<Message[]>([]);
   const [previewParticipants, setPreviewParticipants] = useState<Participant[]>([]);
-  const [previewAiParticipants, setPreviewAiParticipants] = useState<AiParticipant[]>([]);
+  // null (not []) until the server sends a list: an empty list is a real
+  // answer ("no models are loaded") and must not fall back to the bundled
+  // catalogue, or the UI invents models that cannot reply.
+  const [previewAiParticipants, setPreviewAiParticipants] = useState<
+    AiParticipant[] | null
+  >(null);
 
   const previewMessagesRef = useRef<Message[]>([]);
   const previewParticipantsRef = useRef<Participant[]>([]);
-  const previewAiParticipantsRef = useRef<AiParticipant[]>([]);
+  const previewAiParticipantsRef = useRef<AiParticipant[] | null>(null);
 
   useEffect(() => { previewMessagesRef.current = previewMessages; }, [previewMessages]);
   useEffect(() => { previewParticipantsRef.current = previewParticipants; }, [previewParticipants]);

@@ -1,6 +1,12 @@
 /**
  * Search & ranking for the AI mention dialog.
  * Lower score = better match; Infinity = no match.
+ *
+ * Both sides of every comparison are normalized with normalizeAliasKey, so
+ * punctuation never decides a match: "@z.ai", "@zai" and "@Z AI" all behave
+ * identically, and so do "@claude-opus" and "@claude opus". Mixing raw and
+ * normalized text (as an earlier version did) made the alias/display/provider
+ * branches and the keyword branches disagree about the same query.
  */
 
 export interface MentionOption {
@@ -9,6 +15,12 @@ export interface MentionOption {
   displayName: string;
   provider: string;
   emoji: string;
+  /** Pre-normalized forms of the fields above, built once per option. */
+  search: {
+    alias: string;
+    displayName: string;
+    provider: string;
+  };
   keywords: string[];
   score?: number;
 }
@@ -17,24 +29,21 @@ export interface MentionOption {
 export const fuzzyMatch = (term: string, candidate: string): boolean => {
   if (!term) return true;
   let ti = 0;
-  const t = term.toLowerCase();
-  const c = candidate.toLowerCase();
-  for (let i = 0; i < c.length && ti < t.length; i++) {
-    if (c[i] === t[ti]) ti++;
+  for (let i = 0; i < candidate.length && ti < term.length; i++) {
+    if (candidate[i] === term[ti]) ti++;
   }
-  return ti === t.length;
+  return ti === term.length;
 };
 
+/** `term` must already be normalized with normalizeAliasKey. */
 export const computeScore = (term: string, option: MentionOption): number => {
   if (!term) return 0;
-  const alias = option.name.toLowerCase();
-  const display = option.displayName.toLowerCase();
-  const provider = option.provider.toLowerCase();
+  const { alias, displayName, provider } = option.search;
 
   if (alias.startsWith(term)) return 0;
-  if (display.startsWith(term)) return 0.5;
+  if (displayName.startsWith(term)) return 0.5;
   if (alias.includes(term)) return 1;
-  if (display.includes(term)) return 1.5;
+  if (displayName.includes(term)) return 1.5;
   if (provider.includes(term)) return 2;
   if (option.keywords.some((k) => k.includes(term))) return 2.5;
   if (option.keywords.some((k) => fuzzyMatch(term, k))) return 3;

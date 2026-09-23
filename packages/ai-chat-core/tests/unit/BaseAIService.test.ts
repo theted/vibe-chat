@@ -28,7 +28,7 @@ class TestAIService extends BaseAIService {
 
   protected async performGenerateResponse(
     messages: Message[],
-    context?: Record<string, unknown>
+    _context?: Record<string, unknown>
   ): Promise<ServiceResponse> {
     this.generateCallCount++;
     if (this.shouldThrowOnGenerate) {

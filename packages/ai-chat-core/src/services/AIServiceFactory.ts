@@ -17,11 +17,7 @@ import {
 import { AI_PROVIDERS } from "@/config/aiProviders/index.js";
 import { PROVIDER_BASE_URLS } from "@/config/aiProviders/constants.js";
 import type { AIServiceConfig, IAIService } from "@/types/index.js";
-import type {
-  ServiceConstructor,
-  ServiceConfigurationError,
-} from "@/types/services.js";
-import { BaseAIService } from "./base/BaseAIService.js";
+import type { ServiceConstructor } from "@/types/services.js";
 
 // Providers proxied through OpenRouter with no provider-specific behavior;
 // their display name is identical to the provider name.

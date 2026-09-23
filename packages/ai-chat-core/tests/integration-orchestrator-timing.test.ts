@@ -32,7 +32,6 @@ import {
   createEventCollector,
   resetEventCollector,
   simulateUserMessage,
-  assertSleepState,
   tickUntil,
   tickUntilSleep,
   type CollectedEvents,
@@ -408,7 +407,7 @@ describe("Configuration impact", () => {
       minDelayBetweenAI: 5,
       maxDelayBetweenAI: 10,
     }));
-    const highEvents = createEventCollector(orchestrator);
+    createEventCollector(orchestrator);
 
     simulateUserMessage(orchestrator, "room-1", "Test higher limit");
     await tickUntilSleep(clock, orchestrator, true);

@@ -8,7 +8,6 @@ import { describeError } from "@/utils/socketErrors.js";
 import type { ChatAssistantService } from "@/services/ChatAssistantService.js";
 import type {
   ChatAssistantMetadata,
-  ChatAssistantOrigin,
   ChatMessage,
   TriggerChatAssistantPayload,
 } from "@/types.js";

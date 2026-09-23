@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import LoginView from "./LoginView";
-import type { FormEvent } from "react";
 
 vi.mock("./ParticipantsList", () => ({
   default: () => <div data-testid="participants-list">Participants</div>,
@@ -37,7 +36,7 @@ describe("LoginView Component", () => {
 
     it("should display immersive welcome copy", () => {
       render(<LoginView {...defaultProps} />);
-      expect(screen.getByText(/group chat with ai's/i)).toBeInTheDocument();
+      expect(screen.getByText(/group chat with ais/i)).toBeInTheDocument();
     });
 
     it("should highlight realtime conversation description", () => {

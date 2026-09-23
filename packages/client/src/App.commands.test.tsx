@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeAll, beforeEach } from "vitest";
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import { act } from "react-dom/test-utils";
-import type { ReactNode } from "react";
 import { getParticipantById } from "./config/aiParticipants";
 import type { AiParticipant } from "./config/aiParticipants";
 import type { Message } from "./types";
@@ -40,11 +39,13 @@ vi.mock("./components/ChatView", () => ({
   }: {
     messages: Message[];
     onSendMessage: (msg: string) => void;
-    aiParticipants: AiParticipant[];
+    // null until the server reports its roster; the real ChatView substitutes
+    // the bundled catalogue as a placeholder in that window
+    aiParticipants: AiParticipant[] | null;
   }) => (
     <div data-testid="chat-view">
       <span data-testid="message-count">{messages.length}</span>
-      <span data-testid="ai-count">{aiParticipants.length}</span>
+      <span data-testid="ai-count">{aiParticipants?.length ?? "pending"}</span>
       <button
         type="button"
         data-testid="command-clear"

@@ -84,20 +84,31 @@ export const getRateLimitError = (
   };
 };
 
+export type RoomAIScope = {
+  /** The room id asked for a 1-1 chat, whether or not one could be set up. */
+  requestedPrivate: boolean;
+  /** The AI now scoped to the room, or null if the room is unscoped. */
+  privateAiId: string | null;
+};
+
 /**
  * Point a room at the AI(s) allowed to speak in it. A private room resolves to
  * exactly one AI and becomes direct-only, so that model answers the user once
  * per message and never chats in the background.
+ *
+ * The result lets the caller tell the client what actually happened: a room id
+ * naming a model this server never loaded degrades to an ordinary room, and the
+ * UI must not promise a private chat it is not getting.
  */
 export const applyRoomAIScope = (
   chatOrchestrator: ChatOrchestrator,
   roomId: string,
-): void => {
+): RoomAIScope => {
   const privateAiId = getPrivateRoomAiId(roomId);
 
   if (!privateAiId) {
     chatOrchestrator.clearRoomAllowedAIs(roomId);
-    return;
+    return { requestedPrivate: false, privateAiId: null };
   }
 
   const directMatch = chatOrchestrator.aiServices.has(privateAiId)
@@ -113,7 +124,7 @@ export const applyRoomAIScope = (
   if (resolvedAiId) {
     chatOrchestrator.setRoomAllowedAIs(roomId, [resolvedAiId]);
     chatOrchestrator.setRoomDirectOnly(roomId, true);
-    return;
+    return { requestedPrivate: true, privateAiId: resolvedAiId };
   }
 
   // Unknown AI in the room id: fall back to an ordinary room rather than a
@@ -122,4 +133,5 @@ export const applyRoomAIScope = (
     `Private room "${roomId}" names an unknown AI ("${privateAiId}") - treating it as a normal room`,
   );
   chatOrchestrator.clearRoomAllowedAIs(roomId);
+  return { requestedPrivate: true, privateAiId: null };
 };

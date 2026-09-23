@@ -81,10 +81,17 @@ export const buildParticipantMetadata = (
 /**
  * Convert participant metadata back to participant config
  */
+/**
+ * Conversation metadata is free-form on disk, so the participant list is
+ * validated here rather than trusted by its declared type.
+ */
 export const participantsFromMetadata = (
-  metadataParticipants: ParticipantMetadata[] = [],
+  metadataParticipants: unknown = [],
 ): ParticipantConfig[] =>
-  metadataParticipants
+  (Array.isArray(metadataParticipants)
+    ? (metadataParticipants as ParticipantMetadata[])
+    : []
+  )
     .filter((meta) => meta.providerKey && meta.modelKey)
     .map((meta) => ({
       provider: (meta.providerAlias || meta.providerKey || "").toLowerCase(),

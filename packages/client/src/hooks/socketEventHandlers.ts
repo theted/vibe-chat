@@ -7,13 +7,11 @@
 
 import { isPrivateRoomId } from "@ai-chat/ai-configs";
 import { LOCAL_STORAGE_MESSAGES_LIMIT } from "@/constants/storage";
-import { normalizeAlias, resolveEmoji } from "@/utils/ai";
+import { normalizeAliasKey, resolveEmoji } from "@/utils/ai";
 import type {
   Message,
-  ToastType,
   ConnectionStatus,
   RoomInfo,
-  AIStatus,
   Participant,
   TypingUser,
   TypingAI,
@@ -22,7 +20,6 @@ import type { AiParticipant } from "@/config/aiParticipants";
 
 // Shared option types
 type StateSetter<T> = React.Dispatch<React.SetStateAction<T>>;
-type ShowToast = (message: string, type?: ToastType) => void;
 
 // --- Connection ---
 
@@ -40,8 +37,8 @@ export const createConnectionStatusHandler =
 interface PreviewState {
   setPreviewMessages: StateSetter<Message[]>;
   setPreviewParticipants: StateSetter<Participant[]>;
-  setPreviewAiParticipants: StateSetter<AiParticipant[]>;
-  setAiParticipants: StateSetter<AiParticipant[]>;
+  setPreviewAiParticipants: StateSetter<AiParticipant[] | null>;
+  setAiParticipants: StateSetter<AiParticipant[] | null>;
   setMessages: StateSetter<Message[]>;
   isJoinedRef: React.MutableRefObject<boolean>;
 }
@@ -106,14 +103,14 @@ interface RoomJoinState {
   setIsJoined: StateSetter<boolean>;
   setRoomInfo: StateSetter<RoomInfo>;
   setParticipants: StateSetter<Participant[]>;
-  setAiParticipants: StateSetter<AiParticipant[]>;
+  setAiParticipants: StateSetter<AiParticipant[] | null>;
   setError: StateSetter<string | null>;
   setIsAuthLoading: StateSetter<boolean>;
   setHasSavedUsername: StateSetter<boolean>;
   setMessages: StateSetter<Message[]>;
   previewMessagesRef: React.MutableRefObject<Message[]>;
   previewParticipantsRef: React.MutableRefObject<Participant[]>;
-  previewAiParticipantsRef: React.MutableRefObject<AiParticipant[]>;
+  previewAiParticipantsRef: React.MutableRefObject<AiParticipant[] | null>;
 }
 
 export const createRoomJoinedHandler = (state: RoomJoinState) =>
@@ -126,7 +123,7 @@ export const createRoomJoinedHandler = (state: RoomJoinState) =>
     state.setRoomInfo(typedData);
     state.setParticipants(typedData.participants || []);
     state.setAiParticipants(
-      typedData.aiParticipants || state.previewAiParticipantsRef.current || [],
+      typedData.aiParticipants ?? state.previewAiParticipantsRef.current,
     );
     state.setError(null);
     state.setIsAuthLoading(false);
@@ -217,7 +214,7 @@ export const createAIGeneratingStartHandler = (setTypingAIs: StateSetter<TypingA
           : undefined);
       const alias = typedData?.alias || typedData?.displayName || typedData?.aiName;
       const displayName = typedData?.displayName || alias || id || "AI";
-      const normalized = normalizeAlias(alias || displayName || id);
+      const normalized = normalizeAliasKey(alias || displayName || id);
 
       const exists = prev.some(
         (ai) =>
@@ -253,7 +250,7 @@ export const createAIGeneratingStopHandler = (setTypingAIs: StateSetter<TypingAI
       (typedData?.providerKey && typedData?.modelKey
         ? `${typedData.providerKey}_${typedData.modelKey}`
         : undefined);
-    const normalized = normalizeAlias(
+    const normalized = normalizeAliasKey(
       typedData?.alias || typedData?.displayName || typedData?.aiName,
     );
     setTypingAIs((prev) =>

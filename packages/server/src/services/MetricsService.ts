@@ -121,7 +121,9 @@ export class MetricsService extends EventEmitter {
     });
   }
 
-  recordAIMessage(roomId: string, aiId: string, message: unknown): void {
+  // The store aggregates globally; the identifiers stay in the signature so
+  // call sites read clearly and a per-room breakdown has them to hand.
+  recordAIMessage(_roomId: string, _aiId: string, _message: unknown): void {
     this.store.recordAIMessage();
     this.markDirty();
     this.broadcastMetrics();
@@ -148,7 +150,11 @@ export class MetricsService extends EventEmitter {
     this.broadcastMetrics();
   }
 
-  recordUserMessage(roomId: string, username: string, message: unknown): void {
+  recordUserMessage(
+    _roomId: string,
+    _username: string,
+    _message: unknown,
+  ): void {
     this.store.recordUserMessage();
     this.markDirty();
     this.broadcastMetrics();
