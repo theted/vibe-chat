@@ -2,12 +2,14 @@ import { useMemo } from "react";
 import { DEFAULT_AI_PARTICIPANTS } from "@/config/aiParticipants";
 import { useModal } from "@/hooks/useModal";
 import { isContinuation } from "@/utils/messageGrouping";
+import { toPanelAiParticipants } from "@/utils/participants";
 import ChatHeader from "./ChatHeader";
 import ChatMessage from "./ChatMessage";
 import GuestNotice from "./GuestNotice";
 import Icon from "./Icon";
 import LoginModal from "./LoginModal";
 import MessageInput from "./MessageInput";
+import ParticipantsDrawer from "./ParticipantsDrawer";
 import ParticipantsList from "./ParticipantsList";
 import PrivateChatBanner from "./PrivateChatBanner";
 import SettingsModal from "./SettingsModal";
@@ -53,9 +55,15 @@ const ChatView = ({
   const aiParticipantList = aiParticipants ?? DEFAULT_AI_PARTICIPANTS;
   const menu = useModal();
   const login = useModal();
+  const participantsDrawer = useModal();
 
   // Lookup for reply-quote rendering - resolves a reply's trigger id to the
   // quoted message while it is still in the loaded history
+  const activeAiCount = useMemo(
+    () => toPanelAiParticipants(aiParticipantList).length,
+    [aiParticipantList],
+  );
+
   const messagesById = useMemo(
     () => new Map(messages.map((message) => [message.id, message])),
     [messages],
@@ -70,6 +78,8 @@ const ChatView = ({
           isAuthenticated={isAuthenticated}
           onLoginOpen={login.open}
           onSettingsOpen={menu.open}
+          onParticipantsOpen={participantsDrawer.open}
+          participantCount={participants.length + activeAiCount}
         />
 
         {isPrivateChat && onPrivateConversationEnd && (
@@ -164,6 +174,18 @@ const ChatView = ({
           </div>
         </footer>
       </main>
+
+      <ParticipantsDrawer
+        isOpen={participantsDrawer.isOpen}
+        isVisible={participantsDrawer.isVisible}
+        onClose={participantsDrawer.close}
+        participants={participants}
+        aiParticipants={aiParticipantList}
+        typingUsers={typingUsers}
+        typingAIs={typingAIs}
+        onAISelect={onPrivateConversationStart}
+        activePrivateAiId={privateChatAi?.id ?? null}
+      />
 
       <ParticipantsList
         participants={participants}

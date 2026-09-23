@@ -201,6 +201,18 @@ export interface ChatMessageProps {
   isContinuation?: boolean;
 }
 
+// A message saved to favorites (useFavorites), stored in localStorage
+export interface FavoriteSnippet {
+  id: string;
+  content: string;
+  sender: string;
+  senderType: Message["senderType"];
+  timestamp: number;
+  savedAt: number;
+  displayName?: string;
+  emoji?: string;
+}
+
 // Component prop types - ParticipantsList
 export interface ParticipantsListProps {
   participants?: Participant[];
@@ -211,6 +223,10 @@ export interface ParticipantsListProps {
   onAISelect?: (ai: AiParticipant) => void;
   /** Id of the AI the user is privately chatting with, highlighted in the list. */
   activePrivateAiId?: string | null;
+  /** "drawer" fills its container instead of hiding below lg */
+  variant?: "sidebar" | "drawer";
+  /** Shows a close button in the header when given */
+  onClose?: () => void;
 }
 
 // Component prop types - TypingIndicator
@@ -246,28 +262,10 @@ export interface TopicControlsProps {
   disabled?: boolean;
 }
 
-// Component prop types - StatusCard
-export interface StatusCardProps {
-  icon: string;
-  iconBackgroundClass?: string;
-  iconTextClass?: string;
-  title: string;
-  subtitle: string;
-  statusText: string;
-  statusIndicatorClass?: string;
-  statusTextClass?: string;
-}
-
 // Component prop types - SectionHeader
 export interface SectionHeaderProps {
   title: string;
   count: number;
-}
-
-// Component prop types - CircuitIcon
-export interface CircuitIconProps {
-  className?: string;
-  title?: string;
 }
 
 // Icon types

@@ -80,6 +80,7 @@
 
   --animate-fade-in: fadeIn 0.2s ease-out;
   --animate-rise-in: riseIn 0.22s ease-out;
+  --animate-slide-in-right: slideInRight 0.2s ease-out;
 
   @keyframes fadeIn {
     from {
@@ -97,6 +98,15 @@
     to {
       opacity: 1;
       transform: translateY(0);
+    }
+  }
+  /* Drawer entry: it mounts already open, so no transition carries it in */
+  @keyframes slideInRight {
+    from {
+      transform: translateX(100%);
+    }
+    to {
+      transform: translateX(0);
     }
   }
 }
@@ -293,7 +303,8 @@
 
   @media (prefers-reduced-motion: reduce) {
     .animate-fade-in,
-    .animate-rise-in {
+    .animate-rise-in,
+    .animate-slide-in-right {
       animation: none;
     }
   }

@@ -56,7 +56,7 @@ describe("Dashboard", () => {
       ]);
     });
 
-    expect(screen.getByText("Enabled AI Participants")).toBeInTheDocument();
+    expect(screen.getByText("Enabled models")).toBeInTheDocument();
     expect(screen.getByText("Alpha")).toBeInTheDocument();
     expect(screen.queryByText("Beta")).not.toBeInTheDocument();
     expect(screen.getByText("@alpha")).toBeInTheDocument();
