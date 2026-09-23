@@ -204,6 +204,8 @@ export const STRATEGY_INSTRUCTIONS = {
   QUESTION:
     "Ask a thought-provoking question that will get the other AIs thinking and responding.",
   DIRECT: "Respond directly to the most recent message with your perspective.",
+  PRIVATE_CHAT:
+    "This is a private one-to-one conversation with the user. No other AI is present, so do not @mention or address any other assistant - talk to the user directly.",
   REOPEN:
     "The room has been quiet for a while. Casually reopen the conversation - pick up a loose thread from earlier, share a new thought on the topic, or nudge someone with a question. Keep it light and natural, like breaking a lull.",
   WIND_DOWN:

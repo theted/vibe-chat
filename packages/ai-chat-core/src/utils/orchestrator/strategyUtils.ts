@@ -294,8 +294,13 @@ export const applyInteractionStrategy = (
   const handleAlreadyReferenced =
     strategy.mentionHandle &&
     instructionPrompt.toLowerCase().includes(strategy.mentionHandle.toLowerCase());
+  // A 1-1 room has nobody else to hand off to, so the mention instruction is
+  // dropped outright rather than left to the model's judgement.
   const mentionInstruction =
-    strategy.shouldMention && strategy.mentionHandle && !handleAlreadyReferenced
+    !strategy.isPrivateChat &&
+    strategy.shouldMention &&
+    strategy.mentionHandle &&
+    !handleAlreadyReferenced
       ? STRATEGY_INSTRUCTIONS.MENTION_TARGET(strategy.mentionHandle)
       : "";
 
@@ -307,8 +312,12 @@ export const applyInteractionStrategy = (
   const windDownInstruction = strategy.windingDown
     ? STRATEGY_INSTRUCTIONS.WIND_DOWN
     : "";
+  const privateChatInstruction = strategy.isPrivateChat
+    ? STRATEGY_INSTRUCTIONS.PRIVATE_CHAT
+    : "";
   const combinedInstruction = [
     instructionPrompt,
+    privateChatInstruction,
     mentionInstruction,
     energyInstruction,
     windDownInstruction,

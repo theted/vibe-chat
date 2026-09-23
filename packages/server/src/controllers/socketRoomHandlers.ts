@@ -40,6 +40,17 @@ export const handleJoinRoom = (
       return;
     }
 
+    // Socket.IO room membership is separate bookkeeping from RoomManager's:
+    // RoomManager.joinRoom drops the old participant entry, but the socket
+    // stayed subscribed to its previous room, so the main room's messages and
+    // typing events kept arriving after a user opened a private chat. Only the
+    // chat rooms are left here — "dashboard" is an independent subscription and
+    // the socket's own id room is how Socket.IO addresses it directly.
+    const previousRoomId = context.connectedUsers.get(socket.id)?.roomId;
+    if (previousRoomId && previousRoomId !== roomId) {
+      socket.leave(previousRoomId);
+    }
+    socket.leave(context.previewRoomId);
     socket.join(roomId);
     const roomScope = applyRoomAIScope(context.chatOrchestrator, roomId);
 
@@ -68,7 +79,6 @@ export const handleJoinRoom = (
       });
     }
 
-    socket.leave(context.previewRoomId);
     context.sendRecentMessages(socket, roomId).catch((error) => {
       warnSocketError("Failed to send room history after join", error);
     });

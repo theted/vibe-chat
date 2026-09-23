@@ -102,6 +102,7 @@ export class ChatOrchestrator extends EventEmitter {
       onResponseComplete: () => this.responseQueue.onResponseComplete(),
       isAsleep: () => this.messageTracker.isAsleep,
       getFatigue: () => this.getFatigue(),
+      isDirectOnly: (roomId) => this.isRoomDirectOnly(roomId),
       isVerbose: () => this.verboseContextLogging,
     });
 

@@ -12,6 +12,7 @@ import type { Message } from "@/types/index.js";
 import type { ContextMessage } from "@/types/orchestrator.js";
 import { CONTEXT_LIMITS, FADE_OUT } from "./constants.js";
 import {
+  findAIByNormalizedAlias,
   findAIFromContextMessage,
   getMentionTokenForAI,
 } from "@/utils/orchestrator/aiLookup.js";
@@ -19,6 +20,7 @@ import { logAIContext } from "@/utils/orchestrator/logging.js";
 import {
   limitMentionsInResponse,
   responseIncludesMention,
+  stripAIMentions,
 } from "@/utils/orchestrator/mentionUtils.js";
 import { createEnhancedSystemPrompt } from "@/utils/orchestrator/promptBuilder.js";
 import { calculateTypingHold } from "@/utils/orchestrator/responseScheduling.js";
@@ -37,6 +39,8 @@ type ResponseGeneratorDeps = {
   isAsleep: () => boolean;
   /** How close the AI-message budget is to running out, 0..1. */
   getFatigue: () => number;
+  /** Private 1-1 room: no other AI is present to address. */
+  isDirectOnly: (roomId: string) => boolean;
   isVerbose: () => boolean;
 };
 
@@ -94,6 +98,19 @@ export class ResponseGenerator {
         (message) => findAIFromContextMessage(aiServices, message),
         (ai) => getMentionTokenForAI(ai),
       );
+
+      // In a 1-1 room there is nobody else to hand off to, so drop any mention
+      // the strategy picked before it reaches the prompt.
+      const isPrivateChat = this.deps.isDirectOnly(roomId);
+      if (isPrivateChat) {
+        interactionStrategy = {
+          ...interactionStrategy,
+          isPrivateChat: true,
+          shouldMention: false,
+          mentionHandle: null,
+          targetAI: null,
+        };
+      }
 
       if (options.isReopening) {
         // Reopening a quiet room replaces the usual reactive strategies -
@@ -155,6 +172,18 @@ export class ResponseGenerator {
       // Mentions are prompt-driven (MENTION_TARGET instruction); only cap
       // runaway @mentions here rather than templating any in post-hoc
       processedResponse = limitMentionsInResponse(processedResponse);
+
+      // The prompt asks for no hand-offs, but a model can still write one;
+      // demote any mention of another AI to plain text so the room never
+      // addresses someone who is not in it.
+      if (isPrivateChat) {
+        processedResponse = stripAIMentions(processedResponse, (token) => {
+          // Only other AIs: a token that resolves to nobody is the user's own
+          // handle and must keep its @.
+          const target = findAIByNormalizedAlias(aiServices, token);
+          return Boolean(target) && target?.id !== aiId;
+        });
+      }
 
       // Telemetry: the MENTION_TARGET instruction lets the model skip forced
       // mentions - track follow-through to tune the wording and probability
