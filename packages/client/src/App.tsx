@@ -23,7 +23,7 @@ import ToastContainer from "./components/ToastContainer";
 import ChatView from "./components/ChatView";
 import LoadingOverlay from "./components/LoadingOverlay";
 import { ThemeContext } from "./context/ThemeContext";
-import { SERVER_URL } from "./constants/chat";
+import { AUTH_LOADING_TIMEOUT_MS, SERVER_URL } from "./constants/chat";
 import { getStorageItem, removeStorageItem, setStorageItem } from "./utils/storage";
 import { STORAGE_KEYS } from "./constants/storage";
 import type {
@@ -138,6 +138,18 @@ const App = () => {
   useEffect(() => {
     if (isJoined) setIsAuthLoading(false);
   }, [isJoined]);
+
+  // Nothing else clears the overlay when the join never comes back: with a
+  // saved username and an unreachable server the app sat on "checking your
+  // session" indefinitely, with no error and no way to reach the login form.
+  useEffect(() => {
+    if (!isAuthLoading) return;
+    const timer = setTimeout(
+      () => setIsAuthLoading(false),
+      AUTH_LOADING_TIMEOUT_MS,
+    );
+    return () => clearTimeout(timer);
+  }, [isAuthLoading]);
 
   useChatAutoScroll(messagesEndRef, messages, showScrollButton, isJoined);
 

@@ -25,6 +25,13 @@ const resolveServerUrl = (): string => {
 };
 
 export const SERVER_URL = resolveServerUrl();
+/**
+ * How long the "checking your session" overlay may cover the app while the
+ * auto-join round trip is in flight. Past this the guest view is shown, so an
+ * unreachable server degrades to a usable page instead of a blank one.
+ */
+export const AUTH_LOADING_TIMEOUT_MS = 5_000;
+
 export const PRIVATE_CONVERSATIONS_ENABLED = parseBooleanFlag(
   import.meta.env.VITE_PRIVATE_CONVERSATIONS_ENABLED,
   true,

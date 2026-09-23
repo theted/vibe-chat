@@ -4,6 +4,7 @@ import { act } from "react-dom/test-utils";
 import { getParticipantById } from "./config/aiParticipants";
 import type { AiParticipant } from "./config/aiParticipants";
 import type { Message } from "./types";
+import { AUTH_LOADING_TIMEOUT_MS } from "./constants/chat";
 
 const listeners: Record<string, (data: unknown) => void> = {};
 const emitMock = vi.fn();
@@ -174,5 +175,24 @@ describe("App command handling", () => {
     await waitFor(() => {
       expect(screen.getByTestId("ai-count")).toHaveTextContent("1");
     });
+  });
+  it("falls through to the app when the join never comes back", async () => {
+    vi.useFakeTimers();
+    try {
+      localStorage.setItem("ai-chat-username", "saved-user");
+      render(<App />);
+
+      // Auto-join is emitted but the server never answers room-joined
+      expect(screen.queryByTestId("chat-view")).toBeNull();
+
+      await act(async () => {
+        vi.advanceTimersByTime(AUTH_LOADING_TIMEOUT_MS);
+      });
+
+      expect(screen.getByTestId("chat-view")).toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+      localStorage.clear();
+    }
   });
 });
