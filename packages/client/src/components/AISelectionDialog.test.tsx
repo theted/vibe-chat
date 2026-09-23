@@ -12,15 +12,15 @@ import type { ReactNode } from "react";
 
 const stripMotionProps = (props: Record<string, unknown>) => {
   const {
-    whileHover,
-    whileTap,
-    initial,
-    animate,
-    exit,
-    variants,
-    transition,
-    layout,
-    layoutId,
+    whileHover: _whileHover,
+    whileTap: _whileTap,
+    initial: _initial,
+    animate: _animate,
+    exit: _exit,
+    variants: _variants,
+    transition: _transition,
+    layout: _layout,
+    layoutId: _layoutId,
     ...rest
   } = props;
   return rest;
