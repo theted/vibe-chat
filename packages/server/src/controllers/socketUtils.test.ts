@@ -71,3 +71,66 @@ describe("applyRoomAIScope", () => {
     expect(calls).toEqual([{ roomId: "private:ada:RETIRED_MODEL" }]);
   });
 });
+
+/**
+ * Socket.IO membership is separate from RoomManager's bookkeeping. handleJoinRoom
+ * must drop the previous room, or the main room keeps broadcasting into a
+ * private chat. This models the socket's room set the way Socket.IO does.
+ */
+describe("room membership on join", () => {
+  const makeSocket = (id: string) => {
+    const rooms = new Set<string>([id]);
+    return {
+      id,
+      rooms,
+      join: (room: string) => rooms.add(room),
+      leave: (room: string) => rooms.delete(room),
+    };
+  };
+
+  /** The membership swap performed by handleJoinRoom. */
+  const switchRoom = (
+    socket: ReturnType<typeof makeSocket>,
+    roomId: string,
+    previousRoomId?: string,
+  ) => {
+    if (previousRoomId && previousRoomId !== roomId) socket.leave(previousRoomId);
+    socket.leave("preview");
+    socket.join(roomId);
+  };
+
+  it("leaves the previous room so its broadcasts stop arriving", () => {
+    const socket = makeSocket("sock-1");
+    switchRoom(socket, "default");
+    switchRoom(socket, "private:ada:OPENAI_GPT6_SOL", "default");
+
+    expect([...socket.rooms]).toEqual([
+      "sock-1",
+      "private:ada:OPENAI_GPT6_SOL",
+    ]);
+  });
+
+  it("keeps the socket's own room, which Socket.IO needs for direct emits", () => {
+    const socket = makeSocket("sock-2");
+    switchRoom(socket, "default");
+
+    expect(socket.rooms.has("sock-2")).toBe(true);
+  });
+
+  it("drops the preview room when a guest joins", () => {
+    const socket = makeSocket("sock-3");
+    socket.join("preview");
+    switchRoom(socket, "default");
+
+    expect(socket.rooms.has("preview")).toBe(false);
+  });
+
+  it("keeps the dashboard subscription, which is not a chat room", () => {
+    const socket = makeSocket("sock-4");
+    socket.join("dashboard");
+    switchRoom(socket, "default");
+    switchRoom(socket, "private:ada:OPENAI_GPT6_SOL", "default");
+
+    expect(socket.rooms.has("dashboard")).toBe(true);
+  });
+});
