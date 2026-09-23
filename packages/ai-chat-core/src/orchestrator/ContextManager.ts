@@ -7,6 +7,7 @@ import {
   ContextMessage,
   ContextManagerConfig,
 } from "@/types/orchestrator.js";
+import { normalizeRoomId } from "@ai-chat/ai-configs";
 import { CONVERSATION_DIGEST } from "./constants.js";
 import { excerptForQuote } from "@/utils/orchestrator/responseUtils.js";
 import { normalizeAlias, parseMentions } from "@/utils/stringUtils.js";
@@ -14,8 +15,12 @@ import { normalizeAlias, parseMentions } from "@/utils/stringUtils.js";
 export class ContextManager implements IContextManager {
   private messages: ContextMessage[] = [];
   private config: ContextManagerConfig;
-  /** One-liners of messages evicted from the window - see getConversationDigest. */
-  private digest: string[] = [];
+  /**
+   * One-liners of messages evicted from the window, per room - see
+   * getConversationDigest. Keyed by room so a private 1-1 chat never folds
+   * the main room's history into its prompts, or vice versa.
+   */
+  private digestsByRoom: Map<string, string[]> = new Map();
 
   constructor(maxMessages = 100) {
     this.config = {
@@ -42,6 +47,9 @@ export class ContextManager implements IContextManager {
       message.normalizedAlias || normalizeAlias(alias ?? "");
 
     const contextMessage: ContextMessage = {
+      // Room is the isolation boundary: a private chat must not see the main
+      // room's messages, so every stored message carries one (absent = default).
+      roomId: normalizeRoomId(message.roomId),
       role: message.senderType === "user" ? "user" : "assistant",
       content: message.content,
       timestamp: message.timestamp,
@@ -58,9 +66,22 @@ export class ContextManager implements IContextManager {
       id: message.id,
     };
 
-    if (this.messages.length >= this.config.maxMessages) {
-      const evicted = this.messages.shift();
-      if (evicted) this.addToDigest(evicted);
+    // The sliding window is per room: a busy main room must not evict a
+    // private 1-1 chat's history out from under it.
+    const room = contextMessage.roomId as string;
+    const roomMessageCount = this.messages.reduce(
+      (count, stored) =>
+        count + (normalizeRoomId(stored.roomId) === room ? 1 : 0),
+      0,
+    );
+    if (roomMessageCount >= this.config.maxMessages) {
+      const oldestIndex = this.messages.findIndex(
+        (stored) => normalizeRoomId(stored.roomId) === room,
+      );
+      if (oldestIndex >= 0) {
+        const [evicted] = this.messages.splice(oldestIndex, 1);
+        this.addToDigest(evicted);
+      }
     }
 
     this.messages.push(contextMessage);
@@ -76,33 +97,51 @@ export class ContextManager implements IContextManager {
     );
     if (!excerpt) return;
 
-    this.digest.push(`${speaker}: ${excerpt}`);
-    if (this.digest.length > CONVERSATION_DIGEST.MAX_ENTRIES) {
-      this.digest.shift();
+    const room = normalizeRoomId(message.roomId);
+    const digest = this.digestsByRoom.get(room) ?? [];
+    digest.push(`${speaker}: ${excerpt}`);
+    if (digest.length > CONVERSATION_DIGEST.MAX_ENTRIES) {
+      digest.shift();
     }
+    this.digestsByRoom.set(room, digest);
   }
 
   /**
    * Rolling summary of messages that scrolled out of the context window,
    * oldest first. Empty string until the window has overflowed.
+   * Scoped to a room when one is given.
    */
-  getConversationDigest(): string {
-    return this.digest.join("\n");
+  getConversationDigest(roomId?: string): string {
+    if (roomId === undefined) {
+      return Array.from(this.digestsByRoom.values()).flat().join("\n");
+    }
+    return (this.digestsByRoom.get(normalizeRoomId(roomId)) ?? []).join("\n");
+  }
+
+  /** Messages belonging to one room, oldest first. */
+  private messagesForRoom(roomId: string): ContextMessage[] {
+    const room = normalizeRoomId(roomId);
+    return this.messages.filter(
+      (message) => normalizeRoomId(message.roomId) === room,
+    );
   }
 
   /**
-   * Get context for AI (recent messages)
+   * Get context for AI (recent messages). Omitting roomId returns messages
+   * from every room, which is what the single-room CLI wants.
    */
-  getContext(limit?: number): ContextMessage[] {
+  getContext(limit?: number, roomId?: string): ContextMessage[] {
     const actualLimit = limit ?? 50;
-    return this.messages.slice(-actualLimit);
+    const pool =
+      roomId === undefined ? this.messages : this.messagesForRoom(roomId);
+    return pool.slice(-actualLimit);
   }
 
   /**
    * Get context for AI (recent messages) - alias for compatibility
    */
-  getContextForAI(limit = 50): ContextMessage[] {
-    return this.getContext(limit);
+  getContextForAI(limit = 50, roomId?: string): ContextMessage[] {
+    return this.getContext(limit, roomId);
   }
 
   /**
@@ -117,7 +156,7 @@ export class ContextManager implements IContextManager {
    */
   clear(): void {
     this.messages = [];
-    this.digest = [];
+    this.digestsByRoom.clear();
   }
 
   /**
@@ -137,10 +176,10 @@ export class ContextManager implements IContextManager {
   /**
    * Get the last message
    */
-  getLastMessage(): ContextMessage | null {
-    return this.messages.length > 0
-      ? this.messages[this.messages.length - 1]
-      : null;
+  getLastMessage(roomId?: string): ContextMessage | null {
+    const pool =
+      roomId === undefined ? this.messages : this.messagesForRoom(roomId);
+    return pool.length > 0 ? pool[pool.length - 1] : null;
   }
 
   /**

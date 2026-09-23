@@ -1,10 +1,14 @@
 /**
- * RoomScope - Optional per-room allowlist restricting which AIs may respond.
+ * RoomScope - Optional per-room allowlist restricting which AIs may respond,
+ * plus an optional "direct only" mode.
  *
- * A room with no allowlist (or an empty one) permits all AIs.
+ * A room with no allowlist (or an empty one) permits all AIs. A direct-only
+ * room (a private 1-1 chat) gets exactly one reply per user message and no
+ * unprompted background chatter.
  */
 export class RoomScope {
   private roomAllowedAIs: Map<string, Set<string>> = new Map();
+  private directOnlyRooms: Set<string> = new Set();
 
   setAllowed(roomId: string, aiIds: string[]): void {
     if (!roomId) return;
@@ -18,6 +22,20 @@ export class RoomScope {
 
   clear(roomId: string): void {
     this.roomAllowedAIs.delete(roomId);
+    this.directOnlyRooms.delete(roomId);
+  }
+
+  setDirectOnly(roomId: string, directOnly: boolean): void {
+    if (!roomId) return;
+    if (directOnly) {
+      this.directOnlyRooms.add(roomId);
+      return;
+    }
+    this.directOnlyRooms.delete(roomId);
+  }
+
+  isDirectOnly(roomId: string): boolean {
+    return this.directOnlyRooms.has(roomId);
   }
 
   filter(roomId: string, aiIds: string[]): string[] {

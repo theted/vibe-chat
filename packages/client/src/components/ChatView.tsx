@@ -9,6 +9,7 @@ import ParticipantsList from "./ParticipantsList";
 import TypingIndicator from "./TypingIndicator";
 import SettingsModal from "./SettingsModal";
 import LoginModal from "./LoginModal";
+import PrivateChatBanner from "./PrivateChatBanner";
 import Icon from "./Icon";
 import type { ChatViewProps } from "@/types";
 
@@ -33,6 +34,9 @@ const ChatView = ({
   onTypingStart,
   onTypingStop,
   onPrivateConversationStart,
+  onPrivateConversationEnd,
+  isPrivateChat = false,
+  privateChatAi = null,
   error,
   messagesEndRef,
   messagesContainerRef,
@@ -112,6 +116,13 @@ const ChatView = ({
                 </div>
             </div>
           </div>
+
+          {isPrivateChat && onPrivateConversationEnd && (
+            <PrivateChatBanner
+              ai={privateChatAi}
+              onLeave={onPrivateConversationEnd}
+            />
+          )}
 
           <SettingsModal
             isOpen={menu.isOpen}
@@ -222,6 +233,7 @@ const ChatView = ({
           typingAIs={typingAIs}
           isVisible={true}
           onAISelect={onPrivateConversationStart}
+          activePrivateAiId={privateChatAi?.id ?? null}
         />
       </div>
     </div>

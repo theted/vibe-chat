@@ -5,6 +5,7 @@
  * a callback suitable for `socket.on(event, callback)`.
  */
 
+import { isPrivateRoomId } from "@ai-chat/ai-configs";
 import { LOCAL_STORAGE_MESSAGES_LIMIT } from "@/constants/storage";
 import { normalizeAlias, resolveEmoji } from "@/utils/ai";
 import type {
@@ -130,10 +131,13 @@ export const createRoomJoinedHandler = (state: RoomJoinState) =>
     state.setError(null);
     state.setIsAuthLoading(false);
     state.setHasSavedUsername(true);
+    // The preview transcript belongs to the main room, so a private 1-1 room
+    // starts empty and fills from its own history (RECENT_MESSAGES) instead.
+    const inheritsPreview =
+      !isPrivateRoomId(typedData.roomId) &&
+      state.previewMessagesRef.current.length > 0;
     state.setMessages(() =>
-      state.previewMessagesRef.current.length > 0
-        ? [...state.previewMessagesRef.current]
-        : [],
+      inheritsPreview ? [...state.previewMessagesRef.current] : [],
     );
     if (
       (typedData.participants || []).length === 0 &&

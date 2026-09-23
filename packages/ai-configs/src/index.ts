@@ -42,6 +42,16 @@ export {
 // Alias utilities
 export { normalizeAliasKey } from "./aliasUtils.js";
 
+// Room id conventions (default room, private 1-1 rooms)
+export {
+  DEFAULT_ROOM_ID,
+  PRIVATE_ROOM_PREFIX,
+  isPrivateRoomId,
+  buildPrivateRoomId,
+  getPrivateRoomAiId,
+  normalizeRoomId,
+} from "./rooms.js";
+
 // Socket wire-protocol events
 export { SOCKET_EVENTS } from "./socketEvents.js";
 export type { SocketEventName } from "./socketEvents.js";

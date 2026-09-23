@@ -3,7 +3,11 @@ import type { AIRegistry } from "@/orchestrator/AIRegistry.js";
 import type { QueuedResponse } from "@/orchestrator/ResponseQueue.js";
 import { ResponseScheduler } from "@/orchestrator/ResponseScheduler.js";
 
-const makeScheduler = (fatigue: number, batches: QueuedResponse[][]) => {
+const makeScheduler = (
+  fatigue: number,
+  batches: QueuedResponse[][],
+  directOnlyRooms: string[] = [],
+) => {
   const services = new Map(
     ["AI_ONE", "AI_TWO", "AI_THREE"].map((id) => [
       id,
@@ -26,6 +30,7 @@ const makeScheduler = (fatigue: number, batches: QueuedResponse[][]) => {
     registry,
     getLastMessage: () => undefined,
     filterAIsForRoom: (_roomId, aiIds) => aiIds,
+    isDirectOnly: (roomId) => directOnlyRooms.includes(roomId),
     enqueueBatch: (responses) => batches.push(responses),
     isAsleep: () => false,
     getFatigue: () => fatigue,

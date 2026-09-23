@@ -71,7 +71,7 @@ export class MessageHistoryService {
    */
   async getRecentMessages(
     roomId = "default",
-    contextManager?: ChatOrchestrator["contextManager"]
+    contextManager?: ChatOrchestrator["contextManager"],
   ): Promise<ChatMessage[]> {
     if (!this.redisClient) {
       // Fallback to in-memory context
@@ -79,7 +79,7 @@ export class MessageHistoryService {
         return [];
       }
       return contextManager
-        .getContextForAI(this.recentMessageLimit)
+        .getContextForAI(this.recentMessageLimit, roomId)
         .map((ctx) => ({
           id:
             ctx.id ||
@@ -100,7 +100,7 @@ export class MessageHistoryService {
       const entries = await this.redisClient.lRange(
         key,
         0,
-        this.recentMessageLimit - 1
+        this.recentMessageLimit - 1,
       );
       const parsedEntries = entries
         .map((entry) => {

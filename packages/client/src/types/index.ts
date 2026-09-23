@@ -151,6 +151,11 @@ export interface ChatViewProps {
   onTypingStart: () => void;
   onTypingStop: () => void;
   onPrivateConversationStart?: (ai: AiParticipant) => void;
+  /** Leaves the current 1-1 chat and rejoins the main room. */
+  onPrivateConversationEnd?: () => void;
+  isPrivateChat?: boolean;
+  /** The AI on the other side of a 1-1 chat, when it is a known participant. */
+  privateChatAi?: AiParticipant | null;
   error: string | null;
   messagesEndRef: RefObject<HTMLDivElement | null>;
   messagesContainerRef: RefObject<HTMLDivElement | null>;
@@ -195,6 +200,8 @@ export interface ParticipantsListProps {
   typingAIs?: TypingAI[];
   isVisible?: boolean;
   onAISelect?: (ai: AiParticipant) => void;
+  /** Id of the AI the user is privately chatting with, highlighted in the list. */
+  activePrivateAiId?: string | null;
 }
 
 // Component prop types - TypingIndicator

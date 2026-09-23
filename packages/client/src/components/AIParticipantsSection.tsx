@@ -16,6 +16,7 @@ interface AIParticipantsSectionProps {
   aiList: NormalizedAiParticipant[];
   isAITyping: (ai: NormalizedAiParticipant) => boolean;
   onAISelect?: (ai: AiParticipant) => void;
+  activePrivateAiId?: string | null;
 }
 
 const getModelSortKey = (ai: NormalizedAiParticipant): string =>
@@ -25,6 +26,7 @@ const AIParticipantsSection = ({
   aiList,
   isAITyping,
   onAISelect,
+  activePrivateAiId = null,
 }: AIParticipantsSectionProps) => {
   const aiProviders = groupAiParticipantsByProvider(aiList);
   const sortedProviders = Array.from(aiProviders.keys()).sort((a, b) =>
@@ -53,6 +55,8 @@ const AIParticipantsSection = ({
               </div>
               {providerParticipants.map((ai) => {
                 const generating = isAITyping(ai);
+                const isPrivatePartner =
+                  activePrivateAiId != null && ai.id === activePrivateAiId;
                 const itemIndex = aiIndex;
                 aiIndex += 1;
                 return (
@@ -69,9 +73,18 @@ const AIParticipantsSection = ({
                         <button
                           type="button"
                           onClick={() => onAISelect?.(ai)}
-                          className="font-medium text-slate-700 truncate text-left hover:text-purple-700 hover:underline dark:text-slate-200 dark:hover:text-purple-200"
+                          className={`font-medium truncate text-left hover:underline ${
+                            isPrivatePartner
+                              ? "text-purple-700 underline dark:text-purple-200"
+                              : "text-slate-700 hover:text-purple-700 dark:text-slate-200 dark:hover:text-purple-200"
+                          }`}
                           data-testid={`ai-name-${ai.id || ai.alias || itemIndex}`}
-                          title={`Start private chat with ${ai.displayName || ai.name}`}
+                          aria-current={isPrivatePartner ? "true" : undefined}
+                          title={
+                            isPrivatePartner
+                              ? `You are privately chatting with ${ai.displayName || ai.name}`
+                              : `Start private chat with ${ai.displayName || ai.name}`
+                          }
                         >
                           {ai.displayName || ai.name}
                         </button>

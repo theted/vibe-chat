@@ -106,7 +106,8 @@ export class ChatOrchestrator extends EventEmitter {
     });
 
     this.responseQueue = new ResponseQueue({
-      maxConcurrent: options.maxConcurrentResponses || DEFAULTS.MAX_CONCURRENT_RESPONSES,
+      maxConcurrent:
+        options.maxConcurrentResponses || DEFAULTS.MAX_CONCURRENT_RESPONSES,
       isSleeping: () => this.messageTracker.isAsleep,
       onDispatch: (aiId, roomId, isUserResponse, opts) =>
         this.generateAIResponse(aiId, roomId, isUserResponse, opts),
@@ -114,8 +115,10 @@ export class ChatOrchestrator extends EventEmitter {
 
     this.scheduler = new ResponseScheduler({
       registry: this.registry,
-      getLastMessage: () => this.contextManager.getLastMessage() ?? undefined,
+      getLastMessage: (roomId) =>
+        this.contextManager.getLastMessage(roomId) ?? undefined,
       filterAIsForRoom: (roomId, aiIds) => this.filterAIsForRoom(roomId, aiIds),
+      isDirectOnly: (roomId) => this.isRoomDirectOnly(roomId),
       enqueueBatch: (responses) => this.responseQueue.enqueueBatch(responses),
       isAsleep: () => this.messageTracker.isAsleep,
       getFatigue: () => this.getFatigue(),
@@ -133,7 +136,8 @@ export class ChatOrchestrator extends EventEmitter {
       isAsleep: () => this.messageTracker.isAsleep,
       hasActiveAIs: () => this.activeAIs.length > 0,
       getLastAIMessageTime: () => this.lastAIMessageTime,
-      triggerBackgroundResponses: () => this.scheduleAIResponses("default", false),
+      triggerBackgroundResponses: () =>
+        this.scheduleAIResponses("default", false),
       triggerReopening: () =>
         this.scheduler.schedule("default", false, { isReopening: true }),
       getDelays: () => ({
@@ -239,7 +243,9 @@ export class ChatOrchestrator extends EventEmitter {
     if (this.messageTracker.isAsleep) return;
 
     this.messageTracker.aiMessageCount++;
-    if (this.messageTracker.aiMessageCount >= this.messageTracker.maxAIMessages) {
+    if (
+      this.messageTracker.aiMessageCount >= this.messageTracker.maxAIMessages
+    ) {
       this.putAIsToSleep();
     }
   }
@@ -277,6 +283,18 @@ export class ChatOrchestrator extends EventEmitter {
     this.roomScope.clear(roomId);
   }
 
+  /**
+   * Mark a room as a 1-1 chat: exactly one reply per user message, and no
+   * unprompted background chatter. Pair it with setRoomAllowedAIs.
+   */
+  setRoomDirectOnly(roomId: string, directOnly = true): void {
+    this.roomScope.setDirectOnly(roomId, directOnly);
+  }
+
+  isRoomDirectOnly(roomId: string): boolean {
+    return this.roomScope.isDirectOnly(roomId);
+  }
+
   filterAIsForRoom(roomId: string, aiIds: string[]): string[] {
     return this.roomScope.filter(roomId, aiIds);
   }
@@ -300,7 +318,12 @@ export class ChatOrchestrator extends EventEmitter {
     context: ContextMessage[],
     isUserResponse: boolean,
   ) {
-    return createEnhancedSystemPrompt(aiService, context, isUserResponse, this.aiServices);
+    return createEnhancedSystemPrompt(
+      aiService,
+      context,
+      isUserResponse,
+      this.aiServices,
+    );
   }
 
   determineInteractionStrategy(

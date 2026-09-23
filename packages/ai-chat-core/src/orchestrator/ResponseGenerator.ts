@@ -81,7 +81,12 @@ export class ResponseGenerator {
         }...`,
       );
 
-      let context = contextManager.getContextForAI(CONTEXT_LIMITS.AI_CONTEXT_SIZE);
+      // Scoped to the room so a private 1-1 chat never sees the main room's
+      // conversation (and its replies never leak back into it).
+      let context = contextManager.getContextForAI(
+        CONTEXT_LIMITS.AI_CONTEXT_SIZE,
+        roomId,
+      );
       let interactionStrategy = determineInteractionStrategy(
         aiService,
         context,
@@ -101,7 +106,10 @@ export class ResponseGenerator {
         };
       }
 
-      if (!isUserResponse && this.deps.getFatigue() >= FADE_OUT.WIND_DOWN_RATIO) {
+      if (
+        !isUserResponse &&
+        this.deps.getFatigue() >= FADE_OUT.WIND_DOWN_RATIO
+      ) {
         interactionStrategy = { ...interactionStrategy, windingDown: true };
       }
 
@@ -123,7 +131,7 @@ export class ResponseGenerator {
         context,
         isUserResponse,
         aiServices,
-        contextManager.getConversationDigest(),
+        contextManager.getConversationDigest(roomId),
       );
       const systemMessage: ContextMessage = {
         role: "system",
@@ -150,7 +158,10 @@ export class ResponseGenerator {
 
       // Telemetry: the MENTION_TARGET instruction lets the model skip forced
       // mentions - track follow-through to tune the wording and probability
-      if (interactionStrategy.shouldMention && interactionStrategy.mentionHandle) {
+      if (
+        interactionStrategy.shouldMention &&
+        interactionStrategy.mentionHandle
+      ) {
         const mentionIncluded = responseIncludesMention(
           processedResponse,
           interactionStrategy.mentionHandle,

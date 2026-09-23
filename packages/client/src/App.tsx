@@ -9,7 +9,9 @@ import {
   useCallback,
   type FormEvent,
 } from "react";
+import { DEFAULT_ROOM_ID } from "@ai-chat/ai-configs";
 import { useSocket } from "./hooks/useSocket";
+import { usePrivateConversation } from "./hooks/usePrivateConversation";
 import { useSocketEvents } from "./hooks/useSocketEvents";
 import { useTheme } from "./hooks/useTheme";
 import { useToasts } from "./hooks/useToasts";
@@ -21,8 +23,7 @@ import ToastContainer from "./components/ToastContainer";
 import ChatView from "./components/ChatView";
 import LoadingOverlay from "./components/LoadingOverlay";
 import { ThemeContext } from "./context/ThemeContext";
-import { PRIVATE_CONVERSATIONS_ENABLED, SERVER_URL } from "./constants/chat";
-import { normalizeAlias } from "./utils/ai";
+import { SERVER_URL } from "./constants/chat";
 import { getStorageItem, removeStorageItem, setStorageItem } from "./utils/storage";
 import { STORAGE_KEYS } from "./constants/storage";
 import type {
@@ -128,7 +129,7 @@ const App = () => {
   // joinRoom from useSocketEvents already sets isAuthLoading
   useEffect(() => {
     if (hasSavedUsername && connectionStatus.connected && !isJoined && username) {
-      joinRoom(username, "default");
+      joinRoom(username, DEFAULT_ROOM_ID);
     }
   }, [connectionStatus.connected, hasSavedUsername, isJoined, joinRoom, username]);
 
@@ -138,13 +139,34 @@ const App = () => {
 
   useChatAutoScroll(messagesEndRef, messages, showScrollButton, isJoined);
 
+  // Switching rooms must not carry the previous room's transcript across
+  const resetConversationView = useCallback(() => {
+    setPreviewMessages([]);
+    setMessages([]);
+    setTypingUsers([]);
+    setTypingAIs([]);
+  }, [setPreviewMessages]);
+
+  const {
+    privateChatAi,
+    isPrivateChat,
+    startPrivateConversation,
+    leavePrivateConversation,
+  } = usePrivateConversation({
+    roomInfo,
+    aiParticipants: isJoined ? aiParticipants : previewAiParticipants,
+    usernameRef,
+    joinRoom,
+    resetConversationView,
+  });
+
   // Handlers
   const handleJoinRoom = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (username.trim()) {
       setStorageItem(STORAGE_KEYS.USERNAME, username.trim());
       setHasSavedUsername(true);
-      joinRoom(username.trim(), "default");
+      joinRoom(username.trim(), DEFAULT_ROOM_ID);
     }
   };
 
@@ -173,26 +195,6 @@ const App = () => {
     sendMessage(content);
   };
 
-  const handlePrivateConversationStart = useCallback(
-    (ai: AiParticipant) => {
-      if (!PRIVATE_CONVERSATIONS_ENABLED) return;
-
-      const resolved = usernameRef.current.trim();
-      if (!resolved) return;
-
-      const aiId = ai.id || normalizeAlias(ai.alias || ai.name || "");
-      if (!aiId) return;
-
-      const roomId = `private:${resolved}:${aiId}`;
-      setPreviewMessages([]);
-      setMessages([]);
-      setTypingUsers([]);
-      setTypingAIs([]);
-      joinRoom(resolved, roomId);
-    },
-    [joinRoom],
-  );
-
   return (
     <ThemeContext.Provider value={{ theme, setTheme, toggleTheme }}>
       <LoadingOverlay visible={isAuthLoading} />
@@ -216,7 +218,10 @@ const App = () => {
           onSendMessage={handleSendMessage}
           onTypingStart={startTyping}
           onTypingStop={stopTyping}
-          onPrivateConversationStart={handlePrivateConversationStart}
+          onPrivateConversationStart={startPrivateConversation}
+          onPrivateConversationEnd={leavePrivateConversation}
+          isPrivateChat={isPrivateChat}
+          privateChatAi={privateChatAi}
           error={error}
           messagesEndRef={messagesEndRef}
           messagesContainerRef={messagesContainerRef}
