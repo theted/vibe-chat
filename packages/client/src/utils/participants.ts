@@ -24,6 +24,19 @@ export const normalizeAiParticipants = (
     };
   });
 
+/**
+ * The side panel only lists models that can actually answer. The server's
+ * roster is already active-only, but the bundled catalogue used as a
+ * placeholder before it arrives is not, so filter here and the panel never
+ * shows a parked model — not even on first paint.
+ */
+export const toPanelAiParticipants = (
+  aiParticipants: AiParticipant[],
+): NormalizedAiParticipant[] =>
+  normalizeAiParticipants(aiParticipants).filter(
+    (ai) => ai.status === "active",
+  );
+
 export const groupAiParticipantsByProvider = (
   aiList: NormalizedAiParticipant[],
 ): Map<string, NormalizedAiParticipant[]> =>
