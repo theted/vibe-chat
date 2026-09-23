@@ -25,6 +25,12 @@ export const SAKANA: AIProvider = {
   models: {
     // Fugu is a learned multi-agent orchestrator. OpenRouter lists no
     // temperature or max_tokens support for it and ignores unsupported params.
+    FUGU_ULTRA_V2: {
+      id: "sakana/fugu-ultra-v2",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      systemPrompt:
+        "You are Fugu Ultra v2 by Sakana AI, the higher-performance orchestrator of the Fugu family. Greet once, then weigh the specialists' views and return one clear, synthesized take.",
+    },
     FUGU_MAX: {
       id: "sakana/fugu-max",
       maxTokens: DEFAULT_MAX_TOKENS,

@@ -26,12 +26,19 @@ export const ANTHROPIC: AIProvider = {
   },
   models: {
     // Thinking is always on and temperature is rejected, so none is declared.
-    // Not the provider default (see defaults.ts): 2x Opus 5 pricing.
+    // Not the provider default (see defaults.ts): 2.5x Opus 5.5 pricing.
     CLAUDE_FABLE_5_1: {
       id: "claude-fable-5-1",
       maxTokens: DEFAULT_MAX_TOKENS,
       systemPrompt:
         "You are Claude Fable 5.1 by Anthropic, built for demanding reasoning and long-horizon agentic work. Greet once briefly, then bring careful, deeply reasoned perspective to the conversation.",
+    },
+    // Thinking is adaptive and always on here too, so no temperature.
+    CLAUDE_OPUS_5_5: {
+      id: "claude-opus-5-5",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      systemPrompt:
+        "You are Claude Opus 5.5 by Anthropic, Anthropic's recommended model for most work — long-running agentic coding and knowledge work with a 1M token context window. Provide thorough, insightful responses with deep analytical thinking.",
     },
     CLAUDE_OPUS_5: {
       id: "claude-opus-5",
@@ -101,6 +108,9 @@ export const ANTHROPIC: AIProvider = {
     // claude-fable-5 / claude-mythos-5 suspended 2026-06-12 by US export-control directive — removed.
     // claude-fable-5-1 (above) is generally available per Anthropic's model docs, checked 2026-09-11;
     //   claude-mythos-5-1 stays invitation-only (Project Glasswing), so it is not added.
+    // claude-opus-5-5 added 2026-09-23: released 2026-09-22, now Anthropic's recommended
+    //   default and cheaper than Opus 5 ($4/$20 vs $5/$25). Opus 5 and 4.x are legacy but
+    //   still served, so they stay in the room.
   },
   apiKeyEnvVar: "ANTHROPIC_API_KEY",
 };

@@ -33,6 +33,28 @@ export const OPENAI: AIProvider = {
       systemPrompt:
         "You are GPT-6 Astra by OpenAI, the newest frontier model. Greet briefly once, then drive the conversation with bold, well-structured hypotheses that synthesize what everyone else has said.",
     },
+    GPT6_SOL: {
+      id: "gpt-6-sol",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: 1,
+      maxTokensParam: "max_completion_tokens",
+      useResponsesApi: true,
+      systemPrompt:
+        "You are GPT-6 Sol by OpenAI, built to power complex coding and agentic workflows. Greet briefly once, then contribute deep, structured insight that builds on what others said.",
+    },
+    GPT6_LUNA: {
+      id: "gpt-6-luna",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: 1,
+      maxTokensParam: "max_completion_tokens",
+      useResponsesApi: true,
+      systemPrompt:
+        "You are GPT-6 Luna by OpenAI, the most efficient model for focused, high-volume work. Offer a quick hello once, then deliver short, high-signal replies.",
+    },
+    // GPT-5.6 Sol and Luna are superseded by the GPT-6 pair above (same tiers at half the
+    // price), so their participants are parked inactive — see participants.ts. The model
+    // entries stay because the ids still serve. There is no GPT-6 Terra, so GPT-5.6 Terra
+    // remains OpenAI's mid tier in the room.
     GPT5_6_SOL: {
       id: "gpt-5.6-sol",
       maxTokens: DEFAULT_MAX_TOKENS,
@@ -60,9 +82,9 @@ export const OPENAI: AIProvider = {
       systemPrompt:
         "You are GPT-5.6 Luna by OpenAI, the fastest and cheapest tier of the GPT-5.6 family. Offer a quick hello once, then deliver short, high-signal replies.",
     },
-    // GPT-5.6 family (Sol / Terra / Luna) previewed 2026-06-26 — model ids gpt-5.6-sol,
-    // gpt-5.6-terra, gpt-5.6-luna. Gated to ~20 trusted-partner orgs (per US gov), not yet GA;
-    // promote to active entries once OpenAI opens general API access.
+    // GPT-5.6 family (Sol / Terra / Luna) went GA after its 2026-06-26 preview; ids verified
+    // against OpenAI's model catalog 2026-09-23. gpt-5.6-cyber is GA too but is a
+    // vulnerability-research model, not a chat participant, so it is not added.
     // GPT-5.5 (current flagship; gpt-5.5-instant powers chat-latest)
     GPT5_5: {
       id: "gpt-5.5",
@@ -180,6 +202,9 @@ export const OPENAI: AIProvider = {
         "You are OpenAI o4-mini, optimized for fast, cost-efficient reasoning in math, coding, and visual tasks. Greet once, afterwards energize the chat with inventive angles, quick experiments, or witty callbacks to others.",
     },
     // gpt-3.5-turbo (legacy) — inactive, removed 2026-06-10
+    // Announced shutdowns (checked 2026-09-23, ids still serve today): o4-mini and
+    // gpt-4.1-nano end Oct 23, 2026; o3/o3-pro (bare ids resolve to the 2025 snapshots)
+    // end Dec 11, 2026. Drop them on the next pass once they stop answering.
   },
   apiKeyEnvVar: "OPENAI_API_KEY",
 };

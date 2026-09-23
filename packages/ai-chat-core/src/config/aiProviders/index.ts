@@ -50,6 +50,10 @@ export { SNOWFLAKE } from "./providers/snowflake.js";
 export { INCEPTION } from "./providers/inception.js";
 export { SAKANA } from "./providers/sakana.js";
 export { META_MUSE } from "./providers/metamuse.js";
+export { PRISMML } from "./providers/prismml.js";
+export { UNBIASED } from "./providers/unbiased.js";
+export { NEXAGI } from "./providers/nexagi.js";
+export { INCLUSIONAI } from "./providers/inclusionai.js";
 
 // Import all providers for the main collection
 import { ANTHROPIC } from "./providers/anthropic.js";
@@ -83,6 +87,10 @@ import { SNOWFLAKE } from "./providers/snowflake.js";
 import { INCEPTION } from "./providers/inception.js";
 import { SAKANA } from "./providers/sakana.js";
 import { META_MUSE } from "./providers/metamuse.js";
+import { PRISMML } from "./providers/prismml.js";
+import { UNBIASED } from "./providers/unbiased.js";
+import { NEXAGI } from "./providers/nexagi.js";
+import { INCLUSIONAI } from "./providers/inclusionai.js";
 
 /**
  * All AI providers collection - maintains backward compatibility
@@ -119,6 +127,10 @@ export const AI_PROVIDERS = {
   INCEPTION,
   SAKANA,
   META_MUSE,
+  PRISMML,
+  UNBIASED,
+  NEXAGI,
+  INCLUSIONAI,
 } as const;
 
 /**

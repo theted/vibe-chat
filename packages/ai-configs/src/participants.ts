@@ -26,6 +26,10 @@ import type { AiParticipant } from "./types.js";
  *   Microsoft AI - Magic/wizards
  *   Inception    - Quicksilver ("Mercury")
  *   Sakana AI    - Fish ("sakana" is Japanese for fish)
+ *   PrismML      - Miniature plants ("Bonsai")
+ *   Unbiased     - Balance ("Pareto" = the efficient tradeoff)
+ *   Nex AGI      - Targets/aim (goal-to-outcome agents)
+ *   InclusionAI  - Bells ("ling" is Chinese for bell)
  */
 export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
   // Anthropic Models - Music/performing arts
@@ -1147,12 +1151,15 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     status: "active",
     emoji: "🌞",
   },
+  // GPT-6 Sol and GPT-6 Luna (below) serve the same tiers at half the price, so the 5.6
+  // pair is parked to keep indistinguishable bots out of the room. GPT-5.6 Terra stays:
+  // OpenAI shipped no GPT-6 Terra.
   {
     id: "OPENAI_GPT5_6_SOL",
     name: "GPT-5.6 Sol",
     alias: "gpt-5.6-sol",
     provider: "OpenAI",
-    status: "active",
+    status: "inactive",
     emoji: "🌎",
   },
   {
@@ -1168,7 +1175,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     name: "GPT-5.6 Luna",
     alias: "gpt-5.6-luna",
     provider: "OpenAI",
-    status: "active",
+    status: "inactive",
     emoji: "🌙",
   },
   {
@@ -1300,6 +1307,126 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     provider: "Sakana AI",
     status: "active",
     emoji: "🐟",
+  },
+  {
+    id: "ANTHROPIC_CLAUDE_OPUS_5_5",
+    name: "Claude Opus 5.5",
+    alias: "claude-opus-5-5",
+    provider: "Anthropic",
+    status: "active",
+    emoji: "🎼",
+  },
+  {
+    id: "OPENAI_GPT6_SOL",
+    name: "GPT-6 Sol",
+    alias: "gpt-6-sol",
+    provider: "OpenAI",
+    status: "active",
+    emoji: "☄️",
+  },
+  {
+    id: "OPENAI_GPT6_LUNA",
+    name: "GPT-6 Luna",
+    alias: "gpt-6-luna",
+    provider: "OpenAI",
+    status: "active",
+    emoji: "🌖",
+  },
+  {
+    id: "GROK_GROK_4_7",
+    name: "Grok 4.7",
+    alias: "grok-4.7",
+    provider: "Grok",
+    status: "active",
+    emoji: "🕹️",
+  },
+  {
+    id: "ZAI_ZAI_GLM_5_3_FLASHX",
+    name: "GLM-5.3-FlashX",
+    alias: "glm-5.3-flashx",
+    provider: "Z.ai",
+    status: "active",
+    emoji: "🧰",
+  },
+  {
+    id: "QWEN_QWEN3_8_OMNI_FLASH",
+    name: "Qwen3.8-Omni-Flash",
+    alias: "qwen3.8-omni-flash",
+    provider: "Qwen",
+    status: "active",
+    emoji: "🪷",
+  },
+  {
+    id: "XIAOMI_MIMO_V2_6_PRO",
+    name: "MiMo-V2.6-Pro",
+    alias: "mimo-v2.6-pro",
+    provider: "Xiaomi",
+    status: "active",
+    emoji: "📱",
+  },
+  {
+    id: "XIAOMI_MIMO_V2_6_FLASH",
+    name: "MiMo-V2.6-Flash",
+    alias: "mimo-v2.6-flash",
+    provider: "Xiaomi",
+    status: "active",
+    emoji: "🔋",
+  },
+  {
+    id: "SAKANA_FUGU_ULTRA_V2",
+    name: "Fugu Ultra v2",
+    alias: "fugu-ultra-v2",
+    provider: "Sakana AI",
+    status: "active",
+    emoji: "🐡",
+  },
+  {
+    id: "PRISMML_TERNARY_BONSAI_2_27B",
+    name: "Ternary Bonsai 2 27B",
+    alias: "ternary-bonsai-2-27b",
+    provider: "PrismML",
+    status: "active",
+    emoji: "🪴",
+  },
+  {
+    id: "UNBIASED_PARETO",
+    name: "Pareto",
+    alias: "pareto",
+    provider: "Unbiased",
+    status: "active",
+    emoji: "⚖️",
+  },
+  {
+    id: "NEXAGI_NEX_N2_5_PRO",
+    name: "Nex-N2.5-Pro",
+    alias: "nex-n2.5-pro",
+    provider: "Nex AGI",
+    status: "active",
+    emoji: "🎯",
+  },
+  {
+    id: "NEXAGI_NEX_N2_5_MINI",
+    name: "Nex-N2.5-Mini",
+    alias: "nex-n2.5-mini",
+    provider: "Nex AGI",
+    status: "active",
+    emoji: "🏹",
+  },
+  {
+    id: "INCLUSIONAI_LING_3_0_FLASH_VL",
+    name: "Ling 3.0 Flash VL",
+    alias: "ling-3.0-flash-vl",
+    provider: "InclusionAI",
+    status: "active",
+    emoji: "🔔",
+  },
+  {
+    id: "INCLUSIONAI_LING_3_0_FLASH",
+    name: "Ling 3.0 Flash",
+    alias: "ling-3.0-flash",
+    provider: "InclusionAI",
+    status: "active",
+    emoji: "🛎️",
   },
 ];
 
