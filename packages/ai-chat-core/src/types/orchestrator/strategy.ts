@@ -42,4 +42,6 @@ export interface InteractionStrategyDecision {
   energy: ResponseEnergy;
   /** Message budget nearly spent - instruct a brief, closing response. */
   windingDown: boolean;
+  /** 1-1 room: nobody else is here to address, so never mention another AI. */
+  isPrivateChat?: boolean;
 }

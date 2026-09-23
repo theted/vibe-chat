@@ -4,6 +4,7 @@
  */
 
 import { describe, it, expect } from "bun:test";
+import { stripAIMentions } from "@/utils/orchestrator/mentionUtils.js";
 import type { AIRegistry } from "@/orchestrator/AIRegistry.js";
 import type { QueuedResponse } from "@/orchestrator/ResponseQueue.js";
 import { ContextManager } from "@/orchestrator/ContextManager.js";
@@ -207,6 +208,38 @@ describe("room-scoped context", () => {
     );
     expect(manager.getConversationDigest("default")).toContain(
       "public evicted",
+    );
+  });
+});
+
+describe("private room mentions", () => {
+  const otherAiAliases = new Set(["claudesonnet45", "mimov26pro"]);
+  const isOtherAI = (token: string) => otherAiAliases.has(token);
+
+  it("demotes a mention of another AI to plain text", () => {
+    expect(
+      stripAIMentions("Good point @claude-sonnet-4-5 — worth a look.", isOtherAI),
+    ).toBe("Good point claude-sonnet-4-5 — worth a look.");
+  });
+
+  it("leaves the user's own handle alone", () => {
+    expect(stripAIMentions("Sure @Theted, here you go.", isOtherAI)).toBe(
+      "Sure @Theted, here you go.",
+    );
+  });
+
+  it("handles several mentions in one response", () => {
+    expect(
+      stripAIMentions(
+        "@mimo-v2.6-pro and @claude-sonnet-4-5 disagree, @Theted.",
+        isOtherAI,
+      ),
+    ).toBe("mimo-v2.6-pro and claude-sonnet-4-5 disagree, @Theted.");
+  });
+
+  it("is a no-op on responses without mentions", () => {
+    expect(stripAIMentions("No handles here at all.", isOtherAI)).toBe(
+      "No handles here at all.",
     );
   });
 });

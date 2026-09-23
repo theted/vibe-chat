@@ -27,6 +27,24 @@ export const responseIncludesMention = (
   return parseMentions(response).normalized.includes(normalizedTarget);
 };
 
+/**
+ * Demote @mentions of other AIs to plain text. Used in private 1-1 rooms,
+ * where the prompt already asks for no hand-offs but the model may still
+ * produce one — and a mention there would address someone who is not present.
+ */
+export const stripAIMentions = (
+  response = "",
+  isOtherAI: (normalizedToken: string) => boolean,
+): string => {
+  if (!response) return response;
+
+  return response.replace(createMentionTokenRegex(), (match, token: string) => {
+    if (!token) return match;
+    const normalized = normalizeAlias(resolveMentionTarget(token));
+    return normalized && isOtherAI(normalized) ? token : match;
+  });
+};
+
 export const limitMentionsInResponse = (
   response = "",
   maxUniqueMentions: number = MENTION_LIMITS.MAX_UNIQUE_PER_RESPONSE,
