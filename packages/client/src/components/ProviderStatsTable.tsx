@@ -6,11 +6,27 @@ import { useState } from "react";
 import SortIndicator from "./SortIndicator";
 import type { SortColumn, SortDirection } from "./SortIndicator";
 import { formatResponseTime } from "@/utils/formatters";
+import { voiceStyleFor } from "@/utils/voice";
 import type { ProviderModelStat } from "@/types";
 
 interface ProviderStatsTableProps {
   providerModelStats: ProviderModelStat[];
 }
+
+const COLUMN_LABELS: Record<SortColumn, string> = {
+  provider: "Provider",
+  model: "Model",
+  requests: "Requests",
+  errors: "Errors",
+  meanResponseTimeMs: "Mean response",
+};
+
+// Numbers right-align so their digits line up down the column
+const NUMERIC_COLUMNS = new Set<SortColumn>([
+  "requests",
+  "errors",
+  "meanResponseTimeMs",
+]);
 
 const SORTABLE_COLUMNS = [
   "provider",
@@ -20,7 +36,9 @@ const SORTABLE_COLUMNS = [
   "meanResponseTimeMs",
 ] as const;
 
-const ProviderStatsTable = ({ providerModelStats }: ProviderStatsTableProps) => {
+const ProviderStatsTable = ({
+  providerModelStats,
+}: ProviderStatsTableProps) => {
   const [sortColumn, setSortColumn] = useState<SortColumn>("provider");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
 
@@ -50,34 +68,66 @@ const ProviderStatsTable = ({ providerModelStats }: ProviderStatsTableProps) => 
     <div className="overflow-x-auto">
       <table className="min-w-full text-left text-sm">
         <thead>
-          <tr className="border-b border-gray-200 text-gray-500 uppercase text-xs tracking-wide">
+          <tr className="border-b border-line text-xs text-muted">
             {SORTABLE_COLUMNS.map((col) => (
               <th
                 key={col}
-                className="py-2 pr-4 font-semibold cursor-pointer hover:text-gray-700 select-none"
-                onClick={() => handleSort(col)}
+                className={`py-2.5 pr-4 font-medium last:pr-0 ${NUMERIC_COLUMNS.has(col) ? "text-right" : ""}`}
+                aria-sort={
+                  sortColumn === col
+                    ? sortDirection === "asc"
+                      ? "ascending"
+                      : "descending"
+                    : undefined
+                }
               >
-                {col === "meanResponseTimeMs" ? "Mean Response" : col.charAt(0).toUpperCase() + col.slice(1)}
-                <SortIndicator column={col} activeColumn={sortColumn} direction={sortDirection} />
+                <button
+                  type="button"
+                  onClick={() => handleSort(col)}
+                  className="select-none transition-colors hover:text-fg"
+                >
+                  {COLUMN_LABELS[col]}
+                  <SortIndicator
+                    column={col}
+                    activeColumn={sortColumn}
+                    direction={sortDirection}
+                  />
+                </button>
               </th>
             ))}
           </tr>
         </thead>
-        <tbody>
+        <tbody className="divide-y divide-line">
           {sortedProviderStats.length === 0 ? (
             <tr>
-              <td colSpan={5} className="py-4 text-gray-500">
+              <td colSpan={SORTABLE_COLUMNS.length} className="py-4 text-muted">
                 No provider activity yet.
               </td>
             </tr>
           ) : (
             sortedProviderStats.map((stat) => (
-              <tr key={`${stat.provider}-${stat.model}`} className="border-b border-gray-100">
-                <td className="py-2 pr-4 font-medium text-gray-900">{stat.provider}</td>
-                <td className="py-2 pr-4 text-gray-700">{stat.model}</td>
-                <td className="py-2 pr-4 text-gray-700">{stat.requests}</td>
-                <td className="py-2 pr-4 text-gray-700">{stat.errors}</td>
-                <td className="py-2 pr-4 text-gray-700">{formatResponseTime(stat.meanResponseTimeMs)}</td>
+              <tr
+                key={`${stat.provider}-${stat.model}`}
+                style={voiceStyleFor(stat.provider)}
+              >
+                <td className="py-2.5 pr-4">
+                  <span className="flex items-center gap-2 font-medium text-fg">
+                    <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-voice" />
+                    {stat.provider}
+                  </span>
+                </td>
+                <td className="py-2.5 pr-4 text-muted">{stat.model}</td>
+                <td className="py-2.5 pr-4 text-right tabular-nums text-fg">
+                  {stat.requests}
+                </td>
+                <td
+                  className={`py-2.5 pr-4 text-right tabular-nums ${stat.errors > 0 ? "text-danger" : "text-faint"}`}
+                >
+                  {stat.errors}
+                </td>
+                <td className="py-2.5 text-right tabular-nums text-fg">
+                  {formatResponseTime(stat.meanResponseTimeMs)}
+                </td>
               </tr>
             ))
           )}

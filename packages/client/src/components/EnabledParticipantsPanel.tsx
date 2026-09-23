@@ -3,53 +3,66 @@
  */
 
 import { DASHBOARD_STYLES } from "@/config/dashboard";
+import { voiceStyleFor } from "@/utils/voice";
 import type { AiParticipant } from "@/config/aiParticipants";
 
 interface EnabledParticipantsPanelProps {
   aiParticipants: AiParticipant[];
 }
 
-const EnabledParticipantsPanel = ({ aiParticipants }: EnabledParticipantsPanelProps) => {
+const EnabledParticipantsPanel = ({
+  aiParticipants,
+}: EnabledParticipantsPanelProps) => {
   const activeAiParticipants = aiParticipants
     .filter((participant) => participant.status === "active")
-    .sort((first, second) => (first.name || "").localeCompare(second.name || ""));
+    .sort((first, second) =>
+      (first.name || "").localeCompare(second.name || ""),
+    );
 
   return (
-    <div className={`${DASHBOARD_STYLES.card} mb-8`}>
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-        <h3 className="text-xl font-semibold text-gray-900">
-          Enabled AI Participants
-        </h3>
-        <span className="text-sm text-gray-500">
+    <section>
+      <div className="mb-3 flex items-baseline justify-between gap-4">
+        <h2 className={DASHBOARD_STYLES.sectionTitle}>Enabled models</h2>
+        <span className="text-sm tabular-nums text-faint">
           {activeAiParticipants.length} enabled
         </span>
       </div>
 
       {activeAiParticipants.length === 0 ? (
-        <p className="text-sm text-gray-500">
-          No active AI participants are currently enabled.
+        <p className={`${DASHBOARD_STYLES.panel} px-5 py-4 text-sm text-muted`}>
+          No models are enabled. Check the server’s API keys.
         </p>
       ) : (
-        <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <ul className="grid grid-cols-1 gap-px overflow-hidden rounded-xl border border-line bg-line sm:grid-cols-2 lg:grid-cols-3">
           {activeAiParticipants.map((participant) => (
             <li
               key={participant.id}
-              className="flex items-center gap-4 rounded-xl border border-gray-100 bg-gray-50 px-4 py-3"
+              className="flex items-center gap-3 bg-surface px-4 py-3"
+              style={voiceStyleFor(participant.provider)}
             >
-              <span className="text-2xl" aria-hidden="true">
+              <span
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-voice-soft text-lg"
+                aria-hidden="true"
+              >
                 {participant.emoji || "🤖"}
               </span>
-              <div className="flex-1">
-                <p className="text-sm font-semibold text-gray-900">{participant.name}</p>
-                <p className="text-xs text-gray-500">@{participant.alias}</p>
-                <p className="text-xs text-gray-400 mt-1">Provider: {participant.provider || "Unknown"}</p>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold text-fg">
+                  {participant.name}
+                </p>
+                <p className="truncate text-xs text-faint">
+                  <span>@{participant.alias}</span>
+                  <span className="text-voice">
+                    {" "}
+                    {participant.provider || "Unknown"}
+                  </span>
+                </p>
               </div>
-              <span className="text-xs font-semibold uppercase tracking-wide text-green-600">Active</span>
             </li>
           ))}
         </ul>
       )}
-    </div>
+    </section>
   );
 };
 

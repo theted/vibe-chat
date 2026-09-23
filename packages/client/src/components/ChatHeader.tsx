@@ -14,6 +14,9 @@ interface ChatHeaderProps {
   isAuthenticated: boolean;
   onLoginOpen: () => void;
   onSettingsOpen: () => void;
+  /** Opens the participants drawer on screens without the sidebar */
+  onParticipantsOpen: () => void;
+  participantCount: number;
 }
 
 const ChatHeader = ({
@@ -22,6 +25,8 @@ const ChatHeader = ({
   isAuthenticated,
   onLoginOpen,
   onSettingsOpen,
+  onParticipantsOpen,
+  participantCount,
 }: ChatHeaderProps) => (
   <header className="flex h-14 shrink-0 items-center gap-4 border-b border-line px-4 sm:px-6">
     <div className="flex min-w-0 flex-1 items-baseline gap-3">
@@ -55,6 +60,15 @@ const ChatHeader = ({
           <span className="hidden sm:inline">Join chat</span>
         </button>
       )}
+      <button
+        type="button"
+        onClick={onParticipantsOpen}
+        className={`${ICON_BUTTON_CLASSES} w-auto gap-1.5 px-2 lg:hidden`}
+        aria-label="Show people and models in the room"
+      >
+        <Icon name="participants" className="h-[18px] w-[18px]" />
+        <span className="text-xs tabular-nums">{participantCount}</span>
+      </button>
       <button
         type="button"
         onClick={onSettingsOpen}

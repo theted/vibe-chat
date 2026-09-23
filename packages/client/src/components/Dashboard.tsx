@@ -4,12 +4,13 @@
  */
 
 import { Link } from "react-router-dom";
-import StatusCard from "./StatusCard";
-import MetricCard from "./MetricCard";
-import ProgressBar from "./ProgressBar";
-import ProviderStatsTable from "./ProviderStatsTable";
-import ErrorLogsPanel from "./ErrorLogsPanel";
 import EnabledParticipantsPanel from "./EnabledParticipantsPanel";
+import ErrorLogsPanel from "./ErrorLogsPanel";
+import Icon from "./Icon";
+import MessageMixBar from "./MessageMixBar";
+import MetricCard from "./MetricCard";
+import ProviderStatsTable from "./ProviderStatsTable";
+import StatusCard from "./StatusCard";
 import { useDashboardMetrics } from "@/hooks/useDashboardMetrics";
 import {
   DASHBOARD_STYLES as styles,
@@ -21,112 +22,152 @@ import { formatUptime, formatTime, getPercentage } from "@/utils/formatters";
 const Dashboard = () => {
   const { metrics, connectionStatus, aiParticipants } = useDashboardMetrics();
   const activityLevel = resolveActivityLevel(metrics.messagesPerMinute);
+  const activeModelCount = aiParticipants.filter(
+    (participant) => participant.status === "active",
+  ).length;
+  const aiToUserRatio =
+    metrics.totalUserMessages > 0
+      ? (metrics.totalAIMessages / metrics.totalUserMessages).toFixed(2)
+      : "0";
 
   return (
-    <div className="min-h-screen p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-primary-600 to-indigo-600 bg-clip-text text-transparent">
-              AI Chat Dashboard
-            </h1>
-            <p className="text-gray-600 mt-2">
-              Real-time metrics and analytics
-            </p>
-          </div>
+    <div className="min-h-dvh bg-canvas text-fg">
+      <header className="flex h-14 items-center gap-4 border-b border-line px-4 sm:px-6">
+        <div className="flex min-w-0 flex-1 items-baseline gap-3">
+          <Link to="/" className="wordmark shrink-0 text-xl">
+            Vibe chat
+          </Link>
+          <h1 className="truncate text-sm text-muted">Dashboard</h1>
+        </div>
+        <span className="hidden text-xs text-faint sm:inline">
+          Updated {formatTime(metrics.timestamp)}
+        </span>
+        <span className="flex items-center gap-1.5 text-xs text-muted">
+          <span
+            className={`h-1.5 w-1.5 rounded-full ${
+              connectionStatus.connected
+                ? "bg-emerald-400"
+                : "animate-pulse bg-danger"
+            }`}
+          />
+          {connectionStatus.connected ? "Live" : "Reconnecting"}
+        </span>
+        <Link
+          to="/"
+          className="flex h-9 items-center gap-1 rounded-lg px-2.5 text-sm font-medium text-muted transition-colors hover:bg-raised hover:text-fg"
+        >
+          <Icon name="chevron-right" className="h-3.5 w-3.5 rotate-180" />
+          Back to chat
+        </Link>
+      </header>
 
-          <div className="flex items-center gap-4">
-            <Link
-              to="/"
-              className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm"
-            >
-              ← Back to Chat
-            </Link>
-
-            <div className={`flex items-center gap-2 text-sm ${styles.headerPill}`}>
-              <div
-                className={`w-3 h-3 rounded-full ${connectionStatus.connected ? "bg-green-500" : "bg-red-500 animate-pulse"}`}
-              ></div>
-              <span>
-                {connectionStatus.connected ? "Connected" : "Disconnected"}
-              </span>
-            </div>
-
-            <div className={`text-sm text-gray-500 ${styles.headerPill}`}>
-              Last updated: {formatTime(metrics.timestamp)}
-            </div>
-          </div>
+      <main className="mx-auto max-w-6xl space-y-10 px-4 py-8 sm:px-6">
+        {/* 1px gaps over a line-coloured backing draw the hairlines at every breakpoint */}
+        <div className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line md:grid-cols-3 lg:grid-cols-6">
+          <MetricCard
+            title="Messages"
+            value={metrics.totalMessages}
+            subtitle="All time"
+          />
+          <MetricCard
+            title="From AI"
+            value={metrics.totalAIMessages}
+            subtitle={`${getPercentage(metrics.totalAIMessages, metrics.totalMessages)}% of total`}
+          />
+          <MetricCard
+            title="From people"
+            value={metrics.totalUserMessages}
+            subtitle={`${getPercentage(metrics.totalUserMessages, metrics.totalMessages)}% of total`}
+          />
+          <MetricCard
+            title="Per minute"
+            value={metrics.messagesPerMinute}
+            subtitle="Current rate"
+          />
+          <MetricCard
+            title="People online"
+            value={metrics.activeUsers}
+            subtitle="Right now"
+          />
+          <MetricCard
+            title="Uptime"
+            value={formatUptime(metrics.uptime)}
+            subtitle="Since last restart"
+          />
         </div>
 
-        {/* Main Metrics Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          <MetricCard title="Total Messages" value={metrics.totalMessages} subtitle="All time" icon="💬" color="blue" />
-          <MetricCard title="AI Messages" value={metrics.totalAIMessages} subtitle={`${getPercentage(metrics.totalAIMessages, metrics.totalMessages)}% of total`} icon="🤖" color="purple" />
-          <MetricCard title="User Messages" value={metrics.totalUserMessages} subtitle={`${getPercentage(metrics.totalUserMessages, metrics.totalMessages)}% of total`} icon="👤" color="green" />
-          <MetricCard title="Messages/Minute" value={metrics.messagesPerMinute} subtitle="Current rate" icon="⚡" color="orange" />
-          <MetricCard title="Active Users" value={metrics.activeUsers} subtitle="Currently online" icon="👥" color="teal" />
-          <MetricCard title="Server Uptime" value={formatUptime(metrics.uptime)} subtitle="Since last restart" icon="⏱️" color="indigo" />
-        </div>
-
-        {/* Detailed Analytics */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <div className={styles.card}>
-            <h3 className={styles.cardTitle}>Message Distribution</h3>
-            <ProgressBar value={metrics.totalAIMessages} max={metrics.totalMessages} label="AI Messages" color="purple" />
-            <ProgressBar value={metrics.totalUserMessages} max={metrics.totalMessages} label="User Messages" color="green" />
-            <div className="mt-6 pt-4 border-t border-gray-100">
-              <div className="text-sm text-gray-600">
-                <div className="flex justify-between mb-2">
-                  <span>AI to User Ratio:</span>
-                  <span className="font-medium">
-                    {metrics.totalUserMessages > 0
-                      ? (metrics.totalAIMessages / metrics.totalUserMessages).toFixed(2)
-                      : "0"}{" "}
-                    : 1
-                  </span>
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-5">
+          <section className="lg:col-span-3">
+            <h2 className={`mb-3 ${styles.sectionTitle}`}>Message mix</h2>
+            <div className={`${styles.panel} p-5`}>
+              <MessageMixBar
+                aiMessages={metrics.totalAIMessages}
+                userMessages={metrics.totalUserMessages}
+              />
+              <dl className="mt-5 grid grid-cols-2 gap-4 border-t border-line pt-4 text-sm">
+                <div>
+                  <dt className="text-muted">AI replies per human message</dt>
+                  <dd className="mt-0.5 font-display text-lg font-bold tabular-nums">
+                    {aiToUserRatio}
+                  </dd>
                 </div>
-                <div className="flex justify-between">
-                  <span>Activity Level:</span>
-                  <span className={`font-medium ${activityLevel.className}`}>
+                <div>
+                  <dt className="text-muted">Activity</dt>
+                  <dd
+                    className={`mt-0.5 font-display text-lg font-bold ${activityLevel.className}`}
+                  >
                     {activityLevel.label}
-                  </span>
+                  </dd>
                 </div>
-              </div>
+              </dl>
             </div>
-          </div>
+          </section>
 
-          <div className={styles.card}>
-            <h3 className={styles.cardTitle}>System Status</h3>
-            <div className="space-y-4">
-              <StatusCard icon="🌐" iconBackgroundClass="bg-blue-100" iconTextClass="text-blue-600" title="WebSocket Server" subtitle="Real-time connection" statusText="Online" />
-              <StatusCard icon="🤖" iconBackgroundClass="bg-purple-100" iconTextClass="text-purple-600" title="AI Services" subtitle="Multiple providers active" statusText="Active" />
-              <StatusCard icon="📊" iconBackgroundClass="bg-orange-100" iconTextClass="text-orange-600" title="Metrics Collection" subtitle="Real-time tracking" statusText="Collecting" />
+          <section className="lg:col-span-2">
+            <h2 className={`mb-3 ${styles.sectionTitle}`}>System</h2>
+            <div className={`${styles.panel} divide-y divide-line`}>
+              <StatusCard
+                title="Live connection"
+                subtitle="WebSocket to the chat server"
+                statusText={
+                  connectionStatus.connected ? "Connected" : "Reconnecting"
+                }
+                tone={connectionStatus.connected ? "ok" : "down"}
+              />
+              <StatusCard
+                title="Models"
+                subtitle="Enabled and able to answer"
+                statusText={`${activeModelCount} enabled`}
+                tone={activeModelCount > 0 ? "ok" : "warn"}
+              />
+              <StatusCard
+                title="Metrics"
+                subtitle={`Refreshed every ${METRICS_REFRESH_INTERVAL_MS / 1000} seconds`}
+                statusText={formatTime(metrics.timestamp)}
+                tone={connectionStatus.connected ? "ok" : "warn"}
+              />
             </div>
-          </div>
+          </section>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <div className={styles.card}>
-            <h3 className={styles.cardTitle}>Provider Performance</h3>
-            <ProviderStatsTable providerModelStats={metrics.providerModelStats || []} />
+        <section>
+          <h2 className={`mb-3 ${styles.sectionTitle}`}>
+            Provider performance
+          </h2>
+          <div className={`${styles.panel} px-5 py-2`}>
+            <ProviderStatsTable
+              providerModelStats={metrics.providerModelStats || []}
+            />
           </div>
+        </section>
 
-          <div className={styles.card}>
-            <h3 className={styles.cardTitle}>Recent AI Errors</h3>
-            <ErrorLogsPanel errorLogs={metrics.errorLogs} />
-          </div>
-        </div>
+        <section>
+          <h2 className={`mb-3 ${styles.sectionTitle}`}>Recent AI errors</h2>
+          <ErrorLogsPanel errorLogs={metrics.errorLogs} />
+        </section>
 
         <EnabledParticipantsPanel aiParticipants={aiParticipants} />
-
-        <div className="text-center text-gray-500 text-sm">
-          <p>Dashboard updates automatically every {METRICS_REFRESH_INTERVAL_MS / 1000} seconds</p>
-          <p className="mt-1">
-            Server running for {formatUptime(metrics.uptime)}
-          </p>
-        </div>
-      </div>
+      </main>
     </div>
   );
 };

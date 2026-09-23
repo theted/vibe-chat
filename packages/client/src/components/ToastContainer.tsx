@@ -1,8 +1,8 @@
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, type Variants } from "framer-motion";
 import Icon from "./Icon";
 import type { ToastContainerProps, ToastType, IconName } from "@/types";
 
-const variants = {
+const variants: Variants = {
   initial: { opacity: 0, y: 12, scale: 0.98 },
   animate: {
     opacity: 1,
