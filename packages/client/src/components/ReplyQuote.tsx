@@ -9,11 +9,9 @@ import type { Message } from "@/types";
 const QUOTE_MAX_LENGTH = 140;
 
 const QUOTE_CONTAINER_CLASSES =
-  "mb-2 rounded-lg border-l-2 border-primary-400 bg-slate-50 px-3 py-1.5 text-sm dark:border-primary-500/70 dark:bg-slate-800/60";
-const QUOTE_SENDER_CLASSES =
-  "font-semibold text-primary-600 dark:text-primary-300";
-const QUOTE_CONTENT_CLASSES =
-  "truncate text-slate-500 dark:text-slate-400";
+  "mb-1.5 flex min-w-0 items-baseline gap-2 border-l-2 border-line pl-2.5 text-[13px]";
+const QUOTE_SENDER_CLASSES = "shrink-0 font-semibold text-muted";
+const QUOTE_CONTENT_CLASSES = "truncate text-faint";
 
 const excerpt = (content: string): string => {
   const trimmed = content.trim().replace(/\s+/g, " ");

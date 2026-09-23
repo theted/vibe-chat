@@ -34,7 +34,11 @@ const findMatchedAI = (
 
   return (
     aiParticipants.find((participant) => {
-      const candidateValues = [participant.id, participant.alias, participant.name]
+      const candidateValues = [
+        participant.id,
+        participant.alias,
+        participant.name,
+      ]
         .map(normalizeAliasKey)
         .filter(Boolean);
       return candidateValues.some((value) =>
@@ -44,7 +48,10 @@ const findMatchedAI = (
   );
 };
 
-const getAIEmoji = (message: Message, matchedAI: AiParticipant | null): string => {
+const getAIEmoji = (
+  message: Message,
+  matchedAI: AiParticipant | null,
+): string => {
   if (message.senderType !== "ai") return "";
   if (message.emoji) return message.emoji;
   if (message.aiEmoji) return message.aiEmoji;
@@ -79,7 +86,9 @@ const getAIDisplayName = (
     message.sender,
   ];
 
-  return candidates.find((v) => v && v.trim().length > 0) || DEFAULT_AI_DISPLAY_NAME;
+  return (
+    candidates.find((v) => v && v.trim().length > 0) || DEFAULT_AI_DISPLAY_NAME
+  );
 };
 
 export const useAIMetadata = (
@@ -91,15 +100,19 @@ export const useAIMetadata = (
     [aiParticipants, message],
   );
 
-  const senderDisplay = useMemo<string | null>(() => {
-    if (message.senderType === "system") return null;
-    if (message.senderType === "ai") {
-      const emoji = getAIEmoji(message, matchedAI);
-      const displayName = getAIDisplayName(message, matchedAI);
-      return `${emoji ? `${emoji} ` : ""}${displayName}`;
-    }
-    return `👤 ${message.sender}`;
-  }, [matchedAI, message]);
+  const senderName = useMemo(
+    () => getAIDisplayName(message, matchedAI),
+    [matchedAI, message],
+  );
 
-  return { matchedAI, senderDisplay };
+  const senderEmoji = useMemo(
+    () => getAIEmoji(message, matchedAI),
+    [matchedAI, message],
+  );
+
+  // Provider drives the voice colour; fall back to the name so an unmatched
+  // model still gets a stable colour of its own
+  const voiceKey = matchedAI?.provider || message.providerKey || senderName;
+
+  return { matchedAI, senderName, senderEmoji, voiceKey };
 };

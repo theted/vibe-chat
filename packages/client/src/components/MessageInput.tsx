@@ -20,8 +20,8 @@ import type { MessageInputProps } from "@/types";
 
 const MAX_MESSAGE_LENGTH = 5_000;
 const MESSAGE_LENGTH_WARNING_THRESHOLD = 4_500;
-const TEXTAREA_MIN_HEIGHT = "52px";
-const TEXTAREA_MAX_HEIGHT = "200px";
+// Min height matches the send button row so a single line sits centred
+const TEXTAREA_STYLE = { minHeight: "40px", maxHeight: "200px" };
 
 const MessageInput = ({
   onSendMessage,
@@ -87,38 +87,39 @@ const MessageInput = ({
 
   return (
     <>
-      <form onSubmit={handleSubmit} className="flex gap-2 items-center p-1">
-        <div className="flex-1 relative">
+      <form
+        onSubmit={handleSubmit}
+        className={`flex items-end gap-2 rounded-xl border border-line bg-surface p-1.5 pl-4 transition-colors focus-within:border-faint ${
+          disabled ? "opacity-60" : ""
+        }`}
+      >
+        <div className="relative min-w-0 flex-1">
           <textarea
             ref={textareaRef}
-            className="input-glass w-full px-3 py-2 sm:px-4 sm:py-3 lg:px-5 lg:py-4 pr-10 rounded-2xl border border-slate-200 focus:border-primary-400 focus:ring-2 focus:ring-primary-200 outline-none transition-all resize-none placeholder-slate-400 bg-white/90 backdrop-blur-sm no-scrollbar overflow-y-auto dark:bg-slate-900/80 dark:border-slate-700 dark:text-slate-100 dark:placeholder-slate-500 dark:focus:border-primary-400 dark:focus:ring-primary-500/30 text-sm"
+            className="block w-full resize-none overflow-y-auto border-0 bg-transparent px-0 py-2 text-[15px] leading-relaxed text-fg placeholder:text-faint focus:ring-0 focus:outline-none no-scrollbar disabled:cursor-not-allowed"
             value={message}
             onChange={handleChange}
             onKeyPress={handleKeyPress}
-            placeholder="Message... (@ to mention AI)"
+            placeholder="Message the room (@ to mention AI)"
+            aria-label="Message"
             disabled={disabled}
             maxLength={MAX_MESSAGE_LENGTH}
             rows={1}
-            style={{ minHeight: TEXTAREA_MIN_HEIGHT, maxHeight: TEXTAREA_MAX_HEIGHT }}
+            style={TEXTAREA_STYLE}
           />
           {message.length > MESSAGE_LENGTH_WARNING_THRESHOLD && (
-            <div className="absolute bottom-2 right-2 text-xs text-slate-400">
+            <div className="absolute bottom-0 right-0 text-xs tabular-nums text-faint">
               {MAX_MESSAGE_LENGTH - message.length}
             </div>
           )}
         </div>
         <button
           type="submit"
-          className="send-button glass-btn h-[40px] w-[40px] sm:h-[44px] sm:w-[44px] lg:h-[52px] lg:w-auto lg:min-w-[120px] px-0 lg:px-6 bg-emerald-500/85 text-white font-semibold rounded-xl shadow-lg shadow-emerald-500/30 flex items-center justify-center gap-2 group hover:bg-emerald-500 hover:shadow-emerald-500/40 focus:outline-none focus:ring-2 focus:ring-emerald-200 disabled:bg-emerald-200 disabled:text-emerald-600 disabled:cursor-not-allowed disabled:shadow-none dark:bg-emerald-500/80 dark:hover:bg-emerald-400/90 dark:text-slate-900 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
+          className="flex h-9 shrink-0 items-center gap-1.5 rounded-lg bg-accent px-3 text-sm font-semibold text-accent-fg transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:bg-raised disabled:text-faint"
           disabled={disabled || !message.trim()}
         >
-          <Icon
-            name="send"
-            className="w-5 h-5 transform group-hover:translate-x-1 transition-transform duration-300"
-          />
-          <span className="hidden lg:inline group-hover:animate-pulse">
-            Send
-          </span>
+          <Icon name="send" className="h-4 w-4" />
+          <span className="hidden sm:inline">Send</span>
         </button>
       </form>
 

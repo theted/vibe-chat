@@ -7,13 +7,13 @@ import { getStorageItem, setStorageItem } from "@/utils/storage";
 import { STORAGE_KEYS } from "@/constants/storage";
 import type { Theme } from "@/types";
 
+// Dark is the house style; light is only used once someone picks it
+const DEFAULT_THEME: Theme = "dark";
+
 const getInitialTheme = (): Theme => {
-  if (typeof window === "undefined") return "light";
+  if (typeof window === "undefined") return DEFAULT_THEME;
   const stored = getStorageItem(STORAGE_KEYS.THEME);
-  if (stored === "dark" || stored === "light") return stored;
-  return window.matchMedia("(prefers-color-scheme: dark)").matches
-    ? "dark"
-    : "light";
+  return stored === "dark" || stored === "light" ? stored : DEFAULT_THEME;
 };
 
 export const useTheme = () => {
