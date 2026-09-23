@@ -17,6 +17,9 @@ import type { MentionOption } from "@/utils/aiSearch";
 import type { AISelectionDialogProps, DialogPosition } from "@/types";
 
 const DIALOG_Y_OFFSET = 10;
+/** Matches the dialog's `w-80` class; used to keep it inside the viewport. */
+const DIALOG_WIDTH = 320;
+const VIEWPORT_MARGIN = 8;
 
 const AISelectionDialog = ({
   isOpen,
@@ -106,6 +109,14 @@ const AISelectionDialog = ({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeIndex, filteredAIs, isOpen, view, selectedItem]);
 
+  // A spaced term that matches nothing is ordinary prose rather than a mention
+  // in progress, so get the empty list out of the way instead of hovering it
+  // over the input until the word cap is hit.
+  useEffect(() => {
+    if (!isOpen || isLoading) return;
+    if (normalizedTerm.includes(" ") && filteredAIs.length === 0) onClose();
+  }, [filteredAIs.length, isLoading, isOpen, normalizedTerm, onClose]);
+
   // Click outside
   useEffect(() => {
     if (!isOpen) return;
@@ -121,6 +132,30 @@ const AISelectionDialog = ({
     if (typeof window !== "undefined") return { x: window.innerWidth / 2, y: window.innerHeight / 2 };
     return { x: 0, y: 0 };
   }, [position]);
+
+  /**
+   * The dialog opens upward from the input, so it is anchored by `bottom`
+   * rather than `top` + translateY(-100%): framer-motion owns `transform` for
+   * the open/close animation and resets it to `none` when the animation ends,
+   * which silently dropped the translate and pushed the list off-screen.
+   * `left` is clamped so a dialog near the right edge stays reachable.
+   */
+  const anchorStyle = useMemo(() => {
+    const viewportWidth = typeof window !== "undefined" ? window.innerWidth : 0;
+    const viewportHeight = typeof window !== "undefined" ? window.innerHeight : 0;
+    const maxLeft = Math.max(
+      VIEWPORT_MARGIN,
+      viewportWidth - DIALOG_WIDTH - VIEWPORT_MARGIN,
+    );
+
+    return {
+      left: Math.min(Math.max(safePos.x, VIEWPORT_MARGIN), maxLeft),
+      bottom: Math.max(
+        VIEWPORT_MARGIN,
+        viewportHeight - safePos.y + DIALOG_Y_OFFSET,
+      ),
+    };
+  }, [safePos.x, safePos.y]);
 
   // Portal to <body>: the dialog is positioned with viewport coords from
   // getBoundingClientRect, but its mount point lives inside the chat surface,
@@ -139,11 +174,7 @@ const AISelectionDialog = ({
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 6, scale: 0.97 }}
           transition={DIALOG_SPRING}
-          style={{
-            left: safePos.x,
-            top: safePos.y - DIALOG_Y_OFFSET,
-            transform: "translateY(-100%)",
-          }}
+          style={anchorStyle}
         >
           <AnimatePresence mode="wait">
             {view === "list" ? (

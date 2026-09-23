@@ -6,7 +6,17 @@
 import { useState, type RefObject } from "react";
 import type { DialogPosition } from "@/types";
 
-const MENTION_AT_CURSOR_REGEX = /@([^\s@]*)$/;
+/**
+ * The in-progress mention at the cursor. Spaces are allowed (capped at
+ * MAX_MENTION_WORDS - 1) because several providers are multi-word — "Nex AGI",
+ * "Sakana AI", "Hugging Face" — and a space-terminated pattern made them
+ * impossible to search even though the ranking handles them. The cap stops the
+ * dialog trailing a whole sentence after a completed mention.
+ */
+const MAX_MENTION_WORDS = 3;
+const MENTION_AT_CURSOR_REGEX = new RegExp(
+  `@([^\\s@]*(?: [^\\s@]*){0,${MAX_MENTION_WORDS - 1}})$`,
+);
 
 const resolveCursorPosition = (
   value: string,

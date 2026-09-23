@@ -7,7 +7,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { normalizeAliasKey } from "@/utils/ai";
 import { computeScore, type MentionOption } from "@/utils/aiSearch";
-import { DEFAULT_AI_PARTICIPANTS } from "@/config/aiParticipants";
+import { getActiveParticipants } from "@/config/aiParticipants";
 import { EXTRA_AI_PARTICIPANTS } from "@/config/extraAiParticipants";
 
 const SEARCH_LOADING_MS = 160;
@@ -16,7 +16,10 @@ export const useAISearch = (searchTerm = "") => {
   const [isLoading, setIsLoading] = useState(false);
 
   const mentionOptions = useMemo<MentionOption[]>(() => {
-    const combined = [...DEFAULT_AI_PARTICIPANTS, ...EXTRA_AI_PARTICIPANTS];
+    // Parked models never load on the server, so offering one to mention is a
+    // message nobody answers. EXTRA_AI_PARTICIPANTS are generic aliases that
+    // resolve to an active model, so they carry no status of their own.
+    const combined = [...getActiveParticipants(), ...EXTRA_AI_PARTICIPANTS];
     return combined.map((ai) => {
       const alias = ai.alias || ai.name;
       const displayName = ai.name || alias || ai.id;
