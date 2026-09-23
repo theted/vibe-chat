@@ -39,7 +39,7 @@ vi.mock("./Icon", () => ({
 }));
 
 describe("ParticipantsList", () => {
-  it("groups AI participants by provider and sorts by model name", () => {
+  it("groups active AI participants by provider and sorts by model name", () => {
     const aiParticipants: AiParticipant[] = [
       {
         id: "OPENAI_BETA",
@@ -57,6 +57,7 @@ describe("ParticipantsList", () => {
         status: "active",
         emoji: "🎵",
       },
+      // Parked: must not reach the panel at all
       {
         id: "OPENAI_GAMMA",
         name: "Gamma",
@@ -82,14 +83,34 @@ describe("ParticipantsList", () => {
     const providerHeaders = screen.getAllByTestId(/ai-provider-/i);
     expect(providerHeaders.map((header) => header.textContent)).toEqual([
       "Anthropic (2)",
-      "OpenAI (2)",
+      "OpenAI (1)",
     ]);
 
     const modelNames = Array.from(
       container.querySelectorAll('[data-testid^="ai-name-"]'),
     ).map((node) => node.textContent);
 
-    expect(modelNames).toEqual(["Alpha", "Delta", "Beta", "Gamma"]);
+    expect(modelNames).toEqual(["Alpha", "Delta", "Beta"]);
+  });
+
+  it("omits the status badge now that every listed model is active", () => {
+    const { container } = render(
+      <ParticipantsList
+        participants={[]}
+        aiParticipants={[
+          {
+            id: "OPENAI_BETA",
+            name: "Beta",
+            alias: "beta",
+            provider: "OpenAI",
+            status: "active",
+            emoji: "🧠",
+          },
+        ]}
+      />,
+    );
+
+    expect(container.textContent).not.toContain("active");
   });
 
   it("calls onAISelect when clicking an AI name", () => {

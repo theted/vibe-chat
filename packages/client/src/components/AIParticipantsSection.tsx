@@ -97,20 +97,12 @@ const AIParticipantsSection = ({
                         </div>
                       )}
                     </div>
-                    {generating ? (
+                    {/* Only active models are listed, so a status badge
+                        would say the same thing on every row */}
+                    {generating && (
                       <span className={badgeStyles.generating}>
                         <div className="w-1.5 h-1.5 bg-purple-600 rounded-full animate-bounce dark:bg-purple-300"></div>
                         typing...
-                      </span>
-                    ) : (
-                      <span
-                        className={
-                          ai.status === "active"
-                            ? badgeStyles.active
-                            : badgeStyles.inactive
-                        }
-                      >
-                        {ai.status}
                       </span>
                     )}
                   </AnimatedListItem>

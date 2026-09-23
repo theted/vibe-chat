@@ -19,6 +19,4 @@ export const badgeStyles = {
   typing: `${BADGE_BASE} bg-yellow-100 text-yellow-800 flex items-center gap-1 dark:bg-yellow-500/20 dark:text-yellow-200`,
   online: `${BADGE_BASE} bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-200`,
   generating: `${BADGE_BASE} bg-purple-100 text-purple-800 flex items-center gap-1 dark:bg-purple-500/20 dark:text-purple-200`,
-  active: `${BADGE_BASE} bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-200`,
-  inactive: `${BADGE_BASE} bg-orange-100 text-orange-800 dark:bg-orange-500/20 dark:text-orange-200`,
 };

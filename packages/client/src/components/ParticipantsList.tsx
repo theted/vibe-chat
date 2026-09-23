@@ -6,7 +6,7 @@
 import { PANEL_STYLES } from "@/config/participantsPanel";
 import { usePanelStyle } from "@/hooks/usePanelStyle";
 import { useParticipantTyping } from "@/hooks/useParticipantTyping";
-import { normalizeAiParticipants } from "@/utils/participants";
+import { toPanelAiParticipants } from "@/utils/participants";
 import Icon from "./Icon";
 import UserParticipantsSection from "./UserParticipantsSection";
 import AIParticipantsSection from "./AIParticipantsSection";
@@ -30,7 +30,7 @@ const ParticipantsList = ({
   if (!isVisible) return null;
 
   // ChatView already resolved the placeholder-vs-server distinction
-  const aiList = normalizeAiParticipants(aiParticipants);
+  const aiList = toPanelAiParticipants(aiParticipants);
 
   return (
     <div
