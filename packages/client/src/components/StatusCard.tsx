@@ -1,36 +1,26 @@
-import type { StatusCardProps } from "@/types";
-
 /**
- * StatusCard Component - Displays a compact status summary with icon and label
+ * StatusCard Component - one system-status row: what, detail, and state
  */
-const StatusCard = ({
-  icon,
-  iconBackgroundClass = "bg-gray-100",
-  iconTextClass = "text-gray-600",
-  title,
-  subtitle,
-  statusText,
-  statusIndicatorClass = "bg-green-500",
-  statusTextClass = "text-green-600",
-}: StatusCardProps) => (
-  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
-    <div className="flex items-center gap-3">
-      <div
-        className={`w-10 h-10 rounded-full flex items-center justify-center ${iconBackgroundClass}`}
-      >
-        <span className={`text-lg ${iconTextClass}`}>{icon}</span>
-      </div>
-      <div>
-        <p className="font-medium text-gray-900">{title}</p>
-        <p className="text-sm text-gray-600">{subtitle}</p>
-      </div>
+
+import { STATUS_DOT_CLASSES, type StatusTone } from "@/config/dashboard";
+
+interface StatusCardProps {
+  title: string;
+  subtitle: string;
+  statusText: string;
+  tone: StatusTone;
+}
+
+const StatusCard = ({ title, subtitle, statusText, tone }: StatusCardProps) => (
+  <div className="flex items-center justify-between gap-4 px-5 py-3.5">
+    <div className="min-w-0">
+      <p className="text-sm font-medium text-fg">{title}</p>
+      <p className="truncate text-xs text-faint">{subtitle}</p>
     </div>
-    <div className="flex items-center gap-2">
-      <div className={`w-2 h-2 rounded-full ${statusIndicatorClass}`}></div>
-      <span className={`text-sm font-medium ${statusTextClass}`}>
-        {statusText}
-      </span>
-    </div>
+    <span className="flex shrink-0 items-center gap-2 text-sm text-muted">
+      <span className={`h-2 w-2 rounded-full ${STATUS_DOT_CLASSES[tone]}`} />
+      {statusText}
+    </span>
   </div>
 );
 

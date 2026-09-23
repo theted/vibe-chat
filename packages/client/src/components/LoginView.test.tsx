@@ -52,7 +52,7 @@ describe("LoginView Component", () => {
 
     it("should render join button", () => {
       render(<LoginView {...defaultProps} />);
-      const button = screen.getByText("Join Chat");
+      const button = screen.getByText("Join chat");
       expect(button).toBeInTheDocument();
     });
   });
