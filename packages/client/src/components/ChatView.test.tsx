@@ -132,6 +132,54 @@ describe("ChatView Component", () => {
     messagesContainerRef: { current: null } as RefObject<HTMLDivElement | null>,
   };
 
+  describe("private chat", () => {
+    const privateAi: AiParticipant = {
+      id: "ai-3",
+      name: "AI 3",
+      alias: "ai-3",
+      provider: "Test Provider",
+      status: "active",
+      emoji: "🛰️",
+    };
+
+    it("hides the private-chat banner in the main room", () => {
+      renderWithRouter(<ChatView {...defaultProps} />);
+
+      expect(screen.queryByTestId("private-chat-banner")).toBeNull();
+    });
+
+    it("names the model while in a private chat", () => {
+      renderWithRouter(
+        <ChatView
+          {...defaultProps}
+          isPrivateChat
+          privateChatAi={privateAi}
+          onPrivateConversationEnd={vi.fn()}
+        />,
+      );
+
+      const banner = screen.getByTestId("private-chat-banner");
+      expect(banner.textContent).toContain("Private chat");
+      expect(banner.textContent).toContain("AI 3");
+    });
+
+    it("leaves the private chat when the back button is clicked", () => {
+      const onPrivateConversationEnd = vi.fn();
+      renderWithRouter(
+        <ChatView
+          {...defaultProps}
+          isPrivateChat
+          privateChatAi={privateAi}
+          onPrivateConversationEnd={onPrivateConversationEnd}
+        />,
+      );
+
+      fireEvent.click(screen.getByTestId("leave-private-chat"));
+
+      expect(onPrivateConversationEnd).toHaveBeenCalledTimes(1);
+    });
+  });
+
   const renderWithRouter = (component: ReactNode) =>
     render(<BrowserRouter>{component}</BrowserRouter>);
 

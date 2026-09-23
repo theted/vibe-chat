@@ -1,4 +1,5 @@
 import type { ChatOrchestrator } from "@ai-chat/core";
+import { getPrivateRoomAiId } from "@ai-chat/ai-configs";
 
 import {
   MESSAGE_MAX_LENGTH,
@@ -8,25 +9,11 @@ import {
   USERNAME_MAX_LENGTH,
 } from "@/config/serverConfig.js";
 
-const PRIVATE_ROOM_PREFIX = "private:";
-
 type ValidationResult =
   | { valid: true; value: string; message?: never }
   | { valid: false; message: string; value?: never };
 
-export const getPrivateRoomAiId = (roomId: string): string | null => {
-  if (!roomId.startsWith(PRIVATE_ROOM_PREFIX)) {
-    return null;
-  }
-
-  const parts = roomId.split(":");
-  if (parts.length < 3) {
-    return null;
-  }
-
-  const aiId = parts.slice(2).join(":").trim();
-  return aiId || null;
-};
+export { getPrivateRoomAiId };
 
 export const normalizeRoomAiToken = (value: string): string =>
   value.toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -97,6 +84,11 @@ export const getRateLimitError = (
   };
 };
 
+/**
+ * Point a room at the AI(s) allowed to speak in it. A private room resolves to
+ * exactly one AI and becomes direct-only, so that model answers the user once
+ * per message and never chats in the background.
+ */
 export const applyRoomAIScope = (
   chatOrchestrator: ChatOrchestrator,
   roomId: string,
@@ -120,8 +112,14 @@ export const applyRoomAIScope = (
 
   if (resolvedAiId) {
     chatOrchestrator.setRoomAllowedAIs(roomId, [resolvedAiId]);
+    chatOrchestrator.setRoomDirectOnly(roomId, true);
     return;
   }
 
+  // Unknown AI in the room id: fall back to an ordinary room rather than a
+  // private chat nobody can answer.
+  console.warn(
+    `Private room "${roomId}" names an unknown AI ("${privateAiId}") - treating it as a normal room`,
+  );
   chatOrchestrator.clearRoomAllowedAIs(roomId);
 };

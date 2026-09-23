@@ -82,6 +82,29 @@ A model that is retired or pulled by the provider (e.g. `claude-fable-5`, suspen
 - **Emojis**: unique per model within a provider; reuse across providers is fine.
 - **Dropped models**: leave a short dated comment (e.g., `// gpt-5.1 superseded — removed 2026-06-10`) in the provider file instead of silent deletion.
 
+## Rooms and private 1-1 chats
+
+Every message carries a `roomId`, and the room is the isolation boundary for
+conversation context — `ContextManager` windows, digests, and evicts per room,
+so one room's history never reaches another room's prompts.
+
+- **Main room**: `default`. All active AIs may answer, several per user
+  message, plus background chatter on a timer.
+- **Private room**: `private:<username>:<aiId>`, opened by clicking a model in
+  the participants list. Helpers for building and parsing these ids live in
+  `packages/ai-configs/src/rooms.ts` — use them instead of matching the prefix
+  by hand.
+
+`applyRoomAIScope` (`packages/server/src/controllers/socketUtils.ts`) runs on
+join: it resolves the AI from the room id, restricts the room to it
+(`setRoomAllowedAIs`), and marks it **direct-only** (`setRoomDirectOnly`). A
+direct-only room answers each user message with exactly one reply and never
+schedules background rounds or silence-breakers. A room id naming an unknown
+AI logs a warning and degrades to an ordinary room.
+
+The client hides the feature behind `VITE_PRIVATE_CONVERSATIONS_ENABLED`
+(default on).
+
 ## Git & review workflow
 
 - Keep commits scoped and descriptive. Explain the intent and mention affected modules.

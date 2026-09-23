@@ -28,8 +28,10 @@ export type ResponseDelays = {
 
 type ResponseSchedulerDeps = {
   registry: AIRegistry;
-  getLastMessage: () => ContextMessage | undefined;
+  getLastMessage: (roomId?: string) => ContextMessage | undefined;
   filterAIsForRoom: (roomId: string, aiIds: string[]) => string[];
+  /** Private 1-1 room: one reply per user message, no background chatter. */
+  isDirectOnly: (roomId: string) => boolean;
   enqueueBatch: (responses: QueuedResponse[]) => void;
   isAsleep: () => boolean;
   /** How close the AI-message budget is to running out, 0..1. */
@@ -58,6 +60,21 @@ export class ResponseScheduler {
 
     if (isAsleep() || roomScopedAIs.length === 0) return;
 
+    // A private 1-1 chat only ever answers the user, exactly once. Background
+    // rounds and silence-breakers would make the model talk to itself.
+    if (this.deps.isDirectOnly(roomId)) {
+      if (!isUserResponse || scheduleOptions.isReopening) return;
+
+      // Unlike the group room this ignores isGenerating: the one model here
+      // owes the user an answer even when it is mid-reply in another room, and
+      // skipping it would drop the message with nobody else to pick it up.
+      const directAiId = roomScopedAIs.find(
+        (aiId) => aiServices.get(aiId)?.isActive,
+      );
+      if (directAiId) this.scheduleDirectReply(roomId, directAiId);
+      return;
+    }
+
     // Fade-out: as the AI-message budget depletes, background rounds get
     // skipped more often so the conversation trails off instead of stopping
     const fatigue = this.deps.getFatigue();
@@ -82,7 +99,9 @@ export class ResponseScheduler {
     const eligibleAIs = roomScopedAIs.filter((aiId) => {
       const ai = aiServices.get(aiId);
       return (
-        ai?.isActive && !ai.isGenerating && (isUserResponse || !ai.justResponded)
+        ai?.isActive &&
+        !ai.isGenerating &&
+        (isUserResponse || !ai.justResponded)
       );
     });
 
@@ -97,7 +116,9 @@ export class ResponseScheduler {
     const baseMaxResponders = isUserResponse
       ? Math.max(
           RESPONDER_CONFIG.USER_RESPONSE_MIN_COUNT,
-          Math.ceil(activeCount * RESPONDER_CONFIG.USER_RESPONSE_MAX_MULTIPLIER),
+          Math.ceil(
+            activeCount * RESPONDER_CONFIG.USER_RESPONSE_MAX_MULTIPLIER,
+          ),
         )
       : Math.max(
           RESPONDER_CONFIG.BACKGROUND_MIN_COUNT,
@@ -107,7 +128,7 @@ export class ResponseScheduler {
       ? RESPONDER_CONFIG.USER_RESPONSE_MIN_BASE
       : RESPONDER_CONFIG.BACKGROUND_MIN_BASE;
 
-    const lastMessage = this.deps.getLastMessage();
+    const lastMessage = this.deps.getLastMessage(roomId);
     const mentionTargets = new Set(lastMessage?.mentionsNormalized || []);
 
     const mentionedAIs = eligibleAIs.filter((aiId) => {
@@ -145,7 +166,8 @@ export class ResponseScheduler {
     const delays = this.deps.getDelays();
 
     // Fatigue also stretches delays so late-conversation replies slow down
-    const fadeDelayMultiplier = 1 + fadeProgress * (FADE_OUT.MAX_DELAY_STRETCH - 1);
+    const fadeDelayMultiplier =
+      1 + fadeProgress * (FADE_OUT.MAX_DELAY_STRETCH - 1);
 
     const queuedResponses = responders.map((aiId, index) => {
       const isMentioned = uniqueMentioned.includes(aiId);
@@ -173,6 +195,36 @@ export class ResponseScheduler {
     this.deps.enqueueBatch(queuedResponses);
   }
 
+  /**
+   * The single reply an AI owes the user in a private 1-1 room. No mention
+   * bonus and no staggering: there is nobody else queued to stagger against.
+   */
+  private scheduleDirectReply(roomId: string, aiId: string): void {
+    const delays = this.deps.getDelays();
+    const tempo = this.deps.registry.services.get(aiId)?.traits?.tempo ?? 1;
+    const delay =
+      calculateResponseDelay({
+        index: 0,
+        isUserResponse: true,
+        isMentioned: true,
+        typingAICount: 0,
+        ...delays,
+      }) * tempo;
+
+    this.deps.enqueueBatch([
+      {
+        aiId,
+        roomId,
+        isUserResponse: true,
+        options: {
+          isMentioned: true,
+          triggerMessage: this.deps.getLastMessage(roomId),
+        },
+        scheduledTime: Date.now() + Math.floor(delay),
+      },
+    ]);
+  }
+
   /** Pick one AI to casually break a long silence. */
   private scheduleReopening(roomId: string, eligibleAIs: string[]): void {
     const aiServices = this.deps.registry.services;
@@ -187,8 +239,10 @@ export class ResponseScheduler {
 
     const tempo = aiServices.get(reopenerAiId)?.traits?.tempo ?? 1;
     const delay =
-      sampleConversationalDelay(REOPENING.MIN_DELAY_MS, REOPENING.MAX_DELAY_MS) *
-      tempo;
+      sampleConversationalDelay(
+        REOPENING.MIN_DELAY_MS,
+        REOPENING.MAX_DELAY_MS,
+      ) * tempo;
 
     this.deps.enqueueBatch([
       {
