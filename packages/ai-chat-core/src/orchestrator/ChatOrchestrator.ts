@@ -11,6 +11,7 @@ import { ResponseQueue } from "./ResponseQueue.js";
 import type { GenerateResponseOptions } from "./ResponseQueue.js";
 import { RoomScope } from "./RoomScope.js";
 import { ResponseScheduler } from "./ResponseScheduler.js";
+import type { ResponseDelays } from "./ResponseScheduler.js";
 import { ResponseGenerator } from "./ResponseGenerator.js";
 import { BackgroundConversationLoop } from "./BackgroundConversationLoop.js";
 import { DEFAULTS } from "./constants.js";
@@ -41,6 +42,26 @@ type ChatOrchestratorOptions = {
 };
 
 /**
+ * Response pacing, resolved once from the constructor options.
+ *
+ * `??` rather than `||`: a caller asking for 0 means no delay, and `||` read
+ * that as "unset" and substituted the default. The CLI sets every delay to 0
+ * for synchronous output and had been getting the full conversational pacing.
+ */
+const resolveDelays = (options: ChatOrchestratorOptions): ResponseDelays => ({
+  minUserResponseDelay:
+    options.minUserResponseDelay ?? DEFAULTS.MIN_USER_RESPONSE_DELAY,
+  maxUserResponseDelay:
+    options.maxUserResponseDelay ?? DEFAULTS.MAX_USER_RESPONSE_DELAY,
+  minBackgroundDelay:
+    options.minBackgroundDelay ?? DEFAULTS.MIN_BACKGROUND_DELAY,
+  maxBackgroundDelay:
+    options.maxBackgroundDelay ?? DEFAULTS.MAX_BACKGROUND_DELAY,
+  minDelayBetweenAI: options.minDelayBetweenAI ?? DEFAULTS.MIN_DELAY_BETWEEN_AI,
+  maxDelayBetweenAI: options.maxDelayBetweenAI ?? DEFAULTS.MAX_DELAY_BETWEEN_AI,
+});
+
+/**
  * Orchestrates multi-AI conversations and background scheduling.
  */
 export class ChatOrchestrator extends EventEmitter {
@@ -53,12 +74,7 @@ export class ChatOrchestrator extends EventEmitter {
     isAsleep: boolean;
   };
   lastAIMessageTime: number;
-  minUserResponseDelay: number;
-  maxUserResponseDelay: number;
-  minBackgroundDelay: number;
-  maxBackgroundDelay: number;
-  minDelayBetweenAI: number;
-  maxDelayBetweenAI: number;
+  readonly delays: ResponseDelays;
   verboseContextLogging: boolean;
   private responseQueue: ResponseQueue;
   private roomScope: RoomScope;
@@ -69,28 +85,17 @@ export class ChatOrchestrator extends EventEmitter {
   constructor(options: ChatOrchestratorOptions = {}) {
     super();
     this.contextManager = new ContextManager(
-      options.maxMessages || DEFAULTS.MAX_MESSAGES,
+      options.maxMessages ?? DEFAULTS.MAX_MESSAGES,
     );
     this.messageBroker = new MessageBroker();
     this.registry = new AIRegistry();
     this.messageTracker = {
       aiMessageCount: 0,
-      maxAIMessages: options.maxAIMessages || DEFAULTS.MAX_AI_MESSAGES,
+      maxAIMessages: options.maxAIMessages ?? DEFAULTS.MAX_AI_MESSAGES,
       isAsleep: false,
     };
     this.lastAIMessageTime = 0;
-    this.minUserResponseDelay =
-      options.minUserResponseDelay || DEFAULTS.MIN_USER_RESPONSE_DELAY;
-    this.maxUserResponseDelay =
-      options.maxUserResponseDelay || DEFAULTS.MAX_USER_RESPONSE_DELAY;
-    this.minBackgroundDelay =
-      options.minBackgroundDelay || DEFAULTS.MIN_BACKGROUND_DELAY;
-    this.maxBackgroundDelay =
-      options.maxBackgroundDelay || DEFAULTS.MAX_BACKGROUND_DELAY;
-    this.minDelayBetweenAI =
-      options.minDelayBetweenAI || DEFAULTS.MIN_DELAY_BETWEEN_AI;
-    this.maxDelayBetweenAI =
-      options.maxDelayBetweenAI || DEFAULTS.MAX_DELAY_BETWEEN_AI;
+    this.delays = resolveDelays(options);
 
     this.roomScope = new RoomScope();
 
@@ -123,14 +128,7 @@ export class ChatOrchestrator extends EventEmitter {
       enqueueBatch: (responses) => this.responseQueue.enqueueBatch(responses),
       isAsleep: () => this.messageTracker.isAsleep,
       getFatigue: () => this.getFatigue(),
-      getDelays: () => ({
-        minUserResponseDelay: this.minUserResponseDelay,
-        maxUserResponseDelay: this.maxUserResponseDelay,
-        minBackgroundDelay: this.minBackgroundDelay,
-        maxBackgroundDelay: this.maxBackgroundDelay,
-        minDelayBetweenAI: this.minDelayBetweenAI,
-        maxDelayBetweenAI: this.maxDelayBetweenAI,
-      }),
+      getDelays: () => this.delays,
     });
 
     this.backgroundLoop = new BackgroundConversationLoop({
@@ -141,10 +139,7 @@ export class ChatOrchestrator extends EventEmitter {
         this.scheduleAIResponses("default", false),
       triggerReopening: () =>
         this.scheduler.schedule("default", false, { isReopening: true }),
-      getDelays: () => ({
-        minBackgroundDelay: this.minBackgroundDelay,
-        maxBackgroundDelay: this.maxBackgroundDelay,
-      }),
+      getDelays: () => this.delays,
     });
 
     const envVerboseFlag = parseBooleanEnvFlag(

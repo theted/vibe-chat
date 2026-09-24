@@ -43,9 +43,12 @@ MODEL_KEY: {
 ```
 
 ### 2. Participants List
-**Path:** `packages/ai-configs/src/participants.ts`
+**Path:** `packages/ai-configs/src/participants/{provider}.ts`
 
-Add entry to `DEFAULT_AI_PARTICIPANTS` array:
+One file per provider, named to match the provider config in step 1. Each
+exports a `<PROVIDER>_PARTICIPANTS` array that `participants.ts` spreads into
+`DEFAULT_AI_PARTICIPANTS`; a brand-new provider needs a new file plus a spread
+there. Add the entry to the provider's array:
 ```typescript
 {
   id: "PROVIDER_MODEL_KEY",
@@ -122,16 +125,15 @@ When adding models via OpenRouter:
 
 To deprecate a model (not remove entirely):
 
-1. Set `status: "inactive"` in `participants.ts`
+1. Set `status: "inactive"` in `participants/{provider}.ts`
 2. Keep model definition in provider file for historical reference
 3. Update default model if deprecated model was default
 
 To fully remove a deprecated model:
 
 1. Delete from provider's `models` object
-2. Remove from `participants.ts`
-3. Remove from `displayInfo.ts`
-4. Update `defaults.ts` if needed
+2. Remove from `participants/{provider}.ts`
+3. Update `defaults.ts` if the model was that provider's default
 
 ## Step-by-Step Workflow
 
@@ -144,9 +146,8 @@ To fully remove a deprecated model:
 ### Phase 2: Implementation
 For each new model:
 1. Add to provider configuration file
-2. Add to participants list
-3. Add to display info
-4. Choose appropriate emoji (unique per model)
+2. Add to the provider's participants file
+3. Choose an emoji that no other participant uses
 
 For deprecations:
 1. Update status to "inactive"
@@ -172,7 +173,7 @@ CLAUDE_OPUS_5: {
 },
 ```
 
-**2. Update `participants.ts`:**
+**2. Update `participants/anthropic.ts`:**
 ```typescript
 {
   id: "ANTHROPIC_CLAUDE_OPUS_5",
@@ -184,38 +185,21 @@ CLAUDE_OPUS_5: {
 },
 ```
 
-**3. Update `displayInfo.ts`:**
-```typescript
-ANTHROPIC_CLAUDE_OPUS_5: {
-  displayName: "Claude Opus 5",
-  alias: "claude-opus-5",
-  emoji: "🎼",
-},
-```
+That is the whole change. `AI_DISPLAY_INFO` and `ENABLED_AI_MODELS` derive from
+the participant entry — see step 3 above.
 
 ## Current Providers
 
-| Provider | Config File | Model Count |
-|----------|-------------|-------------|
-| Anthropic | `anthropic.ts` | 8 models |
-| OpenAI | `openai.ts` | ~10 models |
-| Google/Gemini | `gemini.ts` | 4 models |
-| Mistral | `mistral.ts` | 7 models |
-| Cohere | `cohere.ts` | 5 models |
-| xAI/Grok | `grok.ts` | 7 models |
-| DeepSeek | `deepseek.ts` | 4 models |
-| Perplexity | `perplexity.ts` | 4 models |
-| Qwen | `qwen.ts` | 6 models |
-| Moonshot/Kimi | `kimi.ts` | 4 models |
-| Z.ai | `zai.ts` | 6 models |
-| Meta/Llama | `llama.ts` | 4 models (OpenRouter) |
-| Amazon | `amazon.ts` | 2 models (OpenRouter) |
-| NVIDIA | `nvidia.ts` | 3 models (OpenRouter) |
-| Xiaomi | `xiaomi.ts` | 1 model (OpenRouter) |
-| MiniMax | `minimax.ts` | 3 models (OpenRouter) |
-| Baidu | `baidu.ts` | 3 models (OpenRouter) |
-| ByteDance | `bytedance.ts` | 2 models (OpenRouter) |
-| Hugging Face | `huggingface.ts` | 2 models (OpenRouter) |
+Deliberately not listed here: the roster changes most weeks and a hand-kept
+table goes stale silently. For the live picture run
+
+```bash
+bun run validate:models
+```
+
+which prints provider, model, participant and enabled counts, or look at
+`packages/ai-chat-core/src/config/aiProviders/providers/` — one file per
+provider, mirrored by `packages/ai-configs/src/participants/`.
 
 ## Notes
 
