@@ -51,7 +51,7 @@ This project supports 28+ AI providers (including OpenRouter-based providers). M
 A model is initialized by the server when it passes **two gates**:
 
 1. **Provider config** (`packages/ai-chat-core/src/config/aiProviders/providers/{provider}.ts`) – model must be defined in the provider's `models` object with a valid API `id`.
-2. **Participant status** (`packages/ai-configs/src/participants.ts`) – model must have `status: "active"`. Entries with `status: "inactive"` (or absent) are never loaded.
+2. **Participant status** (`packages/ai-configs/src/participants/{provider}.ts`) – model must have `status: "active"`. Entries with `status: "inactive"` (or absent) are never loaded.
 
 The server's `ENABLED_AI_MODELS` (`packages/server/src/config/aiModels.ts`) is **derived automatically** from active participants via `deriveEnabledModels(getActiveParticipants())` — do not edit it by hand. For a server-only disable without touching participants, list the participant ID(s) in the `DISABLED_AI_MODELS` env var (comma-separated).
 
@@ -60,7 +60,7 @@ The server's `ENABLED_AI_MODELS` (`packages/server/src/config/aiModels.ts`) is *
 ### Adding a new model
 
 1. Add the model definition in the provider config file (with `id`, `maxTokens`, `temperature`, `systemPrompt`). Use the exact API `id` from the provider's docs.
-2. Add a participant entry in `participants.ts` with `status: "active"` and a unique emoji.
+2. Add a participant entry in `participants/{provider}.ts` — the same provider file name as step 1 — with `status: "active"` and a unique emoji. A brand-new provider also needs its array spread into `participants.ts`.
 3. Add mention mappings in `lookups.ts` (alias -> canonical name) if it needs a shorthand or should claim a bare provider alias.
 4. Update `defaults.ts` if the new model should become the provider default.
 5. **Do not** edit `displayInfo.ts` (auto-derives from participants) or `ENABLED_AI_MODELS` (auto-derives from active participants).
@@ -69,7 +69,7 @@ The server's `ENABLED_AI_MODELS` (`packages/server/src/config/aiModels.ts`) is *
 
 A model that is retired or pulled by the provider (e.g. `claude-fable-5`, suspended 2026-06-12 by US export-control directive) must be taken out of the active set:
 
-1. Remove the participant entry from `participants.ts` (or set `status: "inactive"` to keep it for reference). This alone removes it from `ENABLED_AI_MODELS`.
+1. Remove the participant entry from `participants/{provider}.ts` (or set `status: "inactive"` to keep it for reference). This alone removes it from `ENABLED_AI_MODELS`.
 2. Keep — or remove — the provider-config definition; leave a dated `//` comment noting why it went away.
 3. Update `defaults.ts` if the model was the provider default (point it at the most capable generally-available model).
 4. Update `lookups.ts` if any generic/bare alias (e.g., `claude`, `opus`, `kimi`) resolved to it.

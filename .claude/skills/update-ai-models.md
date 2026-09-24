@@ -43,9 +43,12 @@ MODEL_KEY: {
 ```
 
 ### 2. Participants List
-**Path:** `packages/ai-configs/src/participants.ts`
+**Path:** `packages/ai-configs/src/participants/{provider}.ts`
 
-Add entry to `DEFAULT_AI_PARTICIPANTS` array:
+One file per provider, named to match the provider config in step 1. Each
+exports a `<PROVIDER>_PARTICIPANTS` array that `participants.ts` spreads into
+`DEFAULT_AI_PARTICIPANTS`; a brand-new provider needs a new file plus a spread
+there. Add the entry to the provider's array:
 ```typescript
 {
   id: "PROVIDER_MODEL_KEY",
@@ -122,14 +125,14 @@ When adding models via OpenRouter:
 
 To deprecate a model (not remove entirely):
 
-1. Set `status: "inactive"` in `participants.ts`
+1. Set `status: "inactive"` in `participants/{provider}.ts`
 2. Keep model definition in provider file for historical reference
 3. Update default model if deprecated model was default
 
 To fully remove a deprecated model:
 
 1. Delete from provider's `models` object
-2. Remove from `participants.ts`
+2. Remove from `participants/{provider}.ts`
 3. Remove from `displayInfo.ts`
 4. Update `defaults.ts` if needed
 
@@ -172,7 +175,7 @@ CLAUDE_OPUS_5: {
 },
 ```
 
-**2. Update `participants.ts`:**
+**2. Update `participants/anthropic.ts`:**
 ```typescript
 {
   id: "ANTHROPIC_CLAUDE_OPUS_5",

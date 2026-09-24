@@ -1,0 +1,10 @@
+{
+  "updatedAt": "2026-09-24T00:45:10.234Z",
+  "entries": {
+    "MOCK_MOCK_AI": {
+      "modelId": "MOCK_AI",
+      "lastFailureAt": "2026-09-24T00:45:10.234Z",
+      "lastError": "Provider not found: MOCK"
+    }
+  }
+}
