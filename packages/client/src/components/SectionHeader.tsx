@@ -1,11 +1,12 @@
-import type { SectionHeaderProps, IconName } from "@/types";
-import Icon from "./Icon";
+import type { SectionHeaderProps } from "@/types";
 
-const SectionHeader = ({ icon, title, count }: SectionHeaderProps) => (
-  <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wide px-4 py-3 bg-slate-50/70 backdrop-blur-sm flex items-center gap-2 dark:text-slate-300 dark:bg-slate-900/60">
-    <Icon name={icon as IconName} className="w-4 h-4" />
-    {title} ({count})
-  </h4>
+const SectionHeader = ({ title, count }: SectionHeaderProps) => (
+  <h3 className="flex items-baseline justify-between px-5 pb-1.5 pt-4 font-display text-sm font-semibold text-fg">
+    {title}
+    <span className="font-sans text-xs font-normal tabular-nums text-faint">
+      {count}
+    </span>
+  </h3>
 );
 
 export default SectionHeader;

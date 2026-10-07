@@ -7,6 +7,7 @@
 import type { ReactNode } from "react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism/index.js";
+import MentionChip from "./MentionChip";
 import { findMentionMatches } from "@/utils/mentions";
 import type { AiParticipant } from "@/config/aiParticipants";
 
@@ -42,7 +43,9 @@ const MarkdownCodeBlock = ({
   );
 
   if (mentionMatch || (trimmedChildren.startsWith("@") && !normalizedChildren.includes("\n"))) {
-    return <span className="mention-chip">{trimmedChildren}</span>;
+    return (
+      <MentionChip text={trimmedChildren} aiParticipants={aiParticipants} />
+    );
   }
 
   // Detect inline code: no language class and not a block-level code node

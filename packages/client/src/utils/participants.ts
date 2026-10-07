@@ -48,3 +48,18 @@ export const groupAiParticipantsByProvider = (
     groups.get(provider)!.push(ai);
     return groups;
   }, new Map<string, NormalizedAiParticipant[]>());
+
+/** Finds the participant behind a typing mark by id, then by alias. */
+export const findTypingAiParticipant = (
+  typer: { id?: string; alias?: string; normalizedAlias?: string },
+  aiParticipants: AiParticipant[],
+): AiParticipant | null => {
+  const alias = typer.normalizedAlias || normalizeAliasKey(typer.alias);
+  return (
+    aiParticipants.find(
+      (ai) =>
+        (typer.id && ai.id === typer.id) ||
+        (alias && normalizeAliasKey(ai.alias || ai.name) === alias),
+    ) ?? null
+  );
+};

@@ -1,17 +1,21 @@
 /**
- * SettingsModal Component - Quick actions dialog for theme, dashboard, and auth
+ * SettingsModal Component - theme, dashboard link, and sign-in/out
  */
 
 import { Link } from "react-router-dom";
 import Icon from "./Icon";
 import {
   MODAL_BACKDROP_CLASSES,
-  SECTION_LABEL_CLASSES,
+  MODAL_CLOSE_BUTTON_CLASSES,
+  MODAL_PANEL_CLASSES,
+  MODAL_TITLE_CLASSES,
+  modalPanelState,
 } from "@/constants/modalStyles";
 import type { Theme } from "@/types";
 
-const PRIMARY_ICON_BUTTON =
-  "glass-btn flex items-center justify-center gap-2 rounded-xl border border-primary-200/70 bg-primary-50/90 px-4 py-3 text-sm font-semibold text-primary-700 transition-colors hover:bg-primary-100 dark:border-primary-500/40 dark:bg-primary-500/10 dark:text-primary-200 dark:hover:bg-primary-500/20";
+const ROW_CLASSES =
+  "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-fg transition-colors hover:bg-raised";
+const ROW_ICON_CLASSES = "h-[18px] w-[18px] text-muted";
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -36,9 +40,11 @@ const SettingsModal = ({
 }: SettingsModalProps) => {
   if (!isVisible) return null;
 
+  const nextTheme = theme === "dark" ? "light" : "dark";
+
   return (
     <div
-      className={`fixed inset-0 z-50 flex items-center justify-center ${
+      className={`fixed inset-0 z-50 flex items-center justify-center p-4 ${
         isOpen ? "pointer-events-auto" : "pointer-events-none"
       }`}
     >
@@ -57,79 +63,74 @@ const SettingsModal = ({
         aria-modal="true"
         aria-label="Settings"
         aria-hidden={!isOpen}
-        className={`glass-surface relative w-full max-w-sm rounded-2xl bg-white/95 p-6 shadow-2xl border border-white/40 backdrop-blur-xl transition-all duration-200 ease-out transform-gpu will-change-transform dark:bg-slate-900/95 dark:border-slate-700/60 ${
-          isOpen
-            ? "opacity-100 translate-y-0 scale-100"
-            : "opacity-0 translate-y-2 scale-95"
-        }`}
+        className={`${MODAL_PANEL_CLASSES} max-w-xs p-2 ${modalPanelState(isOpen)}`}
       >
-        <div className="flex items-center gap-3 mb-5">
-          <div className="w-10 h-10 rounded-xl bg-primary-500/20 flex items-center justify-center">
-            <Icon name="cog" className="w-5 h-5 text-primary-500" />
-          </div>
-          <div>
-            <p className={SECTION_LABEL_CLASSES}>
-              Quick actions
-            </p>
-            <p className="text-lg font-semibold text-slate-800 dark:text-slate-100">
-              Settings
-            </p>
-          </div>
-        </div>
-        <div className="flex flex-col gap-3">
+        <div className="flex items-center justify-between px-3 pb-2 pt-2">
+          <h2 className={MODAL_TITLE_CLASSES}>Settings</h2>
           <button
             type="button"
-            onClick={toggleTheme}
-            className="glass-btn bg-slate-100/90 hover:bg-slate-200 text-slate-700 px-4 py-3 rounded-xl text-sm font-medium transition-colors flex items-center justify-between gap-3 dark:bg-slate-800/80 dark:hover:bg-slate-800 dark:text-slate-100"
-            title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+            onClick={onClose}
+            className={MODAL_CLOSE_BUTTON_CLASSES}
+            aria-label="Close settings"
           >
-            <span className="flex items-center gap-2">
-              <Icon
-                name={theme === "dark" ? "sun" : "moon"}
-                className="w-4 h-4"
-              />
-              {theme === "dark" ? "Light mode" : "Dark mode"}
-            </span>
-            <span className="text-xs text-slate-500 dark:text-slate-400">
-              Toggle
-            </span>
+            <Icon name="x-mark" className="h-4 w-4" />
           </button>
-          <div className="grid grid-cols-2 gap-3">
-            <Link
-              to="/dashboard"
-              onClick={onClose}
-              className={PRIMARY_ICON_BUTTON}
-              title="Dashboard"
-              aria-label="Dashboard"
-            >
-              <Icon name="dashboard" className="w-5 h-5" />
-            </Link>
-            {isAuthenticated ? (
-              <button
-                type="button"
-                onClick={() => { onClose(); onLogout(); }}
-                className="glass-btn flex items-center justify-center gap-2 rounded-xl border border-rose-200/70 bg-rose-50/90 px-4 py-3 text-sm font-semibold text-rose-600 transition-colors hover:bg-rose-100 dark:border-rose-500/40 dark:bg-rose-500/10 dark:text-rose-200 dark:hover:bg-rose-500/20"
-                title="Logout"
-                aria-label="Logout"
-              >
-                <Icon name="logout" className="w-5 h-5" />
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={() => {
-                  onClose();
-                  onLoginOpen();
-                }}
-                className={PRIMARY_ICON_BUTTON}
-                title="Log in"
-                aria-label="Log in"
-              >
-                <Icon name="login" className="w-5 h-5" />
-              </button>
-            )}
-          </div>
         </div>
+
+        <button
+          type="button"
+          onClick={toggleTheme}
+          className={ROW_CLASSES}
+          title={`Switch to ${nextTheme} mode`}
+        >
+          <Icon
+            name={theme === "dark" ? "sun" : "moon"}
+            className={ROW_ICON_CLASSES}
+          />
+          <span className="flex-1">
+            {theme === "dark" ? "Light mode" : "Dark mode"}
+          </span>
+        </button>
+
+        <Link
+          to="/dashboard"
+          onClick={onClose}
+          className={ROW_CLASSES}
+          aria-label="Dashboard"
+        >
+          <Icon name="dashboard" className={ROW_ICON_CLASSES} />
+          <span className="flex-1">Dashboard</span>
+        </Link>
+
+        <div className="mx-3 my-1 h-px bg-line" />
+
+        {isAuthenticated ? (
+          <button
+            type="button"
+            onClick={() => {
+              onClose();
+              onLogout();
+            }}
+            className={`${ROW_CLASSES} text-danger`}
+            aria-label="Logout"
+          >
+            <Icon name="logout" className="h-[18px] w-[18px]" />
+            <span className="flex-1">Log out</span>
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => {
+              onClose();
+              onLoginOpen();
+            }}
+            className={ROW_CLASSES}
+            aria-label="Log in"
+          >
+            <Icon name="login" className={ROW_ICON_CLASSES} />
+            <span className="flex-1">Join chat</span>
+          </button>
+        )}
       </div>
     </div>
   );

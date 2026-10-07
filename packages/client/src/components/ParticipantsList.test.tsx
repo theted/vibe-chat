@@ -16,16 +16,6 @@ vi.mock("framer-motion", () => ({
   },
 }));
 
-vi.mock("./AnimatedListItem", () => ({
-  default: ({
-    children,
-    ...props
-  }: {
-    children: ReactNode;
-    [key: string]: unknown;
-  }) => <div {...props}>{children}</div>,
-}));
-
 vi.mock("./SectionHeader", () => ({
   default: ({ title, count }: { title: string; count: number }) => (
     <div data-testid={`section-${title}`}>{`${title} (${count})`}</div>
@@ -82,8 +72,8 @@ describe("ParticipantsList", () => {
 
     const providerHeaders = screen.getAllByTestId(/ai-provider-/i);
     expect(providerHeaders.map((header) => header.textContent)).toEqual([
-      "Anthropic (2)",
-      "OpenAI (1)",
+      "Anthropic",
+      "OpenAI",
     ]);
 
     const modelNames = Array.from(

@@ -1,77 +1,103 @@
 /**
- * TypingIndicator Component - Shows when someone is typing
+ * TypingIndicator Component - one quiet line above the composer naming who
+ * is writing, each model in its voice colour. It always holds its height so
+ * the transcript doesn't jump.
  */
 
+import { useMemo } from "react";
+import { HUMAN_VOICE_HUE } from "@/config/voices";
+import { findTypingAiParticipant } from "@/utils/participants";
+import { getVoiceHue, voiceStyle } from "@/utils/voice";
+import Spinner from "./Spinner";
 import type { TypingIndicatorProps, TypingParticipant } from "@/types";
 
-const MAX_VISIBLE_AVATARS = 3;
-const AVATAR_ANIMATION_DELAY_MS = 100;
+const MAX_NAMED_TYPERS = 2;
+
+interface Typer {
+  name: string;
+  hue: number;
+  isAI: boolean;
+}
+
+const getDisplayName = (participant: TypingParticipant): string =>
+  participant.displayName || participant.name || "Someone";
+
+const Name = ({ typer }: { typer: Typer }) => (
+  <span
+    className={`font-semibold ${typer.isAI ? "text-voice" : "text-fg"}`}
+    style={voiceStyle(typer.hue)}
+  >
+    {typer.name}
+  </span>
+);
 
 const TypingIndicator = ({
   typingUsers = [],
   typingAIs = [],
+  aiParticipants = [],
 }: TypingIndicatorProps) => {
-  const otherTypingUsers = typingUsers.filter((user) => !user.isLocal);
-  const allTyping: TypingParticipant[] = [...otherTypingUsers, ...typingAIs];
+  const typers = useMemo<Typer[]>(
+    () => [
+      ...typingUsers
+        .filter((user) => !user.isLocal)
+        .map((user) => ({
+          name: getDisplayName(user),
+          hue: HUMAN_VOICE_HUE,
+          isAI: false,
+        })),
+      ...typingAIs.map((ai) => {
+        const participant = findTypingAiParticipant(ai, aiParticipants);
+        return {
+          name: getDisplayName(ai),
+          hue: getVoiceHue(participant?.provider ?? getDisplayName(ai)),
+          isAI: true,
+        };
+      }),
+    ],
+    [typingUsers, typingAIs, aiParticipants],
+  );
 
-  if (allTyping.length === 0) return null;
+  // Models first: the bars should show the voices about to speak
+  const hues = useMemo(
+    () => [
+      ...typers.filter((typer) => typer.isAI).map((typer) => typer.hue),
+      ...typers.filter((typer) => !typer.isAI).map((typer) => typer.hue),
+    ],
+    [typers],
+  );
 
-  const getDisplayName = (participant: TypingParticipant): string =>
-    participant.displayName || participant.name || "Participant";
-
-  const formatParticipant = (participant: TypingParticipant): string => {
-    const fallbackEmoji = participant.type === "ai" ? "🤖" : "🧑";
-    const emoji =
-      participant.type === "ai"
-        ? participant.emoji || fallbackEmoji
-        : fallbackEmoji;
-    return `${emoji} ${getDisplayName(participant)}`;
-  };
-
-  const formatTypingText = (): string => {
-    if (allTyping.length === 1) {
-      return `${formatParticipant(allTyping[0])} is typing...`;
+  const renderText = () => {
+    if (typers.length === 1)
+      return (
+        <>
+          <Name typer={typers[0]} /> is typing
+        </>
+      );
+    if (typers.length === MAX_NAMED_TYPERS) {
+      return (
+        <>
+          <Name typer={typers[0]} /> and <Name typer={typers[1]} /> are typing
+        </>
+      );
     }
-    if (allTyping.length === 2) {
-      return `${formatParticipant(allTyping[0])} and ${formatParticipant(allTyping[1])} are typing...`;
-    }
-    return `${allTyping.length} chatters are typing... 🔥`;
+    return (
+      <>
+        <Name typer={typers[0]} /> and {typers.length - 1} others are typing
+      </>
+    );
   };
 
   return (
-    <div className="flex items-center gap-2 px-3 py-2 sm:px-5 sm:py-3 lg:px-8 lg:py-5 bg-slate-50/60 backdrop-blur-md border-t border-slate-100/50 shadow-sm dark:bg-slate-900/70 dark:border-slate-800/50 dark:shadow-none">
-      <div className="flex items-center gap-2">
-        <div className="flex space-x-1">
-          <div className="w-2 h-2 bg-primary-400 rounded-full animate-bounce-delay-0 shadow-sm dark:bg-primary-300"></div>
-          <div className="w-2 h-2 bg-primary-400 rounded-full animate-bounce-delay-1 shadow-sm dark:bg-primary-300"></div>
-          <div className="w-2 h-2 bg-primary-400 rounded-full animate-bounce-delay-2 shadow-sm dark:bg-primary-300"></div>
-        </div>
-        <span className="text-sm text-slate-600 font-medium animate-pulse dark:text-slate-300">
-          {formatTypingText()}
-        </span>
-      </div>
-      <div className="flex -space-x-2 ml-auto">
-        {allTyping.slice(0, MAX_VISIBLE_AVATARS).map((user, index) => (
-          <div
-            key={`${user.type}-${user.id || user.name || index}`}
-            className={`w-6 h-6 rounded-full border-2 border-white flex items-center justify-center text-xs font-semibold animate-pulse dark:border-slate-900 ${
-              user.type === "ai"
-                ? "bg-gradient-to-br from-purple-400 to-purple-600 text-white dark:from-purple-500 dark:to-purple-700"
-                : "bg-gradient-to-br from-blue-400 to-blue-600 text-white dark:from-blue-400 dark:to-blue-700"
-            }`}
-            style={{ animationDelay: `${index * AVATAR_ANIMATION_DELAY_MS}ms` }}
-          >
-            {user.type === "ai"
-              ? user.emoji || "🤖"
-              : getDisplayName(user).charAt(0).toUpperCase()}
-          </div>
-        ))}
-        {allTyping.length > MAX_VISIBLE_AVATARS && (
-          <div className="w-6 h-6 bg-slate-400 rounded-full border-2 border-white flex items-center justify-center text-xs font-semibold text-white dark:bg-slate-700 dark:border-slate-900 dark:text-slate-100">
-            +{allTyping.length - MAX_VISIBLE_AVATARS}
-          </div>
-        )}
-      </div>
+    <div
+      className="flex h-5 items-center gap-2 px-1 text-xs text-muted"
+      aria-live="polite"
+    >
+      {typers.length > 0 && (
+        <>
+          <Spinner hues={hues} />
+          <span className="truncate">{renderText()}</span>
+        </>
+      )}
     </div>
   );
 };

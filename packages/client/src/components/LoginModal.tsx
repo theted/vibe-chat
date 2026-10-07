@@ -6,7 +6,10 @@ import { useEffect, useRef, type FormEvent } from "react";
 import Icon from "./Icon";
 import {
   MODAL_BACKDROP_CLASSES,
-  SECTION_LABEL_CLASSES,
+  MODAL_CLOSE_BUTTON_CLASSES,
+  MODAL_PANEL_CLASSES,
+  MODAL_TITLE_CLASSES,
+  modalPanelState,
 } from "@/constants/modalStyles";
 import type { ConnectionStatus } from "@/types";
 
@@ -51,7 +54,7 @@ const LoginModal = ({
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex items-center justify-center ${
+      className={`fixed inset-0 z-50 flex items-center justify-center p-4 ${
         isOpen ? "pointer-events-auto" : "pointer-events-none"
       }`}
     >
@@ -70,56 +73,43 @@ const LoginModal = ({
         aria-modal="true"
         aria-label="Set your username"
         aria-hidden={!isOpen}
-        className={`glass-surface relative w-full max-w-md rounded-3xl bg-white/95 p-8 shadow-2xl border border-white/40 backdrop-blur-xl transition-all duration-200 ease-out transform-gpu will-change-transform dark:bg-slate-900/95 dark:border-slate-700/60 ${
-          isOpen
-            ? "opacity-100 translate-y-0 scale-100"
-            : "opacity-0 translate-y-2 scale-95"
-        }`}
+        className={`${MODAL_PANEL_CLASSES} max-w-sm p-6 ${modalPanelState(isOpen)}`}
       >
-        <div className="absolute -top-10 right-8 h-24 w-24 rounded-full bg-primary-500/20 blur-2xl" />
-        <div className="absolute -bottom-8 left-8 h-24 w-24 rounded-full bg-indigo-500/20 blur-2xl" />
-        <div className="relative flex items-start justify-between gap-3">
-          <div>
-            <p className={SECTION_LABEL_CLASSES}>
-              Welcome to the room
-            </p>
-            <p className="text-2xl font-semibold text-slate-800 dark:text-slate-100">
-              Pick your username
-            </p>
-          </div>
+        <div className="flex items-start justify-between gap-3">
+          <h2 className={MODAL_TITLE_CLASSES}>Pick a name</h2>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full border border-slate-200/60 bg-white/70 p-2 text-slate-500 transition hover:text-slate-700 dark:border-slate-700/60 dark:bg-slate-900/70 dark:text-slate-300"
+            className={`${MODAL_CLOSE_BUTTON_CLASSES} -mr-2 -mt-1`}
             aria-label="Close login dialog"
           >
-            <Icon name="x-mark" className="w-4 h-4" />
+            <Icon name="x-mark" className="h-4 w-4" />
           </button>
         </div>
-        <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">
-          Join the conversation with a display name so others can see
-          you in the room.
+        <p className="mt-1 text-sm text-muted">
+          It’s how people and models in the room will address you. We’ll
+          remember it on this device.
         </p>
-        <form onSubmit={handleLoginSubmit} className="mt-6 space-y-4">
+        <form onSubmit={handleLoginSubmit} className="mt-5 space-y-3">
           <input
             ref={loginInputRef}
             type="text"
             value={username}
             onChange={(event) => onUsernameChange(event.target.value)}
-            placeholder="Enter your username"
+            placeholder="e.g. ada_l"
+            aria-label="Username"
             maxLength={50}
             pattern="[a-zA-Z0-9_-]+"
-            title="Username can only contain letters, numbers, dash, and underscore"
-            className="w-full rounded-2xl border border-slate-200/70 bg-white/80 px-5 py-3 text-base font-medium text-slate-800 shadow-inner outline-none transition focus:border-primary-300 focus:ring-2 focus:ring-primary-400/30 dark:border-slate-700/60 dark:bg-slate-900/70 dark:text-slate-100"
+            title="Letters, numbers, dash and underscore only"
+            className="w-full rounded-lg border border-line bg-canvas px-3.5 py-2.5 text-[15px] text-fg placeholder:text-faint focus:border-accent focus:ring-0"
             required
           />
           <button
             type="submit"
             disabled={!connectionStatus.connected || !username.trim()}
-            className="group relative flex w-full items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-r from-primary-500 via-indigo-500 to-sky-500 px-6 py-3 text-sm font-semibold uppercase tracking-[0.35em] text-white transition-all duration-300 disabled:from-slate-500 disabled:via-slate-600 disabled:to-slate-700 disabled:text-slate-300 disabled:shadow-none disabled:cursor-not-allowed"
+            className="w-full rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-accent-fg transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:bg-raised disabled:text-faint"
           >
-            <span className="absolute inset-0 translate-y-full bg-gradient-to-r from-emerald-400/80 via-teal-400/80 to-cyan-400/80 opacity-0 transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100" />
-            <span className="relative">Join Chat</span>
+            {connectionStatus.connected ? "Join chat" : "Waiting for server"}
           </button>
         </form>
       </div>

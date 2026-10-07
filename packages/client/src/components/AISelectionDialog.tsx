@@ -137,15 +137,22 @@ const AISelectionDialog = ({
   useEffect(() => {
     if (!isOpen) return;
     const onMouseDown = (e: MouseEvent) => {
-      if (dialogRef.current && !dialogRef.current.contains(e.target as Node)) onClose();
+      if (dialogRef.current && !dialogRef.current.contains(e.target as Node))
+        onClose();
     };
     document.addEventListener("mousedown", onMouseDown);
     return () => document.removeEventListener("mousedown", onMouseDown);
   }, [isOpen, onClose]);
 
   const safePos = useMemo<DialogPosition>(() => {
-    if (position && typeof position.x === "number" && typeof position.y === "number") return position;
-    if (typeof window !== "undefined") return { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+    if (
+      position &&
+      typeof position.x === "number" &&
+      typeof position.y === "number"
+    )
+      return position;
+    if (typeof window !== "undefined")
+      return { x: window.innerWidth / 2, y: window.innerHeight / 2 };
     return { x: 0, y: 0 };
   }, [position]);
 
@@ -158,7 +165,8 @@ const AISelectionDialog = ({
    */
   const anchorStyle = useMemo(() => {
     const viewportWidth = typeof window !== "undefined" ? window.innerWidth : 0;
-    const viewportHeight = typeof window !== "undefined" ? window.innerHeight : 0;
+    const viewportHeight =
+      typeof window !== "undefined" ? window.innerHeight : 0;
     const maxLeft = Math.max(
       VIEWPORT_MARGIN,
       viewportWidth - DIALOG_WIDTH - VIEWPORT_MARGIN,
@@ -185,7 +193,7 @@ const AISelectionDialog = ({
       {isOpen && (
         <motion.div
           ref={dialogRef}
-          className="fixed z-[9999] bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-slate-200/80 w-80 dark:bg-slate-900/95 dark:border-slate-700 dark:text-slate-100 overflow-hidden"
+          className="fixed z-[9999] w-80 overflow-hidden rounded-xl border border-line bg-raised text-fg shadow-2xl shadow-black/40"
           initial={{ opacity: 0, y: 12, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 6, scale: 0.97 }}
@@ -208,7 +216,10 @@ const AISelectionDialog = ({
                 <AIDetailPreview
                   key="detail"
                   item={selectedItem}
-                  onBack={() => { setView("list"); setSelectedItem(null); }}
+                  onBack={() => {
+                    setView("list");
+                    setSelectedItem(null);
+                  }}
                   onConfirm={confirmSelect}
                 />
               )
