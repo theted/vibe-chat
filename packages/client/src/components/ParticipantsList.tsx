@@ -7,6 +7,7 @@ import { useParticipantTyping } from "@/hooks/useParticipantTyping";
 import { toPanelAiParticipants } from "@/utils/participants";
 import UserParticipantsSection from "./UserParticipantsSection";
 import AIParticipantsSection from "./AIParticipantsSection";
+import RoomSpectrum from "./RoomSpectrum";
 import type { ParticipantsListProps } from "@/types";
 
 const ParticipantsList = ({
@@ -30,11 +31,12 @@ const ParticipantsList = ({
 
   return (
     <aside className="hidden w-72 shrink-0 flex-col border-l border-line bg-surface lg:flex">
-      <div className="flex h-14 shrink-0 items-center border-b border-line px-5">
+      <div className="flex h-16 shrink-0 items-center px-5">
         <h2 className="font-display text-[15px] font-semibold text-fg">
           In the room
         </h2>
       </div>
+      <RoomSpectrum aiList={aiList} />
 
       <div className="thin-scrollbar flex-1 overflow-y-auto pb-4">
         <UserParticipantsSection

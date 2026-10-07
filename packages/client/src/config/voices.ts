@@ -33,3 +33,12 @@ export const SPINNER_HUES = [285, 200, 150, 340, 245, 20, 175] as const;
 
 // Humans are neutral: colour is how you tell the models apart
 export const HUMAN_VOICE_HUE = 270;
+
+// The room aura blends the voices heard most recently. Lookback bounds how
+// far back "recently" reaches; the count matches the aura's three glows.
+export const ROOM_VOICE_COUNT = 3;
+export const ROOM_VOICE_LOOKBACK = 16;
+
+// Before any model has spoken the room still has a vibe: teal, violet, rose.
+// Must match the @property initial values in index.css.
+export const AMBIENT_ROOM_HUES = [200, 285, 340] as const;

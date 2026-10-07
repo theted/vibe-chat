@@ -56,12 +56,17 @@ const AIParticipantsSection = ({
 
         return (
           <div key={provider} className="px-2 pt-3" style={voiceStyle(hue)}>
-            <div className="flex items-center gap-2 px-3 pb-1 text-xs text-muted">
+            <div className="flex items-center gap-2 px-3 pb-1 text-xs">
               <span
                 className="h-1.5 w-1.5 rounded-full bg-voice"
                 aria-hidden="true"
               />
-              <span data-testid={`ai-provider-${provider}`}>{provider}</span>
+              <span
+                className="font-semibold text-voice"
+                data-testid={`ai-provider-${provider}`}
+              >
+                {provider}
+              </span>
               <span className="ml-auto tabular-nums text-faint">
                 {providerParticipants.length}
               </span>

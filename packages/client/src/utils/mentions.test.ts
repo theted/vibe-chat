@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { findMentionMatches } from "./mentions";
+import { findMentionMatches, resolveMentionVoiceKey } from "./mentions";
 
 describe("mentions utilities", () => {
   it("matches @mentions with spaces from known AI names", () => {
@@ -16,5 +16,16 @@ describe("mentions utilities", () => {
 
     expect(matches).toHaveLength(1);
     expect(matches[0]?.text).toBe("@Skylar");
+  });
+
+  it("resolves a model mention to its provider, aliases included", () => {
+    expect(resolveMentionVoiceKey("@claude-opus-5")).toBe("Anthropic");
+    expect(resolveMentionVoiceKey("@gpt-6")).toBe("OpenAI");
+    expect(resolveMentionVoiceKey("@Claude Opus 5")).toBe("Anthropic");
+  });
+
+  it("leaves people and unknown names without a voice", () => {
+    expect(resolveMentionVoiceKey("@Skylar")).toBeNull();
+    expect(resolveMentionVoiceKey("@")).toBeNull();
   });
 });

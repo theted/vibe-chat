@@ -1,3 +1,4 @@
+import RoomAura from "./RoomAura";
 import Spinner from "./Spinner";
 import type { LoadingOverlayProps } from "@/types";
 
@@ -6,11 +7,12 @@ const LoadingOverlay = ({
   message = "Checking your session",
 }: LoadingOverlayProps) => (
   <div
-    className={`fixed inset-0 z-50 flex items-center justify-center bg-canvas transition-opacity duration-500 ease-out ${
+    className={`fixed inset-0 isolate z-50 flex items-center justify-center bg-canvas transition-opacity duration-500 ease-out ${
       visible ? "opacity-100" : "pointer-events-none opacity-0"
     }`}
     aria-hidden={!visible}
   >
+    <RoomAura />
     <div
       className="flex flex-col items-center gap-7"
       role="status"

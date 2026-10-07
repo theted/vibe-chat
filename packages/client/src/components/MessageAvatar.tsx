@@ -1,6 +1,6 @@
 /**
  * MessageAvatar - square tile beside a transcript header: the model's emoji
- * on its voice tint, or a human's initial on a neutral tile.
+ * on its voice tint and hairline, or a human's initial on a neutral tile.
  */
 
 interface MessageAvatarProps {
@@ -14,7 +14,7 @@ const TILE_CLASSES =
 
 const MessageAvatar = ({ isAI, emoji, name }: MessageAvatarProps) =>
   isAI ? (
-    <div className={`${TILE_CLASSES} bg-voice-soft text-lg`} aria-hidden="true">
+    <div className={`${TILE_CLASSES} voice-tile text-lg`} aria-hidden="true">
       {emoji || "🤖"}
     </div>
   ) : (

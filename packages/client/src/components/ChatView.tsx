@@ -2,6 +2,8 @@ import { useMemo } from "react";
 import { DEFAULT_AI_PARTICIPANTS } from "@/config/aiParticipants";
 import { useModal } from "@/hooks/useModal";
 import { isContinuation } from "@/utils/messageGrouping";
+import { getRoomHues, roomHueStyle } from "@/utils/roomVoices";
+import { getVoiceHue } from "@/utils/voice";
 import ChatHeader from "./ChatHeader";
 import ChatMessage from "./ChatMessage";
 import GuestNotice from "./GuestNotice";
@@ -10,6 +12,7 @@ import LoginModal from "./LoginModal";
 import MessageInput from "./MessageInput";
 import ParticipantsList from "./ParticipantsList";
 import PrivateChatBanner from "./PrivateChatBanner";
+import RoomAura from "./RoomAura";
 import SettingsModal from "./SettingsModal";
 import TypingIndicator from "./TypingIndicator";
 import type { ChatViewProps } from "@/types";
@@ -61,9 +64,28 @@ const ChatView = ({
     [messages],
   );
 
+  // The aura and composer edge take on the colours of whoever spoke last; a
+  // private chat glows in its one partner's voice before it has said a word
+  const privateHue = privateChatAi
+    ? getVoiceHue(privateChatAi.provider ?? privateChatAi.name)
+    : null;
+  const roomStyle = useMemo(
+    () =>
+      roomHueStyle(
+        privateHue != null
+          ? [privateHue, privateHue, privateHue]
+          : getRoomHues(messages, aiParticipantList),
+      ),
+    [privateHue, messages, aiParticipantList],
+  );
+
   return (
     <div className="flex h-dvh overflow-hidden bg-canvas text-fg">
-      <main className="relative flex min-w-0 flex-1 flex-col">
+      <main
+        className="room-tinted relative isolate flex min-w-0 flex-1 flex-col"
+        style={roomStyle}
+      >
+        <RoomAura />
         <ChatHeader
           topic={roomInfo?.topic}
           isConnected={connectionStatus.connected}
@@ -101,14 +123,19 @@ const ChatView = ({
         />
 
         <div
-          className="thin-scrollbar min-h-0 flex-1 overflow-y-auto overflow-x-hidden"
+          className="thin-scrollbar fade-top min-h-0 flex-1 overflow-y-auto overflow-x-hidden"
           ref={messagesContainerRef}
         >
-          <div className={`${COLUMN_CLASSES} pb-6 pt-2`}>
+          <div className={`${COLUMN_CLASSES} pb-6 pt-4`}>
             {messages.length === 0 && (
-              <p className="px-6 pt-16 text-center text-sm text-muted">
-                Nothing said yet. Say hello, or type @ to bring a model in.
-              </p>
+              <div className="px-6 pt-[18vh] text-center">
+                <p className="wordmark text-3xl sm:text-4xl">
+                  Nothing said yet.
+                </p>
+                <p className="mt-2 text-[15px] text-muted">
+                  Say hello, or type @ to bring a model in.
+                </p>
+              </div>
             )}
             {messages.map((message, index) => (
               <ChatMessage
@@ -141,7 +168,11 @@ const ChatView = ({
           )}
 
           <div className={`${COLUMN_CLASSES} space-y-2`}>
-            <TypingIndicator typingUsers={typingUsers} typingAIs={typingAIs} />
+            <TypingIndicator
+              typingUsers={typingUsers}
+              typingAIs={typingAIs}
+              aiParticipants={aiParticipantList}
+            />
 
             {error && (
               <div

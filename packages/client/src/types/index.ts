@@ -217,6 +217,8 @@ export interface ParticipantsListProps {
 export interface TypingIndicatorProps {
   typingUsers?: TypingUser[];
   typingAIs?: TypingAI[];
+  /** Resolves typing models to their voice colour */
+  aiParticipants?: AiParticipant[];
 }
 
 // Component prop types - AISelectionDialog

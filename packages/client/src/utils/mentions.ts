@@ -7,6 +7,7 @@
  */
 import { DEFAULT_AI_PARTICIPANTS } from "@/config/aiParticipants";
 import { AI_MENTION_MAPPINGS } from "@/constants/chat";
+import { normalizeAliasKey } from "@/utils/ai";
 import type { AiParticipant } from "@/config/aiParticipants";
 
 const BOUNDARY_REGEX = /[\s.,!?;:'")\]}]/;
@@ -101,3 +102,28 @@ export const findMentionMatches = (
   return matches;
 };
 
+
+/**
+ * Provider of the model an @mention names (shorthand aliases included), so
+ * the chip can wear that model's voice colour. Null for people and unknowns.
+ */
+export const resolveMentionVoiceKey = (
+  mention: string,
+  aiParticipants: AiParticipant[] = [],
+): string | null => {
+  const bare = mention.replace(/^@/, "").trim().toLowerCase();
+  if (!bare) return null;
+
+  const canonical = Object.entries(AI_MENTION_MAPPINGS).find(
+    ([alias]) => alias.toLowerCase() === bare,
+  )?.[1];
+  const targets = new Set(
+    [bare, canonical].map((value) => normalizeAliasKey(value)).filter(Boolean),
+  );
+
+  const participant = [...aiParticipants, ...DEFAULT_AI_PARTICIPANTS].find(
+    ({ id, alias, name }) =>
+      [id, alias, name].some((value) => targets.has(normalizeAliasKey(value))),
+  );
+  return participant?.provider ?? null;
+};

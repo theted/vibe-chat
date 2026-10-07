@@ -32,12 +32,21 @@ interface SpinnerProps {
   size?: SpinnerSize;
   /** Fixed hue for every bar, e.g. the voice of the model that is typing */
   hue?: number;
+  /** Bars cycle through these, e.g. everyone currently typing */
+  hues?: readonly number[];
   label?: string;
   className?: string;
 }
 
-const Spinner = ({ size = "sm", hue, label, className = "" }: SpinnerProps) => {
+const Spinner = ({
+  size = "sm",
+  hue,
+  hues,
+  label,
+  className = "",
+}: SpinnerProps) => {
   const { bars, style } = SIZE_CONFIG[size];
+  const palette = hue != null ? [hue] : hues?.length ? hues : SPINNER_HUES;
 
   return (
     <span
@@ -53,7 +62,7 @@ const Spinner = ({ size = "sm", hue, label, className = "" }: SpinnerProps) => {
           style={
             {
               "--bar-index": index,
-              "--voice-h": hue ?? SPINNER_HUES[index % SPINNER_HUES.length],
+              "--voice-h": palette[index % palette.length],
             } as CSSProperties
           }
         />

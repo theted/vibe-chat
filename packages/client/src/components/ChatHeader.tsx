@@ -4,6 +4,7 @@
  */
 
 import Icon from "./Icon";
+import LogoMark from "./LogoMark";
 
 const ICON_BUTTON_CLASSES =
   "flex h-9 w-9 items-center justify-center rounded-lg text-muted transition-colors hover:bg-raised hover:text-fg";
@@ -23,14 +24,23 @@ const ChatHeader = ({
   onLoginOpen,
   onSettingsOpen,
 }: ChatHeaderProps) => (
-  <header className="flex h-14 shrink-0 items-center gap-4 border-b border-line px-4 sm:px-6">
-    <div className="flex min-w-0 flex-1 items-baseline gap-3">
-      <h1 className="wordmark shrink-0 text-xl">Vibe chat</h1>
+  <header className="flex h-16 shrink-0 items-center gap-4 px-4 sm:px-6">
+    <div className="flex min-w-0 flex-1 items-center gap-3.5">
+      <h1 className="wordmark flex shrink-0 items-center gap-2.5 text-xl">
+        <LogoMark />
+        Vibe chat
+      </h1>
       {/* The server tracks a room topic and /topic changes it */}
       {topic && (
-        <p className="truncate text-sm text-muted" title={topic}>
-          {topic}
-        </p>
+        <>
+          <span className="h-5 w-px shrink-0 bg-line" aria-hidden="true" />
+          <p
+            className="truncate font-display text-[15px] font-medium text-fg/85"
+            title={topic}
+          >
+            {topic}
+          </p>
+        </>
       )}
     </div>
 

@@ -89,7 +89,7 @@ const MessageInput = ({
     <>
       <form
         onSubmit={handleSubmit}
-        className={`flex items-end gap-2 rounded-xl border border-line bg-surface p-1.5 pl-4 transition-colors focus-within:border-faint ${
+        className={`composer flex items-end gap-2 rounded-xl p-1.5 pl-4 ${
           disabled ? "opacity-60" : ""
         }`}
       >

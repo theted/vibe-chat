@@ -4,6 +4,7 @@
  */
 
 import { Fragment, type ReactNode } from "react";
+import MentionChip from "@/components/MentionChip";
 import { findMentionMatches } from "@/utils/mentions";
 import type { AiParticipant } from "@/config/aiParticipants";
 
@@ -68,9 +69,11 @@ export const highlightMentions = (
       );
     }
     nodes.push(
-      <span key={`mention-${key++}`} className="mention-chip">
-        {match.text}
-      </span>,
+      <MentionChip
+        key={`mention-${key++}`}
+        text={match.text}
+        aiParticipants={aiParticipants}
+      />,
     );
     lastIndex = match.end;
   });

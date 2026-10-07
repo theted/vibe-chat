@@ -11,6 +11,7 @@ import {
   formatMentionsForMarkdown,
   highlightMentions,
 } from "@/utils/chatMentions";
+import { getMessageVoiceKey } from "@/utils/messageSender";
 import { voiceStyleFor } from "@/utils/voice";
 import { useAIMetadata } from "@/hooks/useAIMetadata";
 import MarkdownCodeBlock from "./MarkdownCodeBlock";
@@ -82,12 +83,19 @@ const ChatMessage = ({
   );
 
   const voice = useMemo(() => voiceStyleFor(voiceKey), [voiceKey]);
+  const quotedVoiceKey = useMemo(
+    () =>
+      quotedMessage ? getMessageVoiceKey(quotedMessage, aiParticipants) : null,
+    [quotedMessage, aiParticipants],
+  );
 
   if (message.senderType === "system") {
     return (
-      <div className="flex items-center gap-3 px-4 py-4 text-xs text-muted sm:px-6 animate-fade-in">
+      <div className="flex items-center gap-3 px-4 py-5 sm:px-6 animate-fade-in">
         <span className="h-px flex-1 bg-line" aria-hidden="true" />
-        <span className="max-w-[60ch] text-center">{message.content}</span>
+        <span className="max-w-[60ch] text-center font-display text-[13px] font-medium text-muted">
+          {message.content}
+        </span>
         <span className="h-px flex-1 bg-line" aria-hidden="true" />
       </div>
     );
@@ -97,9 +105,9 @@ const ChatMessage = ({
 
   return (
     <article
-      className={`group relative flex gap-3 px-4 sm:px-6 hover:bg-surface/60 transition-colors animate-rise-in ${
-        isContinuation ? "pt-1.5 pb-0.5" : "pt-5 pb-0.5"
-      }`}
+      className={`group relative flex gap-3 px-4 sm:px-6 transition-colors animate-rise-in ${
+        isAI ? "hover-voice" : "hover:bg-surface/60"
+      } ${isContinuation ? "pt-1.5 pb-0.5" : "pt-5 pb-0.5"}`}
       style={voice}
     >
       <div className="w-9 shrink-0">
@@ -130,6 +138,7 @@ const ChatMessage = ({
           <ReplyQuote
             quotedMessage={quotedMessage}
             fallbackSender={message.mentionsTriggerSender}
+            voiceKey={quotedVoiceKey}
           />
         )}
 

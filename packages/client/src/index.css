@@ -20,17 +20,24 @@
   --accent: #9a5b0c;
   --accent-fg: #ffffff;
   --danger: #c2413f;
+  /* Syntax colours are oneDark, so code sits on dark in both themes */
+  --code-bg: #1e1c29;
 
   /* Voice colours: every provider gets a hue, the theme sets lightness/chroma
      so one hue stays legible on either background */
-  --voice-l: 52%;
-  --voice-c: 0.14;
+  --voice-l: 50%;
+  --voice-c: 0.16;
+
+  /* Room aura: the glow behind the transcript, tinted by recent voices */
+  --aura-l: 80%;
+  --aura-c: 0.14;
+  --aura-a: 0.55;
 
   color-scheme: light;
 }
 
 .dark {
-  --canvas: #16151d;
+  --canvas: #14131b;
   --surface: #1c1b25;
   --raised: #262532;
   --line: #2f2d3d;
@@ -40,11 +47,35 @@
   --accent: #f4b860;
   --accent-fg: #221a0c;
   --danger: #f08080;
+  --code-bg: #0e0d13;
 
-  --voice-l: 80%;
-  --voice-c: 0.11;
+  --voice-l: 79%;
+  --voice-c: 0.135;
+
+  --aura-l: 58%;
+  --aura-c: 0.16;
+  --aura-a: 0.32;
 
   color-scheme: dark;
+}
+
+/* Room hues (utils/roomVoices.ts). Registered as numbers so the aura and
+   composer edge glide to a new colour when a voice joins, instead of
+   snapping. Initial values mirror AMBIENT_ROOM_HUES in config/voices.ts. */
+@property --room-h1 {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 200;
+}
+@property --room-h2 {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 285;
+}
+@property --room-h3 {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 340;
 }
 
 @theme inline {
@@ -143,6 +174,108 @@
     letter-spacing: -0.02em;
   }
 
+  /* Logo: the spinner's bars standing still */
+  .logo-mark {
+    display: inline-flex;
+    align-items: flex-end;
+    gap: 2.5px;
+    height: 18px;
+  }
+  .logo-mark > span {
+    width: 4px;
+    border-radius: 999px;
+    background: oklch(var(--voice-l) var(--voice-c) var(--voice-h));
+  }
+
+  /* ── Room aura: soft light in the colours of whoever spoke last ── */
+  .room-tinted {
+    transition:
+      --room-h1 1.8s ease,
+      --room-h2 1.8s ease,
+      --room-h3 1.8s ease;
+  }
+  .room-aura {
+    position: absolute;
+    inset: 0 0 auto;
+    z-index: -1;
+    height: min(72vh, 620px);
+    overflow: hidden;
+    pointer-events: none;
+    mask-image: linear-gradient(to bottom, black 15%, transparent);
+  }
+  .room-aura > span {
+    position: absolute;
+    width: 70%;
+    aspect-ratio: 1.5;
+    border-radius: 50%;
+    background: radial-gradient(
+      closest-side,
+      oklch(var(--aura-l) var(--aura-c) var(--aura-h) / var(--aura-a)),
+      transparent
+    );
+    animation: auraDrift 36s ease-in-out infinite alternate;
+  }
+  .room-aura > span:nth-child(1) {
+    --aura-h: var(--room-h1);
+    top: -48%;
+    left: -18%;
+  }
+  .room-aura > span:nth-child(2) {
+    --aura-h: var(--room-h2);
+    top: -62%;
+    left: 20%;
+    animation-delay: -12s;
+  }
+  .room-aura > span:nth-child(3) {
+    --aura-h: var(--room-h3);
+    top: -44%;
+    left: 52%;
+    animation-delay: -24s;
+  }
+  /* Grain keeps the large dark gradients from banding */
+  .room-aura::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    opacity: 0.07;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  @keyframes auraDrift {
+    to {
+      transform: translate(6%, 8%) scale(1.08);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .room-tinted {
+      transition: none;
+    }
+    .room-aura > span {
+      animation: none;
+    }
+  }
+
+  /* Composer: quiet at rest, edged in the room's colours while you write */
+  .composer {
+    border: 1px solid var(--line);
+    background: var(--surface);
+    transition: box-shadow 0.3s ease;
+  }
+  .composer:focus-within {
+    border-color: transparent;
+    background:
+      linear-gradient(var(--surface), var(--surface)) padding-box,
+      linear-gradient(
+          100deg,
+          oklch(var(--voice-l) var(--voice-c) var(--room-h1)),
+          oklch(var(--voice-l) var(--voice-c) var(--room-h2)),
+          oklch(var(--voice-l) var(--voice-c) var(--room-h3))
+        )
+        border-box;
+    box-shadow: 0 12px 48px -18px
+      oklch(var(--aura-l) var(--aura-c) var(--room-h2) / 0.7);
+  }
+
   /* ── Spinner: bars in voice colours taking turns, like a room talking ── */
   .voice-bars {
     display: inline-flex;
@@ -206,9 +339,12 @@
   .markdown-content em {
     @apply italic;
   }
+  /* Structure in a model's answer (headings, markers, quote rules) takes
+     the speaker's voice; the prose itself stays neutral for reading */
   .markdown-content h3,
   .markdown-content h4 {
-    @apply font-display text-base font-bold text-fg mt-5;
+    @apply font-display text-base font-bold mt-5;
+    color: oklch(var(--voice-l) var(--voice-c) var(--voice-h));
     letter-spacing: -0.01em;
   }
   .markdown-content h3:first-child,
@@ -229,7 +365,7 @@
     @apply my-1 pl-1;
   }
   .markdown-list li::marker {
-    color: var(--faint);
+    color: oklch(var(--voice-l) var(--voice-c) var(--voice-h) / 80%);
   }
 
   .markdown-link {
@@ -241,28 +377,36 @@
   }
 
   .markdown-content blockquote {
-    @apply border-l-2 border-line pl-4 text-muted;
+    @apply border-l-2 pl-4 text-muted;
+    border-color: oklch(var(--voice-l) var(--voice-c) var(--voice-h) / 55%);
   }
   .markdown-content hr {
     @apply my-6 border-0 border-t border-line;
   }
 
+  /* Breaks only when a token can't fit a line, not mid-word by default */
   .inline-code {
-    @apply rounded-md border border-line bg-raised px-1.5 py-px font-mono text-[0.85em] text-fg break-all;
+    @apply rounded-md border border-line bg-raised px-1.5 py-px font-mono text-[0.85em] text-fg;
+    overflow-wrap: anywhere;
   }
 
-  /* Mentions are marked up as **`@name`**; the chip supersedes that styling */
+  /* Mentions are marked up as **`@name`**; the chip supersedes that styling.
+     A model's mention wears its voice (MentionChip); a person's stays neutral */
   .mention-chip,
   .markdown-content strong code {
-    @apply inline-flex items-center rounded-md px-1.5 font-semibold text-accent;
-    background: color-mix(in oklab, var(--accent) 14%, transparent);
+    @apply inline-flex items-center rounded-md bg-raised px-1.5 font-semibold text-fg;
     font-family: inherit;
     font-size: inherit;
   }
+  .mention-chip-voice {
+    color: oklch(var(--voice-l) var(--voice-c) var(--voice-h));
+    background: oklch(var(--voice-l) var(--voice-c) var(--voice-h) / 15%);
+  }
 
   .code-block {
-    @apply my-3 overflow-x-auto rounded-lg border border-line font-mono text-[13px] leading-relaxed;
-    background: color-mix(in oklab, var(--canvas) 70%, black) !important;
+    @apply my-3 overflow-x-auto rounded-lg border font-mono text-[13px] leading-relaxed;
+    border-color: oklch(var(--voice-l) var(--voice-c) var(--voice-h) / 22%);
+    background: var(--code-bg) !important;
   }
   .code-block code {
     @apply bg-transparent p-0;
@@ -279,6 +423,22 @@
   }
   .bg-voice-soft {
     background-color: oklch(var(--voice-l) var(--voice-c) var(--voice-h) / 16%);
+  }
+  /* Avatar tile: tint plus a hairline of the same voice */
+  .voice-tile {
+    background-color: oklch(var(--voice-l) var(--voice-c) var(--voice-h) / 20%);
+    box-shadow: inset 0 0 0 1px
+      oklch(var(--voice-l) var(--voice-c) var(--voice-h) / 32%);
+  }
+  .hover-voice:hover {
+    background-color: oklch(var(--voice-l) var(--voice-c) var(--voice-h) / 5%);
+  }
+  .border-voice-soft {
+    border-color: oklch(var(--voice-l) var(--voice-c) var(--voice-h) / 55%);
+  }
+  /* Messages fade under the header instead of being cut at a hard line */
+  .fade-top {
+    mask-image: linear-gradient(to bottom, transparent, black 28px);
   }
   .border-voice {
     border-color: oklch(var(--voice-l) var(--voice-c) var(--voice-h));
