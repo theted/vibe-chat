@@ -6,6 +6,7 @@ import { getRoomHues, roomHueStyle } from "@/utils/roomVoices";
 import { getVoiceHue } from "@/utils/voice";
 import ChatHeader from "./ChatHeader";
 import ChatMessage from "./ChatMessage";
+import CircuitBackdrop from "./CircuitBackdrop";
 import GuestNotice from "./GuestNotice";
 import Icon from "./Icon";
 import LoginModal from "./LoginModal";
@@ -86,6 +87,7 @@ const ChatView = ({
         style={roomStyle}
       >
         <RoomAura />
+        <CircuitBackdrop />
         <ChatHeader
           topic={roomInfo?.topic}
           isConnected={connectionStatus.connected}

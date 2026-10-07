@@ -31,6 +31,9 @@ export const PROVIDER_HUES: Record<string, number> = {
 // Spinner bars cycle through these so the loader shows several voices at once
 export const SPINNER_HUES = [285, 200, 150, 340, 245, 20, 175] as const;
 
+// Loader signals on the cyan logo: violet and rose, so they read against it
+export const LOGO_SIGNAL_HUES = [285, 340] as const;
+
 // Humans are neutral: colour is how you tell the models apart
 export const HUMAN_VOICE_HUE = 270;
 
@@ -39,6 +42,6 @@ export const HUMAN_VOICE_HUE = 270;
 export const ROOM_VOICE_COUNT = 3;
 export const ROOM_VOICE_LOOKBACK = 16;
 
-// Before any model has spoken the room still has a vibe: teal, violet, rose.
-// Must match the @property initial values in index.css.
-export const AMBIENT_ROOM_HUES = [200, 285, 340] as const;
+// Before any model has spoken the room glows like the circuit board: cyan,
+// azure, blue. Must match the @property initial values in index.css.
+export const AMBIENT_ROOM_HUES = [190, 215, 250] as const;

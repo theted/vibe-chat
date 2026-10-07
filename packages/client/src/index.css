@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./styles/circuit.css";
 @plugin "@tailwindcss/forms";
 
 /* Class-based dark mode — mirrors v3 darkMode: "class" */
@@ -8,20 +9,30 @@
  * Semantic tokens. Components use these (bg-canvas, text-fg, border-line…)
  * instead of pairing a light and a dark: class on every element, so a theme
  * is one block of variables below.
+ *
+ * Neutrals lean toward the circuit board's teal-blue (hue ~228) so the
+ * canvas reads as one piece with the traces running across it.
  */
 :root {
-  --canvas: #f6f5f9;
+  --canvas: oklch(97.2% 0.007 215);
   --surface: #ffffff;
-  --raised: #efedf4;
-  --line: #e1dee9;
-  --fg: #1e1c29;
-  --muted: #625e74;
-  --faint: #8d89a0;
+  --raised: oklch(95% 0.012 218);
+  --line: oklch(90.6% 0.017 222);
+  --fg: oklch(23.5% 0.025 230);
+  --muted: oklch(49.4% 0.035 228);
+  --faint: oklch(64.1% 0.034 226);
   --accent: #9a5b0c;
   --accent-fg: #ffffff;
   --danger: #c2413f;
   /* Syntax colours are oneDark, so code sits on dark in both themes */
-  --code-bg: #1e1c29;
+  --code-bg: oklch(23.5% 0.025 230);
+
+  /* Circuit traces (styles/circuit.css): dark teal copper with a pale cyan
+     halo on light, as on a lit board */
+  --circuit: oklch(48% 0.075 227);
+  --circuit-bright: oklch(46% 0.085 228);
+  --circuit-glow: oklch(82% 0.09 212 / 0.9);
+  --circuit-opacity: 0.42;
 
   /* Voice colours: every provider gets a hue, the theme sets lightness/chroma
      so one hue stays legible on either background */
@@ -37,17 +48,22 @@
 }
 
 .dark {
-  --canvas: #14131b;
-  --surface: #1c1b25;
-  --raised: #262532;
-  --line: #2f2d3d;
-  --fg: #ece9f4;
-  --muted: #a29eb5;
-  --faint: #6f6b84;
+  --canvas: oklch(19% 0.018 228);
+  --surface: oklch(22.8% 0.02 228);
+  --raised: oklch(27.1% 0.024 228);
+  --line: oklch(30.6% 0.028 228);
+  --fg: oklch(94% 0.012 220);
+  --muted: oklch(71% 0.03 225);
+  --faint: oklch(54.1% 0.035 226);
   --accent: #f4b860;
   --accent-fg: #221a0c;
   --danger: #f08080;
-  --code-bg: #0e0d13;
+  --code-bg: oklch(15% 0.014 228);
+
+  --circuit: oklch(70% 0.1 220);
+  --circuit-bright: oklch(85% 0.12 210);
+  --circuit-glow: oklch(72% 0.14 213 / 0.7);
+  --circuit-opacity: 0.38;
 
   --voice-l: 79%;
   --voice-c: 0.135;
@@ -65,17 +81,17 @@
 @property --room-h1 {
   syntax: "<number>";
   inherits: true;
-  initial-value: 200;
+  initial-value: 190;
 }
 @property --room-h2 {
   syntax: "<number>";
   inherits: true;
-  initial-value: 285;
+  initial-value: 215;
 }
 @property --room-h3 {
   syntax: "<number>";
   inherits: true;
-  initial-value: 340;
+  initial-value: 250;
 }
 
 @theme inline {
@@ -172,19 +188,6 @@
     @apply font-display font-extrabold text-fg;
     font-variation-settings: "opsz" 96;
     letter-spacing: -0.02em;
-  }
-
-  /* Logo: the spinner's bars standing still */
-  .logo-mark {
-    display: inline-flex;
-    align-items: flex-end;
-    gap: 2.5px;
-    height: 18px;
-  }
-  .logo-mark > span {
-    width: 4px;
-    border-radius: 999px;
-    background: oklch(var(--voice-l) var(--voice-c) var(--voice-h));
   }
 
   /* ── Room aura: soft light in the colours of whoever spoke last ── */

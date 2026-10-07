@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- The header's LogoMark (src/components/LogoMark.tsx) on a dark board
+       tile; strokes are heavier so the V survives at 16px -->
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0c252e"/>
+      <stop offset="1" stop-color="#050f14"/>
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="1.6" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="url(#tile)"/>
+  <rect x="0.75" y="0.75" width="62.5" height="62.5" rx="13.25" fill="none" stroke="#5be3f9" stroke-opacity="0.18" stroke-width="1.5"/>
+  <g transform="translate(8 8)" fill="none" stroke="#5be3f9" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)">
+    <path d="M5 8.2V11.5L24 44L43 11.5V8.2M13.4 14L24 32.1L33.4 16V11.2" stroke-width="3.4"/>
+    <g stroke-width="2.6">
+      <circle cx="5" cy="5.6" r="2.6"/>
+      <circle cx="43" cy="5.6" r="2.6"/>
+      <circle cx="12.1" cy="11.8" r="2.6"/>
+      <circle cx="33.4" cy="8.6" r="2.6"/>
+    </g>
+  </g>
+</svg>
