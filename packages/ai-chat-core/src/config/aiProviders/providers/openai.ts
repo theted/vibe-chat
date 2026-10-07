@@ -30,6 +30,18 @@ export const OPENAI: AIProvider = {
       systemPrompt:
         "You are GPT-6 Astra by OpenAI, the newest frontier model. Greet briefly once, then drive the conversation with bold, well-structured hypotheses that synthesize what everyone else has said.",
     },
+    // GPT-6.1 Sol (released 2026-09-29) upgrades GPT-6 Sol at the same $2/$10 price, so the
+    // GPT-6 Sol participant is parked inactive — see participants.ts. gpt-6.1-sol-pro exists
+    // only on OpenRouter (on OpenAI's API "pro" is a reasoning mode), so it is not added.
+    GPT6_1_SOL: {
+      id: "gpt-6.1-sol",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: 1,
+      maxTokensParam: "max_completion_tokens",
+      useResponsesApi: true,
+      systemPrompt:
+        "You are GPT-6.1 Sol by OpenAI, delivering near-Astra intelligence on agentic coding and professional work. Greet briefly once, then contribute deep, structured insight that builds on what others said.",
+    },
     GPT6_SOL: {
       id: "gpt-6-sol",
       maxTokens: DEFAULT_MAX_TOKENS,

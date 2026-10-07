@@ -15,17 +15,21 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   "claude-opus-5-5": "claude-opus-5-5",
   "claude-opus-5.5": "claude-opus-5-5",
   "claude-opus-5": "claude-opus-5",
+  "claude-sonnet-5-5": "claude-sonnet-5-5",
+  "claude-sonnet-5.5": "claude-sonnet-5-5",
   "claude-sonnet-5": "claude-sonnet-5",
   "gpt-6-astra": "gpt-6-astra",
   "gpt-6": "gpt-6-astra",
   astra: "gpt-6-astra",
-  // GPT-5.6 Sol/Luna are parked; their names resolve to the GPT-6 models that replaced them
-  "gpt-6-sol": "gpt-6-sol",
+  // Parked Sol/Luna models resolve to the newer models that replaced them
+  "gpt-6.1": "gpt-6.1-sol",
+  "gpt-6.1-sol": "gpt-6.1-sol",
+  "gpt-6-sol": "gpt-6.1-sol",
   "gpt-6-luna": "gpt-6-luna",
   "gpt-5.6": "gpt-5.6-terra",
-  "gpt-5.6-sol": "gpt-6-sol",
+  "gpt-5.6-sol": "gpt-6.1-sol",
   "gpt-5.6-luna": "gpt-6-luna",
-  sol: "gpt-6-sol",
+  sol: "gpt-6.1-sol",
   terra: "gpt-5.6-terra",
   luna: "gpt-6-luna",
   "gemini-3.8": "gemini-3.8-flash",
@@ -55,7 +59,7 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   claude: "claude-opus-5-5",
   anthropic: "claude-opus-5-5",
   haiku: "claude-haiku-4-5",
-  sonnet: "claude-sonnet-5",
+  sonnet: "claude-sonnet-5-5",
   opus: "claude-opus-5-5",
   fable: "claude-fable-5-1",
   "claude-fable": "claude-fable-5-1",
@@ -66,7 +70,6 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   "claude-opus-4-6": "claude-opus-4-6",
   "claude-haiku-4-5": "claude-haiku-4-5",
   "claude-sonnet-4-5": "claude-sonnet-4-5",
-  "claude-opus-4-1": "claude-opus-4-1",
 
   // OpenAI/GPT
   gpt: "gpt-6-astra",
@@ -125,8 +128,10 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   "command-r-plus": "command-r-plus",
   "command-r": "command-r",
 
-  // Mistral AI
+  // Mistral AI: the flagship (Large 4) holds the bare `mistral` participant alias
   mistral: "mistral",
+  "mistral-large": "mistral",
+  "mistral-large-4": "mistral",
   "mistral-medium": "mistral-medium",
   "mistral-small": "mistral-small",
   "magistral-small": "magistral-small",
@@ -288,8 +293,9 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   "nex-n2.5": "nex-n2.5-pro",
 
   // InclusionAI (OpenRouter)
-  inclusionai: "ling-3.0-flash-vl",
-  ling: "ling-3.0-flash-vl",
+  inclusionai: "ling-3.1-flash",
+  ling: "ling-3.1-flash",
+  "ling-3.1": "ling-3.1-flash",
   "ling-3.0": "ling-3.0-flash-vl",
 
   // Sakana AI (OpenRouter)

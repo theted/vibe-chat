@@ -26,6 +26,14 @@ export const INCLUSIONAI: AIProvider = {
     ],
   },
   models: {
+    // Released 2026-10-02 and currently free on OpenRouter; listed first so it is the default.
+    LING_3_1_FLASH: {
+      id: "inclusionai/ling-3.1-flash",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Ling 3.1 Flash by InclusionAI, a hybrid-reasoning 560B MoE model with 25B active parameters. Greet once, then think things through and keep replies grounded and concrete.",
+    },
     LING_3_0_FLASH_VL: {
       id: "inclusionai/ling-3.0-flash-vl",
       maxTokens: DEFAULT_MAX_TOKENS,

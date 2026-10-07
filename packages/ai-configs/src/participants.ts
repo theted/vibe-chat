@@ -85,14 +85,7 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     status: "active",
     emoji: "🎵",
   },
-  {
-    id: "ANTHROPIC_CLAUDE_OPUS_4_1",
-    name: "Claude Opus 4.1",
-    alias: "claude-opus-4-1",
-    provider: "Anthropic",
-    status: "active",
-    emoji: "🎺",
-  },
+  // claude-opus-4-1 retired 2026-08-05 — removed 2026-10-07.
 
   // OpenAI Models - Space/cosmos
   {
@@ -361,13 +354,15 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
   },
 
   // Mistral AI Models - Wind/weather
+  // Mistral Large 4 (end of list) took over the bare `mistral` alias and the tornado emoji
+  // as the new flagship, so Large 3 moved to its own versioned alias.
   {
     id: "MISTRAL_MISTRAL_LARGE",
     name: "Mistral Large 3",
-    alias: "mistral",
+    alias: "mistral-large-3",
     provider: "Mistral AI",
     status: "active",
-    emoji: "🌪️",
+    emoji: "⛈️",
   },
   {
     id: "MISTRAL_MISTRAL_MEDIUM",
@@ -1316,12 +1311,14 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     status: "active",
     emoji: "🎼",
   },
+  // GPT-6.1 Sol (end of list) serves the same tier at the same price, so GPT-6 Sol is
+  // parked to keep indistinguishable bots out of the room.
   {
     id: "OPENAI_GPT6_SOL",
     name: "GPT-6 Sol",
     alias: "gpt-6-sol",
     provider: "OpenAI",
-    status: "active",
+    status: "inactive",
     emoji: "☄️",
   },
   {
@@ -1427,6 +1424,39 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     provider: "InclusionAI",
     status: "active",
     emoji: "🛎️",
+  },
+  {
+    id: "ANTHROPIC_CLAUDE_SONNET_5_5",
+    name: "Claude Sonnet 5.5",
+    alias: "claude-sonnet-5-5",
+    provider: "Anthropic",
+    status: "active",
+    emoji: "🪗",
+  },
+  {
+    id: "OPENAI_GPT6_1_SOL",
+    name: "GPT-6.1 Sol",
+    alias: "gpt-6.1-sol",
+    provider: "OpenAI",
+    status: "active",
+    emoji: "🚀",
+  },
+  {
+    id: "MISTRAL_MISTRAL_LARGE_4",
+    name: "Mistral Large 4",
+    alias: "mistral",
+    provider: "Mistral AI",
+    status: "active",
+    emoji: "🌪️",
+  },
+  {
+    id: "INCLUSIONAI_LING_3_1_FLASH",
+    name: "Ling 3.1 Flash",
+    alias: "ling-3.1-flash",
+    provider: "InclusionAI",
+    status: "active",
+    // Maracas: InclusionAI's bell emojis are taken, so this borrows another rattle
+    emoji: "🪇",
   },
 ];
 
