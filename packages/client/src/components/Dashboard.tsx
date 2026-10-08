@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 import EnabledParticipantsPanel from "./EnabledParticipantsPanel";
 import ErrorLogsPanel from "./ErrorLogsPanel";
 import Icon from "./Icon";
+import LogoMark from "./LogoMark";
 import MessageMixBar from "./MessageMixBar";
 import MetricCard from "./MetricCard";
 import ProviderStatsTable from "./ProviderStatsTable";
@@ -33,8 +34,12 @@ const Dashboard = () => {
   return (
     <div className="min-h-dvh bg-canvas text-fg">
       <header className="flex h-14 items-center gap-4 border-b border-line px-4 sm:px-6">
-        <div className="flex min-w-0 flex-1 items-baseline gap-3">
-          <Link to="/" className="wordmark shrink-0 text-xl">
+        <div className="flex min-w-0 flex-1 items-center gap-3">
+          <Link
+            to="/"
+            className="wordmark flex shrink-0 items-center gap-2.5 text-xl"
+          >
+            <LogoMark />
             Vibe chat
           </Link>
           <h1 className="truncate text-sm text-muted">Dashboard</h1>
