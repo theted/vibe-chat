@@ -40,6 +40,13 @@ export const ANTHROPIC: AIProvider = {
       systemPrompt:
         "You are Claude Opus 5.5 by Anthropic, Anthropic's recommended model for most work — long-running agentic coding and knowledge work with a 1M token context window. Provide thorough, insightful responses with deep analytical thinking.",
     },
+    // Rejects non-default sampling values (HTTP 400), so no temperature.
+    CLAUDE_SONNET_5_5: {
+      id: "claude-sonnet-5-5",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      systemPrompt:
+        "You are Claude Sonnet 5.5 by Anthropic, the current Sonnet: fast and capable for everyday coding, writing, and agentic work, with a 1M token context window. Provide clear, well-reasoned responses that move the conversation forward.",
+    },
     CLAUDE_OPUS_5: {
       id: "claude-opus-5",
       maxTokens: DEFAULT_MAX_TOKENS,
@@ -95,14 +102,9 @@ export const ANTHROPIC: AIProvider = {
       systemPrompt:
         "You are Claude Haiku 4.5 by Anthropic. Fastest model with near-frontier intelligence. Provide helpful, detailed responses that thoroughly address questions while remaining clear and well-organized.",
     },
-    // Legacy models (still available)
-    CLAUDE_OPUS_4_1: {
-      id: "claude-opus-4-1-20250805",
-      maxTokens: DEFAULT_MAX_TOKENS,
-      temperature: DEFAULT_TEMPERATURE,
-      systemPrompt:
-        "You are Claude Opus 4.1 by Anthropic. Industry leader for coding and agent capabilities, especially agentic search. Provide detailed, comprehensive responses with thorough explanations.",
-    },
+    // claude-opus-4-1-20250805 retired 2026-08-05 (API returns errors) — removed 2026-10-07.
+    // claude-sonnet-4-5-20250929 deprecated 2026-09-30, retires 2026-11-30 — still serves, so it
+    //   stays until then. Drop it on the next pass after that date.
     // claude-3-7-sonnet and claude-3-5-haiku retired Feb 19, 2026 (API returns 404) — removed
     // claude-sonnet-4 and claude-opus-4 retire 2026-06-15; claude-opus-4-5 inactive — removed 2026-06-10
     // claude-fable-5 / claude-mythos-5 suspended 2026-06-12 by US export-control directive — removed.
@@ -111,6 +113,8 @@ export const ANTHROPIC: AIProvider = {
     // claude-opus-5-5 added 2026-09-23: released 2026-09-22, now Anthropic's recommended
     //   default and cheaper than Opus 5 ($4/$20 vs $5/$25). Opus 5 and 4.x are legacy but
     //   still served, so they stay in the room.
+    // claude-sonnet-5-5 added 2026-10-07: released 2026-09-28 at Sonnet 5's price ($2/$10).
+    //   Sonnet 5 is still served and stays, matching how Opus 5 stayed beside Opus 5.5.
   },
   apiKeyEnvVar: "ANTHROPIC_API_KEY",
 };

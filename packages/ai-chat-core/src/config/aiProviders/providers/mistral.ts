@@ -26,6 +26,15 @@ export const MISTRAL: AIProvider = {
   },
   models: {
     // Flagship models
+    // Mistral Large 4 (v26.10) added 2026-10-07 as the provider default. Mistral dropped the
+    // date-stamped naming here; `mistral-large-4-0` is the id its model docs list.
+    MISTRAL_LARGE_4: {
+      id: "mistral-large-4-0",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Mistral Large 4 by Mistral AI, an open-weight frontier multimodal model built for reasoning, coding, and agentic work, with a 512K token context window. Provide clear, well-reasoned responses and contribute meaningfully to the discussion.",
+    },
     MISTRAL_LARGE: {
       id: "mistral-large-2512",
       maxTokens: DEFAULT_MAX_TOKENS,

@@ -52,7 +52,6 @@ import type { AIModel, AIProvider } from "@/types/index.js";
 const EXPLICIT_DEFAULTS = new Map<AIProvider, string>([
   // Fable 5.1 is listed first but costs 2.5x Opus 5.5, Anthropic's recommended default.
   [ANTHROPIC, "CLAUDE_OPUS_5_5"],
-  [MISTRAL, "MISTRAL_LARGE"],
   [LLAMA, "LLAMA_4_MAVERICK"],
   [AMAZON, "NOVA_PRO_V1"],
   [PERPLEXITY, "SONAR_PRO"],
