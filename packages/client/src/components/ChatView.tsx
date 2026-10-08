@@ -60,13 +60,13 @@ const ChatView = ({
   const login = useModal();
   const participantsDrawer = useModal();
 
-  // Lookup for reply-quote rendering - resolves a reply's trigger id to the
-  // quoted message while it is still in the loaded history
   const activeAiCount = useMemo(
     () => toPanelAiParticipants(aiParticipantList).length,
     [aiParticipantList],
   );
 
+  // Lookup for reply-quote rendering - resolves a reply's trigger id to the
+  // quoted message while it is still in the loaded history
   const messagesById = useMemo(
     () => new Map(messages.map((message) => [message.id, message])),
     [messages],

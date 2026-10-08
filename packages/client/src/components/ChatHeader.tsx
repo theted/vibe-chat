@@ -1,6 +1,6 @@
 /**
- * ChatHeader - wordmark, room topic, connection state and the two header
- * actions (join as guest, settings).
+ * ChatHeader - wordmark, room topic, connection state and the header actions
+ * (join as guest, participants drawer below lg, settings).
  */
 
 import Icon from "./Icon";
