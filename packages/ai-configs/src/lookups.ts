@@ -18,6 +18,8 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   "claude-sonnet-5-5": "claude-sonnet-5-5",
   "claude-sonnet-5.5": "claude-sonnet-5-5",
   "claude-sonnet-5": "claude-sonnet-5",
+  "claude-haiku-5-5": "claude-haiku-5-5",
+  "claude-haiku-5.5": "claude-haiku-5-5",
   "gpt-6-astra": "gpt-6-astra",
   "gpt-6": "gpt-6-astra",
   astra: "gpt-6-astra",
@@ -58,7 +60,7 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   // Bare aliases follow Anthropic's recommended default, now Opus 5.5; Fable 5.1 costs 2.5x.
   claude: "claude-opus-5-5",
   anthropic: "claude-opus-5-5",
-  haiku: "claude-haiku-4-5",
+  haiku: "claude-haiku-5-5",
   sonnet: "claude-sonnet-5-5",
   opus: "claude-opus-5-5",
   fable: "claude-fable-5-1",
