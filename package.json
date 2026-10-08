@@ -25,7 +25,7 @@
     "test:client": "turbo run test --filter=@ai-chat/client",
     "test:cli": "turbo run test --filter=@ai-chat/cli",
     "test:server": "turbo run test --filter=@ai-chat/server",
-    "test:e2e": "codeceptjs run --steps",
+    "test:e2e": "codeceptjs run --steps --config codecept.conf.cjs",
     "test:grok": "bun run --filter @ai-chat/core test:grok",
     "test:openai": "bun run --filter @ai-chat/core test:openai",
     "test:mistral": "bun run --filter @ai-chat/core test:mistral",
