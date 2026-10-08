@@ -105,9 +105,11 @@ Current defaults and IDs (see `packages/ai-chat-core/src/config/aiProviders`):
 
 ### Anthropic ([API keys](https://console.anthropic.com/settings/keys))
 
-- `CLAUDE_OPUS_4_6` -> `claude-opus-4-6` (most intelligent, agents/coding)
-- `CLAUDE_SONNET_4_5` (default) -> `claude-sonnet-4-5-20250929` (best balance)
-- `CLAUDE_HAIKU_4_5` -> `claude-haiku-4-5-20251001` (fastest)
+- `CLAUDE_FABLE_5_1` -> `claude-fable-5-1` (most capable, priciest)
+- `CLAUDE_OPUS_5_5` (default) -> `claude-opus-5-5` (recommended for most work)
+- `CLAUDE_SONNET_5_5` -> `claude-sonnet-5-5` (speed + intelligence)
+- `CLAUDE_HAIKU_5_5` -> `claude-haiku-5-5` (fastest, cheapest)
+- Legacy, still served: Opus 5, Sonnet 5, Opus 4.8/4.7/4.6, Sonnet 4.6, Sonnet 4.5 (retires 2026-11-30), Haiku 4.5
 
 ### Mistral ([API keys](https://console.mistral.ai/api-keys))
 

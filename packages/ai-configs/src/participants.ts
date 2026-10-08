@@ -1434,6 +1434,14 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     emoji: "🪗",
   },
   {
+    id: "ANTHROPIC_CLAUDE_HAIKU_5_5",
+    name: "Claude Haiku 5.5",
+    alias: "claude-haiku-5-5",
+    provider: "Anthropic",
+    status: "active",
+    emoji: "🪈",
+  },
+  {
     id: "OPENAI_GPT6_1_SOL",
     name: "GPT-6.1 Sol",
     alias: "gpt-6.1-sol",

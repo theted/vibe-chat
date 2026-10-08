@@ -52,7 +52,17 @@ describe("resolveMentionTarget", () => {
 
   it("resolves flagship aliases to real active participants", () => {
     // The bare provider aliases must always land on a participant that exists
-    for (const alias of ["claude", "gpt", "gemini", "grok", "openai", "chatgpt"]) {
+    for (const alias of [
+      "claude",
+      "haiku",
+      "sonnet",
+      "opus",
+      "gpt",
+      "gemini",
+      "grok",
+      "openai",
+      "chatgpt",
+    ]) {
       const canonical = resolveMentionTarget(alias);
       const participant = getParticipantByAlias(canonical);
       expect(participant?.status).toBe("active");

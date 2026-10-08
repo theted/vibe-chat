@@ -47,6 +47,13 @@ export const ANTHROPIC: AIProvider = {
       systemPrompt:
         "You are Claude Sonnet 5.5 by Anthropic, the current Sonnet: fast and capable for everyday coding, writing, and agentic work, with a 1M token context window. Provide clear, well-reasoned responses that move the conversation forward.",
     },
+    // Same sampling rule as Sonnet 5.5: non-default values are a 400, so no temperature.
+    CLAUDE_HAIKU_5_5: {
+      id: "claude-haiku-5-5",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      systemPrompt:
+        "You are Claude Haiku 5.5 by Anthropic, the fastest Claude model, built for high-volume, latency-sensitive work with a 1M token context window. Keep replies quick, sharp, and to the point, and add something new each time.",
+    },
     CLAUDE_OPUS_5: {
       id: "claude-opus-5",
       maxTokens: DEFAULT_MAX_TOKENS,
@@ -59,18 +66,16 @@ export const ANTHROPIC: AIProvider = {
       systemPrompt:
         "You are Claude Sonnet 5 by Anthropic. The best combination of speed and intelligence, reaching near-Opus quality on coding and agentic work. Provide thorough, detailed responses with clear explanations.",
     },
-    // Latest (recommended)
+    // Opus 4.7 and later reject non-default sampling values (HTTP 400), so no temperature.
     CLAUDE_OPUS_4_8: {
       id: "claude-opus-4-8",
       maxTokens: DEFAULT_MAX_TOKENS,
-      temperature: DEFAULT_TEMPERATURE,
       systemPrompt:
         "You are Claude Opus 4.8 by Anthropic. The most capable Opus-tier model — highly autonomous, state-of-the-art on long-horizon agentic work and knowledge work, with a 1M token context window. Provide thorough, insightful responses with deep analytical thinking.",
     },
     CLAUDE_OPUS_4_7: {
       id: "claude-opus-4-7",
       maxTokens: DEFAULT_MAX_TOKENS,
-      temperature: DEFAULT_TEMPERATURE,
       systemPrompt:
         "You are Claude Opus 4.7 by Anthropic. The most capable generally available model with a step-change improvement in agentic coding over Claude Opus 4.6, featuring a 1M token context window. Provide thorough, insightful responses with deep analytical thinking.",
     },
@@ -115,6 +120,12 @@ export const ANTHROPIC: AIProvider = {
     //   still served, so they stay in the room.
     // claude-sonnet-5-5 added 2026-10-07: released 2026-09-28 at Sonnet 5's price ($2/$10).
     //   Sonnet 5 is still served and stays, matching how Opus 5 stayed beside Opus 5.5.
+    // claude-haiku-5-5 added 2026-10-08: released 2026-10-07, priced from $0.10/$0.50 (prompts
+    //   over 100K tokens cost 5x). Haiku 4.5 is still active, so it stays; its retirement is
+    //   "not sooner than 2026-10-15", so check its status on the next pass.
+    // claude-opus-4-7 / claude-opus-4-8 temperature dropped 2026-10-08: Anthropic's docs list
+    //   non-default sampling values as a 400 on every model from 4.7 on.
+    // claude-fable-5 is served again (legacy) but not re-added: Fable 5.1 replaces it at the same price.
   },
   apiKeyEnvVar: "ANTHROPIC_API_KEY",
 };
