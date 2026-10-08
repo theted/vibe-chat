@@ -16,5 +16,21 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <!-- Visit counter: daily totals only, no cookies or stored IPs (theted/tracking-pixel). Counted
+         only when loaded from vibe.sundbergsolutions.se or vibe-chat.sundbergsolutions.se, so the
+         dev server is ignored. -->
+    <script>
+      new Image().src =
+        "https://visits.sundbergsolutions.se/v.gif?s=vibe-chat&r=" +
+        encodeURIComponent(document.referrer);
+    </script>
+    <noscript
+      ><img
+        src="https://visits.sundbergsolutions.se/v.gif?s=vibe-chat"
+        alt=""
+        width="1"
+        height="1"
+        style="position: absolute"
+    /></noscript>
   </body>
 </html>
