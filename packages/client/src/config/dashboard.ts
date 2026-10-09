@@ -1,6 +1,6 @@
 /**
  * Dashboard configuration: refresh cadence, activity-level thresholds,
- * shared card styles, and initial metrics state.
+ * shared panel styles, status tones, and initial metrics state.
  */
 
 import type { DashboardMetrics } from "@/types";
@@ -13,22 +13,45 @@ const ACTIVITY_HIGH_THRESHOLD = 5;
 const ACTIVITY_MODERATE_THRESHOLD = 1;
 
 const ACTIVITY_LEVELS = [
-  { threshold: ACTIVITY_VERY_HIGH_THRESHOLD, label: "Very High", className: "text-red-600" },
-  { threshold: ACTIVITY_HIGH_THRESHOLD, label: "High", className: "text-orange-600" },
-  { threshold: ACTIVITY_MODERATE_THRESHOLD, label: "Moderate", className: "text-green-600" },
+  {
+    threshold: ACTIVITY_VERY_HIGH_THRESHOLD,
+    label: "Very high",
+    className: "text-danger",
+  },
+  {
+    threshold: ACTIVITY_HIGH_THRESHOLD,
+    label: "High",
+    className: "text-accent",
+  },
+  {
+    threshold: ACTIVITY_MODERATE_THRESHOLD,
+    label: "Moderate",
+    className: "text-fg",
+  },
 ] as const;
 
-const ACTIVITY_LEVEL_DEFAULT = { label: "Low", className: "text-gray-600" } as const;
+const ACTIVITY_LEVEL_DEFAULT = {
+  label: "Low",
+  className: "text-muted",
+} as const;
 
 export const resolveActivityLevel = (messagesPerMinute: number) =>
   ACTIVITY_LEVELS.find((level) => messagesPerMinute > level.threshold) ??
   ACTIVITY_LEVEL_DEFAULT;
 
 export const DASHBOARD_STYLES = {
-  card: "bg-white rounded-2xl p-6 shadow-md border border-gray-200",
-  cardTitle: "text-xl font-semibold text-gray-900 mb-6",
-  headerPill: "bg-white rounded-lg px-4 py-2 shadow-sm",
+  panel: "rounded-xl border border-line bg-surface",
+  sectionTitle: "font-display text-base font-bold text-fg",
 } as const;
+
+// Status rows: dot colour per state, full class names for Tailwind's scanner
+export const STATUS_DOT_CLASSES = {
+  ok: "bg-emerald-400",
+  warn: "bg-accent",
+  down: "bg-danger animate-pulse",
+} as const;
+
+export type StatusTone = keyof typeof STATUS_DOT_CLASSES;
 
 export const INITIAL_METRICS: DashboardMetrics = {
   totalAIMessages: 0,
