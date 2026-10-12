@@ -93,6 +93,19 @@ const chunkContent = (
     chunkSize = DEFAULT_CHUNK_SIZE,
     chunkOverlap = DEFAULT_CHUNK_OVERLAP,
   } = options;
+  // Each chunk starts chunkOverlap before the previous end; an overlap that
+  // isn't smaller than the chunk never moves forward and loops forever
+  if (
+    !Number.isFinite(chunkSize) ||
+    !Number.isFinite(chunkOverlap) ||
+    chunkSize <= 0 ||
+    chunkOverlap < 0 ||
+    chunkOverlap >= chunkSize
+  ) {
+    throw new Error(
+      `Invalid chunking: chunk size ${chunkSize} must be positive and overlap ${chunkOverlap} must be at least 0 and smaller than it.`,
+    );
+  }
   const length = content.length;
   const newlineIdx = newlineIndicesFor(content);
   const chunks: ContentChunk[] = [];
