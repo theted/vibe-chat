@@ -4,7 +4,11 @@ import {
   htmlToText,
   type PageLink,
 } from "./htmlToText.js";
-import { assertPublicUrl, UnsafeUrlError } from "./urlSafety.js";
+import {
+  pinToAddress,
+  resolvePublicTarget,
+  UnsafeUrlError,
+} from "./urlSafety.js";
 
 const BROWSE_TIMEOUT_MS = 10_000;
 const BROWSE_MAX_BYTES = 2_000_000;
@@ -49,36 +53,46 @@ const readCappedBody = async (
   return text + decoder.decode();
 };
 
+type FetchedPage = {
+  response: Response;
+  /** The page's real URL; response.url holds the pinned IP instead */
+  url: URL;
+};
+
 /**
  * Follows redirects by hand so every hop goes through the SSRF check -
  * fetch's automatic redirects would skip it.
  */
-const fetchPublicPage = async (rawUrl: string): Promise<Response> => {
-  let url = await assertPublicUrl(rawUrl);
+const fetchPublicPage = async (rawUrl: string): Promise<FetchedPage> => {
+  let target = await resolvePublicTarget(rawUrl);
   for (let hop = 0; hop <= BROWSE_MAX_REDIRECTS; hop += 1) {
-    const response = await fetch(url, {
+    const pinned = pinToAddress(target);
+    const init: RequestInit & { tls?: { serverName: string } } = {
       redirect: "manual",
       signal: AbortSignal.timeout(BROWSE_TIMEOUT_MS),
       headers: {
+        ...pinned.headers,
         "User-Agent": USER_AGENT,
         Accept: "text/html,text/plain,application/json;q=0.9,*/*;q=0.5",
       },
-    });
+      tls: pinned.tls,
+    };
+    const response = await fetch(pinned.url, init);
 
     const location = response.headers.get("location");
     if (!REDIRECT_STATUSES.has(response.status) || !location) {
-      return response;
+      return { response, url: target.url };
     }
     await response.body?.cancel().catch(() => undefined);
-    url = await assertPublicUrl(new URL(location, url).href);
+    target = await resolvePublicTarget(new URL(location, target.url).href);
   }
   throw new BrowseError(`Gave up after ${BROWSE_MAX_REDIRECTS} redirects.`);
 };
 
 export const browse = async (rawUrl: string): Promise<BrowseResult> => {
-  let response: Response;
+  let page: FetchedPage;
   try {
-    response = await fetchPublicPage(rawUrl);
+    page = await fetchPublicPage(rawUrl);
   } catch (error) {
     if (error instanceof UnsafeUrlError || error instanceof BrowseError) {
       throw error;
@@ -90,16 +104,16 @@ export const browse = async (rawUrl: string): Promise<BrowseResult> => {
     throw new BrowseError(`Could not fetch ${rawUrl}: ${reason}`);
   }
 
+  const { response, url: finalUrl } = page;
   const contentType = response.headers.get("content-type") ?? "";
   if (contentType && !TEXT_CONTENT_TYPE.test(contentType)) {
     await response.body?.cancel().catch(() => undefined);
     throw new BrowseError(
-      `${response.url || rawUrl} is ${contentType.split(";")[0]}, which browse can't read (text and HTML only).`,
+      `${finalUrl.href} is ${contentType.split(";")[0]}, which browse can't read (text and HTML only).`,
     );
   }
 
   const body = await readCappedBody(response, BROWSE_MAX_BYTES);
-  const finalUrl = new URL(response.url || rawUrl);
   const isHtml =
     /html/i.test(contentType) || /^\s*<(!doctype|html)/i.test(body);
   const fullText = isHtml ? htmlToText(body) : body.trim();

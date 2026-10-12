@@ -2,8 +2,8 @@
  * SSRF guard for the browse tool. The server shares a Docker network with
  * Redis and Chroma and runs on EC2, so a model-chosen URL must never reach
  * private, loopback or link-local addresses (169.254.169.254 = instance
- * metadata). Known gap: DNS can change between this check and fetch()'s own
- * lookup (rebinding); acceptable for a read-only text fetcher.
+ * metadata). The checked address is also the one fetched (pinToAddress), so
+ * DNS can't hand fetch() a different, private address after the check.
  */
 
 import { lookup } from "dns/promises";
@@ -72,8 +72,19 @@ export const isBlockedAddress = (ip: string): boolean =>
 
 export class UnsafeUrlError extends Error {}
 
+export type PublicTarget = {
+  url: URL;
+  /** Checked address to connect to, instead of letting fetch() resolve again */
+  address: string;
+};
+
+const stripBrackets = (hostname: string): string =>
+  hostname.replace(/^\[|\]$/g, "");
+
 /** Throws UnsafeUrlError unless every address the host resolves to is public. */
-export const assertPublicUrl = async (rawUrl: string): Promise<URL> => {
+export const resolvePublicTarget = async (
+  rawUrl: string,
+): Promise<PublicTarget> => {
   let url: URL;
   try {
     url = new URL(rawUrl);
@@ -86,7 +97,7 @@ export const assertPublicUrl = async (rawUrl: string): Promise<URL> => {
   }
 
   // URL keeps IPv6 literals bracketed: [::1]
-  const hostname = url.hostname.replace(/^\[|\]$/g, "").toLowerCase();
+  const hostname = stripBrackets(url.hostname).toLowerCase();
   if (BLOCKED_HOSTNAMES.has(hostname) || hostname.endsWith(".localhost")) {
     throw new UnsafeUrlError(`Refusing to browse internal host ${hostname}.`);
   }
@@ -101,5 +112,27 @@ export const assertPublicUrl = async (rawUrl: string): Promise<URL> => {
     );
   }
 
-  return url;
+  return { url, address: addresses[0] };
+};
+
+/**
+ * A request that connects to the checked address but still speaks to the
+ * original site: the URL carries the IP, Host names the site, and TLS keeps
+ * the hostname for SNI and certificate verification. Without the pin, a
+ * rebinding DNS server could answer the check with a public address and
+ * fetch()'s own lookup with a private one.
+ */
+export const pinToAddress = ({ url, address }: PublicTarget) => {
+  const pinned = new URL(url);
+  pinned.hostname = isIP(address) === 6 ? `[${address}]` : address;
+  const hostname = stripBrackets(url.hostname);
+  const hasServerName = url.protocol === "https:" && !isIP(hostname);
+  return {
+    url: pinned.href,
+    headers: { Host: url.host },
+    // Bun's fetch() extension, verified to check the certificate against
+    // serverName. Elsewhere it's ignored and the IP fails verification, so
+    // HTTPS fails closed rather than unpinned.
+    tls: hasServerName ? { serverName: hostname } : undefined,
+  };
 };

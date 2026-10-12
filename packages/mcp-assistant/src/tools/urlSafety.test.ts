@@ -1,6 +1,11 @@
 import { describe, expect, test } from "bun:test";
 
-import { assertPublicUrl, isBlockedAddress, UnsafeUrlError } from "./urlSafety";
+import {
+  isBlockedAddress,
+  pinToAddress,
+  resolvePublicTarget,
+  UnsafeUrlError,
+} from "./urlSafety";
 
 describe("isBlockedAddress", () => {
   test.each([
@@ -32,7 +37,7 @@ describe("isBlockedAddress", () => {
   });
 });
 
-describe("assertPublicUrl", () => {
+describe("resolvePublicTarget", () => {
   test.each([
     "file:///etc/passwd",
     "ftp://example.com/file",
@@ -44,11 +49,47 @@ describe("assertPublicUrl", () => {
     "http://[::ffff:10.0.0.1]/",
     "not a url",
   ])("rejects %s", async (url) => {
-    await expect(assertPublicUrl(url)).rejects.toBeInstanceOf(UnsafeUrlError);
+    await expect(resolvePublicTarget(url)).rejects.toBeInstanceOf(
+      UnsafeUrlError,
+    );
   });
 
   test("accepts a public IP literal without a DNS lookup", async () => {
-    const url = await assertPublicUrl("http://93.184.215.14/page");
+    const { url, address } = await resolvePublicTarget(
+      "http://93.184.215.14/page",
+    );
     expect(url.hostname).toBe("93.184.215.14");
+    expect(address).toBe("93.184.215.14");
+  });
+});
+
+describe("pinToAddress", () => {
+  test("connects to the checked IP but keeps the host for Host and TLS", () => {
+    const pinned = pinToAddress({
+      url: new URL("https://docs.example.com:8443/guide?q=1"),
+      address: "93.184.215.14",
+    });
+    expect(pinned).toEqual({
+      url: "https://93.184.215.14:8443/guide?q=1",
+      headers: { Host: "docs.example.com:8443" },
+      tls: { serverName: "docs.example.com" },
+    });
+  });
+
+  test("brackets IPv6 addresses", () => {
+    const pinned = pinToAddress({
+      url: new URL("http://example.com/"),
+      address: "2606:2800:21f:cb07:6820:80da:af6b:8b2c",
+    });
+    expect(pinned.url).toBe("http://[2606:2800:21f:cb07:6820:80da:af6b:8b2c]/");
+    expect(pinned.tls).toBeUndefined();
+  });
+
+  test("sends no TLS server name for an IP literal", () => {
+    const pinned = pinToAddress({
+      url: new URL("https://93.184.215.14/"),
+      address: "93.184.215.14",
+    });
+    expect(pinned.tls).toBeUndefined();
   });
 });
