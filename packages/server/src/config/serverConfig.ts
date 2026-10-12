@@ -21,3 +21,8 @@ export const USER_MESSAGE_WINDOW_MS = 10 * 60 * 1000; // 10 minutes
 export const USERNAME_MAX_LENGTH = 50;
 export const MESSAGE_MAX_LENGTH = 1000;
 export const TOPIC_MAX_LENGTH = 100;
+
+// @Chat assistant: each answer is a multi-round agent run (and a web search
+// alone pulls ~20k tokens), and the AIs are prompted to ask @Chat, so their
+// questions are throttled per room. Human questions are not.
+export const CHAT_ASSISTANT_AI_COOLDOWN_MS = 2 * 60 * 1000; // 2 minutes

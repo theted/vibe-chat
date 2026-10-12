@@ -18,25 +18,18 @@ export type ChatHistoryEntry = {
 export type MCPAnswer = {
   answer?: string;
   contexts?: VectorContext[];
+  toolCalls?: string[];
   error?: Error | null;
 };
 
 export type ErrorWithCode = Error & { code?: string };
 
 export type LocalCodeMcpServer = {
-  ensureCollection: () => Promise<boolean>;
+  model: string;
   answerQuestion: (
     question: string,
-    options: { chatHistory?: ChatHistoryEntry[] },
+    options: { chatHistory?: ChatHistoryEntry[]; askedBy?: string },
   ) => Promise<MCPAnswer>;
-};
-
-export type WorkspaceIndexer = {
-  buildEmbeddingStore: () => Promise<{
-    chunks: number;
-    collectionName: string;
-    chromaUrl: string;
-  }>;
 };
 
 export type ChatAssistantResponse = {
@@ -50,4 +43,6 @@ export type ChatAssistantResponseOptions = {
   emitter?: Server | null;
   roomId?: string | null;
   chatHistory?: ChatMessage[];
+  /** Display name of whoever mentioned @Chat */
+  askedBy?: string;
 };

@@ -19,11 +19,15 @@ import type {
 } from "./chatAssistantTypes.js";
 import {
   buildChatAssistantIndex,
-  ensureChatAssistantVectorStoreAvailability,
+  checkChatAssistantIndex,
 } from "./chatAssistantVectorStore.js";
 
+const DEFAULT_TIMEOUT_MS = 15_000;
+const CHAT_HISTORY_LIMIT = 5;
+
 /**
- * Handles @Chat requests using the local MCP assistant.
+ * Handles @Chat requests: a Claude agent with code search over the Chroma
+ * index, web search and a browse tool (see @ai-chat/mcp-assistant).
  */
 export class ChatAssistantService {
   name: string;
@@ -40,12 +44,16 @@ export class ChatAssistantService {
   chatHistoryLimit: number;
   server: LocalCodeMcpServer | null;
   indexPromise: Promise<void> | null;
+  indexCheckPromise: Promise<void> | null;
   vectorStoreReachable: boolean | null;
   collectionReady: boolean | null;
-  vectorStoreError: Error | null;
 
   constructor(options: ChatAssistantOptions = {}) {
-    const { mentionName = "Chat", projectRoot, timeoutMs = 15_000 } = options;
+    const {
+      mentionName = "Chat",
+      projectRoot,
+      timeoutMs = DEFAULT_TIMEOUT_MS,
+    } = options;
     const resolved = resolveWorkspaceRoot({ projectRoot }, import.meta.url);
 
     this.name = mentionName;
@@ -63,12 +71,12 @@ export class ChatAssistantService {
     this.chromaUrl = process.env.CHROMA_URL || DEFAULT_CHROMA_URL;
     this.collectionName =
       process.env.CHAT_ASSISTANT_COLLECTION || DEFAULT_COLLECTION_NAME;
-    this.chatHistoryLimit = 5;
+    this.chatHistoryLimit = CHAT_HISTORY_LIMIT;
     this.server = null;
     this.indexPromise = null;
+    this.indexCheckPromise = null;
     this.vectorStoreReachable = null;
     this.collectionReady = null;
-    this.vectorStoreError = null;
   }
 
   async initialise(): Promise<void> {
@@ -78,33 +86,46 @@ export class ChatAssistantService {
       );
     }
 
-    console.log("[ChatAssistant Debug] Initializing with config:", {
-      projectRoot: this.projectRoot,
-      chromaUrl: this.chromaUrl,
-      collectionName: this.collectionName,
-      autoIndex: this.autoIndex,
-    });
-
     this.server = createLocalCodeMcpServer({
       rootDir: this.projectRoot,
       chromaUrl: this.chromaUrl,
       collectionName: this.collectionName,
-      openAiApiKey: process.env.OPENAI_API_KEY,
-    }) as LocalCodeMcpServer;
+    });
 
+    console.info("[ChatAssistant] Initialised:", {
+      projectRoot: this.projectRoot,
+      chromaUrl: this.chromaUrl,
+      collectionName: this.collectionName,
+      model: this.server.model,
+      autoIndex: this.autoIndex,
+    });
+
+    await this.refreshIndex();
+  }
+
+  /**
+   * Checks the index and starts a rebuild if it's missing or stale. Never
+   * throws: the agent can still answer web questions without the index.
+   * Also called lazily per question, so @Chat recovers when Chroma came up
+   * after the server did.
+   */
+  refreshIndex(): Promise<void> {
+    this.indexCheckPromise ??= this.checkIndex().finally(() => {
+      this.indexCheckPromise = null;
+    });
+    return this.indexCheckPromise;
+  }
+
+  private async checkIndex(): Promise<void> {
+    if (this.indexPromise) return;
     try {
-      console.log(
-        "[ChatAssistant Debug] Checking vector store availability...",
-      );
-      const { collectionReady } = await this.ensureVectorStoreAvailability();
-      console.log("[ChatAssistant Debug] Vector store check result:", {
-        reachable: this.vectorStoreReachable,
-        collectionReady,
-      });
-
-      this.maybeStartBackgroundIndex(collectionReady);
+      const freshness = await checkChatAssistantIndex(this);
+      console.info(`[ChatAssistant] Code index is ${freshness}.`);
+      if (freshness !== "current") {
+        this.maybeStartBackgroundIndex(freshness);
+      }
     } catch (error) {
-      this.logVectorStoreInitialiseError(error);
+      this.logIndexCheckError(error);
     }
   }
 
@@ -120,6 +141,9 @@ export class ChatAssistantService {
   }
 
   shouldHandle(input: unknown): boolean {
+    // Not initialised (e.g. a missing API key): let the other AIs answer
+    // instead of swallowing the mention
+    if (!this.server) return false;
     const contentValue =
       input && typeof (input as { content?: unknown }).content === "string"
         ? (input as { content?: string }).content
@@ -160,14 +184,25 @@ export class ChatAssistantService {
     return createChatAssistantResponse(this, content, options);
   }
 
+  /**
+   * The whole message minus the @Chat token. AIs often put the mention at
+   * the end ("...how does routing work, @Chat?"), so "text after the
+   * mention" would lose the question.
+   */
   extractQuestion(content = ""): string | null {
-    const match = content ? this.mentionRegex.exec(content) : null;
-    if (!match) {
+    if (!content || !this.mentionRegex.test(content)) {
       return null;
     }
 
-    const after = content.slice(match.index + match[0].length);
-    const cleaned = after.replace(/^[\s,:-]+/, "").trim();
+    // Takes the comma/colon that usually follows the mention with it
+    const globalMention = new RegExp(`${this.mentionRegex.source}[,:]?`, "gi");
+    const cleaned = content
+      .replace(globalMention, "")
+      .replace(/\s+([,.?!;])/g, "$1") // "work ?" -> "work?"
+      .replace(/,([.?!])/g, "$1") // "work,?" -> "work?"
+      .replace(/^[\s,:;-]+|[\s,:;-]+$/g, "")
+      .replace(/\s{2,}/g, " ")
+      .trim();
     return cleaned || null;
   }
 
@@ -175,66 +210,37 @@ export class ChatAssistantService {
     return buildChatAssistantIndex(this);
   }
 
-  ensureVectorStoreAvailability(
-    options: {
-      throwOnUnavailable?: boolean;
-    } = {},
-  ): Promise<{
-    reachable: boolean;
-    collectionReady: boolean;
-    error?: Error;
-  }> {
-    return ensureChatAssistantVectorStoreAvailability(this, options);
-  }
-
-  private maybeStartBackgroundIndex(collectionReady: boolean): void {
-    if (!collectionReady && this.autoIndex && this.vectorStoreReachable) {
-      console.log(
-        "[ChatAssistant Debug] 🔄 Auto-indexing enabled and collection missing - starting background index build...",
+  private maybeStartBackgroundIndex(freshness: "missing" | "stale"): void {
+    if (!this.autoIndex) {
+      console.warn(
+        `[ChatAssistant] Code index is ${freshness} and CHAT_ASSISTANT_AUTO_INDEX is off. Rebuild it with 'bun run chat:index', or set CHAT_ASSISTANT_AUTO_INDEX=true.`,
       );
-      this.indexPromise = this.buildIndex()
-        .then(() => {
-          console.log("[ChatAssistant] ✅ Auto-index completed successfully");
-        })
-        .catch((error: Error) => {
-          const message =
-            error instanceof Error ? error.message : String(error);
-          console.error(`[ChatAssistant] ❌ Auto-index failed: ${message}`);
-          return null;
-        })
-        .finally(() => {
-          this.indexPromise = null;
-        });
       return;
     }
 
-    if (!collectionReady && !this.autoIndex && this.vectorStoreReachable) {
-      console.warn(
-        "[ChatAssistant] ⚠️  Collection not found and auto-indexing is disabled.",
-      );
-      console.warn("[ChatAssistant] To create the collection, either:");
-      console.warn(
-        "[ChatAssistant]   1. Run: bun run build && bun dist/scripts/index-mcp-chat.js",
-      );
-      console.warn(
-        "[ChatAssistant]   2. Set CHAT_ASSISTANT_AUTO_INDEX=true and restart",
-      );
-    }
+    console.info(
+      `[ChatAssistant] Rebuilding ${freshness} code index in the background...`,
+    );
+    this.indexPromise = this.buildIndex()
+      .catch((error: unknown) => {
+        console.error("[ChatAssistant] Background index build failed:", error);
+      })
+      .finally(() => {
+        this.indexPromise = null;
+      });
   }
 
-  private logVectorStoreInitialiseError(error: unknown): void {
+  private logIndexCheckError(error: unknown): void {
     if (
       (error as ErrorWithCode)?.code ===
       MCP_ERROR_CODES.VECTOR_STORE_UNAVAILABLE
     ) {
       console.warn(
-        `[ChatAssistant] Vector store unreachable (${(error as Error).message}). @Chat will respond with setup guidance until the index becomes available.`,
+        `[ChatAssistant] Vector store unreachable (${(error as Error).message}). @Chat will answer without code search until Chroma is back.`,
       );
       return;
     }
 
-    console.warn(
-      `[ChatAssistant] Unable to verify vector store availability: ${(error as Error).message}`,
-    );
+    console.warn("[ChatAssistant] Unable to check the code index:", error);
   }
 }

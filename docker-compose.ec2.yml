@@ -24,6 +24,10 @@ services:
       - "3001"
     environment:
       - NODE_ENV=production
+      # This stack always runs its own Chroma. Pinned so a CHROMA_URL in .env
+      # (.env.example ships http://localhost:8000 for running outside Docker)
+      # can't point the container at itself.
+      - CHROMA_URL=http://chroma:8000
     volumes:
       - ./model-health.json:/app/model-health.json
     restart: always

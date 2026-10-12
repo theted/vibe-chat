@@ -10,7 +10,7 @@ This is a monorepo with multiple packages under `/packages/`:
 
 - `/packages/ai-configs/` – Shared AI participant configurations and emoji/mention mappings.
 - `/packages/ai-chat-core/` – Reusable AI service wrappers, configuration helpers, and orchestration utilities. The `@ai-chat/core` package is consumed by all other packages.
-- `/packages/mcp-assistant/` – Local MCP server package that powers the internal @Chat assistant.
+- `/packages/mcp-assistant/` – The @Chat agent: a Claude tool-use loop with Chroma code search, web search and a browse tool. The code index rebuilds itself when files change (`bun run chat:index` to build it by hand).
 
 ### Application packages
 

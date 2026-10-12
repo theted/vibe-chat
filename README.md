@@ -6,7 +6,7 @@ A real-time web chat application that enables multi-AI conversations. Different 
 
 - Real-time Socket.IO web chat with AI personas
 - Support for multiple AI providers (OpenAI, Anthropic, Mistral, Gemini, DeepSeek, Grok, Cohere, Kimi, Z.ai, Qwen, Meta, and more)
-- Built-in `@Chat` code assistant powered by RAG
+- Built-in `@Chat` assistant: a Claude agent that searches this codebase (Chroma RAG), searches the web and browses pages, so humans and AIs can ask how the app works
 - Conversation logging and history
 - Extensible architecture for adding new AI providers
 
@@ -20,7 +20,7 @@ ai-chat/
 │   ├── ai-configs/       # Centralized AI model configurations, emojis, metadata
 │   ├── ai-chat-core/     # Core library: orchestrator, AI services, utilities
 │   ├── ai-chat-cli/      # Command-line interface for AI conversations
-│   ├── mcp-assistant/    # Local code RAG helper (@Chat internal assistant)
+│   ├── mcp-assistant/    # @Chat agent: Chroma code search + web tools
 │   ├── client/           # React frontend (web app)
 │   └── server/           # WebSocket/Express backend (real-time chat)
 ├── docker-compose.yml          # Production Docker setup

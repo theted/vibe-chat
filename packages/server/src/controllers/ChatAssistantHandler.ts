@@ -4,6 +4,7 @@
 
 import type { Server } from "socket.io";
 import type { ChatOrchestrator } from "@ai-chat/core";
+import { CHAT_ASSISTANT_AI_COOLDOWN_MS } from "@/config/serverConfig.js";
 import { describeError } from "@/utils/socketErrors.js";
 import type { ChatAssistantService } from "@/services/ChatAssistantService.js";
 import type {
@@ -24,6 +25,10 @@ export class ChatAssistantHandler {
   private chatOrchestrator: ChatOrchestrator;
   private io: Server;
   private getRecentMessages: RecentMessagesFn;
+  /** Rooms with an answer in progress - one agent run per room at a time */
+  private busyRooms = new Set<string>();
+  /** Room -> when an AI-asked question was last accepted */
+  private lastAIQuestionAt = new Map<string, number>();
 
   constructor(options: {
     chatAssistantService: ChatAssistantService | null;
@@ -73,9 +78,28 @@ export class ChatAssistantHandler {
       const assistantId = this.chatAssistantMetadata?.aiId;
       const assistantName = this.chatAssistantMetadata?.displayName;
       if (assistantId && origin.aiId && origin.aiId === assistantId) return;
-      if (assistantName && origin.sender && origin.sender === assistantName) return;
+      if (assistantName && origin.sender && origin.sender === assistantName)
+        return;
     }
 
+    if (this.busyRooms.has(roomId)) {
+      console.info(
+        `[ChatAssistant] Skipping question in ${roomId}: already answering one.`,
+      );
+      return;
+    }
+    if (origin.type === "ai") {
+      const elapsed = Date.now() - (this.lastAIQuestionAt.get(roomId) ?? 0);
+      if (elapsed < CHAT_ASSISTANT_AI_COOLDOWN_MS) {
+        console.info(
+          `[ChatAssistant] Skipping AI question in ${roomId}: cooldown (${Math.round(elapsed / 1000)}s since the last one).`,
+        );
+        return;
+      }
+      this.lastAIQuestionAt.set(roomId, Date.now());
+    }
+
+    this.busyRooms.add(roomId);
     try {
       const recentMessages = await this.getRecentMessages(roomId);
       const historyLimit = this.chatAssistantService.chatHistoryLimit ?? 5;
@@ -83,9 +107,10 @@ export class ChatAssistantHandler {
         ? recentMessages.slice(-historyLimit)
         : [];
 
+      const askedBy = origin.type === "user" ? origin.username : origin.sender;
       const result = await this.chatAssistantService.createResponseFromContent(
         content,
-        { emitter: this.io, roomId, chatHistory },
+        { emitter: this.io, roomId, chatHistory, askedBy },
       );
       if (!result?.answer) return;
 
@@ -100,7 +125,7 @@ export class ChatAssistantHandler {
 
       const message: ChatMessage = {
         ...this.chatAssistantMetadata,
-        content: result.answer,
+        content: this.addressToAsker(result.answer, origin),
         senderType: "ai",
         roomId,
         priority: 800,
@@ -125,11 +150,39 @@ export class ChatAssistantHandler {
       );
 
       await this.chatOrchestrator.handleMessage(message);
+
+      // An AI asker was told to wait for the answer. Schedule a round now,
+      // while the answer (which @mentions the asker) is still the latest
+      // message, so the asker is picked first instead of whoever the next
+      // background tick lands on.
+      if (origin.type === "ai") {
+        this.chatOrchestrator.scheduleAIResponses(roomId, false);
+      }
     } catch (error) {
       console.error(
         "Failed to dispatch chat assistant response:",
         describeError(error),
       );
+    } finally {
+      this.busyRooms.delete(roomId);
     }
+  }
+
+  /**
+   * Prefixes the answer with an @mention of whoever asked. For an AI asker
+   * this is what gets the answer back to it: the scheduler gives mentioned
+   * AIs priority, so the asker replies next with what it learned.
+   */
+  private addressToAsker(
+    answer: string,
+    origin: TriggerChatAssistantPayload["origin"] = {},
+  ): string {
+    const mention =
+      origin.type === "ai"
+        ? this.chatOrchestrator.getMentionTokenForAI(
+            this.chatOrchestrator.aiServices.get(origin.aiId ?? "") ?? null,
+          )
+        : origin.username;
+    return mention ? `@${mention} ${answer}` : answer;
   }
 }
