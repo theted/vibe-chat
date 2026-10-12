@@ -99,3 +99,12 @@ export const formatSnippetLocation = (snippet: CodeSnippet): string =>
   snippet.startLine && snippet.endLine
     ? `${snippet.relativePath}:${snippet.startLine}-${snippet.endLine}`
     : snippet.relativePath;
+
+/** Numbered chunks headed by `path:start-end`: what the agent and MCP clients read */
+export const formatSnippets = (snippets: CodeSnippet[]): string =>
+  snippets
+    .map(
+      (snippet, index) =>
+        `[${index + 1}] ${formatSnippetLocation(snippet)}\n${snippet.content}`,
+    )
+    .join("\n\n---\n\n");

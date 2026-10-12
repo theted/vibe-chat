@@ -125,6 +125,15 @@ bun run chat:ask "How are messages styled?"
 | `CHAT_ASSISTANT_AUTO_INDEX` | `false` | Server rebuilds a missing or stale index on startup |
 | `CHAT_ASSISTANT_COLLECTION` | `ai-chat-workspace` | Chroma collection name |
 
+### Search the index from Claude Code (MCP)
+
+The same index is exposed as a stdio MCP server with one tool, `search_codebase`. The repo's `.mcp.json` registers it as `vibe-chat`, so Claude Code offers it once you approve the project server on first start. It needs Chroma running, a built index and the embeddings key in `.env`. Results start with a note when the index is older than the files on disk; `bun run chat:index` refreshes it.
+
+```bash
+# Run it by hand, e.g. under the MCP Inspector
+npx @modelcontextprotocol/inspector bun run chat:mcp
+```
+
 ## Supported Providers
 
 The CLI supports all providers configured in `@ai-chat/core`. See the main project README for the full list of supported providers and models.

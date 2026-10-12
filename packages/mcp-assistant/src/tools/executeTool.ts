@@ -1,7 +1,7 @@
 import {
   type CodebaseSearch,
   type CodeSnippet,
-  formatSnippetLocation,
+  formatSnippets,
   MissingIndexError,
 } from "../codeSearch.js";
 import { SEARCH_DEFAULT_RESULTS } from "../constants.js";
@@ -47,13 +47,7 @@ const runSearchCodebase = async (
     };
   }
 
-  const content = snippets
-    .map(
-      (snippet, index) =>
-        `[${index + 1}] ${formatSnippetLocation(snippet)}\n${snippet.content}`,
-    )
-    .join("\n\n---\n\n");
-  return { content, isError: false, snippets };
+  return { content: formatSnippets(snippets), isError: false, snippets };
 };
 
 const runBrowse = async (input: unknown): Promise<ToolOutcome> => {
