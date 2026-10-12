@@ -7,6 +7,7 @@ import {
   createLocalCodeMcpServer,
   MCP_ERROR_CODES,
   DEFAULT_CHROMA_URL,
+  findWorkspaceRoot,
 } from "@ai-chat/mcp-assistant";
 
 type RunArgs = {
@@ -60,7 +61,7 @@ const main = async (): Promise<void> => {
   }
 
   const scriptDir = path.dirname(fileURLToPath(import.meta.url));
-  const projectRoot = path.resolve(scriptDir, "..");
+  const projectRoot = findWorkspaceRoot(scriptDir) ?? process.cwd();
   await tryLoadDotenv(projectRoot);
 
   const server = createLocalCodeMcpServer({
@@ -78,7 +79,7 @@ const main = async (): Promise<void> => {
       );
     } else {
       console.error(
-        `MCP embedding store missing or unreadable. Run 'bun run build && bun dist/scripts/index-mcp-chat.js' first. (${error?.message || error})`,
+        `MCP embedding store missing or unreadable. Run 'bun run chat:index' first. (${error?.message || error})`,
       );
     }
     process.exit(1);
@@ -88,7 +89,7 @@ const main = async (): Promise<void> => {
     const result = await server.answerQuestion(question);
     if (!result?.answer) {
       console.log(
-        `I could not locate indexed code related to "${question.trim()}".`,
+        `I couldn't put an answer together for "${question.trim()}".`,
       );
       return;
     }
@@ -101,7 +102,7 @@ const main = async (): Promise<void> => {
           (ctx) =>
             `[${ctx.id}] ${ctx.relativePath}:${ctx.startLine}-${
               ctx.endLine
-            } (score=${ctx.score.toFixed(3)})`,
+            } (distance=${ctx.score?.toFixed(3) ?? "n/a"})`,
         )
         .join("\n");
       console.log(`\nContexts:\n${refs}`);

@@ -10,7 +10,7 @@ export {
   transformAIServicesToParticipants,
   type OrchestratorAIServiceInfo,
 } from "./aiServiceUtils.js";
-export { findWorkspaceRoot, resolveWorkspaceRoot } from "./workspaceUtils.js";
+export { resolveWorkspaceRoot } from "./workspaceUtils.js";
 export {
   formatGitHubUrl,
   enhanceAnswerWithLinks,

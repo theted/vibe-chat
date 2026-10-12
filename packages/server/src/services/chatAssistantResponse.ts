@@ -5,6 +5,8 @@ import type {
   ChatAssistantResponseOptions,
 } from "./chatAssistantTypes.js";
 
+const ASSISTANT_AI_ID = "internal_chat_assistant";
+
 const emitTyping = (
   service: ChatAssistantService,
   options: ChatAssistantResponseOptions,
@@ -32,104 +34,57 @@ export const createChatAssistantResponse = async (
 
   console.info(`[ChatAssistant] Generating answer for question: "${question}"`);
 
-  const historyContext = service.prepareChatHistory(options.chatHistory);
+  emitTyping(service, options, "ai-generating-start", {
+    aiId: ASSISTANT_AI_ID,
+    displayName: service.displayName,
+    alias: service.alias,
+  });
 
   try {
     if (!service.server) {
       throw new Error("assistant not initialised");
     }
 
+    // A rebuild deletes and refills the collection; answering mid-build
+    // would search a half-empty index
     if (service.indexPromise) {
-      try {
-        await service.indexPromise;
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        console.warn(`[ChatAssistant] Background indexing failed: ${message}`);
-      }
+      await service.indexPromise;
+    } else if (!service.collectionReady) {
+      // Chroma may have come up after the server did - retry in the
+      // background; this answer goes ahead without code search if needed
+      void service.refreshIndex();
     }
 
-    emitTyping(service, options, "ai-generating-start", {
-      aiId: "internal_chat_assistant",
-      displayName: service.displayName,
-      alias: service.alias,
+    const result = await service.server.answerQuestion(question, {
+      chatHistory: service.prepareChatHistory(options.chatHistory),
+      askedBy: options.askedBy,
     });
+    console.info(
+      `[ChatAssistant] Answered with tools [${result.toolCalls?.join(", ") ?? ""}]`,
+    );
 
-    await service.ensureVectorStoreAvailability();
-    if (service.vectorStoreReachable === false) {
-      emitTyping(service, options, "ai-generating-stop", {
-        aiId: "internal_chat_assistant",
-      });
-      return {
-        question,
-        answer: [
-          "I can't reach the shared knowledge index right now.",
-          `Check that the Chroma service is running at ${service.chromaUrl} and try re-indexing with \`bun run build && bun dist/scripts/index-mcp-chat.js\`.`,
-        ].join(" "),
-      };
-    }
-
-    let result = await service.server.answerQuestion(question, {
-      chatHistory: historyContext,
-    });
-
-    if (
-      service.autoIndex &&
-      (!result.contexts || result.contexts.length === 0) &&
-      !service.indexPromise &&
-      service.vectorStoreReachable
-    ) {
-      service.indexPromise = service
-        .buildIndex()
-        .catch((error: Error) => {
-          const message =
-            error instanceof Error ? error.message : String(error);
-          console.warn(`[ChatAssistant] Auto-index failed: ${message}`);
-          return null;
-        })
-        .finally(() => {
-          service.indexPromise = null;
-        });
-
-      try {
-        await service.indexPromise;
-        await service.ensureVectorStoreAvailability();
-        if (service.vectorStoreReachable) {
-          result = await service.server.answerQuestion(question, {
-            chatHistory: historyContext,
-          });
-        }
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        console.warn(
-          `[ChatAssistant] Failed to rebuild vector index: ${message}`,
-        );
-      }
-    }
-
-    emitTyping(service, options, "ai-generating-stop", {
-      aiId: "internal_chat_assistant",
-    });
-
-    const answer =
-      result.answer ||
-      `I looked for "${question}" but did not find any relevant code snippets.`;
-    const contexts = result.contexts || [];
-
+    const contexts = result.contexts ?? [];
     return {
       question,
-      answer: enhanceAnswerWithLinks(answer, contexts),
+      answer: enhanceAnswerWithLinks(
+        result.answer ||
+          `I looked into "${question}" but couldn't put an answer together.`,
+        contexts,
+      ),
       contexts,
-      error: result.error || null,
+      error: result.error ?? null,
     };
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    emitTyping(service, options, "ai-generating-stop", {
-      aiId: "internal_chat_assistant",
-    });
+    console.error("[ChatAssistant] Failed to answer:", error);
     return {
       question,
-      answer: `I tried to look up "${question}" but ran into an issue (${message}).`,
-      error,
+      answer:
+        "I couldn't look that up just now - something went wrong on my side. Try asking again in a bit.",
+      error: error instanceof Error ? error : new Error(String(error)),
     };
+  } finally {
+    emitTyping(service, options, "ai-generating-stop", {
+      aiId: ASSISTANT_AI_ID,
+    });
   }
 };

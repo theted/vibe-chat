@@ -11,6 +11,9 @@
   "scripts": {
     "start": "./start.sh",
     "cli": "bun run --filter @ai-chat/cli start",
+    "chat:index": "bun packages/ai-chat-cli/scripts/index-mcp-chat.ts",
+    "chat:ask": "bun packages/ai-chat-cli/scripts/run-mcp-chat.ts",
+    "chat:mcp": "bun packages/mcp-assistant/src/mcp/stdio.ts",
     "build:configs": "turbo run build --filter=@ai-chat/ai-configs",
     "build:core": "turbo run build --filter=@ai-chat/core",
     "build:cli": "turbo run build --filter=@ai-chat/cli",

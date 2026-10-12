@@ -21,17 +21,29 @@ services:
       - ai-chat-network
 
   chroma:
-    image: chromadb/chroma:latest
+    # Pinned: `latest` moved to Chroma 1.x, which dropped the /api/v1 API the
+    # old client used and broke @Chat. Bump together with the chromadb npm
+    # client in packages/mcp-assistant.
+    image: chromadb/chroma:1.5.9
     restart: unless-stopped
     networks:
       - ai-chat-network
     volumes:
-      - chroma-data:/chroma/chroma
+      # Chroma 1.x persists to /data (0.x used /chroma/chroma). New volume
+      # name so the old 0.x data is never mounted into 1.x; the index is
+      # derived data and @Chat rebuilds it on startup.
+      - chroma-index:/data
     environment:
-      - IS_PERSISTENT=TRUE
       - ANONYMIZED_TELEMETRY=FALSE
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
+      # The image has no curl/wget; bash's /dev/tcp can make the request
+      test:
+        [
+          "CMD",
+          "bash",
+          "-c",
+          "exec 3<>/dev/tcp/127.0.0.1/8000 && printf 'GET /api/v2/heartbeat HTTP/1.0\\r\\n\\r\\n' >&3 && grep -q '200 OK' <&3",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -65,14 +77,14 @@ services:
       - AI_CHAT_HEALTH_TTL_MS=${AI_CHAT_HEALTH_TTL_MS:-}
       - DISABLED_AI_MODELS=${DISABLED_AI_MODELS:-}
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
-      - CHAT_ASSISTANT_SCRIPT=/app/scripts/run-mcp-chat.js
       - CHAT_ASSISTANT_AUTO_INDEX=true
       - NODE_PATH=/app/server/node_modules
       - CHROMA_URL=${CHROMA_URL:-http://chroma:8000}
       - CHAT_ASSISTANT_COLLECTION=ai-chat-workspace
-    volumes:
-      - ./packages/ai-chat-cli/dist/scripts:/app/scripts:ro
-      - ./packages/mcp-assistant/src:/app/mcp-assistant/src:ro
+      # @Chat: embeddings provider for the code index (mistral | openai |
+      # gemini | cohere) and the Claude model that runs the agent
+      - CHAT_ASSISTANT_EMBEDDINGS=${CHAT_ASSISTANT_EMBEDDINGS:-}
+      - CHAT_ASSISTANT_MODEL=${CHAT_ASSISTANT_MODEL:-}
     restart: unless-stopped
     networks:
       - ai-chat-network
@@ -97,4 +109,4 @@ networks:
 
 volumes:
   redis-data:
-  chroma-data:
+  chroma-index:

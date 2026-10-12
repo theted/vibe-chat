@@ -3,7 +3,8 @@ npm-debug.log
 dist
 .git
 .github
-*.md
+# Root *.md docs (README, AGENTS.md) stay in: @Chat indexes them to answer
+# questions about the app
 tests
 **/*.test.ts
 **/*.test.tsx

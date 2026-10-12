@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "vibe-chat": {
+      "command": "bun",
+      "args": [
+        "${CLAUDE_PROJECT_DIR:-.}/packages/mcp-assistant/src/mcp/stdio.ts"
+      ]
+    }
+  }
+}

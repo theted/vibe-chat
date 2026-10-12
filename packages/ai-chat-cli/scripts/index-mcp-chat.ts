@@ -8,6 +8,8 @@ import {
   MCP_ERROR_CODES,
   DEFAULT_CHROMA_URL,
   DEFAULT_COLLECTION_NAME,
+  findWorkspaceRoot,
+  resolveEmbeddingProvider,
 } from "@ai-chat/mcp-assistant";
 
 type IndexArgs = {
@@ -81,20 +83,13 @@ const tryLoadDotenv = async (projectRoot: string): Promise<void> => {
 
 const main = async (): Promise<void> => {
   const scriptDir = path.dirname(fileURLToPath(import.meta.url));
-  const defaultProjectRoot = path.resolve(scriptDir, "..");
+  const defaultProjectRoot = findWorkspaceRoot(scriptDir) ?? process.cwd();
 
   const args = parseArgs();
   const projectRoot =
     args.projectRoot || process.env.CHAT_ASSISTANT_ROOT || defaultProjectRoot;
 
   await tryLoadDotenv(projectRoot);
-
-  if (!process.env.OPENAI_API_KEY) {
-    console.error(
-      "OPENAI_API_KEY is required to index the MCP workspace. Add it to your environment or .env file.",
-    );
-    process.exit(1);
-  }
 
   const chromaUrl =
     args.chromaUrl || process.env.CHROMA_URL || DEFAULT_CHROMA_URL;
@@ -115,7 +110,9 @@ const main = async (): Promise<void> => {
     skipDelete: args.skipDelete,
   });
 
-  console.log("🔍 Building MCP embedding store...");
+  console.log(
+    `🔍 Indexing ${projectRoot} with ${resolveEmbeddingProvider()} embeddings...`,
+  );
   try {
     const result = await indexer.buildEmbeddingStore();
     console.log(

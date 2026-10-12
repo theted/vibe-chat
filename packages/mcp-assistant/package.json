@@ -1,7 +1,7 @@
 {
   "name": "@ai-chat/mcp-assistant",
   "version": "0.1.0",
-  "description": "Local code RAG helper powering the internal @Chat assistant.",
+  "description": "Agentic @Chat assistant: Chroma code search plus a browse tool, driven by a Claude tool-use loop.",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -20,14 +20,17 @@
   ],
   "scripts": {
     "build": "tsc",
+    "test": "bun test",
     "prepare": "bun run build"
   },
   "license": "MIT",
   "dependencies": {
-    "@langchain/core": "^0.2.36",
-    "@langchain/openai": "^0.2.7",
-    "chromadb": "^1.8.1",
-    "fast-glob": "^3.3.2"
+    "@anthropic-ai/sdk": "^0.133.0",
+    "@modelcontextprotocol/sdk": "^1.32.1",
+    "chromadb": "^3.5.0",
+    "fast-glob": "^3.3.2",
+    "openai": "^4.89.0",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@types/node": "^24.10.1",

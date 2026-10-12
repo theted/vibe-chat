@@ -97,31 +97,42 @@ bun dist/play-screensaver.js
 |----------|---------|-------------|
 | `SCREENSAVER_DELAY_MS` | `1500` | Delay between conversation replays |
 
-## MCP Code Assistant
+## @Chat Assistant
 
-The CLI includes a built-in `@Chat` code assistant powered by RAG (Retrieval-Augmented Generation) using Chroma vector store.
+`@Chat` is a Claude agent (`packages/mcp-assistant`) with three tools: semantic search over this repo's Chroma index, Anthropic's web search, and a `browse` tool that fetches public pages.
 
 ### Setup
 
 ```bash
-# Start Chroma (if using Docker)
-docker compose -f docker-compose.dev.yml up chroma
+# Start Chroma
+docker run -d -p 127.0.0.1:8000:8000 chromadb/chroma:1.5.9
 
-# Index the codebase
-bun dist/scripts/index-mcp-chat.js --chroma-url http://localhost:8000
+# Index the codebase (from the repo root)
+bun run chat:index
 
-# Query the index
-bun dist/scripts/run-mcp-chat.js --question "How are messages styled?"
+# Ask a question
+bun run chat:ask "How are messages styled?"
 ```
 
 ### Environment Variables
 
 | Variable | Default | Description |
 |----------|---------|-------------|
+| `ANTHROPIC_API_KEY` | – | Runs the agent |
+| `CHAT_ASSISTANT_MODEL` | `claude-opus-5-5` | Claude model for the agent |
+| `CHAT_ASSISTANT_EMBEDDINGS` | `mistral` | Embeddings provider: `mistral`, `openai`, `gemini` or `cohere` (needs that provider's API key) |
 | `CHROMA_URL` | `http://localhost:8000` | Chroma vector store URL |
-| `CHAT_ASSISTANT_SCRIPT` | `./packages/ai-chat-cli/dist/scripts/run-mcp-chat.js` | Path to assistant script |
-| `CHAT_ASSISTANT_AUTO_INDEX` | `false` | Auto-index on startup |
+| `CHAT_ASSISTANT_AUTO_INDEX` | `false` | Server rebuilds a missing or stale index on startup |
 | `CHAT_ASSISTANT_COLLECTION` | `ai-chat-workspace` | Chroma collection name |
+
+### Search the index from Claude Code (MCP)
+
+The same index is exposed as a stdio MCP server with one tool, `search_codebase`. The repo's `.mcp.json` registers it as `vibe-chat`, so Claude Code offers it once you approve the project server on first start. It needs Chroma running, a built index and the embeddings key in `.env`. Results start with a note when the index is older than the files on disk; `bun run chat:index` refreshes it.
+
+```bash
+# Run it by hand, e.g. under the MCP Inspector
+npx @modelcontextprotocol/inspector bun run chat:mcp
+```
 
 ## Supported Providers
 
