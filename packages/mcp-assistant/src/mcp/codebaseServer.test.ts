@@ -118,7 +118,10 @@ describe("codebase MCP server", () => {
   test("rejects an empty query before searching", async () => {
     const { client, searches } = await connect();
     const result = await callSearch(client, { query: "   " }).catch(
-      (error: Error) => ({ content: [{ type: "text", text: error.message }], isError: true }),
+      (error: Error) => ({
+        content: [{ type: "text", text: error.message }],
+        isError: true,
+      }),
     );
 
     expect(result.isError).toBe(true);

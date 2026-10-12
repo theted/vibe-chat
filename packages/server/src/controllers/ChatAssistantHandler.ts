@@ -4,7 +4,10 @@
 
 import type { Server } from "socket.io";
 import type { ChatOrchestrator } from "@ai-chat/core";
-import { CHAT_ASSISTANT_AI_COOLDOWN_MS } from "@/config/serverConfig.js";
+import {
+  CHAT_ASSISTANT_AI_COOLDOWN_MS,
+  CHAT_ASSISTANT_BUSY_NOTICE,
+} from "@/config/serverConfig.js";
 import { describeError } from "@/utils/socketErrors.js";
 import type { ChatAssistantService } from "@/services/ChatAssistantService.js";
 import type {
@@ -86,6 +89,9 @@ export class ChatAssistantHandler {
       console.info(
         `[ChatAssistant] Skipping question in ${roomId}: already answering one.`,
       );
+      if (origin.type === "user") {
+        await this.postBusyNotice(roomId, origin);
+      }
       return;
     }
     if (origin.type === "ai") {
@@ -121,22 +127,9 @@ export class ChatAssistantHandler {
         );
       }
 
-      const messageId = `chat-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-
-      const message: ChatMessage = {
-        ...this.chatAssistantMetadata,
-        content: this.addressToAsker(result.answer, origin),
-        senderType: "ai",
-        roomId,
-        priority: 800,
-        isInternalResponder: true,
-        suppressAIResponses: true,
-        mentionsTriggerSender:
-          origin.type === "user" ? origin.username : origin.sender || null,
+      const message = this.buildMessage(roomId, result.answer, origin, {
         contextQuestion: result.question,
-        timestamp: Date.now(),
-        id: messageId,
-      };
+      });
 
       const originLabel =
         origin.type === "user"
@@ -165,6 +158,44 @@ export class ChatAssistantHandler {
       );
     } finally {
       this.busyRooms.delete(roomId);
+    }
+  }
+
+  private buildMessage(
+    roomId: string,
+    text: string,
+    origin: TriggerChatAssistantPayload["origin"] = {},
+    extra: Partial<ChatMessage> = {},
+  ): ChatMessage {
+    return {
+      ...this.chatAssistantMetadata,
+      content: this.addressToAsker(text, origin),
+      senderType: "ai",
+      roomId,
+      priority: 800,
+      isInternalResponder: true,
+      suppressAIResponses: true,
+      mentionsTriggerSender:
+        origin.type === "user" ? origin.username : origin.sender || null,
+      timestamp: Date.now(),
+      id: `chat-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+      ...extra,
+    };
+  }
+
+  private async postBusyNotice(
+    roomId: string,
+    origin: TriggerChatAssistantPayload["origin"],
+  ): Promise<void> {
+    try {
+      await this.chatOrchestrator.handleMessage(
+        this.buildMessage(roomId, CHAT_ASSISTANT_BUSY_NOTICE, origin),
+      );
+    } catch (error) {
+      console.error(
+        "Failed to post chat assistant busy notice:",
+        describeError(error),
+      );
     }
   }
 
