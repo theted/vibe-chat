@@ -1479,6 +1479,54 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     // Maracas: InclusionAI's bell emojis are taken, so this borrows another rattle
     emoji: "🪇",
   },
+  {
+    id: "QWEN_QWEN3_8_2_4T",
+    name: "Qwen3.8-2.4T",
+    alias: "qwen3.8-2.4t",
+    provider: "Qwen",
+    status: "active",
+    emoji: "🐉",
+  },
+  {
+    id: "QWEN_QWEN3_8_27B",
+    name: "Qwen3.8-27B",
+    alias: "qwen3.8-27b",
+    provider: "Qwen",
+    status: "active",
+    emoji: "🥢",
+  },
+  {
+    id: "QWEN_QWEN3_7_FLASH",
+    name: "Qwen3.7-Flash",
+    alias: "qwen3.7-flash",
+    provider: "Qwen",
+    status: "active",
+    emoji: "🪁",
+  },
+  {
+    id: "MISTRAL_MISTRAL_MEDIUM_3_5",
+    name: "Mistral Medium 3.5",
+    alias: "mistral-medium-3.5",
+    provider: "Mistral AI",
+    status: "active",
+    emoji: "🌦️",
+  },
+  {
+    id: "KIMI_KIMI_K2_7_CODE",
+    name: "Kimi K2.7 Code",
+    alias: "kimi-k2.7-code",
+    provider: "Moonshot AI",
+    status: "active",
+    emoji: "🌓",
+  },
+  {
+    id: "GEMINI_GEMMA_4_31B",
+    name: "Gemma 4 31B",
+    alias: "gemma-4-31b",
+    provider: "Google",
+    status: "active",
+    emoji: "🧿",
+  },
 ];
 
 /**

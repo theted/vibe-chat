@@ -120,6 +120,8 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   "gemini-2.5": "gemini-2.5-pro",
   google: "gemini-3.8-flash",
   bard: "gemini-3.8-flash",
+  gemma: "gemma-4-31b",
+  "gemma-4": "gemma-4-31b",
 
   // Cohere
   command: "cohere",
@@ -156,6 +158,8 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
 
   // Moonshot/Kimi
   kimi: "kimi-k3",
+  "kimi-k2.7": "kimi-k2.7-code",
+  "kimi-code": "kimi-k2.7-code",
   "kimi-k2.6": "kimi-k2.6",
   "kimi-k2.6-thinking": "kimi-k2.6-thinking",
   "kimi-k2.5": "kimi-k2.5",

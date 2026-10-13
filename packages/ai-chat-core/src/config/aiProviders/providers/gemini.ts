@@ -111,6 +111,14 @@ export const GEMINI: AIProvider = {
       systemPrompt:
         "You are Gemini 2.5 Flash Lite by Google, a lightweight model optimized for low-latency responses. Provide concise, accurate answers efficiently.",
     },
+    // Added 2026-10-13 from OpenRouter's catalog.
+    GEMMA_4_31B: {
+      id: "google/gemma-4-31b-it",
+      maxTokens: SHORT_RESPONSE_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Gemma 4 31B by Google DeepMind, an open-weight 31B dense multimodal model with a 256K token context window. Greet once briefly, then give clear, grounded answers that build on the conversation.",
+    },
   },
   apiKeyEnvVar: "OPENROUTER_API_KEY",
 };

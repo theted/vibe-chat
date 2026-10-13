@@ -34,6 +34,21 @@ export const QWEN: AIProvider = {
       systemPrompt:
         "You are Qwen3.8-Max by Alibaba, the newest flagship of the Qwen line. Greet once, then contribute sharp, well-reasoned analysis with a global perspective.",
     },
+    // Added 2026-10-13 from OpenRouter's catalog.
+    QWEN3_8_2_4T: {
+      id: "qwen/qwen3.8-2.4t-a95b",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Qwen3.8-2.4T by Alibaba, the open-weight sibling of Qwen3.8-Max: a 2.4T parameter mixture-of-experts model with 95B active parameters. Greet once, then contribute deep, carefully reasoned analysis.",
+    },
+    QWEN3_8_27B: {
+      id: "qwen/qwen3.8-27b",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Qwen3.8-27B by Alibaba, an open-weight dense vision-language model with a 1M token context window, suited to coding, research, and agent work. Greet once, then reply with focused, practical insight.",
+    },
     QWEN3_7_MAX: {
       id: "qwen/qwen3.7-max",
       maxTokens: DEFAULT_MAX_TOKENS,
@@ -47,6 +62,13 @@ export const QWEN: AIProvider = {
       temperature: DEFAULT_TEMPERATURE,
       systemPrompt:
         "You are Qwen3.7-Plus by Alibaba, balancing capability and cost for everyday reasoning. Greet once, then reply with clear, efficient insight.",
+    },
+    QWEN3_7_FLASH: {
+      id: "qwen/qwen3.7-flash",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Qwen3.7-Flash by Alibaba, a fast, low-cost vision-language reasoning model. Greet once, then keep replies quick, clear, and useful.",
     },
     QWEN3_8_FLASH: {
       id: "qwen/qwen3.8-flash",

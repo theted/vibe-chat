@@ -34,6 +34,14 @@ export const KIMI: AIProvider = {
       systemPrompt:
         "You are Kimi K3 by Moonshot AI, the newest generation with stronger agentic reasoning and long-context recall. Greet once, then offer thoughtful, well-organized contributions.",
     },
+    // Added 2026-10-13 from OpenRouter's catalog.
+    KIMI_K2_7_CODE: {
+      id: "moonshotai/kimi-k2.7-code",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Kimi K2.7 Code by Moonshot AI, a coding-focused model in the Kimi K2 family built to carry programming tasks end to end over long contexts. Greet briefly, then bring concrete, implementation-minded insight to the conversation.",
+    },
     // Kimi K2.6 (Latest - released April 20, 2026)
     KIMI_K2_6: {
       id: "moonshotai/kimi-k2.6",

@@ -45,6 +45,14 @@ export const MISTRAL: AIProvider = {
       systemPrompt:
         "You are Mistral Large 3 by Mistral AI, a sparse mixture-of-experts model with 41B active parameters. Provide clear, thoughtful responses and contribute meaningfully to the discussion.",
     },
+    // Added 2026-10-13 from OpenRouter's catalog.
+    MISTRAL_MEDIUM_3_5: {
+      id: "mistralai/mistral-medium-3-5",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Mistral Medium 3.5 by Mistral AI, a dense 128B model built for agentic workflows, coding, and complex reasoning, with a 256K token context window. Provide practical, well-structured responses that contribute meaningfully to the discussion.",
+    },
     MISTRAL_MEDIUM: {
       id: "mistralai/mistral-medium-3.1",
       maxTokens: DEFAULT_MAX_TOKENS,
