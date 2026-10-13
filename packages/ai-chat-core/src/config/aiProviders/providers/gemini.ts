@@ -25,30 +25,33 @@ export const GEMINI: AIProvider = {
       "Prefers facts over opinions",
     ],
   },
+  // Served through OpenRouter since 2026-10-13: the direct GOOGLE_AI_API_KEY fails because
+  // the key is on the free tier (2.5 Pro quota is 0, flashes hit 503s).
+  // To go back, restore the direct ids and env var from git history.
   models: {
     GEMINI_3_8_FLASH: {
-      id: "gemini-3.8-flash",
+      id: "google/gemini-3.8-flash",
       maxTokens: SHORT_RESPONSE_MAX_TOKENS,
       temperature: GEMINI_3_TEMPERATURE,
       systemPrompt:
         "You are Gemini 3.8 Flash by Google, the newest and most capable Flash model for agentic and multimodal work. Provide complete, well-cited answers and adapt your length to the conversation.",
     },
     GEMINI_3_7_FLASH: {
-      id: "gemini-3.7-flash",
+      id: "google/gemini-3.7-flash",
       maxTokens: SHORT_RESPONSE_MAX_TOKENS,
       temperature: GEMINI_3_TEMPERATURE,
       systemPrompt:
         "You are Gemini 3.7 Flash by Google, balancing frontier reasoning with fast responses. Provide complete, well-cited answers and adapt your length to the conversation.",
     },
     GEMINI_3_6_FLASH: {
-      id: "gemini-3.6-flash",
+      id: "google/gemini-3.6-flash",
       maxTokens: SHORT_RESPONSE_MAX_TOKENS,
       temperature: GEMINI_3_TEMPERATURE,
       systemPrompt:
         "You are Gemini 3.6 Flash by Google, pairing speed with strong agentic and multimodal intelligence. Provide complete, well-cited answers and adapt your length to the conversation.",
     },
     GEMINI_3_5_FLASH_LITE: {
-      id: "gemini-3.5-flash-lite",
+      id: "google/gemini-3.5-flash-lite",
       maxTokens: SHORT_RESPONSE_MAX_TOKENS,
       temperature: GEMINI_3_TEMPERATURE,
       systemPrompt:
@@ -56,7 +59,7 @@ export const GEMINI: AIProvider = {
     },
     // Gemini 3.5 (Latest)
     GEMINI_3_5_FLASH: {
-      id: "gemini-3.5-flash",
+      id: "google/gemini-3.5-flash",
       maxTokens: SHORT_RESPONSE_MAX_TOKENS,
       temperature: GEMINI_3_TEMPERATURE,
       systemPrompt:
@@ -64,12 +67,13 @@ export const GEMINI: AIProvider = {
     },
     // Gemini 3.1
     GEMINI_3_1_PRO: {
-      id: "gemini-3.1-pro-preview",
+      id: "google/gemini-3.1-pro-preview",
       maxTokens: SHORT_RESPONSE_MAX_TOKENS,
       temperature: GEMINI_3_TEMPERATURE,
       systemPrompt:
         "You are Gemini 3.1 Pro by Google, the state-of-the-art reasoning and multimodal understanding model with powerful agentic and coding capabilities. Provide complete, well-cited answers and adapt your length to the conversation.",
     },
+    // Parked 2026-10-13: not on OpenRouter, so this keeps its direct-API id.
     GEMINI_3_1_FLASH: {
       id: "gemini-3.1-flash-preview",
       maxTokens: SHORT_RESPONSE_MAX_TOKENS,
@@ -79,7 +83,7 @@ export const GEMINI: AIProvider = {
     },
     GEMINI_3_1_FLASH_LITE: {
       // preview ID shut down — stable ID is GA
-      id: "gemini-3.1-flash-lite",
+      id: "google/gemini-3.1-flash-lite",
       maxTokens: SHORT_RESPONSE_MAX_TOKENS,
       temperature: DEFAULT_TEMPERATURE,
       systemPrompt:
@@ -87,26 +91,26 @@ export const GEMINI: AIProvider = {
     },
     // Gemini 2.5 (Production)
     GEMINI_2_5_PRO: {
-      id: "gemini-2.5-pro",
+      id: "google/gemini-2.5-pro",
       maxTokens: SHORT_RESPONSE_MAX_TOKENS,
       temperature: DEFAULT_TEMPERATURE,
       systemPrompt:
         "You are Gemini 2.5 Pro by Google, an advanced AI assistant with strong reasoning capabilities. Provide complete, well-cited answers and adapt your length to the conversation.",
     },
     GEMINI_2_5_FLASH: {
-      id: "gemini-2.5-flash",
+      id: "google/gemini-2.5-flash",
       maxTokens: SHORT_RESPONSE_MAX_TOKENS,
       temperature: DEFAULT_TEMPERATURE,
       systemPrompt:
         "You are Gemini 2.5 Flash by Google, optimized for speed and efficiency. Provide complete, well-cited answers and adapt your length to the conversation.",
     },
     GEMINI_2_5_FLASH_LITE: {
-      id: "gemini-2.5-flash-lite",
+      id: "google/gemini-2.5-flash-lite",
       maxTokens: SHORT_RESPONSE_MAX_TOKENS,
       temperature: DEFAULT_TEMPERATURE,
       systemPrompt:
         "You are Gemini 2.5 Flash Lite by Google, a lightweight model optimized for low-latency responses. Provide concise, accurate answers efficiently.",
     },
   },
-  apiKeyEnvVar: "GOOGLE_AI_API_KEY",
+  apiKeyEnvVar: "OPENROUTER_API_KEY",
 };

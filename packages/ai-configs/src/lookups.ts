@@ -116,7 +116,7 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   "gemini-3.1-pro": "gemini-3.1-pro",
   "gemini-3.1-flash": "gemini-3.1-flash",
   "gemini-3.1-flash-lite": "gemini-3.1-flash-lite",
-  "gemini-flash": "gemini-3.1-flash",
+  "gemini-flash": "gemini-3.8-flash",
   "gemini-2.5": "gemini-2.5-pro",
   google: "gemini-3.8-flash",
   bard: "gemini-3.8-flash",
@@ -196,11 +196,13 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   // Qwen/Alibaba
   qwen: "qwen3.8-max",
   alibaba: "qwen3.8-max",
-  "qwen3.6": "qwen3.6-max",
+  // Qwen3.6 Max preview and Qwen3 Max are parked, so the bare family names
+  // resolve to the newest active model in each
+  "qwen3.6": "qwen3.6-flash",
   "qwen3.6-max": "qwen3.6-max",
   "qwen-turbo": "qwen-turbo",
   "qwen-plus": "qwen-plus",
-  qwen3: "qwen3-max",
+  qwen3: "qwen3.8-max",
   "qwen3-max": "qwen3-max",
   "qwen3-235b": "qwen3-235b",
   "qwen3-coder": "qwen3-coder-plus",

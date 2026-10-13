@@ -23,7 +23,10 @@ export const PROVIDER_BASE_URLS = {
   LLAMA: "https://api.llama-api.com/v1",
   MISTRAL: "https://api.mistral.ai/v1",
   PERPLEXITY: "https://api.perplexity.ai",
-  QWEN: "https://dashscope.aliyuncs.com/compatible-mode/v1",
+  // Unused while Qwen runs through OpenRouter. DashScope keys are bound to one
+  // region; ours is a US (Virginia) key, which the China and international
+  // endpoints reject with 401 "Incorrect API key".
+  QWEN: "https://dashscope-us.aliyuncs.com/compatible-mode/v1",
   ZAI: "https://api.z.ai/api/paas/v4",
 } as const;
 
