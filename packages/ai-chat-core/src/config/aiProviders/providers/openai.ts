@@ -132,10 +132,10 @@ export const OPENAI: AIProvider = {
       systemPrompt:
         "You are GPT-5.2 Pro by OpenAI, optimized for complex reasoning and long-horizon problem solving. Greet briefly once, then deliver deep, structured insights that synthesize and elevate the group’s ideas.",
     },
+    // gpt-5-mini and gpt-5-nano are reasoning models and reject any temperature
     GPT5_MINI: {
       id: "gpt-5-mini",
       maxTokens: DEFAULT_MAX_TOKENS,
-      temperature: 0.9,
       maxTokensParam: "max_completion_tokens",
       useResponsesApi: true,
       systemPrompt:
@@ -144,7 +144,6 @@ export const OPENAI: AIProvider = {
     GPT5_NANO: {
       id: "gpt-5-nano",
       maxTokens: DEFAULT_MAX_TOKENS,
-      temperature: 0.9,
       maxTokensParam: "max_completion_tokens",
       useResponsesApi: true,
       systemPrompt:

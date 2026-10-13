@@ -184,12 +184,13 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     status: "active",
     emoji: "🔭",
   },
+  // Parked 2026-10-13: this OpenAI account has no o3-pro access (not in /v1/models)
   {
     id: "OPENAI_O3_PRO",
     name: "OpenAI o3-pro",
     alias: "o3-pro",
     provider: "OpenAI",
-    status: "active",
+    status: "inactive",
     emoji: "🔮",
   },
   {

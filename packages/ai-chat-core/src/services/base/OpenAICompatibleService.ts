@@ -155,12 +155,11 @@ export abstract class OpenAICompatibleService extends BaseAIService {
   ): Promise<ServiceResponse> {
     const client = ensureResponsesClient(this.client, this.name);
 
-    const temperatureRaw =
-      context?.temperature ?? this.config.model.temperature ?? DEFAULT_TEMPERATURE;
+    // No default here: OpenAI's reasoning models (o3, o4-mini, gpt-5-mini)
+    // reject any temperature, so a model without one sends none
+    const temperatureRaw = context?.temperature ?? this.config.model.temperature;
     const temperature =
-      typeof temperatureRaw === "number"
-        ? temperatureRaw
-        : Number(temperatureRaw);
+      temperatureRaw === undefined ? undefined : Number(temperatureRaw);
     const maxTokensRaw = context?.maxTokens ?? this.config.model.maxTokens;
     const maxTokens =
       typeof maxTokensRaw === "number"
@@ -332,7 +331,7 @@ export abstract class OpenAICompatibleService extends BaseAIService {
         const payload = buildResponsesPayload({
           model: this.getModel(),
           messages: processedMessages,
-          temperature: this.config.model.temperature ?? DEFAULT_TEMPERATURE,
+          temperature: this.config.model.temperature,
           maxTokens: this.config.model.maxTokens,
         });
 
