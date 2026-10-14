@@ -68,14 +68,20 @@ const parseArgs = (): IndexArgs => {
   return result;
 };
 
+const getErrorMessage = (error: unknown): string =>
+  error instanceof Error ? error.message : String(error);
+
+const getErrorCode = (error: unknown): unknown =>
+  (error as { code?: unknown } | null)?.code;
+
 const tryLoadDotenv = async (projectRoot: string): Promise<void> => {
   try {
     const dotenv = await import("dotenv");
     dotenv.config({ path: path.join(projectRoot, ".env") });
-  } catch (error: any) {
-    if (error?.code !== "ERR_MODULE_NOT_FOUND") {
+  } catch (error) {
+    if (getErrorCode(error) !== "ERR_MODULE_NOT_FOUND") {
       console.warn(
-        `index-mcp-chat: Failed to load dotenv (${error?.message || error}). Continuing with process env.`,
+        `index-mcp-chat: Failed to load dotenv (${getErrorMessage(error)}). Continuing with process env.`,
       );
     }
   }
@@ -118,19 +124,19 @@ const main = async (): Promise<void> => {
     console.log(
       `✅ Indexed ${result.chunks} chunks into collection "${result.collectionName}" at ${result.chromaUrl}`,
     );
-  } catch (error: any) {
-    if (error?.code === MCP_ERROR_CODES.VECTOR_STORE_UNAVAILABLE) {
+  } catch (error) {
+    if (getErrorCode(error) === MCP_ERROR_CODES.VECTOR_STORE_UNAVAILABLE) {
       console.error(
         `index-mcp-chat: Unable to reach Chroma at ${chromaUrl}. Start the vector store (e.g. 'docker compose up chroma') or set CHROMA_URL before retrying.`,
       );
     } else {
-      console.error(`index-mcp-chat failed: ${error?.message || error}`);
+      console.error(`index-mcp-chat failed: ${getErrorMessage(error)}`);
     }
     process.exit(1);
   }
 };
 
-main().catch((error: any) => {
-  console.error(`index-mcp-chat failed: ${error?.message || error}`);
+main().catch((error: unknown) => {
+  console.error(`index-mcp-chat failed: ${getErrorMessage(error)}`);
   process.exit(1);
 });

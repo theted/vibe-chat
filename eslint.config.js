@@ -90,5 +90,19 @@ export default [
       },
     },
   },
+  {
+    // CodeceptJS injects its DSL into every e2e spec instead of exporting it
+    files: ["tests/e2e/**/*.js"],
+    languageOptions: {
+      globals: {
+        Feature: "readonly",
+        Scenario: "readonly",
+        Before: "readonly",
+        After: "readonly",
+        inject: "readonly",
+        locate: "readonly",
+      },
+    },
+  },
   prettierConfig,
 ];

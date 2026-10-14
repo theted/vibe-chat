@@ -25,9 +25,9 @@ describe("StatsTracker", () => {
   it("records assistant messages when redis is available", async () => {
     process.env.REDIS_URL = "redis://localhost:6379";
     const pipeline = {
-      incr: mock((key: string) => pipeline),
-      lPush: mock((key: string, value: string) => pipeline),
-      lTrim: mock((key: string, start: number, end: number) => pipeline),
+      incr: mock((_key: string) => pipeline),
+      lPush: mock((_key: string, _value: string) => pipeline),
+      lTrim: mock((_key: string, _start: number, _end: number) => pipeline),
       exec: mock(async () => {}),
     };
     const fakeClient = {

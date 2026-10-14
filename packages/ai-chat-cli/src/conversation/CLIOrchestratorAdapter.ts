@@ -25,7 +25,6 @@ import {
   DEFAULT_CONVERSATION_CONFIG,
 } from "@ai-chat/core";
 import type {
-  AIServiceConfig,
   IAIService,
   Message,
   AIProvider,

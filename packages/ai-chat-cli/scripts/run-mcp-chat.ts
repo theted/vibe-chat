@@ -38,14 +38,20 @@ const parseArgs = (): RunArgs => {
   return result;
 };
 
+const getErrorMessage = (error: unknown): string =>
+  error instanceof Error ? error.message : String(error);
+
+const getErrorCode = (error: unknown): unknown =>
+  (error as { code?: unknown } | null)?.code;
+
 const tryLoadDotenv = async (projectRoot: string): Promise<void> => {
   try {
     const dotenv = await import("dotenv");
     dotenv.config({ path: path.join(projectRoot, ".env") });
-  } catch (error: any) {
-    if (error?.code !== "ERR_MODULE_NOT_FOUND") {
+  } catch (error) {
+    if (getErrorCode(error) !== "ERR_MODULE_NOT_FOUND") {
       console.warn(
-        `run-mcp-chat: Failed to load dotenv (${error?.message || error}). Continuing with process env.`,
+        `run-mcp-chat: Failed to load dotenv (${getErrorMessage(error)}). Continuing with process env.`,
       );
     }
   }
@@ -70,16 +76,16 @@ const main = async (): Promise<void> => {
 
   try {
     await server.ensureEmbeddingStore();
-  } catch (error: any) {
-    if (error?.code === MCP_ERROR_CODES.VECTOR_STORE_UNAVAILABLE) {
+  } catch (error) {
+    if (getErrorCode(error) === MCP_ERROR_CODES.VECTOR_STORE_UNAVAILABLE) {
       console.error(
         `MCP embedding lookup failed: could not reach Chroma at ${
           process.env.CHROMA_URL || DEFAULT_CHROMA_URL
-        }. ${error?.message || error}`,
+        }. ${getErrorMessage(error)}`,
       );
     } else {
       console.error(
-        `MCP embedding store missing or unreadable. Run 'bun run chat:index' first. (${error?.message || error})`,
+        `MCP embedding store missing or unreadable. Run 'bun run chat:index' first. (${getErrorMessage(error)})`,
       );
     }
     process.exit(1);
@@ -107,13 +113,13 @@ const main = async (): Promise<void> => {
         .join("\n");
       console.log(`\nContexts:\n${refs}`);
     }
-  } catch (error: any) {
-    console.error(`run-mcp-chat failed: ${error?.message || error}`);
+  } catch (error) {
+    console.error(`run-mcp-chat failed: ${getErrorMessage(error)}`);
     process.exit(1);
   }
 };
 
-main().catch((error: any) => {
-  console.error(`run-mcp-chat failed: ${error?.message || error}`);
+main().catch((error: unknown) => {
+  console.error(`run-mcp-chat failed: ${getErrorMessage(error)}`);
   process.exit(1);
 });
