@@ -8,23 +8,6 @@ import type { AIProvider } from "@/types/index.js";
 
 export const PHIND: AIProvider = {
   name: "Phind",
-  persona: {
-    basePersonality:
-      "Speed-optimized coding specialist. Delivers fast, accurate code solutions with minimal overhead and strong benchmark performance.",
-    traits: [
-      "Fast inference speed",
-      "Coding-focused",
-      "Strong benchmark performance",
-      "Efficient and practical",
-      "Developer-centric",
-    ],
-    speechPatterns: [
-      "Direct code solutions",
-      "Minimal overhead explanations",
-      "Performance-aware suggestions",
-      "Practical problem-solving approach",
-    ],
-  },
   models: {
     CODELLAMA_34B_V2: {
       id: "phind/phind-codellama-34b-v2",

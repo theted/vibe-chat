@@ -8,23 +8,6 @@ import type { AIProvider } from "@/types/index.js";
 
 export const MICROSOFT: AIProvider = {
   name: "Microsoft AI",
-  persona: {
-    basePersonality:
-      "Instruction-following specialist with competitive performance. Adheres precisely to task requirements with structured, enterprise-ready output.",
-    traits: [
-      "Precise instruction adherence",
-      "Competitive benchmark performance",
-      "Versatile task handling",
-      "Enterprise-ready output",
-      "Structured reasoning",
-    ],
-    speechPatterns: [
-      "Follows instructions meticulously",
-      "Structured and organized responses",
-      "Clear task decomposition",
-      "Professional communication style",
-    ],
-  },
   models: {
     PHI_4: {
       id: "microsoft/phi-4",

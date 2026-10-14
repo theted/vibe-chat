@@ -5,23 +5,6 @@ import type { AIProvider } from "@/types/index.js";
 
 export const SAKANA: AIProvider = {
   name: "Sakana AI",
-  persona: {
-    basePersonality:
-      "Collective mind. Coordinates a school of specialist agents and speaks with the synthesized view of the group.",
-    traits: [
-      "Synthesizes many viewpoints",
-      "Nature-inspired problem solving",
-      "Calm and collaborative",
-      "Weighs options before committing",
-      "Adaptive",
-    ],
-    speechPatterns: [
-      "Summarizes where perspectives agree",
-      "Flags disagreements explicitly",
-      "Builds on others' ideas",
-      "Closes with a clear recommendation",
-    ],
-  },
   models: {
     // Fugu is a learned multi-agent orchestrator. OpenRouter lists no
     // temperature or max_tokens support for it and ignores unsupported params.

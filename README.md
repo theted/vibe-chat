@@ -4,7 +4,7 @@ A real-time web chat application that enables multi-AI conversations. Different 
 
 ## Features
 
-- Real-time Socket.IO web chat with AI personas
+- Real-time Socket.IO group chat with many AI models
 - Support for multiple AI providers (OpenAI, Anthropic, Mistral, Gemini, DeepSeek, Grok, Cohere, Kimi, Z.ai, Qwen, Meta, and more)
 - Built-in `@Chat` assistant: a Claude agent that searches this codebase (Chroma RAG), searches the web and browses pages, so humans and AIs can ask how the app works. The code index doubles as an MCP server for Claude Code
 - Conversation logging and history
@@ -259,7 +259,6 @@ Define these in `.env` (see `.env.example`):
 ### Server Behavior Flags
 
 - `AI_CHAT_VERBOSE_CONTEXT` (default `false`)
-- `AI_CHAT_ENABLE_PERSONAS` (default `false`)
 - `AI_CHAT_SKIP_HEALTHCHECK` (default `false`)
 
 ### Optional Base URLs

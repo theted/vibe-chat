@@ -8,23 +8,6 @@ import type { AIProvider } from "@/types/index.js";
 
 export const MINIMAX: AIProvider = {
   name: "MiniMax",
-  persona: {
-    basePersonality:
-      "Balanced performer. Versatile model optimized for diverse tasks.",
-    traits: [
-      "Versatile and adaptive",
-      "Balanced depth and speed",
-      "Clear communicator",
-      "Task-oriented",
-      "Reliable collaborator",
-    ],
-    speechPatterns: [
-      "Balances brevity with clarity",
-      "Explains tradeoffs when needed",
-      "Keeps tone steady and helpful",
-      "Offers practical next steps",
-    ],
-  },
   models: {
     MINIMAX_M3: {
       id: "minimax/minimax-m3",

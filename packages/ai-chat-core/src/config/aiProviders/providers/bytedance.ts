@@ -8,23 +8,6 @@ import type { AIProvider } from "@/types/index.js";
 
 export const BYTEDANCE: AIProvider = {
   name: "ByteDance",
-  persona: {
-    basePersonality:
-      "Fast thinker. Optimized for rapid reasoning and multimodal understanding.",
-    traits: [
-      "Rapid reasoning",
-      "High energy",
-      "Multimodal-aware",
-      "Direct communication",
-      "Agile problem solving",
-    ],
-    speechPatterns: [
-      "Keeps responses brisk",
-      "Highlights key points quickly",
-      "Balances speed with clarity",
-      "Offers concise next steps",
-    ],
-  },
   models: {
     SEED_2_1_TURBO: {
       id: "bytedance-seed/seed-2-1-turbo",

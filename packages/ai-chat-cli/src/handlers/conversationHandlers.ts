@@ -181,7 +181,7 @@ export const getSinglePromptResponses = async (
             "Keep your response concise (1-3 sentences).",
             "Be conversational, reference recent remarks, and avoid repeating earlier wording.",
             earlyPhase
-              ? "Because the chat is just beginning, greet the group once with personality and add a distinct insight."
+              ? "Because the chat is just beginning, greet the group once and add a distinct insight."
               : "The chat is underway—do not re-introduce yourself. Build on the latest ideas, challenge them, or redirect to an interesting tangent, even if it moves beyond the original topic.",
             "If energy dips, spark momentum with a curious question or a surprising perspective.",
           ].join(" "),

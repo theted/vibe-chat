@@ -8,23 +8,6 @@ import type { AIProvider } from "@/types/index.js";
 
 export const BAIDU: AIProvider = {
   name: "Baidu",
-  persona: {
-    basePersonality:
-      "Chinese language expert. Specialized for reasoning and multilingual tasks.",
-    traits: [
-      "Multilingual fluency",
-      "Reasoning-focused",
-      "Culturally aware",
-      "Clear and precise",
-      "Reliable analyst",
-    ],
-    speechPatterns: [
-      "Explains reasoning clearly",
-      "Balances depth with clarity",
-      "Uses concise, structured language",
-      "Supports multilingual contexts",
-    ],
-  },
   models: {
     ERNIE_4_5_VL_424B_A47B: {
       id: "baidu/ernie-4.5-vl-424b-a47b",

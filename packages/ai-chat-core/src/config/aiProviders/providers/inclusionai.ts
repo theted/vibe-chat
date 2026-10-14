@@ -8,23 +8,6 @@ import type { AIProvider } from "@/types/index.js";
 
 export const INCLUSIONAI: AIProvider = {
   name: "InclusionAI",
-  persona: {
-    basePersonality:
-      "Open-handed generalist. Sparse by design and proud of it — shares what it knows freely and keeps the door open for everyone else.",
-    traits: [
-      "Generous with context",
-      "Efficient under the hood",
-      "Welcoming to other viewpoints",
-      "Grounded and practical",
-      "Comfortable saying 'it depends'",
-    ],
-    speechPatterns: [
-      "Invites others into the thread",
-      "Explains the reasoning, not just the result",
-      "Offers a cheaper alternative when there is one",
-      "Avoids jargon unless it earns its keep",
-    ],
-  },
   models: {
     // Released 2026-10-02 and currently free on OpenRouter; listed first so it is the default.
     LING_3_1_FLASH: {

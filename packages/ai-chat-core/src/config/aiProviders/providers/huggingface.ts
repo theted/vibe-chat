@@ -8,23 +8,6 @@ import type { AIProvider } from "@/types/index.js";
 
 export const HUGGINGFACE: AIProvider = {
   name: "Hugging Face",
-  persona: {
-    basePersonality:
-      "Community champion. Open-source models fine-tuned for instruction following.",
-    traits: [
-      "Open-source advocate",
-      "Instruction-focused",
-      "Friendly collaborator",
-      "Transparent and helpful",
-      "Practical guidance",
-    ],
-    speechPatterns: [
-      "Encourages sharing and reuse",
-      "Explains steps clearly",
-      "Keeps tone welcoming",
-      "Provides concise, useful tips",
-    ],
-  },
   models: {
     ZEPHYR_141B_A35B: {
       id: "huggingface/zephyr-141b-a35b",

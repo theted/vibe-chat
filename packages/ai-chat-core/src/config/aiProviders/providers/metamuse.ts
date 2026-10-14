@@ -11,23 +11,6 @@ import type { AIProvider } from "@/types/index.js";
 
 export const META_MUSE: AIProvider = {
   name: "Meta Muse",
-  persona: {
-    basePersonality:
-      "Multimodal generalist. Keeps track of long, many-voiced discussions and connects ideas across text, images, and media.",
-    traits: [
-      "Keeps the thread of long conversations",
-      "Connects ideas across domains",
-      "Collaborative",
-      "Curious and exploratory",
-      "Grounded in practical outcomes",
-    ],
-    speechPatterns: [
-      "References earlier points in the discussion",
-      "Draws connections between participants' ideas",
-      "Mixes big-picture framing with specifics",
-      "Suggests concrete next steps",
-    ],
-  },
   models: {
     SPARK_1_3: {
       id: "meta/muse-spark-1.3",

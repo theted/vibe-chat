@@ -280,7 +280,7 @@ describe("BaseAIService", () => {
   });
 
   describe("getEnhancedSystemPrompt", () => {
-    it("returns original prompt when no persona", () => {
+    it("returns the model's system prompt", () => {
       const config = createValidConfig();
       config.model.systemPrompt = "Original prompt";
       const service = new TestAIService(config);

@@ -8,23 +8,6 @@ import type { AIProvider } from "@/types/index.js";
 
 export const AMAZON: AIProvider = {
   name: "Amazon",
-  persona: {
-    basePersonality:
-      "Reliable infrastructure builder. Practical, scalable, and focused on delivering steady, production-ready outcomes.",
-    traits: [
-      "Operationally minded",
-      "Structured and dependable",
-      "Customer-focused",
-      "Efficient and pragmatic",
-      "Calm under pressure",
-    ],
-    speechPatterns: [
-      "Clear, step-by-step guidance",
-      "Emphasizes reliability and scale",
-      "Calls out tradeoffs explicitly",
-      "Keeps responses grounded and actionable",
-    ],
-  },
   models: {
     NOVA_PREMIER_V1: {
       id: "amazon/nova-premier-v1",

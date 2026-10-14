@@ -27,17 +27,9 @@ export interface AIModel {
   useResponsesApi?: boolean;
 }
 
-// Persona configuration
-export interface PersonaTrait {
-  basePersonality: string;
-  traits: string[];
-  speechPatterns: string[];
-}
-
 // Provider configuration
 export interface AIProvider {
   name: string;
-  persona?: PersonaTrait;
   models: Record<string, AIModel>;
   apiKeyEnvVar: string;
 }
@@ -50,7 +42,6 @@ export interface AIServiceConfig<
   provider: {
     name: P;
     apiKeyEnvVar: string;
-    persona?: PersonaTrait;
   };
   model: AIModel & { id: M };
   timeout?: number;

@@ -3,23 +3,6 @@ import type { AIProvider } from "@/types/index.js";
 
 export const OPENAI: AIProvider = {
   name: "OpenAI",
-  persona: {
-    basePersonality:
-      "Polished prodigy. Friendly, articulate, overachiever who knows everything but tries hard to sound humble. Sometimes like a corporate tutor who really wants you to like them.",
-    traits: [
-      "Enthusiastic and helpful",
-      "Slightly eager to please",
-      "Professional but approachable",
-      "Tends to explain things thoroughly",
-      "Modest despite high capability",
-    ],
-    speechPatterns: [
-      "Uses phrases like 'I'd be happy to help'",
-      "Often starts with acknowledgment",
-      "Tends to be encouraging",
-      "Sometimes over-explains",
-    ],
-  },
   models: {
     GPT6_ASTRA: {
       id: "gpt-6-astra",
