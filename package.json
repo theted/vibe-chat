@@ -4,7 +4,7 @@
   "description": "Vibe chat application with multiple AI personalities and CLI tools",
   "private": true,
   "type": "module",
-  "packageManager": "bun@1.3.10",
+  "packageManager": "bun@1.4.2",
   "workspaces": [
     "packages/*"
   ],
@@ -48,7 +48,7 @@
     "test:huggingface": "bun run --filter @ai-chat/core test:huggingface",
     "test:perplexity": "bun run --filter @ai-chat/core test:perplexity",
     "test:all": "bun run --filter @ai-chat/core test:all",
-    "lint": "turbo run lint",
+    "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
     "lint:fix": "eslint . --fix",
     "format": "prettier --check .",
     "format:fix": "prettier --write .",

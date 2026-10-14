@@ -1,12 +1,23 @@
 name: Deploy to EC2
 
 on:
-  push:
+  # Deploy only what CI passed: a red master must not ship
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
     branches: [master]
   workflow_dispatch:
 
+env:
+  # workflow_run's github.sha is master's tip, which may be newer than what CI tested
+  DEPLOY_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+
 jobs:
   deploy:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push')
     runs-on: ubuntu-latest
     steps:
       - name: Deploy via SSH
@@ -21,7 +32,7 @@ jobs:
             set -e
             cd /opt/vibe-chat
             git fetch origin
-            git checkout ${{ github.sha }}
+            git checkout ${{ env.DEPLOY_SHA }}
             docker compose -f docker-compose.base.yml -f docker-compose.ec2.yml --env-file .env up -d --build
             docker image prune -f
 
@@ -31,11 +42,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ env.DEPLOY_SHA }}
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: "latest"
+          bun-version-file: package.json
 
       - name: Install dependencies
         run: bun install --ignore-scripts
