@@ -2,7 +2,7 @@
  * Interaction strategy types: how AIs decide to respond.
  *
  * Models the object `determineInteractionStrategy` actually returns and
- * `applyInteractionStrategy` consumes - the per-response decision about
+ * `buildTurnInstruction` consumes - the per-response decision about
  * strategy, mention target, energy, and wind-down.
  */
 
@@ -37,7 +37,7 @@ export interface InteractionStrategyDecision {
   targetAI: MentionTarget | null;
   /** Literal @handle the model is asked to write, original casing kept. */
   mentionHandle: string | null;
-  /** Whether the last message @mentioned the responding AI. */
+  /** Whether the message being answered @mentioned the responding AI. */
   mentionsCurrentAI: boolean;
   energy: ResponseEnergy;
   /** Message budget nearly spent - instruct a brief, closing response. */

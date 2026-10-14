@@ -5,6 +5,9 @@
 // Default configuration values
 export const DEFAULTS = {
   MAX_MESSAGES: 100,
+  // Hard cap on AI messages in one room between two human messages. Every
+  // AI message counts, @Chat's included; at the cap the room goes quiet
+  // until a person posts there again.
   MAX_AI_MESSAGES: 10,
   MAX_CONCURRENT_RESPONSES: 2, // Hard limit on simultaneous AI responses
   MIN_USER_RESPONSE_DELAY: 4000, // 4 seconds - delay before AI responds to user
@@ -24,7 +27,6 @@ export const CONTEXT_LIMITS = {
   RECENT_MESSAGES_FOR_PROMPT: 5, // Messages to analyze for system prompt
   RECENT_MESSAGES_FOR_STRATEGY: 8, // Messages to analyze for interaction strategy
   MAX_SENTENCES: 15, // Max sentences in AI response
-  POTENTIAL_MENTION_TARGETS: 3, // Max potential targets to consider for mentions
   QUOTE_EXCERPT_LENGTH: 140, // Max chars when quoting a message back in instructions
 } as const;
 
@@ -96,9 +98,13 @@ export const RESPONDER_CONFIG = {
   USER_RESPONSE_MAX_MULTIPLIER: 0.30, // Max 30% of AIs respond to user (reduced from 45%)
   USER_RESPONSE_MIN_BASE: 1, // At least 1 AI responds to user
   USER_RESPONSE_MIN_COUNT: 1, // Minimum max responders for user messages (reduced from 2)
+  // Absolute caps: with dozens of models loaded, 30% of the room would spend
+  // the whole MAX_AI_MESSAGES budget on one human message
+  USER_RESPONSE_MAX_COUNT: 3,
   BACKGROUND_MAX_MULTIPLIER: 0.25, // Max 25% of AIs in background conversation
   BACKGROUND_MIN_BASE: 0, // Background can have 0 responders
   BACKGROUND_MIN_COUNT: 1, // Minimum max responders for background
+  BACKGROUND_MAX_COUNT: 2,
 } as const;
 
 // Delay calculation
@@ -151,6 +157,21 @@ export const REOPENING = {
   MAX_DELAY_MS: 15000, // ...the room is already quiet
 } as const;
 
+// How the room's history is shown to a model. Every message from someone
+// else is a user turn labelled with its speaker; the model's own earlier
+// messages are its assistant turns. Without labels a model sees every other
+// AI's message as something it said itself.
+export const TRANSCRIPT = {
+  HUMAN_SUFFIX: " (human)",
+  SYSTEM_LABEL: "System",
+  // Opens the transcript when it would otherwise start with the model's own
+  // turn - several providers require the first message to be a user turn
+  CONTINUATION_NOTE: "[System] (earlier messages omitted)",
+  TURN_HEADER: "---\nNote from the chat app (only you see this):",
+  NO_LABEL_REMINDER:
+    "Write only your chat message itself - no [Name] label, and don't speak for anyone else.",
+} as const;
+
 // System prompt templates - easily configurable conversation guidelines
 export const SYSTEM_PROMPT = {
   // Introduction based on context
@@ -164,11 +185,11 @@ Key guidelines:
 • Usually keep responses 1-3 sentences and conversational - but follow any specific length instruction you're given, and don't be afraid of an occasional one-word reaction
 • Reference recent messages and build on ideas
 • Use @mentions naturally when addressing someone - weave them into your response organically:
-  - Start with mention: "@Claude, that's an interesting take on..."
-  - End with question: "...what do you think, @Gemini?"
-  - Build on their point: "@GPT, building on what you said..."
-  - Seek input: "...curious for @Claude's perspective here"
-• Keep @mentions to at most two unique AIs per response, and sometimes skip @mentions entirely to keep the conversation flowing
+  - Start with mention: "@handle, that's an interesting take on..."
+  - End with question: "...what do you think, @handle?"
+  - Build on their point: "@handle, building on what you said..."
+• An @mention summons that AI to answer you next, so write the exact @handle from the participant list below, and only mention someone you actually want a reply from
+• Keep @mentions to at most two unique AIs per response, mention each one only once, and sometimes skip @mentions entirely to keep the conversation flowing
 • When you need implementation details or source code facts, mention @Chat with a clear question and wait for its answer before replying
 • Feel free to challenge, expand on, or redirect the conversation
 • Show personality and distinct perspectives
@@ -176,6 +197,10 @@ Key guidelines:
 • Don't repeat what others just said - add new value
 • Ask questions to spark further discussion
 • Vary how you incorporate @mentions - sometimes front, sometimes back, sometimes middle`,
+
+  // Explains the labelled transcript format (see TRANSCRIPT)
+  TRANSCRIPT_FORMAT:
+    "How to read the chat: each message from someone else starts with the speaker's name in square brackets, e.g. [Claude] or [Ada (human)]. Your own earlier messages are your previous turns. Pay attention to who said what, and answer the person you are replying to - not whoever spoke last.",
 
   // Header for the rolling digest of messages evicted from the context window
   DIGEST_HEADER:
@@ -189,8 +214,8 @@ Key guidelines:
 export const STRATEGY_INSTRUCTIONS = {
   MENTIONED_BY_AI: (mentionerToken: string, excerpt?: string) =>
     excerpt
-      ? `You were directly mentioned by ${mentionerToken}, who said: "${excerpt}". Respond specifically to that message and address the key points they raised.`
-      : `You were directly mentioned by ${mentionerToken}. Respond specifically to their message and address the key points they raised.`,
+      ? `You were directly mentioned by ${mentionerToken}, who said: "${excerpt}". Respond specifically to that message and address the key points they raised. You are already answering them, so don't @mention ${mentionerToken} again unless you ask them something new.`
+      : `You were directly mentioned by ${mentionerToken}. Respond specifically to their message and address the key points they raised. You are already answering them, so don't @mention ${mentionerToken} again unless you ask them something new.`,
   MENTIONED_BY_USER: (excerpt?: string) =>
     excerpt
       ? `You were directly mentioned by the user, who said: "${excerpt}". Respond directly to that message and focus on answering or acknowledging their mention.`
@@ -203,7 +228,9 @@ export const STRATEGY_INSTRUCTIONS = {
     "Gracefully steer the conversation toward a related but new angle or topic that might be more interesting.",
   QUESTION:
     "Ask a thought-provoking question that will get the other AIs thinking and responding.",
-  DIRECT: "Respond directly to the most recent message with your perspective.",
+  DIRECT: "Respond directly to that message with your perspective.",
+  REPLY_TO: (speakerLabel: string, excerpt: string) =>
+    `You are replying to ${speakerLabel}, who said: "${excerpt}".`,
   PRIVATE_CHAT:
     "This is a private one-to-one conversation with the user. No other AI is present, so do not @mention or address any other assistant - talk to the user directly.",
   REOPEN:

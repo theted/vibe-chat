@@ -60,17 +60,18 @@ export const tickUntil = async (
 };
 
 /**
- * Advance the fake clock until the orchestrator reaches the expected sleep state.
+ * Advance the fake clock until a room reaches the expected sleep state.
  */
 export const tickUntilSleep = async (
   clock: FakeTimers.InstalledClock,
   orchestrator: ChatOrchestrator,
   expected: boolean,
+  roomId = "default",
   maxMs = 300_000,
 ): Promise<void> => {
   await tickUntil(
     clock,
-    () => orchestrator.messageTracker.isAsleep === expected,
+    () => orchestrator.getRoomAIStatus(roomId).isAsleep === expected,
     maxMs,
   );
 };
@@ -82,6 +83,7 @@ export const tickUntilSleep = async (
 export class MockAIService extends BaseAIService {
   responseCount = 0;
   responseTimes: number[] = [];
+  lastPrompt: Message[] = [];
   private startTime = Date.now();
 
   constructor(config: AIServiceConfig) {
@@ -97,8 +99,9 @@ export class MockAIService extends BaseAIService {
   ): Promise<{ content: string }> {
     this.responseCount++;
     this.responseTimes.push(Date.now() - this.startTime);
-    const lastMessage = messages[messages.length - 1];
-    return { content: `Mock response #${this.responseCount}: ${lastMessage?.content ?? ""}` };
+    this.lastPrompt = messages;
+    // Short on purpose: the simulated typing hold grows with reply length
+    return { content: `Mock response #${this.responseCount}` };
   }
 
   protected async performHealthCheck(): Promise<boolean> {
@@ -312,14 +315,14 @@ export const simulateUserMessage = (
 // Assertion Helpers
 // ---------------------------------------------------------------------------
 
-/** Assert that the orchestrator's sleep state matches expected value. */
+/** Assert that a room's sleep state matches the expected value. */
 export const assertSleepState = (
   orchestrator: ChatOrchestrator,
   expected: boolean,
+  roomId = "default",
 ) => {
-  if (orchestrator.messageTracker.isAsleep !== expected) {
-    throw new Error(
-      `Expected isAsleep=${expected}, got ${orchestrator.messageTracker.isAsleep}`,
-    );
+  const { isAsleep } = orchestrator.getRoomAIStatus(roomId);
+  if (isAsleep !== expected) {
+    throw new Error(`Expected isAsleep=${expected} in ${roomId}, got ${isAsleep}`);
   }
 };

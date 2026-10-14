@@ -1,6 +1,6 @@
 import { afterEach, describe, it, expect } from "bun:test";
 import { ChatOrchestrator } from "@ai-chat/core";
-import { applyInteractionStrategy } from "@/utils/orchestrator/strategyUtils.js";
+import { buildTurnInstruction } from "@/utils/orchestrator/strategyUtils.js";
 
 describe("ChatOrchestrator user mention behavior", () => {
   let orchestrator: ChatOrchestrator | null = null;
@@ -53,7 +53,7 @@ describe("ChatOrchestrator user mention behavior", () => {
     expect(strategy.mentionHandle).toBe("@Bob");
   });
 
-  it("injects a mention instruction into the context instead of templating", () => {
+  it("puts a mention instruction in the turn note instead of templating", () => {
     const aiService = {
       id: "anthropic_claude",
       name: "Claude",
@@ -70,11 +70,9 @@ describe("ChatOrchestrator user mention behavior", () => {
       windingDown: false,
     };
 
-    const enhanced = applyInteractionStrategy([], strategy, aiService, null);
-    const instruction = enhanced[enhanced.length - 1];
+    const instruction = buildTurnInstruction(strategy, aiService, null);
 
-    expect(instruction.senderType).toBe("system");
-    expect(instruction.content).toContain("@Bob");
+    expect(instruction).toContain("@Bob");
   });
 
   it("limits unique @mentions to two per response", () => {

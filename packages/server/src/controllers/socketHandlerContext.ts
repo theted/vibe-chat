@@ -1,7 +1,6 @@
 import type { ChatOrchestrator } from "@ai-chat/core";
 import type { Server, Socket } from "socket.io";
 
-import type { AIMessageTracker } from "@/managers/AIMessageTracker.js";
 import type { RoomManager } from "@/managers/RoomManager.js";
 import type { ChatAssistantHandler } from "@/controllers/ChatAssistantHandler.js";
 import type { MessageHistoryService } from "@/services/MessageHistoryService.js";
@@ -15,7 +14,6 @@ export type SocketHandlerContext = {
   metricsService: MetricsService;
   messageHistory: MessageHistoryService;
   roomManager: RoomManager;
-  aiTracker: AIMessageTracker;
   connectedUsers: Map<string, ConnectedUser>;
   chatAssistant: ChatAssistantHandler;
   rateLimiter: RateLimiter;

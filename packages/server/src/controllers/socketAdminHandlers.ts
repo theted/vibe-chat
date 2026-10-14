@@ -11,7 +11,6 @@ export const handleGetAIStatus = (
   try {
     socket.emit(SOCKET_EVENTS.AI_STATUS, {
       orchestrator: context.chatOrchestrator.getStatus(),
-      tracker: context.aiTracker.getStats(),
     });
   } catch (error) {
     replySocketError(socket, "getting AI status", error, "Failed to get AI status");
@@ -28,8 +27,7 @@ export const handleAdminWakeAIs = (
       return;
     }
 
-    context.aiTracker.wakeUpAIs(user.roomId, `admin-wake-by-${user.username}`);
-    context.chatOrchestrator.wakeUpAIs();
+    context.chatOrchestrator.wakeUpAIs(user.roomId);
     socket.to(user.roomId).emit(SOCKET_EVENTS.ADMIN_ACTION, {
       action: "wake-ais",
       by: user.username,
@@ -49,11 +47,10 @@ export const handleAdminSleepAIs = (
       return;
     }
 
-    context.aiTracker.putAIsToSleep(
+    context.chatOrchestrator.putAIsToSleep(
       user.roomId,
       `admin-sleep-by-${user.username}`,
     );
-    context.chatOrchestrator.putAIsToSleep();
     socket.to(user.roomId).emit(SOCKET_EVENTS.ADMIN_ACTION, {
       action: "sleep-ais",
       by: user.username,

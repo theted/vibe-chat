@@ -88,7 +88,7 @@ describe("system prompt digest injection", () => {
       [],
       true,
       aiServices,
-      "Alice: something said long ago",
+      { conversationDigest: "Alice: something said long ago" },
     );
 
     expect(prompt).toContain("Earlier in this conversation");

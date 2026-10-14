@@ -44,7 +44,7 @@ export interface ContextManagerConfig {
 }
 
 export interface IContextManager {
-  addMessage(message: ContextMessage): void;
+  addMessage(message: ContextMessage): ContextMessage | undefined;
   getContext(maxMessages?: number): ContextMessage[];
   clear(): void;
   updateConfig(config: Partial<ContextManagerConfig>): void;

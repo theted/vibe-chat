@@ -5,60 +5,20 @@
 
 import { describe, it, expect } from "bun:test";
 import { stripAIMentions } from "@/utils/orchestrator/mentionUtils.js";
-import type { AIRegistry } from "@/orchestrator/AIRegistry.js";
-import type { QueuedResponse } from "@/orchestrator/ResponseQueue.js";
 import { ContextManager } from "@/orchestrator/ContextManager.js";
-import { ResponseScheduler } from "@/orchestrator/ResponseScheduler.js";
 import { RoomScope } from "@/orchestrator/RoomScope.js";
+import { makeTestScheduler, roomMessage } from "../helpers/schedulerTestUtils.js";
 
 const PRIVATE_ROOM = "private:ada:AI_ONE";
 
 const makeScheduler = (
-  batches: QueuedResponse[][],
   roomScope: RoomScope,
   allowedByRoom: Record<string, string[]> = {},
-) => {
-  const services = new Map(
-    ["AI_ONE", "AI_TWO", "AI_THREE"].map((id) => [
-      id,
-      {
-        id,
-        isActive: true,
-        isGenerating: false,
-        justResponded: false,
-        normalizedAlias: id.toLowerCase(),
-        traits: { tempo: 1, chattiness: 1 },
-      },
-    ]),
-  );
-  const registry = {
-    services,
-    activeIds: [...services.keys()],
-  } as unknown as AIRegistry;
-
-  const scheduler = new ResponseScheduler({
-    registry,
-    getLastMessage: () => undefined,
-    filterAIsForRoom: (roomId, aiIds) =>
-      allowedByRoom[roomId]
-        ? aiIds.filter((id) => allowedByRoom[roomId].includes(id))
-        : aiIds,
-    isDirectOnly: (roomId) => roomScope.isDirectOnly(roomId),
-    enqueueBatch: (responses) => batches.push(responses),
-    isAsleep: () => false,
-    getFatigue: () => 0,
-    getDelays: () => ({
-      minUserResponseDelay: 0,
-      maxUserResponseDelay: 1,
-      minBackgroundDelay: 0,
-      maxBackgroundDelay: 1,
-      minDelayBetweenAI: 0,
-      maxDelayBetweenAI: 1,
-    }),
+) =>
+  makeTestScheduler({
+    allowedByRoom,
+    directOnlyRooms: roomScope.isDirectOnly(PRIVATE_ROOM) ? [PRIVATE_ROOM] : [],
   });
-
-  return { scheduler, services };
-};
 
 describe("private room scheduling", () => {
   const privateScope = () => {
@@ -69,8 +29,7 @@ describe("private room scheduling", () => {
   };
 
   it("answers a user message with exactly one reply", () => {
-    const batches: QueuedResponse[][] = [];
-    const { scheduler } = makeScheduler(batches, privateScope(), {
+    const { scheduler, batches } = makeScheduler(privateScope(), {
       [PRIVATE_ROOM]: ["AI_ONE"],
     });
 
@@ -83,8 +42,7 @@ describe("private room scheduling", () => {
   });
 
   it("still answers when the model is mid-reply in another room", () => {
-    const batches: QueuedResponse[][] = [];
-    const { scheduler, services } = makeScheduler(batches, privateScope(), {
+    const { scheduler, services, batches } = makeScheduler(privateScope(), {
       [PRIVATE_ROOM]: ["AI_ONE"],
     });
     // The same model is busy answering in the main room
@@ -97,8 +55,7 @@ describe("private room scheduling", () => {
   });
 
   it("never schedules background rounds or silence-breakers", () => {
-    const batches: QueuedResponse[][] = [];
-    const { scheduler } = makeScheduler(batches, privateScope(), {
+    const { scheduler, batches } = makeScheduler(privateScope(), {
       [PRIVATE_ROOM]: ["AI_ONE"],
     });
 
@@ -108,9 +65,62 @@ describe("private room scheduling", () => {
     expect(batches).toHaveLength(0);
   });
 
+  it("lets the room's AI answer @Chat when @Chat mentions it", () => {
+    const { scheduler, batches } = makeScheduler(privateScope(), {
+      [PRIVATE_ROOM]: ["AI_ONE"],
+    });
+
+    scheduler.scheduleMentionReplies(
+      PRIVATE_ROOM,
+      roomMessage({
+        senderType: "ai",
+        aiId: "chat-assistant",
+        sender: "@Chat",
+        roomId: PRIVATE_ROOM,
+        mentionsNormalized: ["aione"],
+      }),
+    );
+
+    expect(batches).toHaveLength(1);
+    expect(batches[0].map((reply) => reply.aiId)).toEqual(["AI_ONE"]);
+    expect(batches[0][0].options.isMentioned).toBe(true);
+  });
+
+  it("never answers the room AI's own message", () => {
+    const { scheduler, batches } = makeScheduler(privateScope(), {
+      [PRIVATE_ROOM]: ["AI_ONE"],
+    });
+
+    scheduler.scheduleMentionReplies(
+      PRIVATE_ROOM,
+      roomMessage({
+        senderType: "ai",
+        aiId: "AI_ONE",
+        roomId: PRIVATE_ROOM,
+        mentionsNormalized: ["aione"],
+      }),
+    );
+
+    expect(batches).toHaveLength(0);
+  });
+
+  it("folds a quick follow-up into the reply already queued", () => {
+    const { scheduler, batches, pending } = makeScheduler(privateScope(), {
+      [PRIVATE_ROOM]: ["AI_ONE"],
+    });
+    const first = roomMessage({ senderType: "user", content: "first" });
+    const second = roomMessage({ senderType: "user", content: "second" });
+
+    scheduler.schedule(PRIVATE_ROOM, true, { trigger: first });
+    scheduler.schedule(PRIVATE_ROOM, true, { trigger: second });
+
+    expect(batches).toHaveLength(1);
+    expect(pending).toHaveLength(1);
+    expect(pending[0].options.triggerMessage).toBe(second);
+  });
+
   it("leaves ordinary rooms free to chat in the background", () => {
-    const batches: QueuedResponse[][] = [];
-    const { scheduler } = makeScheduler(batches, privateScope());
+    const { scheduler, batches } = makeScheduler(privateScope());
 
     scheduler.schedule("default", true);
     scheduler.schedule("default", false);

@@ -115,4 +115,5 @@ export {
 } from "./orchestrator/ChatOrchestrator.js";
 export { runWithConcurrencyLimit } from "./utils/concurrency.js";
 export type { ModelInitResult } from "./orchestrator/AIRegistry.js";
+export type { RoomAIStatus } from "./orchestrator/AIStreakTracker.js";
 export { ContextManager } from "./orchestrator/ContextManager.js";

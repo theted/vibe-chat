@@ -55,7 +55,6 @@ export const handleUserMessage = async (
       message.suppressAIResponses = true;
     }
 
-    context.aiTracker.onUserMessage(user.roomId, user.username);
     context.metricsService.recordUserMessage(
       user.roomId,
       user.username,

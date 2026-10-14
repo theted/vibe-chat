@@ -1,48 +1,18 @@
 import { describe, it, expect } from "bun:test";
-import type { AIRegistry } from "@/orchestrator/AIRegistry.js";
 import type { QueuedResponse } from "@/orchestrator/ResponseQueue.js";
-import { ResponseScheduler } from "@/orchestrator/ResponseScheduler.js";
+import { makeTestScheduler } from "../helpers/schedulerTestUtils.js";
 
-const makeScheduler = (
-  fatigue: number,
-  batches: QueuedResponse[][],
-  directOnlyRooms: string[] = [],
-) => {
-  const services = new Map(
-    ["AI_ONE", "AI_TWO", "AI_THREE"].map((id) => [
-      id,
-      {
-        id,
-        isActive: true,
-        isGenerating: false,
-        justResponded: false,
-        normalizedAlias: id.toLowerCase(),
-        traits: { tempo: 1, chattiness: 1 },
-      },
-    ]),
-  );
-  const registry = {
-    services,
-    activeIds: [...services.keys()],
-  } as unknown as AIRegistry;
-
-  return new ResponseScheduler({
-    registry,
-    getLastMessage: () => undefined,
-    filterAIsForRoom: (_roomId, aiIds) => aiIds,
-    isDirectOnly: (roomId) => directOnlyRooms.includes(roomId),
-    enqueueBatch: (responses) => batches.push(responses),
-    isAsleep: () => false,
-    getFatigue: () => fatigue,
-    getDelays: () => ({
-      minUserResponseDelay: 0,
-      maxUserResponseDelay: 1,
-      minBackgroundDelay: 0,
-      maxBackgroundDelay: 1,
-      minDelayBetweenAI: 0,
-      maxDelayBetweenAI: 1,
-    }),
-  });
+// Each round's replies are forgotten right away, so every round starts with
+// the whole room idle and its full budget
+const makeScheduler = (fatigue: number, batches: QueuedResponse[][]) => {
+  const harness = makeTestScheduler({ fatigue });
+  return {
+    schedule: (...args: Parameters<typeof harness.scheduler.schedule>) => {
+      harness.scheduler.schedule(...args);
+      batches.push(...harness.batches);
+      harness.drain();
+    },
+  };
 };
 
 describe("ResponseScheduler fade-out", () => {

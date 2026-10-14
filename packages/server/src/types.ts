@@ -72,24 +72,6 @@ export type RateLimitResult = {
   limit?: RateLimitWindow;
 };
 
-export type AITrackerStatus = {
-  messageCount: number;
-  maxMessages: number;
-  isAsleep: boolean;
-  sleepReason: string | null;
-  lastResetTime: number;
-  lastAIMessageTime: number;
-  canSendMessage: boolean;
-};
-
-export type AITrackerStats = {
-  totalRooms: number;
-  activeRooms: number;
-  sleepingRooms: number;
-  totalAIMessages: number;
-  avgMessagesPerRoom: number;
-};
-
 export type ChatAssistantMetadata = {
   sender: string;
   displayName: string;
