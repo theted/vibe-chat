@@ -31,12 +31,13 @@ export class ContextManager implements IContextManager {
   }
 
   /**
-   * Add a message to the context
+   * Add a message to the context. Returns the stored copy (with its room
+   * and parsed @mentions filled in), or undefined for internal messages.
    */
-  addMessage(message: ContextMessage): void {
+  addMessage(message: ContextMessage): ContextMessage | undefined {
     // Skip internal system messages - they're only for AI prompting
     if (message.isInternal) {
-      return;
+      return undefined;
     }
 
     const { mentions, normalized } = parseMentions(message.content);
@@ -85,6 +86,7 @@ export class ContextManager implements IContextManager {
     }
 
     this.messages.push(contextMessage);
+    return contextMessage;
   }
 
   /** Fold an evicted message into the rolling digest, dropping the oldest

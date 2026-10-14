@@ -4,10 +4,9 @@ import { getPrivateRoomAiId } from "@ai-chat/ai-configs";
 import {
   MESSAGE_MAX_LENGTH,
   TOPIC_MAX_LENGTH,
-  USER_MESSAGE_LIMIT,
-  USER_MESSAGE_WINDOW_MS,
   USERNAME_MAX_LENGTH,
 } from "@/config/serverConfig.js";
+import type { RateLimitResult } from "@/types.js";
 
 type ValidationResult =
   | { valid: true; value: string; message?: never }
@@ -69,16 +68,56 @@ export const validateTopic = (topic?: string): ValidationResult => {
   return { valid: true, value };
 };
 
-export const getRateLimitError = (
-  retryAfterMs?: number,
-): { message: string; code: "RATE_LIMITED"; retryAfterSeconds?: number } => {
-  const windowMinutes = Math.round(USER_MESSAGE_WINDOW_MS / 60_000);
+const MINUTE_MS = 60_000;
+const HOUR_MS = 60 * MINUTE_MS;
+const DAY_MS = 24 * HOUR_MS;
+
+const pluralize = (count: number, unit: string) =>
+  `${count} ${unit}${count === 1 ? "" : "s"}`;
+
+/** "hour", "day", "10 minutes" - the window as it reads after "per". */
+export const describeWindow = (windowMs: number): string => {
+  const units: Array<[number, string]> = [
+    [DAY_MS, "day"],
+    [HOUR_MS, "hour"],
+    [MINUTE_MS, "minute"],
+  ];
+  for (const [unitMs, unit] of units) {
+    if (windowMs % unitMs === 0) {
+      const count = windowMs / unitMs;
+      return count === 1 ? unit : pluralize(count, unit);
+    }
+  }
+  return pluralize(Math.ceil(windowMs / 1000), "second");
+};
+
+/** Rounded up, so "1 minute" never turns out to be too early. */
+export const describeWait = (waitMs: number): string => {
+  if (waitMs >= 2 * HOUR_MS) return pluralize(Math.ceil(waitMs / HOUR_MS), "hour");
+  if (waitMs >= MINUTE_MS) return pluralize(Math.ceil(waitMs / MINUTE_MS), "minute");
+  return pluralize(Math.max(Math.ceil(waitMs / 1000), 1), "second");
+};
+
+export const getRateLimitError = ({
+  retryAfterMs,
+  limit,
+}: Pick<RateLimitResult, "retryAfterMs" | "limit">): {
+  message: string;
+  code: "RATE_LIMITED";
+  retryAfterSeconds?: number;
+} => {
   const retryAfterSeconds = retryAfterMs
     ? Math.ceil(retryAfterMs / 1000)
     : undefined;
+  const limitText = limit
+    ? `You can send ${limit.maxMessages} messages per ${describeWindow(limit.windowMs)}.`
+    : "You're sending messages too fast.";
+  const waitText = retryAfterMs
+    ? ` Try again in ${describeWait(retryAfterMs)}.`
+    : " Please wait before sending more.";
 
   return {
-    message: `Rate limit exceeded: max ${USER_MESSAGE_LIMIT} messages per ${windowMinutes} minutes. Please wait before sending more.`,
+    message: `${limitText}${waitText}`,
     code: "RATE_LIMITED",
     retryAfterSeconds,
   };

@@ -29,13 +29,24 @@ const makeHandler = () => {
   } as unknown as ChatAssistantService;
 
   const posted: ChatMessage[] = [];
+  const heldRooms = new Set<string>();
+  const budget = { remaining: 10 };
   const orchestrator = {
     aiServices: new Map(),
     getMentionTokenForAI: () => null,
     handleMessage: async (message: ChatMessage) => {
       posted.push(message);
     },
-    scheduleAIResponses: () => undefined,
+    canAIsSpeak: () => budget.remaining > 0,
+    claimAITurn: () => {
+      if (budget.remaining <= 0) return false;
+      budget.remaining -= 1;
+      return true;
+    },
+    setRoomOnHold: (roomId: string, onHold: boolean) => {
+      if (onHold) heldRooms.add(roomId);
+      else heldRooms.delete(roomId);
+    },
   } as unknown as ChatOrchestrator;
 
   const handler = new ChatAssistantHandler({
@@ -44,7 +55,7 @@ const makeHandler = () => {
     io: {} as Server,
     getRecentMessages: async () => [],
   });
-  return { handler, posted, release };
+  return { handler, posted, release, heldRooms, budget };
 };
 
 describe("ChatAssistantHandler busy room", () => {
@@ -89,5 +100,52 @@ describe("ChatAssistantHandler busy room", () => {
     release();
     await first;
     expect(posted).toHaveLength(1);
+  });
+});
+
+describe("ChatAssistantHandler AI message limit", () => {
+  it("holds the room while answering and lifts the hold afterwards", async () => {
+    const { handler, posted, release, heldRooms } = makeHandler();
+    const answering = handler.trigger({
+      roomId: ROOM_ID,
+      content: "@Chat how do mentions work?",
+      origin: { type: "user", username: "alice" },
+    });
+
+    expect(heldRooms.has(ROOM_ID)).toBe(true);
+    release();
+    await answering;
+
+    expect(heldRooms.has(ROOM_ID)).toBe(false);
+    expect(posted).toHaveLength(1);
+  });
+
+  it("doesn't start an AI's question when the room has no AI budget left", async () => {
+    const { handler, posted, release, budget } = makeHandler();
+    budget.remaining = 0;
+    release();
+
+    await handler.trigger({
+      roomId: ROOM_ID,
+      content: "@Chat what about scheduling?",
+      origin: { type: "ai", sender: "Claude", aiId: "claude" },
+    });
+
+    expect(posted).toHaveLength(0);
+  });
+
+  it("drops a finished answer if the room hit its limit meanwhile", async () => {
+    const { handler, posted, release, budget } = makeHandler();
+    const answering = handler.trigger({
+      roomId: ROOM_ID,
+      content: "@Chat how do mentions work?",
+      origin: { type: "ai", sender: "Claude", aiId: "claude" },
+    });
+
+    budget.remaining = 0;
+    release();
+    await answering;
+
+    expect(posted).toHaveLength(0);
   });
 });

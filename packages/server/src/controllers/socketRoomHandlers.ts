@@ -55,7 +55,6 @@ export const handleJoinRoom = (
     const roomScope = applyRoomAIScope(context.chatOrchestrator, roomId);
 
     context.connectedUsers.set(socket.id, { ...userData, roomId });
-    context.aiTracker.initializeRoom(roomId);
     context.metricsService.updateActiveUsers(context.connectedUsers.size);
     context.metricsService.updateActiveRooms(
       context.roomManager.getStats().totalRooms,
@@ -150,7 +149,7 @@ export const handleGetRoomInfo = (
     socket.emit(SOCKET_EVENTS.ROOM_INFO, {
       room: context.roomManager.getRoom(user.roomId),
       participants: context.roomManager.getRoomParticipants(user.roomId),
-      aiStatus: context.aiTracker.getRoomStatus(user.roomId),
+      aiStatus: context.chatOrchestrator.getRoomAIStatus(user.roomId),
       aiParticipants: context.getActiveAIParticipants(),
     });
   } catch (error) {

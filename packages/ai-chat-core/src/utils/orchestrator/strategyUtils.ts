@@ -6,6 +6,7 @@ import {
   STRATEGY_ADJUSTMENTS,
   STRATEGY_INSTRUCTIONS,
   STRATEGY_WEIGHTS,
+  TRANSCRIPT,
   type ResponseEnergy,
 } from "@/orchestrator/constants.js";
 import type {
@@ -16,6 +17,7 @@ import type {
 } from "@/types/orchestrator.js";
 import type { OrchestratorAIService } from "@/utils/orchestrator/aiLookup.js";
 import { excerptForQuote } from "@/utils/orchestrator/responseUtils.js";
+import { speakerLabel } from "@/utils/orchestrator/transcript.js";
 import { normalizeAlias } from "@/utils/stringUtils.js";
 
 type StrategyOption = {
@@ -48,18 +50,25 @@ const sampleResponseEnergy = (): ResponseEnergy => {
   return "normal";
 };
 
+/**
+ * Decide how an AI answers `replyTarget` - the message it was scheduled to
+ * answer, which defaults to the latest one in `context`. Newer messages may
+ * have arrived since scheduling; the strategy and any @mention still follow
+ * the reply target so the AI answers the right speaker.
+ */
 export const determineInteractionStrategy = (
   aiService: OrchestratorAIService,
   context: ContextMessage[],
   isUserResponse: boolean,
   findAIFromContextMessage: FindAIFromContextMessage,
   getMentionTokenForAI: GetMentionTokenForAI,
+  replyTarget?: ContextMessage | null,
 ): InteractionStrategyDecision => {
   const recentMessages = context.slice(
     -CONTEXT_LIMITS.RECENT_MESSAGES_FOR_STRATEGY,
   );
   const aiMessages = recentMessages.filter((msg) => msg.senderType === "ai");
-  const lastMessage = recentMessages[recentMessages.length - 1];
+  const lastMessage = replyTarget ?? recentMessages[recentMessages.length - 1];
 
   const strategies: Record<string, StrategyOption> = {
     AGREE_AND_EXPAND: {
@@ -122,68 +131,26 @@ export const determineInteractionStrategy = (
 
   const mentionCandidateRaw =
     lastMessage?.alias || lastMessage?.displayName || lastMessage?.sender || "";
-  const mentionCandidate = mentionCandidateRaw.trim();
-  const shouldMentionUser =
-    isUserResponse &&
-    lastMessage?.senderType === "user" &&
-    mentionCandidate.length > 0;
+  const mentionCandidate = mentionCandidateRaw.trim().replace(/^@/, "");
 
-  if (shouldMentionUser) {
-    const cleanedAlias = mentionCandidate.startsWith("@")
-      ? mentionCandidate.slice(1)
-      : mentionCandidate;
-
-    if (cleanedAlias.length > 0) {
-      shouldMention = true;
-      targetAI = {
-        type: "user",
-        alias: cleanedAlias,
-        displayName: lastMessage.displayName || cleanedAlias,
-      };
-    }
+  if (lastMessage?.senderType === "user" && mentionCandidate) {
+    shouldMention = true;
+    targetAI = {
+      type: "user",
+      alias: mentionCandidate,
+      displayName: lastMessage.displayName || mentionCandidate,
+    };
   } else if (mentionsCurrentAI) {
-    if (lastMessage?.senderType === "ai") {
-      const sourceAI = findAIFromContextMessage(lastMessage);
-      if (sourceAI && sourceAI.id !== aiService.id) {
-        shouldMention = true;
-        targetAI = getMentionTokenForAI(sourceAI) ?? null;
-      }
-    }
-  } else {
-    const potentialTargets: OrchestratorAIService[] = [];
-
-    if (lastMessage?.senderType === "ai") {
-      const lastAI = findAIFromContextMessage(lastMessage);
-      if (lastAI && lastAI.id !== aiService.id) {
-        potentialTargets.push(lastAI);
-      }
-    }
-
-    for (
-      let i = aiMessages.length - 1;
-      i >= 0 &&
-      potentialTargets.length < CONTEXT_LIMITS.POTENTIAL_MENTION_TARGETS;
-      i--
-    ) {
-      const msg = aiMessages[i];
-      const targetAIInfo = findAIFromContextMessage(msg);
-      if (
-        targetAIInfo &&
-        targetAIInfo.id !== aiService.id &&
-        !potentialTargets.some((existing) => existing.id === targetAIInfo.id)
-      ) {
-        potentialTargets.push(targetAIInfo);
-      }
-    }
-
-    // Terse replies read as quick reactions - skip the optional mention, but
-    // direct-mention replies above still acknowledge whoever addressed us
-    if (potentialTargets.length > 0 && energy !== "terse") {
+    // Answering an AI that asked us: the reply already reaches it, and a
+    // mention back would summon it again and start a two-AI ping-pong
+  } else if (lastMessage?.senderType === "ai" && energy !== "terse") {
+    // Only ever the speaker being answered - suggesting anyone else is how
+    // replies ended up addressed to the wrong AI. Terse replies read as quick
+    // reactions, so they skip the optional mention.
+    const replyToAI = findAIFromContextMessage(lastMessage);
+    if (replyToAI && replyToAI.id !== aiService.id) {
       shouldMention = Math.random() < MENTION_CONFIG.RANDOM_MENTION_PROBABILITY;
-      if (shouldMention) {
-        const selected = potentialTargets[0];
-        targetAI = getMentionTokenForAI(selected) ?? null;
-      }
+      targetAI = shouldMention ? (getMentionTokenForAI(replyToAI) ?? null) : null;
     }
   }
 
@@ -218,69 +185,63 @@ const resolveMentionHandle = (
   return source.startsWith("@") ? source : `@${source}`;
 };
 
-export const applyInteractionStrategy = (
-  context: ContextMessage[],
+/**
+ * The note appended to the final user turn telling the AI what this message
+ * should do: who it is answering, the strategy, any @mention, and length.
+ */
+export const buildTurnInstruction = (
   strategy: InteractionStrategyDecision,
   aiService: OrchestratorAIService,
-  lastMessage: ContextMessage | null | undefined,
-): ContextMessage[] => {
-  const enhancedContext = [...context];
-
-  let instructionPrompt = "";
-
+  replyTarget: ContextMessage | null | undefined,
+): string => {
   const aiNormalized =
     aiService.normalizedAlias ||
     normalizeAlias(aiService.alias || aiService.displayName || aiService.name);
   const mentionsCurrentAI =
-    lastMessage?.mentionsNormalized?.includes(aiNormalized);
-  const mentionerName = lastMessage?.displayName || lastMessage?.sender;
-  const mentionerAlias = lastMessage?.alias || lastMessage?.normalizedAlias;
-  const mentionerToken = mentionerAlias ? `@${mentionerAlias}` : mentionerName;
+    replyTarget?.mentionsNormalized?.includes(aiNormalized) ?? false;
+  const targetLabel = replyTarget ? speakerLabel(replyTarget) : "";
+  const mentionerAlias = replyTarget?.alias || replyTarget?.normalizedAlias;
+  const mentionerToken = mentionerAlias ? `@${mentionerAlias}` : targetLabel;
 
   const quotedExcerpt =
-    typeof lastMessage?.content === "string"
-      ? excerptForQuote(lastMessage.content)
+    typeof replyTarget?.content === "string"
+      ? excerptForQuote(replyTarget.content)
       : "";
+
+  let replyLine = "";
+  let instructionPrompt = "";
 
   // Reopening overrides the reactive branches - the last message is stale,
   // so responding to it or its mentions would read strangely after a lull
   if (strategy.type === "reopen") {
     instructionPrompt = STRATEGY_INSTRUCTIONS.REOPEN;
   } else if (mentionsCurrentAI) {
-    if (lastMessage?.senderType === "ai" && mentionerToken) {
-      instructionPrompt = STRATEGY_INSTRUCTIONS.MENTIONED_BY_AI(
-        mentionerToken,
-        quotedExcerpt,
-      );
-    } else {
-      instructionPrompt = STRATEGY_INSTRUCTIONS.MENTIONED_BY_USER(quotedExcerpt);
-    }
+    instructionPrompt =
+      replyTarget?.senderType === "ai" && mentionerToken
+        ? STRATEGY_INSTRUCTIONS.MENTIONED_BY_AI(mentionerToken, quotedExcerpt)
+        : STRATEGY_INSTRUCTIONS.MENTIONED_BY_USER(quotedExcerpt);
   } else {
+    if (replyTarget && quotedExcerpt) {
+      replyLine = STRATEGY_INSTRUCTIONS.REPLY_TO(targetLabel, quotedExcerpt);
+    }
+    const isReplyToAI = replyTarget?.senderType === "ai";
     switch (strategy.type) {
       case "agree-expand":
-        if (lastMessage?.senderType === "ai" && lastMessage.sender) {
-          instructionPrompt = STRATEGY_INSTRUCTIONS.AGREE_EXPAND(
-            lastMessage.sender,
-          );
+        if (isReplyToAI) {
+          instructionPrompt = STRATEGY_INSTRUCTIONS.AGREE_EXPAND(targetLabel);
         }
         break;
-
       case "challenge":
-        if (lastMessage?.senderType === "ai" && lastMessage.sender) {
-          instructionPrompt = STRATEGY_INSTRUCTIONS.CHALLENGE(
-            lastMessage.sender,
-          );
+        if (isReplyToAI) {
+          instructionPrompt = STRATEGY_INSTRUCTIONS.CHALLENGE(targetLabel);
         }
         break;
-
       case "redirect":
         instructionPrompt = STRATEGY_INSTRUCTIONS.REDIRECT;
         break;
-
       case "question":
         instructionPrompt = STRATEGY_INSTRUCTIONS.QUESTION;
         break;
-
       case "direct":
         instructionPrompt = STRATEGY_INSTRUCTIONS.DIRECT;
         break;
@@ -289,13 +250,12 @@ export const applyInteractionStrategy = (
 
   // Prompt-driven mentions: ask the model to weave the @handle in itself
   // instead of templating it onto the finished response afterwards. Skip when
-  // the strategy instruction already names the same handle (e.g. MENTIONED_BY_AI)
-  // so the prompt doesn't push the mention twice
+  // the strategy instruction already names the same handle so the prompt
+  // doesn't push the mention twice. A 1-1 room has nobody else to hand off
+  // to, so the mention instruction is dropped outright.
   const handleAlreadyReferenced =
     strategy.mentionHandle &&
     instructionPrompt.toLowerCase().includes(strategy.mentionHandle.toLowerCase());
-  // A 1-1 room has nobody else to hand off to, so the mention instruction is
-  // dropped outright rather than left to the model's judgement.
   const mentionInstruction =
     !strategy.isPrivateChat &&
     strategy.shouldMention &&
@@ -315,25 +275,20 @@ export const applyInteractionStrategy = (
   const privateChatInstruction = strategy.isPrivateChat
     ? STRATEGY_INSTRUCTIONS.PRIVATE_CHAT
     : "";
-  const combinedInstruction = [
+  const selfName = aiService.displayName || aiService.name || "";
+
+  const body = [
+    selfName ? `Your turn, ${selfName}.` : "",
+    replyLine,
     instructionPrompt,
     privateChatInstruction,
     mentionInstruction,
     energyInstruction,
     windDownInstruction,
+    TRANSCRIPT.NO_LABEL_REMINDER,
   ]
     .filter(Boolean)
     .join(" ");
 
-  if (combinedInstruction) {
-    enhancedContext.push({
-      sender: "System",
-      content: combinedInstruction,
-      senderType: "system",
-      role: "system",
-      isInternal: true,
-    });
-  }
-
-  return enhancedContext;
+  return `${TRANSCRIPT.TURN_HEADER}\n${body}`;
 };

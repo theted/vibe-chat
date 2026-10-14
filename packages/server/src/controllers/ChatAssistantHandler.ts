@@ -95,6 +95,14 @@ export class ChatAssistantHandler {
       return;
     }
     if (origin.type === "ai") {
+      // The answer would be an AI message the room can't take: don't pay
+      // for an agent run whose answer gets dropped
+      if (!this.chatOrchestrator.canAIsSpeak(roomId)) {
+        console.info(
+          `[ChatAssistant] Skipping AI question in ${roomId}: the room reached its AI message limit.`,
+        );
+        return;
+      }
       const elapsed = Date.now() - (this.lastAIQuestionAt.get(roomId) ?? 0);
       if (elapsed < CHAT_ASSISTANT_AI_COOLDOWN_MS) {
         console.info(
@@ -106,6 +114,9 @@ export class ChatAssistantHandler {
     }
 
     this.busyRooms.add(roomId);
+    // Keep the room's AIs from answering the question meant for @Chat (or
+    // chatting over it) while the agent works
+    this.chatOrchestrator.setRoomOnHold(roomId, true);
     try {
       const recentMessages = await this.getRecentMessages(roomId);
       const historyLimit = this.chatAssistantService.chatHistoryLimit ?? 5;
@@ -142,15 +153,10 @@ export class ChatAssistantHandler {
         `[ChatAssistant] Dispatching answer for ${originLabel} (question: "${result.question}")`,
       );
 
-      await this.chatOrchestrator.handleMessage(message);
-
-      // An AI asker was told to wait for the answer. Schedule a round now,
-      // while the answer (which @mentions the asker) is still the latest
-      // message, so the asker is picked first instead of whoever the next
-      // background tick lands on.
-      if (origin.type === "ai") {
-        this.chatOrchestrator.scheduleAIResponses(roomId, false);
-      }
+      // Lift the hold first: the answer @mentions an AI asker, and that
+      // mention is what schedules the asker's reply
+      this.chatOrchestrator.setRoomOnHold(roomId, false);
+      await this.post(roomId, message);
     } catch (error) {
       console.error(
         "Failed to dispatch chat assistant response:",
@@ -158,7 +164,22 @@ export class ChatAssistantHandler {
       );
     } finally {
       this.busyRooms.delete(roomId);
+      this.chatOrchestrator.setRoomOnHold(roomId, false);
     }
+  }
+
+  /**
+   * @Chat's messages count toward the room's AI message limit like any
+   * other AI's, so an AI asking @Chat questions can't loop past it.
+   */
+  private async post(roomId: string, message: ChatMessage): Promise<void> {
+    if (!this.chatOrchestrator.claimAITurn(roomId)) {
+      console.info(
+        `[ChatAssistant] Dropping message in ${roomId}: the room reached its AI message limit.`,
+      );
+      return;
+    }
+    await this.chatOrchestrator.handleMessage(message);
   }
 
   private buildMessage(
@@ -188,7 +209,8 @@ export class ChatAssistantHandler {
     origin: TriggerChatAssistantPayload["origin"],
   ): Promise<void> {
     try {
-      await this.chatOrchestrator.handleMessage(
+      await this.post(
+        roomId,
         this.buildMessage(roomId, CHAT_ASSISTANT_BUSY_NOTICE, origin),
       );
     } catch (error) {
@@ -201,8 +223,8 @@ export class ChatAssistantHandler {
 
   /**
    * Prefixes the answer with an @mention of whoever asked. For an AI asker
-   * this is what gets the answer back to it: the scheduler gives mentioned
-   * AIs priority, so the asker replies next with what it learned.
+   * this is what gets the answer back to it: an AI message that @mentions
+   * an AI schedules that AI's reply, so the asker relays what it learned.
    */
   private addressToAsker(
     answer: string,

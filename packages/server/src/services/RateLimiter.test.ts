@@ -1,5 +1,12 @@
 import { describe, it, beforeEach, expect } from "bun:test";
-import { RateLimiter } from "./RateLimiter.js";
+import { RateLimiter, evaluateRateLimits } from "./RateLimiter.js";
+
+const HOUR = 60 * 60 * 1000;
+const DAY = 24 * HOUR;
+const HUMAN_LIMITS = [
+  { windowMs: HOUR, maxMessages: 10 },
+  { windowMs: DAY, maxMessages: 50 },
+];
 
 describe("RateLimiter", () => {
   describe("in-memory mode", () => {
@@ -190,6 +197,76 @@ describe("RateLimiter", () => {
       // Should be close to windowMs since we just hit the limit
       expect(blockedResult.retryAfterMs).toBeGreaterThan(900);
       expect(blockedResult.retryAfterMs).toBeLessThanOrEqual(1000);
+    });
+  });
+
+  describe("several windows at once", () => {
+    it("blocks the 11th message within an hour", async () => {
+      const rateLimiter = new RateLimiter({ limits: HUMAN_LIMITS });
+      const results = [];
+      for (let i = 0; i < 11; i += 1) {
+        results.push(await rateLimiter.check("1.2.3.4"));
+      }
+
+      expect(results.slice(0, 10).every((r) => r.allowed)).toBe(true);
+      expect(results[9].remaining).toBe(0);
+      expect(results[10]).toMatchObject({
+        allowed: false,
+        limit: { windowMs: HOUR, maxMessages: 10 },
+      });
+    });
+
+    it("blocks the 51st message within a day even when spread out", () => {
+      const now = 10 * DAY;
+      // 50 messages, one every 25 minutes: never 10 in any hour
+      const timestamps = Array.from(
+        { length: 50 },
+        (_, i) => now - DAY + 1 + i * 25 * 60 * 1000,
+      ).filter((timestamp) => timestamp < now);
+
+      const result = evaluateRateLimits(timestamps, now, HUMAN_LIMITS);
+
+      expect(result.allowed).toBe(false);
+      expect(result.limit).toEqual({ windowMs: DAY, maxMessages: 50 });
+      // The oldest of the 50 ages out of the day first
+      expect(result.retryAfterMs).toBe(timestamps[0] + DAY - now);
+    });
+
+    it("reports the longest wait when both windows are full", () => {
+      const now = 10 * DAY;
+      const timestamps = [
+        ...Array.from({ length: 40 }, (_, i) => now - 20 * HOUR + i),
+        ...Array.from({ length: 10 }, (_, i) => now - 30 * 60 * 1000 + i),
+      ];
+
+      const result = evaluateRateLimits(timestamps, now, HUMAN_LIMITS);
+
+      expect(result.allowed).toBe(false);
+      expect(result.limit?.windowMs).toBe(DAY);
+      expect(result.retryAfterMs).toBe(4 * HOUR);
+    });
+
+    it("reports the tightest remaining quota", () => {
+      const now = 10 * DAY;
+      const timestamps = Array.from({ length: 45 }, (_, i) => now - 5 * HOUR + i);
+
+      const result = evaluateRateLimits(timestamps, now, HUMAN_LIMITS);
+
+      // 9 left this hour, but only 4 left today (this one included)
+      expect(result).toEqual({ allowed: true, remaining: 4 });
+    });
+
+    it("doesn't record blocked attempts", async () => {
+      const rateLimiter = new RateLimiter({
+        limits: [{ windowMs: 50, maxMessages: 1 }],
+      });
+      await rateLimiter.check("user-1");
+      await rateLimiter.check("user-1");
+      await rateLimiter.check("user-1");
+
+      await new Promise((resolve) => setTimeout(resolve, 60));
+
+      expect((await rateLimiter.check("user-1")).allowed).toBe(true);
     });
   });
 });

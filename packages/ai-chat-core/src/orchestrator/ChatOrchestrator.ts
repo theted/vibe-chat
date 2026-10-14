@@ -3,7 +3,9 @@
  */
 
 import { EventEmitter } from "events";
+import { DEFAULT_ROOM_ID, normalizeRoomId } from "@ai-chat/ai-configs";
 import { AIRegistry } from "./AIRegistry.js";
+import { AIStreakTracker, type RoomAIStatus } from "./AIStreakTracker.js";
 import type { AIInitConfig, ModelInitResult } from "./AIRegistry.js";
 import { ContextManager } from "./ContextManager.js";
 import { MessageBroker } from "./MessageBroker.js";
@@ -47,11 +49,7 @@ export class ChatOrchestrator extends EventEmitter {
   private registry: AIRegistry;
   contextManager: ContextManager;
   messageBroker: MessageBroker;
-  messageTracker: {
-    aiMessageCount: number;
-    maxAIMessages: number;
-    isAsleep: boolean;
-  };
+  /** When an AI last posted in the default room (drives background chatter). */
   lastAIMessageTime: number;
   minUserResponseDelay: number;
   maxUserResponseDelay: number;
@@ -65,6 +63,9 @@ export class ChatOrchestrator extends EventEmitter {
   private scheduler: ResponseScheduler;
   private generator: ResponseGenerator;
   private backgroundLoop: BackgroundConversationLoop;
+  private streak: AIStreakTracker;
+  /** Rooms waiting for an outside responder (@Chat) to post its answer. */
+  private heldRooms = new Set<string>();
 
   constructor(options: ChatOrchestratorOptions = {}) {
     super();
@@ -73,11 +74,14 @@ export class ChatOrchestrator extends EventEmitter {
     );
     this.messageBroker = new MessageBroker();
     this.registry = new AIRegistry();
-    this.messageTracker = {
-      aiMessageCount: 0,
-      maxAIMessages: options.maxAIMessages || DEFAULTS.MAX_AI_MESSAGES,
-      isAsleep: false,
-    };
+    this.streak = new AIStreakTracker(
+      options.maxAIMessages || DEFAULTS.MAX_AI_MESSAGES,
+      {
+        onSleep: (roomId, reason) =>
+          this.emit("ais-sleeping", { roomId, reason }),
+        onWake: (roomId) => this.emit("ais-awakened", { roomId }),
+      },
+    );
     this.lastAIMessageTime = 0;
     this.minUserResponseDelay =
       options.minUserResponseDelay || DEFAULTS.MIN_USER_RESPONSE_DELAY;
@@ -99,17 +103,24 @@ export class ChatOrchestrator extends EventEmitter {
       contextManager: this.contextManager,
       emit: (event, payload) => this.emit(event, payload),
       enqueueMessage: (message) => this.messageBroker.enqueueMessage(message),
-      onResponseComplete: () => this.responseQueue.onResponseComplete(),
-      isAsleep: () => this.messageTracker.isAsleep,
-      getFatigue: () => this.getFatigue(),
+      onResponseComplete: (roomId) =>
+        this.responseQueue.onResponseComplete(roomId),
+      canSpeak: (roomId) => this.streak.canSpeak(roomId),
+      claimTurn: (roomId) => this.streak.claim(roomId),
+      getFatigue: (roomId) => this.streak.getFatigue(roomId),
       isDirectOnly: (roomId) => this.isRoomDirectOnly(roomId),
+      getRoomAIs: (roomId) =>
+        this.filterAIsForRoom(roomId, this.activeAIs)
+          .map((aiId) => this.aiServices.get(aiId))
+          .filter((ai): ai is OrchestratorAIService => Boolean(ai)),
       isVerbose: () => this.verboseContextLogging,
     });
 
     this.responseQueue = new ResponseQueue({
       maxConcurrent:
         options.maxConcurrentResponses || DEFAULTS.MAX_CONCURRENT_RESPONSES,
-      isSleeping: () => this.messageTracker.isAsleep,
+      // A room that hit its limit since scheduling drops what it had queued
+      canDispatch: ({ roomId }) => this.streak.canSpeak(roomId),
       onDispatch: (aiId, roomId, isUserResponse, opts) =>
         this.generateAIResponse(aiId, roomId, isUserResponse, opts),
     });
@@ -120,9 +131,16 @@ export class ChatOrchestrator extends EventEmitter {
         this.contextManager.getLastMessage(roomId) ?? undefined,
       filterAIsForRoom: (roomId, aiIds) => this.filterAIsForRoom(roomId, aiIds),
       isDirectOnly: (roomId) => this.isRoomDirectOnly(roomId),
+      isOnHold: (roomId) => this.heldRooms.has(roomId),
+      getAvailableBudget: (roomId) =>
+        this.streak.remaining(roomId) -
+        this.responseQueue.countForRoom(roomId),
+      getFatigue: (roomId) => this.streak.getFatigue(roomId),
       enqueueBatch: (responses) => this.responseQueue.enqueueBatch(responses),
-      isAsleep: () => this.messageTracker.isAsleep,
-      getFatigue: () => this.getFatigue(),
+      findPending: (roomId, aiId) =>
+        this.responseQueue.findPending(roomId, aiId),
+      retarget: (pending, update) =>
+        this.responseQueue.retarget(pending, update),
       getDelays: () => ({
         minUserResponseDelay: this.minUserResponseDelay,
         maxUserResponseDelay: this.maxUserResponseDelay,
@@ -133,14 +151,15 @@ export class ChatOrchestrator extends EventEmitter {
       }),
     });
 
+    // Background chatter only ever happens in the shared default room
     this.backgroundLoop = new BackgroundConversationLoop({
-      isAsleep: () => this.messageTracker.isAsleep,
+      isAsleep: () => !this.streak.canSpeak(DEFAULT_ROOM_ID),
       hasActiveAIs: () => this.activeAIs.length > 0,
       getLastAIMessageTime: () => this.lastAIMessageTime,
       triggerBackgroundResponses: () =>
-        this.scheduleAIResponses("default", false),
+        this.scheduler.schedule(DEFAULT_ROOM_ID, false),
       triggerReopening: () =>
-        this.scheduler.schedule("default", false, { isReopening: true }),
+        this.scheduler.schedule(DEFAULT_ROOM_ID, false, { isReopening: true }),
       getDelays: () => ({
         minBackgroundDelay: this.minBackgroundDelay,
         maxBackgroundDelay: this.maxBackgroundDelay,
@@ -198,71 +217,66 @@ export class ChatOrchestrator extends EventEmitter {
    * background health check). Returns true if the service existed.
    */
   removeAI(aiId: string): boolean {
+    this.responseQueue.removeWhere((response) => response.aiId === aiId);
     return this.registry.remove(aiId);
   }
 
   async handleMessage(message: ContextMessage) {
-    this.contextManager.addMessage(message);
-    this.updateJustRespondedFlags(message);
+    const stored = this.contextManager.addMessage(message);
 
-    if (message.senderType === "user") {
-      await this.handleUserMessage(message);
-    } else {
-      await this.handleAIMessage(message);
+    if (stored?.senderType === "user") {
+      this.handleUserMessage(stored, message.suppressAIResponses);
+    } else if (stored?.senderType === "ai") {
+      this.handleAIMessage(stored);
     }
 
     this.messageBroker.broadcastMessage(message, message.roomId);
   }
 
   /**
-   * Track which AI spoke last so background scheduling can skip it -
-   * prevents the same AI posting twice in a row without anyone replying.
+   * A person posted: the room gets a fresh AI budget, replies still queued
+   * for older messages are dropped (the new round takes over), and a new
+   * round is scheduled - unless @Chat is taking this one.
    */
-  updateJustRespondedFlags(message: ContextMessage) {
-    const senderAIId = message.senderType === "ai" ? message.aiId : null;
-    for (const ai of this.aiServices.values()) {
-      ai.justResponded = ai.id === senderAIId;
+  private handleUserMessage(message: ContextMessage, suppressAIResponses = false) {
+    const roomId = normalizeRoomId(message.roomId);
+    this.streak.recordHumanMessage(roomId);
+    if (!this.backgroundLoop.isRunning) {
+      this.startBackgroundConversation();
     }
-  }
 
-  async handleUserMessage(message: ContextMessage) {
-    this.wakeUpAIs();
+    // Replies someone explicitly asked for (@mentions) survive
+    this.responseQueue.removeWhere(
+      (response) => response.roomId === roomId && !response.options.isMentioned,
+    );
 
-    if (message?.suppressAIResponses) {
+    if (suppressAIResponses) {
       console.info(
         "[ChatAssistant] Suppressing AI responses for this message (handled by @Chat).",
       );
       return;
     }
 
-    this.scheduleAIResponses(message.roomId);
+    this.scheduler.schedule(roomId, true, { trigger: message });
   }
 
-  async handleAIMessage(_message: ContextMessage) {
-    this.lastAIMessageTime = Date.now();
-
-    if (this.messageTracker.isAsleep) return;
-
-    this.messageTracker.aiMessageCount++;
-    if (
-      this.messageTracker.aiMessageCount >= this.messageTracker.maxAIMessages
-    ) {
-      this.putAIsToSleep();
+  /** An AI posted: whoever it @mentioned answers it. */
+  private handleAIMessage(message: ContextMessage) {
+    const roomId = normalizeRoomId(message.roomId);
+    if (roomId === DEFAULT_ROOM_ID) {
+      this.lastAIMessageTime = Date.now();
     }
+    this.scheduler.scheduleMentionReplies(roomId, message);
   }
 
+  /** Schedule a round of replies to the room's latest message. */
   scheduleAIResponses(roomId: string | undefined, isUserResponse = true) {
-    // Messages without a room fall back to the background loop's room
-    this.scheduler.schedule(roomId ?? "default", isUserResponse);
+    this.scheduler.schedule(normalizeRoomId(roomId), isUserResponse);
   }
 
-  /** How close the AI-message budget is to running out, 0..1. */
-  getFatigue(): number {
-    if (this.messageTracker.maxAIMessages <= 0) return 0;
-    return Math.min(
-      this.messageTracker.aiMessageCount / this.messageTracker.maxAIMessages,
-      1,
-    );
+  /** How close a room's AI-message budget is to running out, 0..1. */
+  getFatigue(roomId?: string): number {
+    return this.streak.getFatigue(normalizeRoomId(roomId));
   }
 
   async generateAIResponse(
@@ -345,21 +359,60 @@ export class ChatOrchestrator extends EventEmitter {
     return limitMentionsInResponse(response);
   }
 
-  // --- Sleep / wake ---
+  // --- AI message budget (see AIStreakTracker) ---
 
-  wakeUpAIs() {
-    this.messageTracker.aiMessageCount = 0;
-    this.messageTracker.isAsleep = false;
-    this.emit("ais-awakened");
+  /**
+   * Reserve one AI message in the room for a responder outside the
+   * orchestrator (@Chat). False means the room is at its limit: don't post.
+   */
+  claimAITurn(roomId?: string): boolean {
+    return this.streak.claim(normalizeRoomId(roomId));
+  }
 
+  canAIsSpeak(roomId?: string): boolean {
+    return this.streak.canSpeak(normalizeRoomId(roomId));
+  }
+
+  /**
+   * While @Chat works on an answer, AIs don't start rounds of their own in
+   * the room - otherwise one of them answers the question meant for @Chat.
+   * Replies to people still go out.
+   */
+  setRoomOnHold(roomId: string | undefined, onHold: boolean): void {
+    const room = normalizeRoomId(roomId);
+    if (onHold) {
+      this.heldRooms.add(room);
+    } else {
+      this.heldRooms.delete(room);
+    }
+  }
+
+  getRoomAIStatus(roomId?: string): RoomAIStatus {
+    return this.streak.getStatus(normalizeRoomId(roomId));
+  }
+
+  /** Reset and wake one room, or every room the orchestrator has seen. */
+  wakeUpAIs(roomId?: string) {
+    for (const room of this.targetRooms(roomId)) {
+      this.streak.wake(room);
+    }
     if (!this.backgroundLoop.isRunning) {
       this.startBackgroundConversation();
     }
   }
 
-  putAIsToSleep() {
-    this.messageTracker.isAsleep = true;
-    this.emit("ais-sleeping", { reason: "message-limit-reached" });
+  /** Silence one room, or every room the orchestrator has seen. */
+  putAIsToSleep(roomId?: string, reason = "manual") {
+    for (const room of this.targetRooms(roomId)) {
+      this.streak.sleep(room, reason);
+    }
+  }
+
+  private targetRooms(roomId?: string): string[] {
+    if (roomId !== undefined) return [normalizeRoomId(roomId)];
+    return Array.from(
+      new Set([DEFAULT_ROOM_ID, ...this.streak.knownRoomIds]),
+    );
   }
 
   // --- Public API ---
@@ -384,10 +437,18 @@ export class ChatOrchestrator extends EventEmitter {
     return {
       aiServices: this.aiServices.size,
       activeAIs: this.activeAIs.length,
-      messageTracker: { ...this.messageTracker },
+      maxAIMessages: this.streak.maxMessages,
+      rooms: this.streak.getAllStatuses(),
+      pendingResponses: this.responseQueue.pendingCount,
+      activeResponses: this.responseQueue.activeResponseCount,
       contextSize: this.contextManager.size(),
       queueStatus: this.messageBroker.getQueueStatus(),
     };
+  }
+
+  /** Responses currently generating (bounded by maxConcurrentResponses). */
+  get activeResponseCount(): number {
+    return this.responseQueue.activeResponseCount;
   }
 
   // --- Background conversation ---
@@ -408,5 +469,7 @@ export class ChatOrchestrator extends EventEmitter {
     this.contextManager.clear();
     this.messageBroker.clearQueue();
     this.responseQueue.clear();
+    this.streak.clear();
+    this.heldRooms.clear();
   }
 }

@@ -36,15 +36,23 @@ export const setupOrchestratorEventBridge = (options: {
     },
   );
 
+  // The AI message budget is per room, so only that room hears about it
   chatOrchestrator.on(
     "ais-sleeping",
-    ({ reason }: { reason?: string }) => {
-      io.emit(SOCKET_EVENTS.AI_STATUS_CHANGED, { status: "sleeping", reason });
+    ({ roomId, reason }: { roomId: string; reason?: string }) => {
+      io.to(roomId).emit(SOCKET_EVENTS.AI_STATUS_CHANGED, {
+        status: "sleeping",
+        reason,
+        roomId,
+      });
     },
   );
 
-  chatOrchestrator.on("ais-awakened", () => {
-    io.emit(SOCKET_EVENTS.AI_STATUS_CHANGED, { status: "active" });
+  chatOrchestrator.on("ais-awakened", ({ roomId }: { roomId: string }) => {
+    io.to(roomId).emit(SOCKET_EVENTS.AI_STATUS_CHANGED, {
+      status: "active",
+      roomId,
+    });
   });
 
   chatOrchestrator.on(

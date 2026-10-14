@@ -2,7 +2,6 @@ import type { Server, Socket } from "socket.io";
 import type { ChatOrchestrator } from "@ai-chat/core";
 
 import { RoomManager } from "@/managers/RoomManager.js";
-import { AIMessageTracker } from "@/managers/AIMessageTracker.js";
 import { RateLimiter } from "@/services/RateLimiter.js";
 import { MessageHistoryService } from "@/services/MessageHistoryService.js";
 import type { ChatAssistantService } from "@/services/ChatAssistantService.js";
@@ -30,10 +29,7 @@ import {
   type SocketHandlerContext,
 } from "./socketEventHandlers.js";
 import { transformAIServicesToParticipants } from "@/utils/aiServiceUtils.js";
-import {
-  USER_MESSAGE_LIMIT,
-  USER_MESSAGE_WINDOW_MS,
-} from "@/config/serverConfig.js";
+import { USER_MESSAGE_LIMITS } from "@/config/serverConfig.js";
 import { SOCKET_EVENTS } from "@ai-chat/ai-configs";
 import type {
   ActiveAIParticipant,
@@ -51,7 +47,6 @@ export class SocketController {
   private messageHistory: MessageHistoryService;
   private previewRoomId: string;
   roomManager: RoomManager;
-  private aiTracker: AIMessageTracker;
   private connectedUsers: Map<string, ConnectedUser>;
   private chatAssistant: ChatAssistantHandler;
   private rateLimiter: RateLimiter;
@@ -69,12 +64,10 @@ export class SocketController {
     this.messageHistory = new MessageHistoryService({ redisClient });
     this.previewRoomId = "preview-default-room";
     this.roomManager = new RoomManager();
-    this.aiTracker = new AIMessageTracker();
     this.connectedUsers = new Map();
     this.rateLimiter = new RateLimiter({
       redisClient,
-      windowMs: USER_MESSAGE_WINDOW_MS,
-      maxMessages: USER_MESSAGE_LIMIT,
+      limits: USER_MESSAGE_LIMITS,
       keyPrefix: "rate-limiter:ip:",
     });
 
@@ -210,7 +203,6 @@ export class SocketController {
     return {
       connectedUsers: this.connectedUsers.size,
       rooms: this.roomManager.getStats(),
-      aiTracker: this.aiTracker.getStats(),
       orchestrator: this.chatOrchestrator.getStatus(),
     };
   }
@@ -230,7 +222,6 @@ export class SocketController {
       metricsService: this.metricsService,
       messageHistory: this.messageHistory,
       roomManager: this.roomManager,
-      aiTracker: this.aiTracker,
       connectedUsers: this.connectedUsers,
       chatAssistant: this.chatAssistant,
       rateLimiter: this.rateLimiter,

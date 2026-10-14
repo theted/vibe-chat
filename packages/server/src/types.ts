@@ -59,28 +59,17 @@ export type RoomStats = {
   avgParticipantsPerRoom: number;
 };
 
+export type RateLimitWindow = {
+  windowMs: number;
+  maxMessages: number;
+};
+
 export type RateLimitResult = {
   allowed: boolean;
   remaining: number;
   retryAfterMs?: number;
-};
-
-export type AITrackerStatus = {
-  messageCount: number;
-  maxMessages: number;
-  isAsleep: boolean;
-  sleepReason: string | null;
-  lastResetTime: number;
-  lastAIMessageTime: number;
-  canSendMessage: boolean;
-};
-
-export type AITrackerStats = {
-  totalRooms: number;
-  activeRooms: number;
-  sleepingRooms: number;
-  totalAIMessages: number;
-  avgMessagesPerRoom: number;
+  /** The window that blocked the request (the one with the longest wait). */
+  limit?: RateLimitWindow;
 };
 
 export type ChatAssistantMetadata = {

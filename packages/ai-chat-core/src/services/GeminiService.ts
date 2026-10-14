@@ -51,6 +51,9 @@ export class GeminiService extends BaseAIService {
       );
     }
 
+    // The caller's system prompt (room, participants, guidelines) wins over
+    // the generic one the model was created with
+    const systemPrompt = messages.find((m) => m.role === "system")?.content;
     const nonSystem = messages.filter((m) => m.role !== "system");
     const lastUserIndex = [...nonSystem]
       .reverse()
@@ -75,6 +78,11 @@ export class GeminiService extends BaseAIService {
         temperature: this.config.model.temperature,
       },
       history,
+      // startChat sends this as-is, unlike getGenerativeModel, which wraps a
+      // plain string itself - a bare string is rejected with a 400
+      ...(systemPrompt
+        ? { systemInstruction: { role: "system", parts: [{ text: systemPrompt }] } }
+        : {}),
     });
 
     const result = await chat.sendMessageStream(lastUserMessage);

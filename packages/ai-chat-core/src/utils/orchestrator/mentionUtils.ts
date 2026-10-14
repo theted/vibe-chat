@@ -45,6 +45,11 @@ export const stripAIMentions = (
   });
 };
 
+/**
+ * Keep at most `maxUniqueMentions` people @mentioned, each only once: later
+ * repeats of the same handle and any extra handles become plain names.
+ * Aliases resolve first, so "@chatgpt" and "@GPT" count as the same target.
+ */
 export const limitMentionsInResponse = (
   response = "",
   maxUniqueMentions: number = MENTION_LIMITS.MAX_UNIQUE_PER_RESPONSE,
@@ -54,29 +59,21 @@ export const limitMentionsInResponse = (
   }
 
   const seenMentions = new Set<string>();
-  let uniqueCount = 0;
 
   return response.replace(createMentionTokenRegex(), (match, token: string) => {
-    if (!token) {
-      return match;
-    }
+    if (!token) return match;
 
-    const normalizedToken = normalizeAlias(token);
-    if (!normalizedToken) {
-      return match;
-    }
+    const normalizedToken = normalizeAlias(resolveMentionTarget(token));
+    if (!normalizedToken) return match;
 
-    if (seenMentions.has(normalizedToken)) {
-      return match;
-    }
-
-    seenMentions.add(normalizedToken);
-    uniqueCount += 1;
-
-    if (uniqueCount > maxUniqueMentions) {
+    if (
+      seenMentions.has(normalizedToken) ||
+      seenMentions.size >= maxUniqueMentions
+    ) {
       return token;
     }
 
+    seenMentions.add(normalizedToken);
     return match;
   });
 };

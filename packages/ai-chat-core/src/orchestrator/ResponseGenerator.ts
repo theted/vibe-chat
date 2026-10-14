@@ -1,7 +1,8 @@
 /**
- * ResponseGenerator - Produces a single AI response: builds the strategy +
- * system prompt + context, calls the AI service, post-processes mentions,
- * and enqueues the resulting message. Emits the ai-generating-start/stop,
+ * ResponseGenerator - Produces a single AI response: builds the strategy,
+ * system prompt and labelled transcript, calls the AI service,
+ * post-processes mentions, claims a slot in the room's AI-message budget and
+ * enqueues the resulting message. Emits the ai-generating-start/stop,
  * ai-response, and ai-error lifecycle events on the orchestrator.
  */
 
@@ -15,6 +16,7 @@ import {
   findAIByNormalizedAlias,
   findAIFromContextMessage,
   getMentionTokenForAI,
+  type OrchestratorAIService,
 } from "@/utils/orchestrator/aiLookup.js";
 import { logAIContext } from "@/utils/orchestrator/logging.js";
 import {
@@ -26,21 +28,31 @@ import { createEnhancedSystemPrompt } from "@/utils/orchestrator/promptBuilder.j
 import { calculateTypingHold } from "@/utils/orchestrator/responseScheduling.js";
 import { truncateResponse } from "@/utils/orchestrator/responseUtils.js";
 import {
-  applyInteractionStrategy,
+  buildTurnInstruction,
   determineInteractionStrategy,
 } from "@/utils/orchestrator/strategyUtils.js";
+import {
+  buildTranscript,
+  stripOwnSpeakerLabel,
+} from "@/utils/orchestrator/transcript.js";
 
 type ResponseGeneratorDeps = {
   registry: AIRegistry;
   contextManager: ContextManager;
   emit: (event: string, payload: unknown) => void;
   enqueueMessage: (message: ContextMessage) => void;
-  onResponseComplete: () => void;
-  isAsleep: () => boolean;
-  /** How close the AI-message budget is to running out, 0..1. */
-  getFatigue: () => number;
+  /** Frees the queue slot this response was dispatched into. */
+  onResponseComplete: (roomId: string) => void;
+  /** Whether the room still has AI-message budget left. */
+  canSpeak: (roomId: string) => boolean;
+  /** Reserve one AI message in the room; false means drop the response. */
+  claimTurn: (roomId: string) => boolean;
+  /** How close the room's AI-message budget is to running out, 0..1. */
+  getFatigue: (roomId: string) => number;
   /** Private 1-1 room: no other AI is present to address. */
   isDirectOnly: (roomId: string) => boolean;
+  /** The AIs allowed to speak in the room, for the system prompt. */
+  getRoomAIs: (roomId: string) => OrchestratorAIService[];
   isVerbose: () => boolean;
 };
 
@@ -53,12 +65,20 @@ export class ResponseGenerator {
     isUserResponse = true,
     options: GenerateResponseOptions = {},
   ): Promise<void> {
-    const { registry, contextManager, emit, isAsleep } = this.deps;
-    if (isAsleep()) return;
-
+    const { registry, contextManager, emit } = this.deps;
     const aiServices = registry.services;
     const aiService = aiServices.get(aiId);
-    if (!aiService?.isActive || !aiService.service) return;
+
+    // Every dispatched response holds a queue slot, so even the early exits
+    // must give it back or the queue eventually stalls for good
+    if (
+      !aiService?.isActive ||
+      !aiService.service ||
+      !this.deps.canSpeak(roomId)
+    ) {
+      this.deps.onResponseComplete(roomId);
+      return;
+    }
 
     const aiMeta = {
       aiId,
@@ -87,16 +107,23 @@ export class ResponseGenerator {
 
       // Scoped to the room so a private 1-1 chat never sees the main room's
       // conversation (and its replies never leak back into it).
-      let context = contextManager.getContextForAI(
+      const context = contextManager.getContextForAI(
         CONTEXT_LIMITS.AI_CONTEXT_SIZE,
         roomId,
       );
+      // The message this response was scheduled to answer. Newer messages may
+      // have arrived since; they stay in the transcript, but the reply (and
+      // any @mention) still goes to the right speaker.
+      const replyTarget = options.isReopening
+        ? null
+        : (options.triggerMessage ?? context[context.length - 1] ?? null);
       let interactionStrategy = determineInteractionStrategy(
         aiService,
         context,
         isUserResponse,
         (message) => findAIFromContextMessage(aiServices, message),
         (ai) => getMentionTokenForAI(ai),
+        replyTarget,
       );
 
       // In a 1-1 room there is nobody else to hand off to, so drop any mention
@@ -125,64 +152,43 @@ export class ResponseGenerator {
 
       if (
         !isUserResponse &&
-        this.deps.getFatigue() >= FADE_OUT.WIND_DOWN_RATIO
+        this.deps.getFatigue(roomId) >= FADE_OUT.WIND_DOWN_RATIO
       ) {
         interactionStrategy = { ...interactionStrategy, windingDown: true };
       }
-
-      // Quote the message that triggered this response - by generation time
-      // newer messages may have arrived, so the last message isn't always it
-      const replyTarget =
-        (options.isMentioned && options.triggerMessage) ||
-        context[context.length - 1];
-
-      context = applyInteractionStrategy(
-        context,
-        interactionStrategy,
-        aiService,
-        replyTarget,
-      );
 
       const systemPrompt = createEnhancedSystemPrompt(
         aiService,
         context,
         isUserResponse,
         aiServices,
-        contextManager.getConversationDigest(roomId),
+        {
+          conversationDigest: contextManager.getConversationDigest(roomId),
+          roomAIs: this.deps.getRoomAIs(roomId),
+        },
       );
-      const systemMessage: ContextMessage = {
-        role: "system",
-        content: systemPrompt,
-        senderType: "system",
-        isInternal: true,
-      };
-      const messagesWithSystem = [systemMessage, ...context];
+      const messages: Message[] = [
+        { role: "system", content: systemPrompt },
+        ...buildTranscript(
+          aiService,
+          context,
+          buildTurnInstruction(interactionStrategy, aiService, replyTarget),
+        ),
+      ];
 
-      logAIContext(aiService, messagesWithSystem, this.deps.isVerbose());
+      logAIContext(aiService, messages, this.deps.isVerbose());
 
-      // Safe cast: ContextManager derives `role` for every stored message and
-      // the instruction/system messages above set it explicitly
-      const response = await aiService.service.generateResponse(
-        messagesWithSystem as Message[],
-      );
+      const response = await aiService.service.generateResponse(messages);
       const responseTimeMs = Date.now() - responseStartTime;
-      let processedResponse = truncateResponse(response);
       aiService.lastMessageTime = Date.now();
 
-      // Mentions are prompt-driven (MENTION_TARGET instruction); only cap
-      // runaway @mentions here rather than templating any in post-hoc
-      processedResponse = limitMentionsInResponse(processedResponse);
-
-      // The prompt asks for no hand-offs, but a model can still write one;
-      // demote any mention of another AI to plain text so the room never
-      // addresses someone who is not in it.
-      if (isPrivateChat) {
-        processedResponse = stripAIMentions(processedResponse, (token) => {
-          // Only other AIs: a token that resolves to nobody is the user's own
-          // handle and must keep its @.
-          const target = findAIByNormalizedAlias(aiServices, token);
-          return Boolean(target) && target?.id !== aiId;
-        });
+      const processedResponse = this.cleanResponse(
+        truncateResponse(response),
+        aiService,
+        isPrivateChat,
+      );
+      if (!processedResponse) {
+        throw new Error("Model returned an empty response");
       }
 
       // Telemetry: the MENTION_TARGET instruction lets the model skip forced
@@ -240,9 +246,18 @@ export class ResponseGenerator {
         priority: isUserResponse ? 500 : 0,
       };
 
+      // The hard cap: claim the room's budget before posting. If the room
+      // hit its limit while this reply was generating, the reply is dropped.
+      if (!this.deps.claimTurn(roomId)) {
+        console.info(
+          `🔇 Dropping ${aiService.name}'s reply in ${roomId}: the room reached its AI message limit`,
+        );
+        return;
+      }
+
       // Free the API concurrency slot before the simulated-typing hold so
       // other AIs can start generating while this one "types"
-      this.deps.onResponseComplete();
+      this.deps.onResponseComplete(roomId);
       queueSlotReleased = true;
 
       // Hold the finished message while the typing indicator stays visible,
@@ -262,9 +277,31 @@ export class ResponseGenerator {
     } finally {
       aiService.isGenerating = false;
       if (!queueSlotReleased) {
-        this.deps.onResponseComplete();
+        this.deps.onResponseComplete(roomId);
       }
       emit("ai-generating-stop", aiMeta);
     }
+  }
+
+  /**
+   * Tidy a raw model reply: drop a "[Name]" label copied from the transcript,
+   * mention each target at most once (MENTION_LIMITS caps how many), and
+   * demote mentions that would misfire - the AI's own handle anywhere, and
+   * any other AI's in a private room, where nobody else is present.
+   */
+  private cleanResponse(
+    response: string,
+    aiService: OrchestratorAIService,
+    isPrivateChat: boolean,
+  ): string {
+    const aiServices = this.deps.registry.services;
+    const withoutLabel = stripOwnSpeakerLabel(response, aiService).trim();
+    const withoutMisfires = stripAIMentions(withoutLabel, (token) => {
+      // A token that resolves to no AI is a person's handle and keeps its @
+      const target = findAIByNormalizedAlias(aiServices, token);
+      if (!target) return false;
+      return target.id === aiService.id || isPrivateChat;
+    });
+    return limitMentionsInResponse(withoutMisfires);
   }
 }

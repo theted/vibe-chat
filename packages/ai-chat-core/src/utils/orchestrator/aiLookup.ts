@@ -16,7 +16,6 @@ export type OrchestratorAIService = {
   emoji?: string;
   isActive?: boolean;
   isGenerating?: boolean;
-  justResponded?: boolean;
   lastMessageTime?: number;
   traits?: ResolvedTraits;
   config?: {
