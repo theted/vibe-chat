@@ -29,7 +29,8 @@ export const UNBIASED: AIProvider = {
     // Pareto is a composite: it routes each request across several frontier and
     // open-source models rather than serving one set of weights.
     PARETO: {
-      id: "unbiased/pareto",
+      // OpenRouter renamed unbiased/pareto to dated releases on 2026-10-13
+      id: "unbiased/pareto-26.9",
       maxTokens: DEFAULT_MAX_TOKENS,
       temperature: DEFAULT_TEMPERATURE,
       systemPrompt:

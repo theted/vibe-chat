@@ -104,8 +104,10 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   "grok-4.20-reasoning": "grok-4.20-reasoning",
   "grok-4.20-multi-agent": "grok-4.20-multi-agent",
 
-  // Google/Gemini
-  gemini: "gemini-3.8-flash",
+  // Google/Gemini: the flagship (Gemini 4 Argon) takes the bare names
+  gemini: "gemini-4-argon",
+  "gemini-4": "gemini-4-argon",
+  argon: "gemini-4-argon",
   "gemini-3.5": "gemini-3.5-flash",
   "gemini-3.5-flash": "gemini-3.5-flash",
   gemini3: "gemini-3.1-pro",
@@ -118,8 +120,8 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   "gemini-3.1-flash-lite": "gemini-3.1-flash-lite",
   "gemini-flash": "gemini-3.8-flash",
   "gemini-2.5": "gemini-2.5-pro",
-  google: "gemini-3.8-flash",
-  bard: "gemini-3.8-flash",
+  google: "gemini-4-argon",
+  bard: "gemini-4-argon",
   gemma: "gemma-4-31b",
   "gemma-4": "gemma-4-31b",
 
@@ -213,8 +215,9 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
 
   // Meta (Llama via Llama API, Muse via OpenRouter)
   llama: "llama-3.3-70b",
-  meta: "muse-spark-1.3",
-  muse: "muse-spark-1.3",
+  meta: "muse-wonder",
+  muse: "muse-wonder",
+  wonder: "muse-wonder",
   "muse-spark": "muse-spark-1.3",
   "llama-3.3-70b": "llama-3.3-70b",
   "llama-3.3-70b-free": "llama-3.3-70b-free",
@@ -311,6 +314,25 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   fugu: "fugu-ultra-v2",
   "fugu-ultra": "fugu-ultra-v2",
   "fugu-max": "fugu-max",
+
+  // Labs added 2026-10-14 (OpenRouter)
+  liquid: "lfm-2.5-24b",
+  lfm: "lfm-2.5-24b",
+  "lfm-2.5": "lfm-2.5-24b",
+  "thinking-machines": "inkling",
+  thinkingmachines: "inkling",
+  tencent: "hy3",
+  hunyuan: "hy3",
+  meituan: "longcat-2.0",
+  longcat: "longcat-2.0",
+  upstage: "solar-pro-4",
+  solar: "solar-pro-4",
+  ibm: "granite-4.2-8b",
+  granite: "granite-4.2-8b",
+  writer: "palmyra-x5",
+  palmyra: "palmyra-x5",
+  poolside: "laguna-s-2.1",
+  laguna: "laguna-s-2.1",
 };
 
 const buildEmojiLookup = (): Record<string, string> => {

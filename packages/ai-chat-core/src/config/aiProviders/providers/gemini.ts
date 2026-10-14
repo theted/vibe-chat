@@ -29,6 +29,15 @@ export const GEMINI: AIProvider = {
   // the key is on the free tier (2.5 Pro quota is 0, flashes hit 503s).
   // To go back, restore the direct ids and env var from git history.
   models: {
+    // Gemini 4 Argon added 2026-10-14 as the provider default: Google's new
+    // stable flagship, released 2026-10-13.
+    GEMINI_4_ARGON: {
+      id: "google/gemini-4-argon",
+      maxTokens: SHORT_RESPONSE_MAX_TOKENS,
+      temperature: GEMINI_3_TEMPERATURE,
+      systemPrompt:
+        "You are Gemini 4 Argon by Google, Google's flagship reasoning model with a 1M token context window. Greet once briefly, then bring deep, well-reasoned analysis to the conversation.",
+    },
     GEMINI_3_8_FLASH: {
       id: "google/gemini-3.8-flash",
       maxTokens: SHORT_RESPONSE_MAX_TOKENS,

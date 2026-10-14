@@ -54,6 +54,14 @@ export { PRISMML } from "./providers/prismml.js";
 export { UNBIASED } from "./providers/unbiased.js";
 export { NEXAGI } from "./providers/nexagi.js";
 export { INCLUSIONAI } from "./providers/inclusionai.js";
+export { LIQUID } from "./providers/liquid.js";
+export { THINKING_MACHINES } from "./providers/thinkingmachines.js";
+export { TENCENT } from "./providers/tencent.js";
+export { MEITUAN } from "./providers/meituan.js";
+export { UPSTAGE } from "./providers/upstage.js";
+export { IBM } from "./providers/ibm.js";
+export { WRITER } from "./providers/writer.js";
+export { POOLSIDE } from "./providers/poolside.js";
 
 // Import all providers for the main collection
 import { ANTHROPIC } from "./providers/anthropic.js";
@@ -91,6 +99,14 @@ import { PRISMML } from "./providers/prismml.js";
 import { UNBIASED } from "./providers/unbiased.js";
 import { NEXAGI } from "./providers/nexagi.js";
 import { INCLUSIONAI } from "./providers/inclusionai.js";
+import { LIQUID } from "./providers/liquid.js";
+import { THINKING_MACHINES } from "./providers/thinkingmachines.js";
+import { TENCENT } from "./providers/tencent.js";
+import { MEITUAN } from "./providers/meituan.js";
+import { UPSTAGE } from "./providers/upstage.js";
+import { IBM } from "./providers/ibm.js";
+import { WRITER } from "./providers/writer.js";
+import { POOLSIDE } from "./providers/poolside.js";
 
 /**
  * All AI providers collection - maintains backward compatibility
@@ -131,6 +147,14 @@ export const AI_PROVIDERS = {
   UNBIASED,
   NEXAGI,
   INCLUSIONAI,
+  LIQUID,
+  THINKING_MACHINES,
+  TENCENT,
+  MEITUAN,
+  UPSTAGE,
+  IBM,
+  WRITER,
+  POOLSIDE,
 } as const;
 
 /**
