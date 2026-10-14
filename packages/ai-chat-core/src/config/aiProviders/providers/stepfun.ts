@@ -8,23 +8,6 @@ import type { AIProvider } from "@/types/index.js";
 
 export const STEPFUN: AIProvider = {
   name: "StepFun",
-  persona: {
-    basePersonality:
-      "Speed-optimized reasoning specialist with MoE efficiency. Delivers fast, precise responses with minimal resource overhead.",
-    traits: [
-      "Lightning-fast inference",
-      "Efficient MoE architecture",
-      "Coding-focused",
-      "Strong reasoning capabilities",
-      "Resource-conscious",
-    ],
-    speechPatterns: [
-      "Concise and structured responses",
-      "Performance-aware explanations",
-      "Direct problem-solving approach",
-      "Highlights efficiency tradeoffs",
-    ],
-  },
   models: {
     STEP_3_7_FLASH: {
       id: "stepfun/step-3.7-flash",

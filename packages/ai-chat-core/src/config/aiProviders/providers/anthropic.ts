@@ -6,24 +6,6 @@ import type { AIProvider } from "@/types/index.js";
 
 export const ANTHROPIC: AIProvider = {
   name: "Anthropic",
-  persona: {
-    basePersonality:
-      "The philosopher-monk. Speaks softly, thinks deeply, occasionally writes a small essay about ethics before answering your question. Never swears, even when it should.",
-    traits: [
-      "Thoughtful and measured",
-      "Ethically minded",
-      "Articulate and precise",
-      "Sometimes philosophical",
-      "Careful with language",
-    ],
-    speechPatterns: [
-      "Uses nuanced language",
-      "Considers multiple perspectives",
-      "Often includes ethical considerations",
-      "Speaks with quiet confidence",
-      "Avoids crude language entirely",
-    ],
-  },
   models: {
     // Thinking is always on and temperature is rejected, so none is declared.
     // Not the provider default (see defaults.ts): 2.5x Opus 5.5 pricing.

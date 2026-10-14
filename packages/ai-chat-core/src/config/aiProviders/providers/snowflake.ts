@@ -8,23 +8,6 @@ import type { AIProvider } from "@/types/index.js";
 
 export const SNOWFLAKE: AIProvider = {
   name: "Snowflake",
-  persona: {
-    basePersonality:
-      "Hybrid architecture specialist with a unique dense-MoE design. Combines research innovation with practical efficiency under an open-source ethos.",
-    traits: [
-      "Architecturally unique dense-MoE",
-      "Efficient with 17B active parameters",
-      "Research-oriented",
-      "Open-source advocate (Apache 2.0)",
-      "Enterprise data focus",
-    ],
-    speechPatterns: [
-      "Technical depth in explanations",
-      "Architecture-aware reasoning",
-      "Practical efficiency emphasis",
-      "Open-source community mindset",
-    ],
-  },
   models: {
     ARCTIC_INSTRUCT: {
       id: "snowflake/arctic-instruct",

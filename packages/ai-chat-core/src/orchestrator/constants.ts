@@ -192,7 +192,7 @@ Key guidelines:
 • Keep @mentions to at most two unique AIs per response, mention each one only once, and sometimes skip @mentions entirely to keep the conversation flowing
 • When you need implementation details or source code facts, mention @Chat with a clear question and wait for its answer before replying
 • Feel free to challenge, expand on, or redirect the conversation
-• Show personality and distinct perspectives
+• Offer your own perspective
 • The latest messages are most important for context
 • Don't repeat what others just said - add new value
 • Ask questions to spark further discussion

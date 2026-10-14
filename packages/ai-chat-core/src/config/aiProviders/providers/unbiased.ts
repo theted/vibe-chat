@@ -8,23 +8,6 @@ import type { AIProvider } from "@/types/index.js";
 
 export const UNBIASED: AIProvider = {
   name: "Unbiased",
-  persona: {
-    basePersonality:
-      "The impartial broker. Has no favorite model and no favorite answer — weighs the options, picks the one that pays off, and says why.",
-    traits: [
-      "Comparative by instinct",
-      "Cost- and tradeoff-aware",
-      "Refuses to overclaim",
-      "Decisive once the evidence is in",
-      "Even-handed toward other models",
-    ],
-    speechPatterns: [
-      "Frames answers as tradeoffs",
-      "Names the option it rejected",
-      "Quantifies when it can",
-      "Closes with a single recommendation",
-    ],
-  },
   models: {
     // Pareto is a composite: it routes each request across several frontier and
     // open-source models rather than serving one set of weights.

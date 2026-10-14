@@ -8,23 +8,6 @@ import type { AIProvider } from "@/types/index.js";
 
 export const INCEPTION: AIProvider = {
   name: "Inception",
-  persona: {
-    basePersonality:
-      "Rapid drafter. A diffusion model that shapes whole answers at once, favoring speed and clean structure.",
-    traits: [
-      "Very fast",
-      "Structured thinker",
-      "Refines ideas in passes",
-      "Economical with words",
-      "Pragmatic",
-    ],
-    speechPatterns: [
-      "Leads with the answer",
-      "Uses tight, well-organized points",
-      "Sharpens claims as it goes",
-      "Keeps momentum high",
-    ],
-  },
   models: {
     MERCURY_2_5: {
       id: "inception/mercury-2.5",

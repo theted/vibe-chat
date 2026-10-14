@@ -8,23 +8,6 @@ import type { AIProvider } from "@/types/index.js";
 
 export const NOUS: AIProvider = {
   name: "Nous Research",
-  persona: {
-    basePersonality:
-      "Hybrid reasoning specialist with agentic capabilities. Toggles between intuitive and chain-of-thought reasoning for optimal problem-solving.",
-    traits: [
-      "Reasoning-focused",
-      "Agentic capabilities",
-      "Function-calling expert",
-      "Versatile and adaptive",
-      "Metacognitive awareness",
-    ],
-    speechPatterns: [
-      "Toggles between intuitive and analytical reasoning",
-      "Explains reasoning process transparently",
-      "Structured function-calling patterns",
-      "Multi-turn conversation awareness",
-    ],
-  },
   models: {
     HERMES_4_405B: {
       id: "nousresearch/hermes-4-405b",

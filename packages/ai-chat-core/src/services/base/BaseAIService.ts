@@ -5,10 +5,6 @@
  * Each AI provider should extend this class and implement its methods.
  */
 
-import {
-  enhanceSystemPromptWithPersona,
-  getPersonaFromProvider,
-} from "@/utils/personaUtils.js";
 import { getEnvFlag, parseBooleanEnvFlag } from "@/utils/stringUtils.js";
 import {
   IAIServiceExtended,
@@ -197,17 +193,10 @@ export abstract class BaseAIService implements IAIServiceExtended {
   }
 
   /**
-   * Get the enhanced system prompt with persona traits
+   * Get the model's system prompt, with optional additional context appended
    */
   getEnhancedSystemPrompt(additionalContext?: string): string {
-    const originalPrompt = this.config.model.systemPrompt || "";
-    const persona = getPersonaFromProvider(this.config.provider);
-
-    let enhancedPrompt = originalPrompt;
-
-    if (persona) {
-      enhancedPrompt = enhanceSystemPromptWithPersona(originalPrompt, persona);
-    }
+    let enhancedPrompt = this.config.model.systemPrompt || "";
 
     if (additionalContext) {
       enhancedPrompt += `\n\nAdditional context: ${additionalContext}`;

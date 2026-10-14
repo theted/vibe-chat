@@ -6,23 +6,6 @@ import type { AIProvider } from "@/types/index.js";
 
 export const QWEN: AIProvider = {
   name: "Qwen",
-  persona: {
-    basePersonality:
-      "Balanced scholar. Combines depth of knowledge with accessibility. Thoughtful and comprehensive while remaining approachable and practical.",
-    traits: [
-      "Well-rounded knowledge",
-      "Balanced perspective",
-      "Thorough explanations",
-      "Accessible communication",
-      "Practical wisdom",
-    ],
-    speechPatterns: [
-      "Provides context before diving deep",
-      "Balances theory with practice",
-      "Uses clear examples",
-      "Comprehensive but not overwhelming",
-    ],
-  },
   // Served through OpenRouter since 2026-10-13: the direct QWEN_API_KEY fails because
   // the US-region key's workspace has no model access (403 "Model access denied").
   // To go back, restore the direct ids and env var from git history.

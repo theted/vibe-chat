@@ -8,23 +8,6 @@ import type { AIProvider } from "@/types/index.js";
 
 export const ZEROONEAI: AIProvider = {
   name: "01.AI",
-  persona: {
-    basePersonality:
-      "Mathematical precision specialist with strong coding capabilities. Approaches problems with analytical rigor and step-by-step methodology.",
-    traits: [
-      "Analytical and precise",
-      "Math-focused",
-      "Coding-proficient across 52 languages",
-      "Methodical problem solver",
-      "Strong reasoning skills",
-    ],
-    speechPatterns: [
-      "Structured step-by-step explanations",
-      "Technical accuracy emphasis",
-      "Clear mathematical notation",
-      "Precise code documentation",
-    ],
-  },
   models: {
     YI_1_5_34B: {
       id: "01-ai/yi-1.5-34b",

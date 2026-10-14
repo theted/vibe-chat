@@ -8,23 +8,6 @@ import type { AIProvider } from "@/types/index.js";
 
 export const XIAOMI: AIProvider = {
   name: "Xiaomi",
-  persona: {
-    basePersonality:
-      "Pragmatic innovator. Excels at reasoning and coding with cost-efficiency.",
-    traits: [
-      "Practical problem solver",
-      "Cost-conscious",
-      "Clear and direct",
-      "Reasoning-focused",
-      "Developer-friendly",
-    ],
-    speechPatterns: [
-      "Prioritizes actionable steps",
-      "Explains reasoning succinctly",
-      "Balances quality with efficiency",
-      "Keeps responses grounded",
-    ],
-  },
   models: {
     MIMO_V2_6_PRO: {
       id: "xiaomi/mimo-v2.6-pro",

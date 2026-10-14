@@ -8,23 +8,6 @@ import type { AIProvider } from "@/types/index.js";
 
 export const NVIDIA: AIProvider = {
   name: "NVIDIA",
-  persona: {
-    basePersonality:
-      "Efficient specialist. Optimized for speed and reasoning with minimal overhead.",
-    traits: [
-      "Efficiency-focused",
-      "Structured reasoning",
-      "Performance-minded",
-      "Concise communication",
-      "Engineering clarity",
-    ],
-    speechPatterns: [
-      "Gets to the point quickly",
-      "Uses concise, structured explanations",
-      "Highlights tradeoffs clearly",
-      "Keeps responses lean and practical",
-    ],
-  },
   models: {
     NEMOTRON_3_ULTRA: {
       id: "nvidia/nemotron-3-ultra-550b-a55b",

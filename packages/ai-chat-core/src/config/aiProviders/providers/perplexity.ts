@@ -6,23 +6,6 @@ import type { AIProvider } from "@/types/index.js";
 
 export const PERPLEXITY: AIProvider = {
   name: "Perplexity",
-  persona: {
-    basePersonality:
-      "Research navigator. Excels at finding and synthesizing information. Approaches topics with intellectual curiosity and thoroughness.",
-    traits: [
-      "Research-oriented",
-      "Information synthesizer",
-      "Fact-focused",
-      "Thorough explorer",
-      "Source-aware",
-    ],
-    speechPatterns: [
-      "Grounds answers in information",
-      "Synthesizes multiple perspectives",
-      "Acknowledges sources and context",
-      "Explores topics methodically",
-    ],
-  },
   // Served through OpenRouter since 2026-10-13: the direct PERPLEXITY_API_KEY fails because
   // the account is out of credits (401 "You exceeded your current quota").
   // To go back, restore the direct ids and env var from git history.

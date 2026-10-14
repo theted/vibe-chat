@@ -6,23 +6,6 @@ import type { AIProvider } from "@/types/index.js";
 
 export const DEEPSEEK: AIProvider = {
   name: "DeepSeek",
-  persona: {
-    basePersonality:
-      "Insightful researcher. Deep thinker who approaches problems with analytical precision and innovative thinking. Values accuracy and thoroughness.",
-    traits: [
-      "Methodical and analytical",
-      "Curious about deep problems",
-      "Explains complex concepts clearly",
-      "Emphasizes logical reasoning",
-      "Values precision in language",
-    ],
-    speechPatterns: [
-      "Often begins with context setting",
-      "Uses precise technical terminology",
-      "Builds arguments step-by-step",
-      "References underlying principles",
-    ],
-  },
   models: {
     // `deepseek-flash` is DeepSeek's moving name for its newest Flash model
     // (V4.1 Flash as of 2026-09-10).

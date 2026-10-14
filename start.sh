@@ -1,17 +1,15 @@
 #!/bin/bash
 
 VERBOSE_MODE=false
-PERSONAS_MODE=false
 SKIP_HEALTHCHECK_MODE=false
 RECHECK_AVAILABILITY_MODE=false
 VERBOSE_CONTEXT_FLAG="AI_CHAT_VERBOSE_CONTEXT"
-PERSONAS_FLAG="AI_CHAT_ENABLE_PERSONAS"
 SKIP_HEALTHCHECK_FLAG="AI_CHAT_SKIP_HEALTHCHECK"
 RECHECK_AVAILABILITY_FLAG="AI_CHAT_RECHECK_AVAILABILITY"
 
 print_usage() {
     cat <<'USAGE'
-Usage: ./start.sh [--verbose] [--personas] [--skip-healthcheck] [--recheck-availability]
+Usage: ./start.sh [--verbose] [--skip-healthcheck] [--recheck-availability]
 
 Startup is stale-while-revalidate: all enabled models load immediately, models
 with a fresh success in model-health.json are trusted, and the rest are
@@ -20,8 +18,6 @@ health-checked in the background after the server is up.
 Options:
   --verbose, -v   Output the full AI context that will be forwarded to the models.
                   This is noisy and intended for debugging only.
-  --personas      Enable AI persona injection into system prompts.
-                  Each AI participant will express their configured personality.
   --skip-healthcheck
                   Disable background health checks entirely. All configured
                   models stay available without connectivity validation.
@@ -36,10 +32,6 @@ while [[ $# -gt 0 ]]; do
     case "$1" in
         --verbose|-v)
             VERBOSE_MODE=true
-            shift
-            ;;
-        --personas)
-            PERSONAS_MODE=true
             shift
             ;;
         --skip-healthcheck)
@@ -70,12 +62,6 @@ enable_verbose_context_logging() {
     echo "📝 Verbose AI context logging enabled"
     echo "   Every AI request will print the exact prompt and context sent to the model."
     echo "   Check the ai-chat-server logs for the detailed dumps."
-}
-
-enable_persona_injection() {
-    export "${PERSONAS_FLAG}"=true
-    echo "🎭 AI persona injection enabled"
-    echo "   Each AI participant will express their configured personality traits."
 }
 
 enable_skip_healthcheck() {
@@ -130,10 +116,6 @@ OUR_INTERNAL_CHROMA_CONTAINERS=("ai-chat-chroma" "ai-chat-chroma-dev" "ai-chat-c
 
 if [ "$VERBOSE_MODE" = true ]; then
     enable_verbose_context_logging
-fi
-
-if [ "$PERSONAS_MODE" = true ]; then
-    enable_persona_injection
 fi
 
 if [ "$SKIP_HEALTHCHECK_MODE" = true ]; then

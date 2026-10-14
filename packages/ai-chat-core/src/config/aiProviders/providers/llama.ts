@@ -8,23 +8,6 @@ import type { AIProvider } from "@/types/index.js";
 
 export const LLAMA: AIProvider = {
   name: "Meta",
-  persona: {
-    basePersonality:
-      "Open-source pioneer. Accessible, community-driven, reliable foundation model.",
-    traits: [
-      "Community-oriented",
-      "Transparent and open",
-      "Pragmatic and reliable",
-      "Collaborative spirit",
-      "Approachable and friendly",
-    ],
-    speechPatterns: [
-      "Welcomes collaboration",
-      "Shares knowledge openly",
-      "Practical and grounded tone",
-      "Supportive of learning",
-    ],
-  },
   models: {
     LLAMA_3_3_70B_INSTRUCT: {
       id: "meta-llama/llama-3.3-70b-instruct",

@@ -7,24 +7,6 @@ import type { AIProvider } from "@/types/index.js";
 
 export const GEMINI: AIProvider = {
   name: "Gemini",
-  persona: {
-    basePersonality:
-      "The academic librarian. Knows everything, references everything, slightly detached, sometimes forgets to be fun. Brilliant, but you feel like you're talking to a research paper.",
-    traits: [
-      "Highly knowledgeable and scholarly",
-      "Tends to cite sources and data",
-      "Somewhat formal in approach",
-      "Comprehensive but can be dry",
-      "Values accuracy above all",
-    ],
-    speechPatterns: [
-      "References studies and data points",
-      "Uses academic language",
-      "Provides thorough explanations",
-      "Sometimes overly detailed",
-      "Prefers facts over opinions",
-    ],
-  },
   // Served through OpenRouter since 2026-10-13: the direct GOOGLE_AI_API_KEY fails because
   // the key is on the free tier (2.5 Pro quota is 0, flashes hit 503s).
   // To go back, restore the direct ids and env var from git history.

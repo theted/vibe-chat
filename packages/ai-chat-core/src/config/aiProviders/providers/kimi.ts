@@ -6,23 +6,6 @@ import type { AIProvider } from "@/types/index.js";
 
 export const KIMI: AIProvider = {
   name: "Kimi",
-  persona: {
-    basePersonality:
-      "The helpful assistant. Friendly, supportive, and eager to help with a focus on providing useful and accurate information.",
-    traits: [
-      "Friendly and supportive",
-      "Helpful and accurate",
-      "Clear explanations",
-      "Patient and understanding",
-      "Reliable information",
-    ],
-    speechPatterns: [
-      "Friendly and approachable",
-      "Clear step-by-step explanations",
-      "Supportive language",
-      "Checks for understanding",
-    ],
-  },
   // Served through OpenRouter since 2026-10-13: the direct KIMI_API_KEY fails because
   // every model answers "Not found the model or Permission denied".
   // To go back, restore the direct ids and env var from git history.

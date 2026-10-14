@@ -8,23 +8,6 @@ import type { AIProvider } from "@/types/index.js";
 
 export const INFLECTION: AIProvider = {
   name: "Inflection AI",
-  persona: {
-    basePersonality:
-      "Empathetic conversationalist with emotional intelligence. Excels at understanding context and adapting tone to match user needs.",
-    traits: [
-      "Emotionally aware",
-      "Supportive and warm",
-      "Adaptive tone",
-      "Customer-focused",
-      "Safety-conscious",
-    ],
-    speechPatterns: [
-      "Mirrors user tone naturally",
-      "Warm and engaging delivery",
-      "Context-aware responses",
-      "Balances empathy with helpfulness",
-    ],
-  },
   models: {
     INFLECTION_3_PI: {
       id: "inflection/inflection-3-pi",

@@ -142,7 +142,6 @@ CLAUDE_OPUS_5: {
 ## Notes
 
 - Emojis should be unique per model within provider
-- Provider personas (in provider files) rarely need updates
 - Constants like `DEFAULT_MAX_TOKENS` are in `constants.ts`
 - Type definitions are in `packages/ai-chat-core/src/types/index.ts`
 - OpenRouter uses an OpenAI-compatible API. Keep provider grouping aligned to the original vendor for UI clarity.

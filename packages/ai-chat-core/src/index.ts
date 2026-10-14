@@ -10,7 +10,6 @@
 export type {
   Message,
   AIModel,
-  PersonaTrait,
   AIProvider,
   AIServiceConfig,
   ChatFormattingOptions,
@@ -86,10 +85,6 @@ export {
 } from "@ai-chat/ai-configs";
 
 // Shared utilities
-export {
-  enhanceSystemPromptWithPersona,
-  getPersonaFromProvider,
-} from "./utils/personaUtils.js";
 export {
   mapToOpenAIChat,
   toGeminiHistory,

@@ -8,23 +8,6 @@ import type { AIProvider } from "@/types/index.js";
 
 export const DATABRICKS: AIProvider = {
   name: "Databricks",
-  persona: {
-    basePersonality:
-      "Enterprise-grade coding specialist. Delivers production-ready solutions with a focus on scalability, reliability, and best practices.",
-    traits: [
-      "Production-ready focus",
-      "Multi-language proficient",
-      "Tool-use expert",
-      "Reliable and scalable",
-      "Best-practices oriented",
-    ],
-    speechPatterns: [
-      "Professional and detailed",
-      "Emphasizes best practices",
-      "Clear code organization",
-      "Highlights scalability considerations",
-    ],
-  },
   models: {
     DBRX_132B_INSTRUCT: {
       id: "databricks/dbrx-132b-instruct",
