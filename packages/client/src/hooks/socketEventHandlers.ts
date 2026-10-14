@@ -9,6 +9,7 @@ import { isPrivateRoomId } from "@ai-chat/ai-configs";
 import { LOCAL_STORAGE_MESSAGES_LIMIT } from "@/constants/storage";
 import { normalizeAliasKey, resolveEmoji } from "@/utils/ai";
 import type {
+  AIStatus,
   Message,
   ConnectionStatus,
   RoomInfo,
@@ -20,6 +21,25 @@ import type { AiParticipant } from "@/config/aiParticipants";
 
 // Shared option types
 type StateSetter<T> = React.Dispatch<React.SetStateAction<T>>;
+export type AIStatusByRoom = Record<string, AIStatus>;
+
+// --- AI reply budget ---
+
+/**
+ * Files a room's AI status under its room id. Kept per room so a status that
+ * arrives while switching rooms can't land on the wrong one.
+ */
+export const storeAIStatus = (
+  setAiStatusByRoom: StateSetter<AIStatusByRoom>,
+  status: unknown,
+) => {
+  const typedStatus = status as Partial<AIStatus> | undefined;
+  if (!typedStatus?.roomId || !typedStatus.status) return;
+  setAiStatusByRoom((prev) => ({
+    ...prev,
+    [typedStatus.roomId as string]: typedStatus as AIStatus,
+  }));
+};
 
 // --- Connection ---
 
@@ -40,6 +60,7 @@ interface PreviewState {
   setPreviewAiParticipants: StateSetter<AiParticipant[] | null>;
   setAiParticipants: StateSetter<AiParticipant[] | null>;
   setMessages: StateSetter<Message[]>;
+  setAiStatusByRoom: StateSetter<AIStatusByRoom>;
   isJoinedRef: React.MutableRefObject<boolean>;
 }
 
@@ -50,7 +71,9 @@ export const createRecentMessagesHandler = (state: PreviewState) =>
       participants?: Participant[];
       aiParticipants?: AiParticipant[];
       roomId?: string;
+      aiStatus?: AIStatus;
     };
+    storeAIStatus(state.setAiStatusByRoom, typedPayload.aiStatus);
     const incomingMessages = Array.isArray(typedPayload.messages) ? typedPayload.messages : [];
     const incomingParticipants = Array.isArray(typedPayload.participants) ? typedPayload.participants : [];
     const incomingAiParticipants = Array.isArray(typedPayload.aiParticipants) ? typedPayload.aiParticipants : [];
@@ -108,6 +131,7 @@ interface RoomJoinState {
   setIsAuthLoading: StateSetter<boolean>;
   setHasSavedUsername: StateSetter<boolean>;
   setMessages: StateSetter<Message[]>;
+  setAiStatusByRoom: StateSetter<AIStatusByRoom>;
   previewMessagesRef: React.MutableRefObject<Message[]>;
   previewParticipantsRef: React.MutableRefObject<Participant[]>;
   previewAiParticipantsRef: React.MutableRefObject<AiParticipant[] | null>;
@@ -118,7 +142,9 @@ export const createRoomJoinedHandler = (state: RoomJoinState) =>
     const typedData = data as RoomInfo & {
       participants?: Participant[];
       aiParticipants?: AiParticipant[];
+      aiStatus?: AIStatus;
     };
+    storeAIStatus(state.setAiStatusByRoom, typedData.aiStatus);
     state.setIsJoined(true);
     state.setRoomInfo(typedData);
     state.setParticipants(typedData.participants || []);

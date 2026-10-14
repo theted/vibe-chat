@@ -12,7 +12,7 @@ import {
   highlightMentions,
 } from "@/utils/chatMentions";
 import { getMessageVoiceKey } from "@/utils/messageSender";
-import { voiceStyleFor } from "@/utils/voice";
+import { useVoiceStyle } from "@/context/VoiceContext";
 import { useAIMetadata } from "@/hooks/useAIMetadata";
 import MarkdownCodeBlock from "./MarkdownCodeBlock";
 import MessageAvatar from "./MessageAvatar";
@@ -82,7 +82,7 @@ const ChatMessage = ({
     [renderMarkdownCode],
   );
 
-  const voice = useMemo(() => voiceStyleFor(voiceKey), [voiceKey]);
+  const voice = useVoiceStyle(voiceKey);
   const quotedVoiceKey = useMemo(
     () =>
       quotedMessage ? getMessageVoiceKey(quotedMessage, aiParticipants) : null,

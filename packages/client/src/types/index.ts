@@ -3,7 +3,11 @@
  */
 
 import type { RefObject, FormEvent } from "react";
-import type { ChatMessageBase, WireSenderType } from "@ai-chat/ai-configs";
+import type {
+  ChatMessageBase,
+  RoomAIStatusPayload,
+  WireSenderType,
+} from "@ai-chat/ai-configs";
 
 // Re-export AI participant types from config
 export type {
@@ -74,10 +78,8 @@ export interface RoomInfo {
 }
 
 // AI status types
-export interface AIStatus {
-  status: "active" | "sleeping";
-  reason?: string;
-}
+/** A room's AI reply budget, as the server reports it. */
+export type AIStatus = RoomAIStatusPayload;
 
 // Toast types
 export type ToastType = "success" | "info" | "warning";
@@ -134,6 +136,7 @@ export interface DashboardMetrics {
 
 // Import for AiParticipant type
 import type { AiParticipant } from "@/config/aiParticipants";
+import type { RoomSpeaker } from "@/utils/roomVoices";
 
 // Component prop types - ChatView
 export interface ChatViewProps {
@@ -149,6 +152,8 @@ export interface ChatViewProps {
   messages: Message[];
   typingUsers: TypingUser[];
   typingAIs: TypingAI[];
+  /** The current room's AI reply budget, once the server has reported it */
+  aiStatus?: AIStatus | null;
   showScrollButton: boolean;
   onScrollToBottom: () => void;
   onLogout: () => void;
@@ -217,6 +222,8 @@ export interface FavoriteSnippet {
 export interface ParticipantsListProps {
   participants?: Participant[];
   aiParticipants?: AiParticipant[];
+  /** Models heard lately, newest first (see useRoomVoices) */
+  recentSpeakers?: RoomSpeaker[];
   typingUsers?: TypingUser[];
   typingAIs?: TypingAI[];
   isVisible?: boolean;

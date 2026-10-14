@@ -3,7 +3,7 @@
  */
 
 import { DASHBOARD_STYLES } from "@/config/dashboard";
-import { voiceStyleFor } from "@/utils/voice";
+import { getModelVoiceKey, voiceStyleFor } from "@/utils/voice";
 import type { AiParticipant } from "@/config/aiParticipants";
 
 interface EnabledParticipantsPanelProps {
@@ -38,7 +38,7 @@ const EnabledParticipantsPanel = ({
             <li
               key={participant.id}
               className="flex items-center gap-3 bg-surface px-4 py-3"
-              style={voiceStyleFor(participant.provider)}
+              style={voiceStyleFor(getModelVoiceKey(participant))}
             >
               <span
                 className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-voice-soft text-lg"

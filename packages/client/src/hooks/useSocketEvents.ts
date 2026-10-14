@@ -16,12 +16,13 @@ import {
   createUserTypingStopHandler,
   createAIGeneratingStartHandler,
   createAIGeneratingStopHandler,
+  storeAIStatus,
+  type AIStatusByRoom,
 } from "./socketEventHandlers";
 import type {
   Message,
   ConnectionStatus,
   RoomInfo,
-  AIStatus,
   Participant,
   TypingUser,
   TypingAI,
@@ -46,6 +47,7 @@ interface UseSocketEventsOptions {
   setMessages: StateSetter<Message[]>;
   setTypingUsers: StateSetter<TypingUser[]>;
   setTypingAIs: StateSetter<TypingAI[]>;
+  setAiStatusByRoom: StateSetter<AIStatusByRoom>;
   setError: StateSetter<string | null>;
   setIsAuthLoading: StateSetter<boolean>;
   setHasSavedUsername: StateSetter<boolean>;
@@ -81,6 +83,7 @@ export const useSocketEvents = (opts: UseSocketEventsOptions) => {
     setMessages,
     setTypingUsers,
     setTypingAIs,
+    setAiStatusByRoom,
     setError,
     setIsAuthLoading,
     setHasSavedUsername,
@@ -109,6 +112,7 @@ export const useSocketEvents = (opts: UseSocketEventsOptions) => {
       setPreviewAiParticipants,
       setAiParticipants,
       setMessages,
+      setAiStatusByRoom,
       isJoinedRef,
     };
 
@@ -121,6 +125,7 @@ export const useSocketEvents = (opts: UseSocketEventsOptions) => {
       setIsAuthLoading,
       setHasSavedUsername,
       setMessages,
+      setAiStatusByRoom,
       previewMessagesRef,
       previewParticipantsRef,
       previewAiParticipantsRef,
@@ -163,12 +168,9 @@ export const useSocketEvents = (opts: UseSocketEventsOptions) => {
       [SOCKET_EVENTS.USER_TYPING_STOP]: createUserTypingStopHandler(typingState),
       [SOCKET_EVENTS.AI_GENERATING_START]: createAIGeneratingStartHandler(setTypingAIs),
       [SOCKET_EVENTS.AI_GENERATING_STOP]: createAIGeneratingStopHandler(setTypingAIs),
-      [SOCKET_EVENTS.AI_STATUS_CHANGED]: (data: unknown) => {
-        const typedData = data as AIStatus;
-        if (typedData?.status === "sleeping") {
-          showToast("AIs are taking a break. Send a message to wake them up!", "info");
-        }
-      },
+      // Shown by AIStatusNotice above the composer, for as long as it holds
+      [SOCKET_EVENTS.AI_STATUS_CHANGED]: (data: unknown) =>
+        storeAIStatus(setAiStatusByRoom, data),
       [SOCKET_EVENTS.TOPIC_CHANGED]: (data: unknown) => {
         const typedData = data as { newTopic?: string; changedBy?: string };
         if (typedData?.newTopic) {
