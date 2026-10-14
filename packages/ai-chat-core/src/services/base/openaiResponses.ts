@@ -4,7 +4,8 @@ import { OpenAIClient, ServiceAPIError } from "@/types/services.js";
 type ResponsesPayloadOptions = {
   model: string;
   messages: OpenAIMessage[];
-  temperature: number;
+  /** Omitted from the payload when undefined: reasoning models reject any value */
+  temperature?: number;
   maxTokens?: number;
   reasoningEffort?: string;
 };
@@ -64,8 +65,11 @@ export const buildResponsesPayload = ({
   const payload: Record<string, unknown> = {
     model,
     input: formatResponsesInput(messages),
-    temperature,
   };
+
+  if (temperature !== undefined) {
+    payload.temperature = temperature;
+  }
 
   if (reasoningEffort) {
     payload.reasoning = { effort: reasoningEffort };

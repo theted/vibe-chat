@@ -184,12 +184,13 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     status: "active",
     emoji: "🔭",
   },
+  // Parked 2026-10-13: this OpenAI account has no o3-pro access (not in /v1/models)
   {
     id: "OPENAI_O3_PRO",
     name: "OpenAI o3-pro",
     alias: "o3-pro",
     provider: "OpenAI",
-    status: "active",
+    status: "inactive",
     emoji: "🔮",
   },
   {
@@ -254,12 +255,13 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     status: "active",
     emoji: "🔷",
   },
+  // Parked 2026-10-13: Google 404s gemini-3.1-flash-preview and OpenRouter doesn't list it
   {
     id: "GEMINI_GEMINI_3_1_FLASH",
     name: "Gemini 3.1 Flash",
     alias: "gemini-3.1-flash",
     provider: "Google",
-    status: "active",
+    status: "inactive",
     emoji: "💠",
   },
   {
@@ -380,20 +382,22 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     status: "active",
     emoji: "💨",
   },
+  // Parked 2026-10-13: not on OpenRouter, and the direct key fails
   {
     id: "MISTRAL_MAGISTRAL_MEDIUM",
     name: "Magistral Medium 1.2",
     alias: "magistral-medium",
     provider: "Mistral AI",
-    status: "active",
+    status: "inactive",
     emoji: "🌩️",
   },
+  // Parked 2026-10-13: not on OpenRouter, and the direct key fails
   {
     id: "MISTRAL_MAGISTRAL_SMALL",
     name: "Magistral Small 1.2",
     alias: "magistral-small",
     provider: "Mistral AI",
-    status: "active",
+    status: "inactive",
     emoji: "☁️",
   },
   {
@@ -412,12 +416,13 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     status: "active",
     emoji: "🌧️",
   },
+  // Parked 2026-10-13: not on OpenRouter, and the direct key fails
   {
     id: "MISTRAL_DEVSTRAL_SMALL",
     name: "Devstral Small 2",
     alias: "devstral-small",
     provider: "Mistral AI",
-    status: "active",
+    status: "inactive",
     emoji: "🌫️",
   },
   {
@@ -466,12 +471,13 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     status: "active",
     emoji: "🌝",
   },
+  // Parked 2026-10-13: not on OpenRouter, and the direct key fails
   {
     id: "KIMI_KIMI_K2_6_THINKING",
     name: "Kimi K2.6 Thinking",
     alias: "kimi-k2.6-thinking",
     provider: "Moonshot AI",
-    status: "active",
+    status: "inactive",
     emoji: "🌚",
   },
   {
@@ -482,38 +488,42 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     status: "active",
     emoji: "🌑",
   },
+  // Parked 2026-10-13: not on OpenRouter, and the direct key fails
   {
     id: "KIMI_KIMI_LATEST",
     name: "Kimi Latest",
     alias: "kimi-latest",
     provider: "Moonshot AI",
-    status: "active",
+    status: "inactive",
     emoji: "🌕",
   },
+  // Parked 2026-10-13: not on OpenRouter, and the direct key fails
   {
     id: "KIMI_KIMI_THINKING_PREVIEW",
     name: "Kimi Thinking Preview",
     alias: "kimi-thinking-preview",
     provider: "Moonshot AI",
-    status: "active",
+    status: "inactive",
     emoji: "🌘",
   },
 
   // Qwen/Alibaba Models - East Asian culture
+  // Parked 2026-10-13: not on OpenRouter, and the direct key fails
   {
     id: "QWEN_QWEN3_6_MAX_PREVIEW",
     name: "Qwen3.6 Max Preview",
     alias: "qwen3.6-max",
     provider: "Qwen",
-    status: "active",
+    status: "inactive",
     emoji: "🀄",
   },
+  // Parked 2026-10-13: not on OpenRouter, and the direct key fails
   {
     id: "QWEN_QWEN3_MAX",
     name: "Qwen3 Max",
     alias: "qwen3-max",
     provider: "Qwen",
-    status: "active",
+    status: "inactive",
     emoji: "🐲",
   },
   {
@@ -548,20 +558,22 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     status: "active",
     emoji: "🏮",
   },
+  // Parked 2026-10-13: not on OpenRouter, and the direct key fails
   {
     id: "QWEN_QWEN_TURBO",
     name: "Qwen Turbo",
     alias: "qwen-turbo",
     provider: "Qwen",
-    status: "active",
+    status: "inactive",
     emoji: "🎋",
   },
+  // Parked 2026-10-13: not on OpenRouter, and the direct key fails
   {
     id: "QWEN_QWEN_FLASH",
     name: "Qwen Flash",
     alias: "qwen-flash",
     provider: "Qwen",
-    status: "active",
+    status: "inactive",
     emoji: "🎍",
   },
 
@@ -1090,12 +1102,13 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     status: "active",
     emoji: "🧝‍♂️",
   },
+  // Parked 2026-10-13: delisted from OpenRouter (requests 404)
   {
     id: "BAIDU_ERNIE_4_5_VL_424B_A47B",
     name: "ERNIE 4.5 VL",
     alias: "ernie-4.5-vl",
     provider: "Baidu",
-    status: "active",
+    status: "inactive",
     emoji: "🧸",
   },
   {
@@ -1465,6 +1478,54 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     status: "active",
     // Maracas: InclusionAI's bell emojis are taken, so this borrows another rattle
     emoji: "🪇",
+  },
+  {
+    id: "QWEN_QWEN3_8_2_4T",
+    name: "Qwen3.8-2.4T",
+    alias: "qwen3.8-2.4t",
+    provider: "Qwen",
+    status: "active",
+    emoji: "🐉",
+  },
+  {
+    id: "QWEN_QWEN3_8_27B",
+    name: "Qwen3.8-27B",
+    alias: "qwen3.8-27b",
+    provider: "Qwen",
+    status: "active",
+    emoji: "🥢",
+  },
+  {
+    id: "QWEN_QWEN3_7_FLASH",
+    name: "Qwen3.7-Flash",
+    alias: "qwen3.7-flash",
+    provider: "Qwen",
+    status: "active",
+    emoji: "🪁",
+  },
+  {
+    id: "MISTRAL_MISTRAL_MEDIUM_3_5",
+    name: "Mistral Medium 3.5",
+    alias: "mistral-medium-3.5",
+    provider: "Mistral AI",
+    status: "active",
+    emoji: "🌦️",
+  },
+  {
+    id: "KIMI_KIMI_K2_7_CODE",
+    name: "Kimi K2.7 Code",
+    alias: "kimi-k2.7-code",
+    provider: "Moonshot AI",
+    status: "active",
+    emoji: "🌓",
+  },
+  {
+    id: "GEMINI_GEMMA_4_31B",
+    name: "Gemma 4 31B",
+    alias: "gemma-4-31b",
+    provider: "Google",
+    status: "active",
+    emoji: "🧿",
   },
 ];
 

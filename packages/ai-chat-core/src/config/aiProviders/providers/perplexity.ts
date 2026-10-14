@@ -23,17 +23,20 @@ export const PERPLEXITY: AIProvider = {
       "Explores topics methodically",
     ],
   },
+  // Served through OpenRouter since 2026-10-13: the direct PERPLEXITY_API_KEY fails because
+  // the account is out of credits (401 "You exceeded your current quota").
+  // To go back, restore the direct ids and env var from git history.
   models: {
     // Search models
     SONAR: {
-      id: "sonar",
+      id: "perplexity/sonar",
       maxTokens: DEFAULT_MAX_TOKENS,
       temperature: DEFAULT_TEMPERATURE,
       systemPrompt:
         "You are Perplexity Sonar, built on Llama 3.3 70B with 128K context, optimized for lightweight grounded web search. Provide concise, accurate answers backed by real-time information. Greet briefly, then focus on delivering fact-based responses.",
     },
     SONAR_PRO: {
-      id: "sonar-pro",
+      id: "perplexity/sonar-pro",
       maxTokens: DEFAULT_MAX_TOKENS,
       temperature: DEFAULT_TEMPERATURE,
       systemPrompt:
@@ -41,7 +44,7 @@ export const PERPLEXITY: AIProvider = {
     },
     // Reasoning models
     SONAR_REASONING_PRO: {
-      id: "sonar-reasoning-pro",
+      id: "perplexity/sonar-reasoning-pro",
       maxTokens: DEFAULT_MAX_TOKENS,
       temperature: DEFAULT_TEMPERATURE,
       systemPrompt:
@@ -49,12 +52,12 @@ export const PERPLEXITY: AIProvider = {
     },
     // Research models
     SONAR_DEEP_RESEARCH: {
-      id: "sonar-deep-research",
+      id: "perplexity/sonar-deep-research",
       maxTokens: DEFAULT_MAX_TOKENS,
       temperature: DEFAULT_TEMPERATURE,
       systemPrompt:
         "You are Perplexity Sonar Deep Research, specialized in producing comprehensive, source-dense research reports with adjustable reasoning depth. Synthesize information from multiple sources to deliver thorough analysis. Greet briefly, then provide detailed, well-cited research findings.",
     },
   },
-  apiKeyEnvVar: "PERPLEXITY_API_KEY",
+  apiKeyEnvVar: "OPENROUTER_API_KEY",
 };

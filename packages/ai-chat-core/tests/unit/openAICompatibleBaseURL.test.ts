@@ -5,21 +5,21 @@ import {
   type IAIService,
 } from "@ai-chat/core";
 
-type KimiConfig = AIServiceConfig & { baseURL?: string };
+type GrokConfig = AIServiceConfig & { baseURL?: string };
 
-// Kimi resolves through the registry to a data-driven
+// Grok resolves through the registry to a data-driven
 // OpenAI-compatible service class (see serviceClassFactory.ts)
 const baseConfig: AIServiceConfig = {
   provider: {
-    name: "Kimi",
-    apiKeyEnvVar: "KIMI_API_KEY",
+    name: "Grok",
+    apiKeyEnvVar: "GROK_API_KEY",
   },
   model: {
-    id: "kimi-k2.6",
+    id: "grok-4.7",
   },
 };
 
-const envKey = "KIMI_API_KEY";
+const envKey = "GROK_API_KEY";
 const envState = new Map<string, string | undefined>();
 
 const getClientBaseUrl = (service: IAIService): string | undefined => {
@@ -45,9 +45,9 @@ afterEach(() => {
 
 describe("openAICompatibleServiceClass baseURL precedence", () => {
   it("uses configured baseURL when provided", async () => {
-    const config: KimiConfig = {
+    const config: GrokConfig = {
       ...baseConfig,
-      baseURL: "https://custom.moonshot.example/v1",
+      baseURL: "https://custom.grok.example/v1",
     };
 
     const service = AIServiceFactory.createService(config);
@@ -57,11 +57,11 @@ describe("openAICompatibleServiceClass baseURL precedence", () => {
   });
 
   it("prefers initialization baseURL override over config", async () => {
-    const config: KimiConfig = {
+    const config: GrokConfig = {
       ...baseConfig,
-      baseURL: "https://custom.moonshot.example/v1",
+      baseURL: "https://custom.grok.example/v1",
     };
-    const overrideBaseUrl = "https://override.moonshot.example/v1";
+    const overrideBaseUrl = "https://override.grok.example/v1";
 
     const service = AIServiceFactory.createService(config);
     await service.initialize({

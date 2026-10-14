@@ -6,10 +6,7 @@
 
 import { OpenAIService } from "./OpenAIService.js";
 import { AnthropicService } from "./AnthropicService.js";
-import { MistralService } from "./MistralService.js";
-import { GeminiService } from "./GeminiService.js";
 import { ZaiService } from "./ZaiService.js";
-import { PerplexityService } from "./PerplexityService.js";
 import {
   openAICompatibleServiceClass,
   openRouterServiceClass,
@@ -27,18 +24,23 @@ const OPENROUTER_PROVIDERS = [
   AI_PROVIDERS.BAIDU,
   AI_PROVIDERS.BYTEDANCE,
   AI_PROVIDERS.DATABRICKS,
+  AI_PROVIDERS.GEMINI,
   AI_PROVIDERS.HUGGINGFACE,
   AI_PROVIDERS.INCEPTION,
   AI_PROVIDERS.INCLUSIONAI,
   AI_PROVIDERS.INFLECTION,
+  AI_PROVIDERS.KIMI,
   AI_PROVIDERS.META_MUSE,
   AI_PROVIDERS.MICROSOFT,
   AI_PROVIDERS.MINIMAX,
+  AI_PROVIDERS.MISTRAL,
   AI_PROVIDERS.NEXAGI,
   AI_PROVIDERS.NOUS,
   AI_PROVIDERS.NVIDIA,
+  AI_PROVIDERS.PERPLEXITY,
   AI_PROVIDERS.PHIND,
   AI_PROVIDERS.PRISMML,
+  AI_PROVIDERS.QWEN,
   AI_PROVIDERS.SAKANA,
   AI_PROVIDERS.SNOWFLAKE,
   AI_PROVIDERS.STEPFUN,
@@ -47,14 +49,16 @@ const OPENROUTER_PROVIDERS = [
   AI_PROVIDERS.ZEROONEAI,
 ];
 
+// Gemini, Kimi, Mistral, Perplexity and Qwen moved here on 2026-10-13 because
+// their direct keys fail (see each provider file). GeminiService,
+// MistralService and PerplexityService stay exported for switching back; the
+// workarounds the last two carry aren't needed through OpenRouter.
+
 export class AIServiceFactory {
   private static serviceRegistry: Record<string, ServiceConstructor> = {
-    [AI_PROVIDERS.GEMINI.name]: GeminiService,
-    [AI_PROVIDERS.MISTRAL.name]: MistralService,
     [AI_PROVIDERS.OPENAI.name]: OpenAIService,
     [AI_PROVIDERS.ANTHROPIC.name]: AnthropicService,
     [AI_PROVIDERS.ZAI.name]: ZaiService,
-    [AI_PROVIDERS.PERPLEXITY.name]: PerplexityService,
     // Direct OpenAI-compatible APIs differing from the base only in display
     // name and default base URL. Display names are deliberate data: e.g.
     // "Deepseek" intentionally differs from AI_PROVIDERS.DEEPSEEK.name
@@ -66,14 +70,6 @@ export class AIServiceFactory {
     [AI_PROVIDERS.GROK.name]: openAICompatibleServiceClass(
       "Grok",
       PROVIDER_BASE_URLS.GROK,
-    ),
-    [AI_PROVIDERS.QWEN.name]: openAICompatibleServiceClass(
-      "Qwen",
-      PROVIDER_BASE_URLS.QWEN,
-    ),
-    [AI_PROVIDERS.KIMI.name]: openAICompatibleServiceClass(
-      "Kimi",
-      PROVIDER_BASE_URLS.KIMI,
     ),
     [AI_PROVIDERS.COHERE.name]: openAICompatibleServiceClass(
       "Cohere",
