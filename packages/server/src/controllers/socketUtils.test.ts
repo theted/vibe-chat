@@ -1,7 +1,13 @@
 import { describe, expect, it } from "bun:test";
 import type { ChatOrchestrator } from "@ai-chat/core";
 
-import { applyRoomAIScope, getPrivateRoomAiId } from "./socketUtils.js";
+import {
+  applyRoomAIScope,
+  describeWait,
+  describeWindow,
+  getPrivateRoomAiId,
+  getRateLimitError,
+} from "./socketUtils.js";
 
 type ScopeCall = { roomId: string; aiIds?: string[]; directOnly?: boolean };
 
@@ -132,5 +138,28 @@ describe("room membership on join", () => {
     switchRoom(socket, "private:ada:OPENAI_GPT6_SOL", "default");
 
     expect(socket.rooms.has("dashboard")).toBe(true);
+  });
+});
+
+describe("rate limit error", () => {
+  it("names the limit that was hit and when to try again", () => {
+    const error = getRateLimitError({
+      retryAfterMs: 17 * 60 * 1000 + 5_000,
+      limit: { windowMs: 60 * 60 * 1000, maxMessages: 10 },
+    });
+
+    expect(error).toEqual({
+      code: "RATE_LIMITED",
+      message: "You can send 10 messages per hour. Try again in 18 minutes.",
+      retryAfterSeconds: 17 * 60 + 5,
+    });
+  });
+
+  it("describes windows and waits in plain units", () => {
+    expect(describeWindow(24 * 60 * 60 * 1000)).toBe("day");
+    expect(describeWindow(10 * 60 * 1000)).toBe("10 minutes");
+    expect(describeWait(5 * 60 * 60 * 1000 + 1)).toBe("6 hours");
+    expect(describeWait(90 * 60 * 1000)).toBe("90 minutes");
+    expect(describeWait(400)).toBe("1 second");
   });
 });

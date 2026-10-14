@@ -30,10 +30,7 @@ import {
   type SocketHandlerContext,
 } from "./socketEventHandlers.js";
 import { transformAIServicesToParticipants } from "@/utils/aiServiceUtils.js";
-import {
-  USER_MESSAGE_LIMIT,
-  USER_MESSAGE_WINDOW_MS,
-} from "@/config/serverConfig.js";
+import { USER_MESSAGE_LIMITS } from "@/config/serverConfig.js";
 import { SOCKET_EVENTS } from "@ai-chat/ai-configs";
 import type {
   ActiveAIParticipant,
@@ -73,8 +70,7 @@ export class SocketController {
     this.connectedUsers = new Map();
     this.rateLimiter = new RateLimiter({
       redisClient,
-      windowMs: USER_MESSAGE_WINDOW_MS,
-      maxMessages: USER_MESSAGE_LIMIT,
+      limits: USER_MESSAGE_LIMITS,
       keyPrefix: "rate-limiter:ip:",
     });
 

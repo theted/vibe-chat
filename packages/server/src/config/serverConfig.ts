@@ -13,9 +13,14 @@ export const clientBuildDir = process.env.CLIENT_BUILD_DIR
   ? path.resolve(process.env.CLIENT_BUILD_DIR)
   : defaultClientBuildDir;
 
-// Rate limiting configuration
-export const USER_MESSAGE_LIMIT = 10;
-export const USER_MESSAGE_WINDOW_MS = 10 * 60 * 1000; // 10 minutes
+// Human message rate limits, per client IP. Both apply at once: the hourly
+// window caps bursts, the daily one caps steady use. Every human message can
+// set off up to DEFAULTS.MAX_AI_MESSAGES AI replies, so these bound API spend.
+const HOUR_MS = 60 * 60 * 1000;
+export const USER_MESSAGE_LIMITS = [
+  { windowMs: HOUR_MS, maxMessages: 10 },
+  { windowMs: 24 * HOUR_MS, maxMessages: 50 },
+] as const;
 
 // Validation limits
 export const USERNAME_MAX_LENGTH = 50;

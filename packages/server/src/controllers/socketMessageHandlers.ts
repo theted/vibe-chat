@@ -1,10 +1,6 @@
 import type { Socket } from "socket.io";
 import { SOCKET_EVENTS } from "@ai-chat/ai-configs";
 
-import {
-  USER_MESSAGE_LIMIT,
-  USER_MESSAGE_WINDOW_MS,
-} from "@/config/serverConfig.js";
 import { getClientIp } from "@/utils/httpUtils.js";
 import type { ChatMessage, UserMessagePayload } from "@/types.js";
 import { logSocketError, replySocketError } from "@/utils/socketErrors.js";
@@ -35,13 +31,10 @@ export const handleUserMessage = async (
     const rateLimitResult = await context.rateLimiter.check(ipAddress);
 
     if (!rateLimitResult.allowed) {
-      const windowMinutes = Math.round(USER_MESSAGE_WINDOW_MS / 60_000);
-      socket.emit(
-        SOCKET_EVENTS.ERROR,
-        getRateLimitError(rateLimitResult.retryAfterMs),
-      );
+      socket.emit(SOCKET_EVENTS.ERROR, getRateLimitError(rateLimitResult));
+      const { limit } = rateLimitResult;
       console.warn(
-        `Rate limit exceeded for IP ${ipAddress || "unknown"} (user: ${user.username}, limit: ${USER_MESSAGE_LIMIT}/${windowMinutes}min)`,
+        `Rate limit exceeded for IP ${ipAddress || "unknown"} (user: ${user.username}, limit: ${limit ? `${limit.maxMessages}/${limit.windowMs / 60_000}min` : "unknown"})`,
       );
       return;
     }

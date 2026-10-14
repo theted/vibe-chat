@@ -59,10 +59,17 @@ export type RoomStats = {
   avgParticipantsPerRoom: number;
 };
 
+export type RateLimitWindow = {
+  windowMs: number;
+  maxMessages: number;
+};
+
 export type RateLimitResult = {
   allowed: boolean;
   remaining: number;
   retryAfterMs?: number;
+  /** The window that blocked the request (the one with the longest wait). */
+  limit?: RateLimitWindow;
 };
 
 export type AITrackerStatus = {
