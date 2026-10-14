@@ -1,5 +1,8 @@
-import type { ChatOrchestrator } from "@ai-chat/core";
-import { getPrivateRoomAiId } from "@ai-chat/ai-configs";
+import type { ChatOrchestrator, RoomAIStatus } from "@ai-chat/core";
+import {
+  getPrivateRoomAiId,
+  type RoomAIStatusPayload,
+} from "@ai-chat/ai-configs";
 
 import {
   MESSAGE_MAX_LENGTH,
@@ -13,6 +16,23 @@ type ValidationResult =
   | { valid: false; message: string; value?: never };
 
 export { getPrivateRoomAiId };
+
+/** The part of a room's AI budget clients show (see RoomAIStatusPayload). */
+export const toAIStatusPayload = ({
+  roomId,
+  isAsleep,
+  sleepReason,
+  remaining,
+  maxMessages,
+  messageCount,
+}: RoomAIStatus): RoomAIStatusPayload => ({
+  roomId,
+  status: isAsleep ? "sleeping" : "active",
+  ...(sleepReason ? { reason: sleepReason } : {}),
+  remaining,
+  maxMessages,
+  messageCount,
+});
 
 export const normalizeRoomAiToken = (value: string): string =>
   value.toLowerCase().replace(/[^a-z0-9]/g, "");
