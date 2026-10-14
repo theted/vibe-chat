@@ -38,6 +38,14 @@ import { PRISMML } from "./providers/prismml.js";
 import { UNBIASED } from "./providers/unbiased.js";
 import { NEXAGI } from "./providers/nexagi.js";
 import { INCLUSIONAI } from "./providers/inclusionai.js";
+import { LIQUID } from "./providers/liquid.js";
+import { THINKING_MACHINES } from "./providers/thinkingmachines.js";
+import { TENCENT } from "./providers/tencent.js";
+import { MEITUAN } from "./providers/meituan.js";
+import { UPSTAGE } from "./providers/upstage.js";
+import { IBM } from "./providers/ibm.js";
+import { WRITER } from "./providers/writer.js";
+import { POOLSIDE } from "./providers/poolside.js";
 import type { AIModel, AIProvider } from "@/types/index.js";
 
 /**
@@ -94,6 +102,14 @@ const ALL_PROVIDERS: AIProvider[] = [
   UNBIASED,
   NEXAGI,
   INCLUSIONAI,
+  LIQUID,
+  THINKING_MACHINES,
+  TENCENT,
+  MEITUAN,
+  UPSTAGE,
+  IBM,
+  WRITER,
+  POOLSIDE,
 ];
 
 const resolveDefaultModel = (provider: AIProvider): AIModel => {

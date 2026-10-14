@@ -30,6 +30,14 @@ import type { AiParticipant } from "./types.js";
  *   Unbiased     - Balance ("Pareto" = the efficient tradeoff)
  *   Nex AGI      - Targets/aim (goal-to-outcome agents)
  *   InclusionAI  - Bells ("ling" is Chinese for bell)
+ *   Liquid AI    - Water ("Liquid")
+ *   Thinking Machines - Thought
+ *   Tencent      - Penguins (QQ mascot)
+ *   Meituan      - Kangaroos (brand mascot)
+ *   Upstage      - Sun ("Solar")
+ *   IBM          - Stone ("Granite")
+ *   Writer       - Pens
+ *   Poolside     - Lagoons ("Laguna")
  */
 export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
   // Anthropic Models - Music/performing arts
@@ -1308,12 +1316,13 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     status: "active",
     emoji: "🌡️",
   },
+  // Parked 2026-10-14: Sakana blocks requests from our region (OpenRouter 403)
   {
     id: "SAKANA_FUGU_MAX",
     name: "Fugu Max",
     alias: "fugu-max",
     provider: "Sakana AI",
-    status: "active",
+    status: "inactive",
     emoji: "🐟",
   },
   {
@@ -1382,12 +1391,13 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     status: "active",
     emoji: "🔋",
   },
+  // Parked 2026-10-14: Sakana blocks requests from our region (OpenRouter 403)
   {
     id: "SAKANA_FUGU_ULTRA_V2",
     name: "Fugu Ultra v2",
     alias: "fugu-ultra-v2",
     provider: "Sakana AI",
-    status: "active",
+    status: "inactive",
     emoji: "🐡",
   },
   {
@@ -1526,6 +1536,86 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     provider: "Google",
     status: "active",
     emoji: "🧿",
+  },
+  {
+    id: "GEMINI_GEMINI_4_ARGON",
+    name: "Gemini 4 Argon",
+    alias: "gemini-4-argon",
+    provider: "Google",
+    status: "active",
+    emoji: "👑",
+  },
+  {
+    id: "META_MUSE_WONDER",
+    name: "Muse Wonder",
+    alias: "muse-wonder",
+    provider: "Meta",
+    status: "active",
+    emoji: "🦅",
+  },
+  {
+    id: "LIQUID_LFM_2_5_24B",
+    name: "LFM2.5-24B",
+    alias: "lfm-2.5-24b",
+    provider: "Liquid AI",
+    status: "active",
+    emoji: "💧",
+  },
+  {
+    id: "THINKING_MACHINES_INKLING",
+    name: "Inkling",
+    alias: "inkling",
+    provider: "Thinking Machines",
+    status: "active",
+    emoji: "💭",
+  },
+  {
+    id: "TENCENT_HY3",
+    name: "Hy3",
+    alias: "hy3",
+    provider: "Tencent",
+    status: "active",
+    emoji: "🐧",
+  },
+  {
+    id: "MEITUAN_LONGCAT_2_0",
+    name: "LongCat 2.0",
+    alias: "longcat-2.0",
+    provider: "Meituan",
+    status: "active",
+    emoji: "🦘",
+  },
+  {
+    id: "UPSTAGE_SOLAR_PRO_4",
+    name: "Solar Pro 4",
+    alias: "solar-pro-4",
+    provider: "Upstage",
+    status: "active",
+    emoji: "🌅",
+  },
+  {
+    id: "IBM_GRANITE_4_2_8B",
+    name: "Granite 4.2 8B",
+    alias: "granite-4.2-8b",
+    provider: "IBM",
+    status: "active",
+    emoji: "🪨",
+  },
+  {
+    id: "WRITER_PALMYRA_X5",
+    name: "Palmyra X5",
+    alias: "palmyra-x5",
+    provider: "Writer",
+    status: "active",
+    emoji: "🖋️",
+  },
+  {
+    id: "POOLSIDE_LAGUNA_S_2_1",
+    name: "Laguna S 2.1",
+    alias: "laguna-s-2.1",
+    provider: "Poolside",
+    status: "active",
+    emoji: "🏝️",
   },
 ];
 
