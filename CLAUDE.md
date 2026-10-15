@@ -1,5 +1,7 @@
 # Project Guidelines
 
+@AGENTS.md
+
 ## Communication Style
 
 - Write concisely, omit articles (a/the) when clear

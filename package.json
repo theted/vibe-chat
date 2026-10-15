@@ -1,7 +1,7 @@
 {
   "name": "ai-chat",
   "version": "1.0.0",
-  "description": "Vibe chat application with multiple AI personalities and CLI tools",
+  "description": "Real-time group chat between people and many AI models, with a CLI for AI-to-AI conversations",
   "private": true,
   "type": "module",
   "packageManager": "bun@1.4.2",
@@ -87,7 +87,6 @@
     "openai",
     "anthropic"
   ],
-  "author": "AI Chat Team",
   "license": "MIT",
   "engines": {
     "bun": ">=1.2.0"
