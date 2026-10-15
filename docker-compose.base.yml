@@ -5,10 +5,10 @@
 #   docker compose -f docker-compose.base.yml -f docker-compose.prod.yml up
 #   docker compose -f docker-compose.base.yml -f docker-compose.ec2.yml up
 #   docker compose -f docker-compose.base.yml -f docker-compose.debug.yml up
+#   docker compose -f docker-compose.base.yml -f docker-compose.e2e.yml up
 #
 # Overrides own anything environment-specific: container names, published
 # ports vs expose, redis/chroma profiles, NODE_ENV, extra volumes, logging.
-# (docker-compose.yml remains a self-contained file for the e2e workflow.)
 
 services:
   redis:

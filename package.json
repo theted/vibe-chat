@@ -55,10 +55,10 @@
     "lint:client": "turbo run lint --filter=@ai-chat/client",
     "lint:server": "turbo run lint --filter=@ai-chat/server",
     "lint:core": "turbo run lint --filter=@ai-chat/core",
-    "docker:dev": "docker compose -f docker-compose.dev.yml up --build",
-    "docker:prod": "docker compose up --build",
-    "docker:debug": "docker compose -f docker-compose.debug.yml up --build",
-    "docker:clean": "docker compose down --volumes && docker system prune -f"
+    "docker:dev": "docker compose -f docker-compose.base.yml -f docker-compose.dev.yml --profile internal-redis --profile internal-chroma up --build",
+    "docker:prod": "docker compose -f docker-compose.base.yml -f docker-compose.prod.yml --profile internal-redis --profile internal-chroma up --build",
+    "docker:debug": "docker compose -f docker-compose.base.yml -f docker-compose.debug.yml --profile internal-redis --profile internal-chroma up --build",
+    "docker:clean": "docker compose -f docker-compose.base.yml -f docker-compose.dev.yml --profile \"*\" down --volumes --remove-orphans && docker system prune -f"
   },
   "devDependencies": {
     "@eslint/js": "8.57.1",

@@ -20,8 +20,8 @@ RUN bun install
 # Copy static files (will be overridden by volumes for live files)
 COPY packages/client/vite.config.js ./
 COPY packages/client/index.html ./
+COPY packages/client/public ./public
 COPY packages/client/src ./src
-COPY constants.ts ./
 
 # Expose port
 EXPOSE 3000

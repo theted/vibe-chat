@@ -1,0 +1,28 @@
+# E2E override — production images on the ports the e2e tests hit.
+# Run: docker compose -f docker-compose.base.yml -f docker-compose.e2e.yml up -d --build
+#
+# Redis and Chroma stay behind profiles, so the default e2e run starts
+# without them: the server must come up and serve the client regardless.
+
+services:
+  redis:
+    container_name: ai-chat-redis-e2e
+    profiles:
+      - internal-redis
+
+  chroma:
+    container_name: ai-chat-chroma-e2e
+    profiles:
+      - internal-chroma
+
+  ai-chat-server:
+    container_name: ai-chat-server-e2e
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=development
+
+  ai-chat-client:
+    container_name: ai-chat-client-e2e
+    ports:
+      - "3000:80"
