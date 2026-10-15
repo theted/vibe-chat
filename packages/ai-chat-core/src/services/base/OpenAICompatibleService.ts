@@ -157,7 +157,8 @@ export abstract class OpenAICompatibleService extends BaseAIService {
 
     // No default here: OpenAI's reasoning models (o3, o4-mini, gpt-5-mini)
     // reject any temperature, so a model without one sends none
-    const temperatureRaw = context?.temperature ?? this.config.model.temperature;
+    const temperatureRaw =
+      context?.temperature ?? this.config.model.temperature;
     const temperature =
       temperatureRaw === undefined ? undefined : Number(temperatureRaw);
     const maxTokensRaw = context?.maxTokens ?? this.config.model.maxTokens;
@@ -338,9 +339,8 @@ export abstract class OpenAICompatibleService extends BaseAIService {
         const url = this.getHealthCheckURL("/responses");
         this.logHealthCheckDetails("request", { url, payload });
         const client = ensureResponsesClient(this.client, this.name);
-        const response = await asResponsesClient(client).responses.create(
-          payload,
-        );
+        const response =
+          await asResponsesClient(client).responses.create(payload);
         this.logHealthCheckDetails("response", { url, response });
 
         const content = extractTextFromResponses(response, this.name);
@@ -369,14 +369,14 @@ export abstract class OpenAICompatibleService extends BaseAIService {
    * Extract meaningful error message from API errors
    */
   protected extractAPIErrorMessage(error: unknown): string {
-    if (!error) return 'Unknown error';
+    if (!error) return "Unknown error";
 
     // Handle OpenAI SDK error format
-    if (error && typeof error === 'object') {
+    if (error && typeof error === "object") {
       const err = error as Record<string, unknown>;
 
       // Check for error.error.message (OpenAI format)
-      if (err.error && typeof err.error === 'object') {
+      if (err.error && typeof err.error === "object") {
         const innerError = err.error as Record<string, unknown>;
         if (innerError.message) return String(innerError.message);
       }
@@ -394,9 +394,9 @@ export abstract class OpenAICompatibleService extends BaseAIService {
       }
 
       // Check for response data
-      if (err.response && typeof err.response === 'object') {
+      if (err.response && typeof err.response === "object") {
         const resp = err.response as Record<string, unknown>;
-        if (resp.data && typeof resp.data === 'object') {
+        if (resp.data && typeof resp.data === "object") {
           const data = resp.data as Record<string, unknown>;
           if (data.message) return String(data.message);
           if (data.error) return String(data.error);

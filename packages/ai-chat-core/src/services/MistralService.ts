@@ -25,7 +25,8 @@ export class MistralService extends OpenAICompatibleService {
   ): OpenAIClient {
     return new OpenAI({
       apiKey,
-      baseURL: options?.baseURL || this.getBaseURL() || PROVIDER_BASE_URLS.MISTRAL,
+      baseURL:
+        options?.baseURL || this.getBaseURL() || PROVIDER_BASE_URLS.MISTRAL,
     }) as OpenAIClient;
   }
 

@@ -85,7 +85,12 @@ export const handleUserMessage = async (
       });
     }
   } catch (error) {
-    replySocketError(socket, "handling user message", error, "Failed to send message");
+    replySocketError(
+      socket,
+      "handling user message",
+      error,
+      "Failed to send message",
+    );
   }
 };
 

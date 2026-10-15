@@ -13,7 +13,12 @@ export const handleGetAIStatus = (
       orchestrator: context.chatOrchestrator.getStatus(),
     });
   } catch (error) {
-    replySocketError(socket, "getting AI status", error, "Failed to get AI status");
+    replySocketError(
+      socket,
+      "getting AI status",
+      error,
+      "Failed to get AI status",
+    );
   }
 };
 

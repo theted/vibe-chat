@@ -31,7 +31,7 @@ export const displayUsage = (): void => {
     console.log(`\n${provider.name} (${providerKey.toLowerCase()}):`);
     Object.entries(provider.models as Record<string, AIModel>).forEach(
       ([modelKey, model]) => {
-      console.log(`  - ${modelKey} (${model.id})`);
+        console.log(`  - ${modelKey} (${model.id})`);
       },
     );
   });

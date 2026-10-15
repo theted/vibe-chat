@@ -8,7 +8,7 @@
 export const withTimeout = async <T>(
   promise: Promise<T>,
   timeoutMs: number,
-  createTimeoutError?: string | (() => Error)
+  createTimeoutError?: string | (() => Error),
 ): Promise<T> => {
   if (!timeoutMs || Number.isNaN(timeoutMs) || timeoutMs <= 0) {
     return promise;
@@ -27,7 +27,7 @@ export const withTimeout = async <T>(
               : new Error(
                   typeof createTimeoutError === "string"
                     ? createTimeoutError
-                    : `Operation timed out after ${timeoutMs}ms`
+                    : `Operation timed out after ${timeoutMs}ms`,
                 );
           reject(error);
         }, timeoutMs);

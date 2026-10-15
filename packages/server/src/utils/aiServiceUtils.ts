@@ -23,7 +23,7 @@ export type OrchestratorAIServiceInfo = {
  * Safely cast an unknown value to OrchestratorAIServiceInfo
  */
 export const toOrchestratorAIServiceInfo = (
-  value: unknown
+  value: unknown,
 ): OrchestratorAIServiceInfo | null => {
   if (!value || typeof value !== "object") {
     return null;
@@ -35,7 +35,7 @@ export const toOrchestratorAIServiceInfo = (
  * Transform AI services map into ActiveAIParticipant array for clients
  */
 export const transformAIServicesToParticipants = (
-  aiServices: Map<string, unknown>
+  aiServices: Map<string, unknown>,
 ): ActiveAIParticipant[] => {
   return Array.from(aiServices.values())
     .map(toOrchestratorAIServiceInfo)
@@ -45,7 +45,7 @@ export const transformAIServicesToParticipants = (
       const displayName = resolveText(ai.displayName, name);
       const alias = resolveText(
         ai.displayAlias,
-        resolveText(ai.alias, displayName)
+        resolveText(ai.alias, displayName),
       );
       const normalizedAlias = resolveText(ai.normalizedAlias, alias);
 
@@ -57,8 +57,7 @@ export const transformAIServicesToParticipants = (
         mentionAlias: resolveText(ai.alias, alias),
         normalizedAlias,
         emoji: ai.emoji,
-        provider:
-          resolveText(ai.name, ai.config?.providerKey || "AI"),
+        provider: resolveText(ai.name, ai.config?.providerKey || "AI"),
         status: ai.isActive ? "active" : "inactive",
       } as ActiveAIParticipant;
     });

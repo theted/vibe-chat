@@ -105,9 +105,7 @@ export { createEnhancedSystemPrompt } from "./utils/orchestrator/promptBuilder.j
 
 // Orchestrator components
 export { MessageBroker } from "./orchestrator/MessageBroker.js";
-export {
-  ChatOrchestrator,
-} from "./orchestrator/ChatOrchestrator.js";
+export { ChatOrchestrator } from "./orchestrator/ChatOrchestrator.js";
 export { runWithConcurrencyLimit } from "./utils/concurrency.js";
 export type { ModelInitResult } from "./orchestrator/AIRegistry.js";
 export type { RoomAIStatus } from "./orchestrator/AIStreakTracker.js";

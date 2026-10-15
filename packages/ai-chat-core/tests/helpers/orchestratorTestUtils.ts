@@ -55,7 +55,9 @@ export const tickUntil = async (
     elapsed += stepMs;
   }
   if (!condition()) {
-    throw new Error(`tickUntil: condition not met after ${maxMs}ms of fake time`);
+    throw new Error(
+      `tickUntil: condition not met after ${maxMs}ms of fake time`,
+    );
   }
 };
 
@@ -119,7 +121,12 @@ export class MockAIService extends BaseAIService {
 // Build pool of unique provider+model combos for multi-AI tests
 // ---------------------------------------------------------------------------
 
-type AIConfigSlot = { providerKey: string; modelKey: string; providerName: string; envVar: string };
+type AIConfigSlot = {
+  providerKey: string;
+  modelKey: string;
+  providerName: string;
+  envVar: string;
+};
 
 const allSlots: AIConfigSlot[] = [];
 for (const [providerKey, providerConfig] of Object.entries(AI_PROVIDERS)) {
@@ -200,9 +207,7 @@ export type TimingTestConfig = {
  * Create an orchestrator with N mock AIs, each with a unique providerKey+modelKey.
  * Default delays are very short (10-50ms) to keep tests fast.
  */
-export const createTestOrchestrator = async (
-  config: TimingTestConfig = {},
-) => {
+export const createTestOrchestrator = async (config: TimingTestConfig = {}) => {
   const {
     aiCount = 3,
     maxAIMessages = 10,
@@ -263,7 +268,9 @@ export type CollectedEvents = {
   errors: Array<Record<string, unknown>>;
 };
 
-export const createEventCollector = (orchestrator: ChatOrchestrator): CollectedEvents => {
+export const createEventCollector = (
+  orchestrator: ChatOrchestrator,
+): CollectedEvents => {
   const events: CollectedEvents = {
     aiResponses: [],
     sleepEvents: [],
@@ -275,9 +282,15 @@ export const createEventCollector = (orchestrator: ChatOrchestrator): CollectedE
 
   orchestrator.on("ai-response", (data) => events.aiResponses.push(data));
   orchestrator.on("ais-sleeping", (data) => events.sleepEvents.push(data));
-  orchestrator.on("ais-awakened", () => events.wakeEvents.push({ time: Date.now() }));
-  orchestrator.on("ai-generating-start", (data) => events.generatingStart.push(data));
-  orchestrator.on("ai-generating-stop", (data) => events.generatingStop.push(data));
+  orchestrator.on("ais-awakened", () =>
+    events.wakeEvents.push({ time: Date.now() }),
+  );
+  orchestrator.on("ai-generating-start", (data) =>
+    events.generatingStart.push(data),
+  );
+  orchestrator.on("ai-generating-stop", (data) =>
+    events.generatingStop.push(data),
+  );
   orchestrator.on("ai-error", (data) => events.errors.push(data));
 
   return events;
@@ -323,6 +336,8 @@ export const assertSleepState = (
 ) => {
   const { isAsleep } = orchestrator.getRoomAIStatus(roomId);
   if (isAsleep !== expected) {
-    throw new Error(`Expected isAsleep=${expected} in ${roomId}, got ${isAsleep}`);
+    throw new Error(
+      `Expected isAsleep=${expected} in ${roomId}, got ${isAsleep}`,
+    );
   }
 };

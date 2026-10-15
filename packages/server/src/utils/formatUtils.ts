@@ -16,7 +16,7 @@ const GITHUB_BASE_URL = "https://github.com/theted/vibe-chat/blob/master";
 export const formatGitHubUrl = (
   relativePath: string,
   startLine: number | null = null,
-  endLine: number | null = null
+  endLine: number | null = null,
 ): string => {
   const lineFragment =
     startLine && endLine
@@ -32,7 +32,7 @@ export const formatGitHubUrl = (
  */
 export const enhanceAnswerWithLinks = (
   answer: string,
-  contexts: VectorContext[] | undefined
+  contexts: VectorContext[] | undefined,
 ): string => {
   if (!answer || !contexts || contexts.length === 0) {
     return answer;
@@ -47,7 +47,7 @@ export const enhanceAnswerWithLinks = (
       const githubUrl = formatGitHubUrl(
         ctx.relativePath,
         ctx.startLine,
-        ctx.endLine
+        ctx.endLine,
       );
       return `- [\`${ctx.relativePath}${lineInfo}\`](${githubUrl})`;
     })

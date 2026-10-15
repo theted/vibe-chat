@@ -81,7 +81,12 @@ export class GeminiService extends BaseAIService {
       // startChat sends this as-is, unlike getGenerativeModel, which wraps a
       // plain string itself - a bare string is rejected with a 400
       ...(systemPrompt
-        ? { systemInstruction: { role: "system", parts: [{ text: systemPrompt }] } }
+        ? {
+            systemInstruction: {
+              role: "system",
+              parts: [{ text: systemPrompt }],
+            },
+          }
         : {}),
     });
 

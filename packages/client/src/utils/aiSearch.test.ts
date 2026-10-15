@@ -44,7 +44,9 @@ describe("fuzzyMatch", () => {
 describe("computeScore", () => {
   it("ranks alias prefix above display-name prefix above substring", () => {
     expect(score("test", option())).toBe(0);
-    expect(score("te", option({ name: "x", displayName: "test ai" }))).toBe(0.5);
+    expect(score("te", option({ name: "x", displayName: "test ai" }))).toBe(
+      0.5,
+    );
     expect(score("stai", option())).toBe(1);
   });
 
@@ -54,7 +56,9 @@ describe("computeScore", () => {
       displayName: "zzz",
       keywords: ["alpha"],
     });
-    expect(score("corp", option({ ...noDirect, provider: "TestCorp" }))).toBe(2);
+    expect(score("corp", option({ ...noDirect, provider: "TestCorp" }))).toBe(
+      2,
+    );
     expect(score("alph", option({ ...noDirect, provider: "x" }))).toBe(2.5);
     expect(score("aha", option({ ...noDirect, provider: "x" }))).toBe(3);
   });

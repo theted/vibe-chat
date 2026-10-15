@@ -95,8 +95,7 @@ export const extractTextFromResponses = (
 
   if (Array.isArray((response as { output?: unknown[] })?.output)) {
     const parts: string[] = [];
-    for (const item of (response as { output: ResponsesOutputItem[] })
-      .output) {
+    for (const item of (response as { output: ResponsesOutputItem[] }).output) {
       if (Array.isArray(item?.content)) {
         for (const block of item.content) {
           const text = block?.text || block?.content?.text;

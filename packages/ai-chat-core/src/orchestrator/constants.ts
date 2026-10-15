@@ -95,7 +95,7 @@ export const MENTION_LIMITS = {
 
 // Responder selection
 export const RESPONDER_CONFIG = {
-  USER_RESPONSE_MAX_MULTIPLIER: 0.30, // Max 30% of AIs respond to user (reduced from 45%)
+  USER_RESPONSE_MAX_MULTIPLIER: 0.3, // Max 30% of AIs respond to user (reduced from 45%)
   USER_RESPONSE_MIN_BASE: 1, // At least 1 AI responds to user
   USER_RESPONSE_MIN_COUNT: 1, // Minimum max responders for user messages (reduced from 2)
   // Absolute caps: with dozens of models loaded, 30% of the room would spend
@@ -240,4 +240,3 @@ export const STRATEGY_INSTRUCTIONS = {
   MENTION_TARGET: (mentionHandle: string) =>
     `If it fits naturally, address ${mentionHandle} directly in your response - weave the @mention in organically (start, middle, or end), or skip it if it would feel forced.`,
 } as const;
-

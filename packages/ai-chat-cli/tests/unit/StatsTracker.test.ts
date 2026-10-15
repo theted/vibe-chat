@@ -32,9 +32,7 @@ describe("StatsTracker", () => {
     };
     const fakeClient = {
       connect: mock(async () => {}),
-      on: mock(
-        (_event: string, _handler: (...args: unknown[]) => void) => {},
-      ),
+      on: mock((_event: string, _handler: (...args: unknown[]) => void) => {}),
       multi: mock(() => pipeline),
     };
     const tracker = new StatsTracker({
@@ -57,11 +55,10 @@ describe("StatsTracker", () => {
     expect(fakeClient.multi.mock.calls.length).toBe(1);
 
     expect(pipeline.incr.mock.calls.length).toBe(2);
-    expect(
-      pipeline.incr.mock.calls.map(([key]) => key),
-    ).toEqual(
-      [STATS_TOTAL_MESSAGES_KEY, STATS_TOTAL_AI_MESSAGES_KEY],
-    );
+    expect(pipeline.incr.mock.calls.map(([key]) => key)).toEqual([
+      STATS_TOTAL_MESSAGES_KEY,
+      STATS_TOTAL_AI_MESSAGES_KEY,
+    ]);
 
     expect(pipeline.lPush.mock.calls.length).toBe(1);
     const payload = pipeline.lPush.mock.calls[0][1];

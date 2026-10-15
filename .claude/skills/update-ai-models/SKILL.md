@@ -34,20 +34,20 @@ each one finishes:
 A scout sees nothing from this conversation. Each prompt must carry everything it needs: provider
 name(s), config file path(s), and source URL(s).
 
-| Provider file | Official model docs |
-|---|---|
-| anthropic | https://platform.claude.com/docs/en/models/overview (retirements: https://platform.claude.com/docs/en/about-claude/model-deprecations) |
-| openai | https://platform.openai.com/docs/models |
-| gemini | https://ai.google.dev/gemini-api/docs/models |
-| mistral | https://docs.mistral.ai/getting-started/models/models_overview/ |
-| cohere | https://docs.cohere.com/docs/models |
-| grok | https://docs.x.ai/docs/models |
-| deepseek | https://api-docs.deepseek.com/quick_start/pricing |
-| perplexity | https://docs.perplexity.ai/guides/model-cards |
-| qwen | https://help.aliyun.com/zh/model-studio/getting-started/models |
-| kimi | https://platform.moonshot.cn/docs/intro |
-| zai | https://open.bigmodel.cn/dev/howuse/model |
-| llama | https://llama.developer.meta.com/docs/models |
+| Provider file | Official model docs                                                                                                                    |
+| ------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| anthropic     | https://platform.claude.com/docs/en/models/overview (retirements: https://platform.claude.com/docs/en/about-claude/model-deprecations) |
+| openai        | https://platform.openai.com/docs/models                                                                                                |
+| gemini        | https://ai.google.dev/gemini-api/docs/models                                                                                           |
+| mistral       | https://docs.mistral.ai/getting-started/models/models_overview/                                                                        |
+| cohere        | https://docs.cohere.com/docs/models                                                                                                    |
+| grok          | https://docs.x.ai/docs/models                                                                                                          |
+| deepseek      | https://api-docs.deepseek.com/quick_start/pricing                                                                                      |
+| perplexity    | https://docs.perplexity.ai/guides/model-cards                                                                                          |
+| qwen          | https://help.aliyun.com/zh/model-studio/getting-started/models                                                                         |
+| kimi          | https://platform.moonshot.cn/docs/intro                                                                                                |
+| zai           | https://open.bigmodel.cn/dev/howuse/model                                                                                              |
+| llama         | https://llama.developer.meta.com/docs/models                                                                                           |
 
 A provider file that is missing from this table and is not OpenRouter-backed still gets a scout:
 tell it to find the vendor's official models page with a web search.

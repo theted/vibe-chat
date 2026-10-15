@@ -248,7 +248,10 @@ describe("RateLimiter", () => {
 
     it("reports the tightest remaining quota", () => {
       const now = 10 * DAY;
-      const timestamps = Array.from({ length: 45 }, (_, i) => now - 5 * HOUR + i);
+      const timestamps = Array.from(
+        { length: 45 },
+        (_, i) => now - 5 * HOUR + i,
+      );
 
       const result = evaluateRateLimits(timestamps, now, HUMAN_LIMITS);
 

@@ -180,7 +180,7 @@ describe("RoomManager", () => {
       const result = roomManager.updateRoomTopic(
         "unknown",
         "New topic",
-        "admin"
+        "admin",
       );
       expect(result).toBe(false);
     });
@@ -191,7 +191,7 @@ describe("RoomManager", () => {
       const result = roomManager.updateRoomTopic(
         "test-room",
         "New topic",
-        "admin"
+        "admin",
       );
 
       expect(result).toBe(true);

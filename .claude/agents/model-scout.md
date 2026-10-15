@@ -54,9 +54,33 @@ vendors, reply with a JSON array holding one object per vendor.
   "configFile": "anthropic.ts",
   "status": "ok | partial | failed",
   "sourcesChecked": ["https://..."],
-  "new": [{ "id": "...", "name": "...", "notes": "...", "confidence": "high | low", "evidenceUrl": "https://..." }],
-  "retire": [{ "key": "...", "id": "...", "reason": "...", "confidence": "high | low", "evidenceUrl": "https://..." }],
-  "idChanges": [{ "key": "...", "from": "...", "to": "...", "confidence": "high | low", "evidenceUrl": "https://..." }],
+  "new": [
+    {
+      "id": "...",
+      "name": "...",
+      "notes": "...",
+      "confidence": "high | low",
+      "evidenceUrl": "https://..."
+    }
+  ],
+  "retire": [
+    {
+      "key": "...",
+      "id": "...",
+      "reason": "...",
+      "confidence": "high | low",
+      "evidenceUrl": "https://..."
+    }
+  ],
+  "idChanges": [
+    {
+      "key": "...",
+      "from": "...",
+      "to": "...",
+      "confidence": "high | low",
+      "evidenceUrl": "https://..."
+    }
+  ],
   "notes": "Anything the orchestrator should know, such as pages that failed to load."
 }
 ```

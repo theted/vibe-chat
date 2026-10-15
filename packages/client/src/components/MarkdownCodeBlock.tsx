@@ -37,12 +37,19 @@ const MarkdownCodeBlock = ({
   const languageMatch = /language-([\w+#-]+)/.exec(className || "");
   const normalizedChildren = String(children).replace(/\n$/, "");
   const trimmedChildren = normalizedChildren.trim();
-  const mentionMatches = findMentionMatches(trimmedChildren, aiParticipants, participantMentions);
+  const mentionMatches = findMentionMatches(
+    trimmedChildren,
+    aiParticipants,
+    participantMentions,
+  );
   const mentionMatch = mentionMatches.find(
     (match) => match.start === 0 && match.end === trimmedChildren.length,
   );
 
-  if (mentionMatch || (trimmedChildren.startsWith("@") && !normalizedChildren.includes("\n"))) {
+  if (
+    mentionMatch ||
+    (trimmedChildren.startsWith("@") && !normalizedChildren.includes("\n"))
+  ) {
     return (
       <MentionChip text={trimmedChildren} aiParticipants={aiParticipants} />
     );

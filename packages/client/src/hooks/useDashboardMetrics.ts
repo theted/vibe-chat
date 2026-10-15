@@ -30,7 +30,9 @@ export const useDashboardMetrics = () => {
       setConnectionStatus({ connected: true });
       emit(SOCKET_EVENTS.JOIN_DASHBOARD);
       emit(SOCKET_EVENTS.GET_METRICS);
-      emit(SOCKET_EVENTS.GET_METRICS_HISTORY, { duration: METRICS_HISTORY_DURATION_MS });
+      emit(SOCKET_EVENTS.GET_METRICS_HISTORY, {
+        duration: METRICS_HISTORY_DURATION_MS,
+      });
       emit(SOCKET_EVENTS.GET_AI_PARTICIPANTS);
     };
 

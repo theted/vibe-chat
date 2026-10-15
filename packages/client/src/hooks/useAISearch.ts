@@ -50,7 +50,10 @@ export const useAISearch = (searchTerm = "") => {
   const filteredAIs = useMemo(
     () =>
       mentionOptions
-        .map((option) => ({ ...option, score: computeScore(searchKey, option) }))
+        .map((option) => ({
+          ...option,
+          score: computeScore(searchKey, option),
+        }))
         .filter((option) => option.score < Number.POSITIVE_INFINITY)
         .sort((a, b) =>
           a.score !== b.score

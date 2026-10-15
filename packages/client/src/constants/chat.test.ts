@@ -157,11 +157,18 @@ describe("chat constants", () => {
         (participant) => participant.status === "active",
       ).map((participant) => participant.alias);
 
-      ["claude", "anthropic", "gpt", "openai", "grok", "xai", "gemini", "google"].forEach(
-        (alias) => {
-          expect(activeAliases).toContain(AI_MENTION_MAPPINGS[alias]);
-        },
-      );
+      [
+        "claude",
+        "anthropic",
+        "gpt",
+        "openai",
+        "grok",
+        "xai",
+        "gemini",
+        "google",
+      ].forEach((alias) => {
+        expect(activeAliases).toContain(AI_MENTION_MAPPINGS[alias]);
+      });
     });
 
     it("should keep provider alias pairs in sync", () => {

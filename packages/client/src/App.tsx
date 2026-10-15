@@ -24,7 +24,11 @@ import ChatView from "./components/ChatView";
 import LoadingOverlay from "./components/LoadingOverlay";
 import { ThemeContext } from "./context/ThemeContext";
 import { AUTH_LOADING_TIMEOUT_MS, SERVER_URL } from "./constants/chat";
-import { getStorageItem, removeStorageItem, setStorageItem } from "./utils/storage";
+import {
+  getStorageItem,
+  removeStorageItem,
+  setStorageItem,
+} from "./utils/storage";
 import { STORAGE_KEYS } from "./constants/storage";
 import type {
   Message,
@@ -35,7 +39,6 @@ import type {
   TypingAI,
 } from "./types";
 import type { AiParticipant } from "./config/aiParticipants";
-
 
 const App = () => {
   // Core state
@@ -49,7 +52,9 @@ const App = () => {
   const [typingAIs, setTypingAIs] = useState<TypingAI[]>([]);
   const [hasSavedUsername, setHasSavedUsername] = useState(false);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
-  const [roomInfo, setRoomInfo] = useState<RoomInfo>({ topic: "General discussion" });
+  const [roomInfo, setRoomInfo] = useState<RoomInfo>({
+    topic: "General discussion",
+  });
   const [error, setError] = useState<string | null>(null);
   const [participants, setParticipants] = useState<Participant[]>([]);
   // null until the server reports; see usePreviewState for why [] differs
@@ -79,15 +84,23 @@ const App = () => {
   const isJoinedRef = useRef(false);
 
   // Keep refs in sync
-  useEffect(() => { usernameRef.current = username || ""; }, [username]);
-  useEffect(() => { isJoinedRef.current = isJoined; }, [isJoined]);
+  useEffect(() => {
+    usernameRef.current = username || "";
+  }, [username]);
+  useEffect(() => {
+    isJoinedRef.current = isJoined;
+  }, [isJoined]);
 
   const { showScrollButton, scrollToBottom } = useScrollToBottom(
     messagesContainerRef,
     messagesEndRef,
   );
 
-  const { clearMessages } = useMessagePersistence(messages, setMessages, isJoined);
+  const { clearMessages } = useMessagePersistence(
+    messages,
+    setMessages,
+    isJoined,
+  );
 
   // Socket events - consume returned helpers to avoid duplicate implementations
   const { sendMessage, joinRoom, startTyping, stopTyping } = useSocketEvents({
@@ -130,10 +143,21 @@ const App = () => {
   // Auto-join when connected with saved username
   // joinRoom from useSocketEvents already sets isAuthLoading
   useEffect(() => {
-    if (hasSavedUsername && connectionStatus.connected && !isJoined && username) {
+    if (
+      hasSavedUsername &&
+      connectionStatus.connected &&
+      !isJoined &&
+      username
+    ) {
       joinRoom(username, DEFAULT_ROOM_ID);
     }
-  }, [connectionStatus.connected, hasSavedUsername, isJoined, joinRoom, username]);
+  }, [
+    connectionStatus.connected,
+    hasSavedUsername,
+    isJoined,
+    joinRoom,
+    username,
+  ]);
 
   useEffect(() => {
     if (isJoined) setIsAuthLoading(false);
@@ -189,7 +213,9 @@ const App = () => {
     setUsername("");
     setIsJoined(false);
     setMessages(
-      previewMessagesRef.current.length > 0 ? [...previewMessagesRef.current] : [],
+      previewMessagesRef.current.length > 0
+        ? [...previewMessagesRef.current]
+        : [],
     );
     setTypingUsers([]);
     setTypingAIs([]);

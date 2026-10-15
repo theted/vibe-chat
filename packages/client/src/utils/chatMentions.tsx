@@ -16,7 +16,11 @@ export const formatMentionsForMarkdown = (
 ): string => {
   if (typeof content !== "string" || !content.includes("@")) return content;
 
-  const matches = findMentionMatches(content, aiParticipants, participantMentions);
+  const matches = findMentionMatches(
+    content,
+    aiParticipants,
+    participantMentions,
+  );
   if (matches.length === 0) return content;
 
   let formatted = "";
@@ -53,7 +57,11 @@ export const highlightMentions = (
 
   if (!stringValue.includes("@")) return stringValue;
 
-  const matches = findMentionMatches(stringValue, aiParticipants, participantMentions);
+  const matches = findMentionMatches(
+    stringValue,
+    aiParticipants,
+    participantMentions,
+  );
   if (matches.length === 0) return stringValue;
 
   const nodes: ReactNode[] = [];
@@ -80,9 +88,7 @@ export const highlightMentions = (
 
   if (lastIndex < stringValue.length) {
     nodes.push(
-      <Fragment key={`text-${key++}`}>
-        {stringValue.slice(lastIndex)}
-      </Fragment>,
+      <Fragment key={`text-${key++}`}>{stringValue.slice(lastIndex)}</Fragment>,
     );
   }
 

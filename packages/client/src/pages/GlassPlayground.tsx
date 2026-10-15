@@ -6,7 +6,8 @@
 import { motion } from "framer-motion";
 
 // ─── Google Fonts (injected once) ────────────────────────────────────────────
-const FONT_LINK = "https://fonts.googleapis.com/css2?family=Cormorant:wght@300;400&family=Geist+Mono:wght@300;400&display=swap";
+const FONT_LINK =
+  "https://fonts.googleapis.com/css2?family=Cormorant:wght@300;400&family=Geist+Mono:wght@300;400&display=swap";
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
@@ -170,7 +171,8 @@ const GLASS_VARIANTS: GlassVariant[] = [
       background: "oklch(10% 0.008 220 / 52%)",
       border: "1px solid oklch(100% 0 0 / 0%)",
       borderTop: "1px solid oklch(100% 0 0 / 18%)",
-      boxShadow: "inset 0 1px 0 oklch(100% 0 0 / 14%), 0 4px 24px oklch(0% 0 0 / 40%)",
+      boxShadow:
+        "inset 0 1px 0 oklch(100% 0 0 / 14%), 0 4px 24px oklch(0% 0 0 / 40%)",
     }),
   },
   {
@@ -220,7 +222,10 @@ const GlassPanel = ({ variant, scene, delay }: GlassPanelProps) => {
         </span>
         <span
           className="text-[10px] opacity-50 tracking-wider"
-          style={{ fontFamily: "'Geist Mono', monospace", color: "oklch(90% 0 0)" }}
+          style={{
+            fontFamily: "'Geist Mono', monospace",
+            color: "oklch(90% 0 0)",
+          }}
         >
           {variant.id}
         </span>
@@ -229,7 +234,10 @@ const GlassPanel = ({ variant, scene, delay }: GlassPanelProps) => {
       {/* Content */}
       <p
         className="text-xs leading-relaxed opacity-70"
-        style={{ color: "oklch(88% 0.006 220)", fontFamily: "'Geist Mono', monospace" }}
+        style={{
+          color: "oklch(88% 0.006 220)",
+          fontFamily: "'Geist Mono', monospace",
+        }}
       >
         {variant.description}
       </p>
@@ -260,7 +268,11 @@ const SceneCard = ({ scene, index }: SceneCardProps) => (
   <motion.div
     initial={{ opacity: 0, y: 30 }}
     animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.7, delay: index * 0.08, ease: [0.22, 1, 0.36, 1] }}
+    transition={{
+      duration: 0.7,
+      delay: index * 0.08,
+      ease: [0.22, 1, 0.36, 1],
+    }}
     className="relative overflow-hidden rounded-2xl"
     style={{ background: scene.background, minHeight: 420 }}
   >
@@ -289,7 +301,9 @@ const SceneCard = ({ scene, index }: SceneCardProps) => (
       {/* Accent line */}
       <div
         className="mt-2 h-px w-16 rounded-full"
-        style={{ background: `linear-gradient(to right, ${scene.accent}, transparent)` }}
+        style={{
+          background: `linear-gradient(to right, ${scene.accent}, transparent)`,
+        }}
       />
     </div>
 
@@ -323,12 +337,19 @@ export default function GlassPlayground() {
     <>
       {/* Font injection */}
       <link rel="preconnect" href="https://fonts.googleapis.com" />
-      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+      <link
+        rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossOrigin="anonymous"
+      />
       <link href={FONT_LINK} rel="stylesheet" />
 
       <div
         className="min-h-screen"
-        style={{ background: "oklch(7% 0.020 220)", fontFamily: "'Geist Mono', monospace" }}
+        style={{
+          background: "oklch(7% 0.020 220)",
+          fontFamily: "'Geist Mono', monospace",
+        }}
       >
         {/* ── Sticky header ── */}
         <motion.header
@@ -345,7 +366,10 @@ export default function GlassPlayground() {
           <div className="flex items-baseline gap-4">
             <h1
               className="text-3xl font-light tracking-[0.12em]"
-              style={{ fontFamily: "'Cormorant', Georgia, serif", color: "oklch(94% 0.010 220)" }}
+              style={{
+                fontFamily: "'Cormorant', Georgia, serif",
+                color: "oklch(94% 0.010 220)",
+              }}
             >
               Glass Lab
             </h1>
@@ -380,8 +404,8 @@ export default function GlassPlayground() {
             style={{ color: "oklch(80% 0.012 220)" }}
           >
             Eight chromatic environments. Four glass morphologies per specimen.
-            Frost · Tinted · Deep · Luminous — each interacts differently with the
-            underlying chromatic field.
+            Frost · Tinted · Deep · Luminous — each interacts differently with
+            the underlying chromatic field.
           </motion.p>
         </div>
 

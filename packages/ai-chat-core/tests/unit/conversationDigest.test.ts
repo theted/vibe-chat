@@ -83,13 +83,9 @@ describe("system prompt digest injection", () => {
   const aiServices = new Map([[aiService.id, aiService]]);
 
   it("includes the digest section when a digest exists", () => {
-    const prompt = createEnhancedSystemPrompt(
-      aiService,
-      [],
-      true,
-      aiServices,
-      { conversationDigest: "Alice: something said long ago" },
-    );
+    const prompt = createEnhancedSystemPrompt(aiService, [], true, aiServices, {
+      conversationDigest: "Alice: something said long ago",
+    });
 
     expect(prompt).toContain("Earlier in this conversation");
     expect(prompt).toContain("Alice: something said long ago");

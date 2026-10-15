@@ -1,5 +1,9 @@
 import { afterEach, beforeEach, describe, it, expect } from "bun:test";
-import { AIServiceFactory, type AIServiceConfig, type IAIService } from "@ai-chat/core";
+import {
+  AIServiceFactory,
+  type AIServiceConfig,
+  type IAIService,
+} from "@ai-chat/core";
 
 // Mock service class for testing
 class MockAIService implements IAIService {
@@ -33,7 +37,10 @@ class MockAIService implements IAIService {
 }
 
 // Store original registry
-let originalRegistry: Record<string, new (config: AIServiceConfig) => IAIService>;
+let originalRegistry: Record<
+  string,
+  new (config: AIServiceConfig) => IAIService
+>;
 
 beforeEach(() => {
   originalRegistry = AIServiceFactory.__getServiceRegistryForTesting();
@@ -186,7 +193,9 @@ describe("AIServiceFactory", () => {
       expect(receivedConfig).toBeTruthy();
       expect(receivedConfig!.provider.name).toBe("ConfigCapture");
       expect(receivedConfig!.model.id).toBe("test-model");
-      expect(receivedConfig!.model.systemPrompt).toBe("You are a test assistant");
+      expect(receivedConfig!.model.systemPrompt).toBe(
+        "You are a test assistant",
+      );
     });
   });
 
@@ -218,7 +227,8 @@ describe("AIServiceFactory", () => {
     it("replaces registry and returns previous one", () => {
       const newRegistry = { TestProvider: MockAIService };
 
-      const previous = AIServiceFactory.__setServiceRegistryForTesting(newRegistry);
+      const previous =
+        AIServiceFactory.__setServiceRegistryForTesting(newRegistry);
 
       expect(previous).toBeTruthy();
       expect(Object.keys(previous).length > 0).toBeTruthy();

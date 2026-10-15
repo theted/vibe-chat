@@ -104,19 +104,26 @@ export class ResponseQueue {
    */
   retarget(
     pending: QueuedResponse,
-    update: Pick<QueuedResponse, "isUserResponse" | "options" | "scheduledTime">,
+    update: Pick<
+      QueuedResponse,
+      "isUserResponse" | "options" | "scheduledTime"
+    >,
   ): void {
     pending.isUserResponse = update.isUserResponse;
     pending.options = update.options;
-    pending.scheduledTime = Math.min(pending.scheduledTime, update.scheduledTime);
+    pending.scheduledTime = Math.min(
+      pending.scheduledTime,
+      update.scheduledTime,
+    );
     this.sortQueue();
     this.process();
   }
 
   /** Queued plus generating responses for a room. */
   countForRoom(roomId: string): number {
-    const queued = this.queue.filter((response) => response.roomId === roomId)
-      .length;
+    const queued = this.queue.filter(
+      (response) => response.roomId === roomId,
+    ).length;
     return queued + (this.activeByRoom.get(roomId) ?? 0);
   }
 

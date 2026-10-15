@@ -3,7 +3,10 @@
  */
 
 import { useEffect } from "react";
-import { LOCAL_STORAGE_MESSAGES_LIMIT, STORAGE_KEYS } from "@/constants/storage";
+import {
+  LOCAL_STORAGE_MESSAGES_LIMIT,
+  STORAGE_KEYS,
+} from "@/constants/storage";
 import {
   getStorageJson,
   removeStorageItem,

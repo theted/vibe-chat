@@ -52,7 +52,8 @@ export class AnthropicService extends BaseAIService {
     }
 
     const systemMessage = messages.find((msg) => msg.role === "system");
-    const systemPrompt = systemMessage?.content || this.getEnhancedSystemPrompt();
+    const systemPrompt =
+      systemMessage?.content || this.getEnhancedSystemPrompt();
 
     const mapped = messages
       .filter((msg) => msg.role !== "system")
@@ -78,7 +79,8 @@ export class AnthropicService extends BaseAIService {
         const prefix = msg.sender ? `[${msg.sender}] ` : "";
         last.content += `\n\n${prefix}${msg.content}`;
       } else {
-        const prefix = msg.role === "assistant" && msg.sender ? `[${msg.sender}] ` : "";
+        const prefix =
+          msg.role === "assistant" && msg.sender ? `[${msg.sender}] ` : "";
         formattedMessages.push({
           role: msg.role,
           content: `${prefix}${msg.content}`,
