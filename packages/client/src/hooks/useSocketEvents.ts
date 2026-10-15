@@ -16,12 +16,13 @@ import {
   createUserTypingStopHandler,
   createAIGeneratingStartHandler,
   createAIGeneratingStopHandler,
+  storeAIStatus,
+  type AIStatusByRoom,
 } from "./socketEventHandlers";
 import type {
   Message,
   ConnectionStatus,
   RoomInfo,
-  AIStatus,
   Participant,
   TypingUser,
   TypingAI,
@@ -46,6 +47,7 @@ interface UseSocketEventsOptions {
   setMessages: StateSetter<Message[]>;
   setTypingUsers: StateSetter<TypingUser[]>;
   setTypingAIs: StateSetter<TypingAI[]>;
+  setAiStatusByRoom: StateSetter<AIStatusByRoom>;
   setError: StateSetter<string | null>;
   setIsAuthLoading: StateSetter<boolean>;
   setHasSavedUsername: StateSetter<boolean>;
@@ -81,6 +83,7 @@ export const useSocketEvents = (opts: UseSocketEventsOptions) => {
     setMessages,
     setTypingUsers,
     setTypingAIs,
+    setAiStatusByRoom,
     setError,
     setIsAuthLoading,
     setHasSavedUsername,
@@ -109,6 +112,7 @@ export const useSocketEvents = (opts: UseSocketEventsOptions) => {
       setPreviewAiParticipants,
       setAiParticipants,
       setMessages,
+      setAiStatusByRoom,
       isJoinedRef,
     };
 
@@ -121,6 +125,7 @@ export const useSocketEvents = (opts: UseSocketEventsOptions) => {
       setIsAuthLoading,
       setHasSavedUsername,
       setMessages,
+      setAiStatusByRoom,
       previewMessagesRef,
       previewParticipantsRef,
       previewAiParticipantsRef,
@@ -130,10 +135,8 @@ export const useSocketEvents = (opts: UseSocketEventsOptions) => {
 
     const handlers: Record<string, (...args: unknown[]) => void> = {
       "connection-status": connectionHandler,
-      [SOCKET_EVENTS.RECENT_MESSAGES]:
-        createRecentMessagesHandler(previewState),
-      [SOCKET_EVENTS.PREVIEW_MESSAGE]:
-        createPreviewMessageHandler(previewState),
+      [SOCKET_EVENTS.RECENT_MESSAGES]: createRecentMessagesHandler(previewState),
+      [SOCKET_EVENTS.PREVIEW_MESSAGE]: createPreviewMessageHandler(previewState),
       [SOCKET_EVENTS.ROOM_JOINED]: createRoomJoinedHandler(roomJoinState),
       [SOCKET_EVENTS.NEW_MESSAGE]: (data: unknown) => {
         const message = data as Message;
@@ -145,12 +148,8 @@ export const useSocketEvents = (opts: UseSocketEventsOptions) => {
         const typedData = data as { username?: string };
         if (typedData?.username) {
           setParticipants((prev) => {
-            if (prev.some((p) => p.username === typedData.username))
-              return prev;
-            return [
-              ...prev,
-              { username: typedData.username, joinedAt: Date.now() },
-            ];
+            if (prev.some((p) => p.username === typedData.username)) return prev;
+            return [...prev, { username: typedData.username, joinedAt: Date.now() }];
           });
         }
       },
@@ -165,30 +164,17 @@ export const useSocketEvents = (opts: UseSocketEventsOptions) => {
           );
         }
       },
-      [SOCKET_EVENTS.USER_TYPING_START]:
-        createUserTypingStartHandler(typingState),
-      [SOCKET_EVENTS.USER_TYPING_STOP]:
-        createUserTypingStopHandler(typingState),
-      [SOCKET_EVENTS.AI_GENERATING_START]:
-        createAIGeneratingStartHandler(setTypingAIs),
-      [SOCKET_EVENTS.AI_GENERATING_STOP]:
-        createAIGeneratingStopHandler(setTypingAIs),
-      [SOCKET_EVENTS.AI_STATUS_CHANGED]: (data: unknown) => {
-        const typedData = data as AIStatus;
-        if (typedData?.status === "sleeping") {
-          showToast(
-            "AIs are taking a break. Send a message to wake them up!",
-            "info",
-          );
-        }
-      },
+      [SOCKET_EVENTS.USER_TYPING_START]: createUserTypingStartHandler(typingState),
+      [SOCKET_EVENTS.USER_TYPING_STOP]: createUserTypingStopHandler(typingState),
+      [SOCKET_EVENTS.AI_GENERATING_START]: createAIGeneratingStartHandler(setTypingAIs),
+      [SOCKET_EVENTS.AI_GENERATING_STOP]: createAIGeneratingStopHandler(setTypingAIs),
+      // Shown by AIStatusNotice above the composer, for as long as it holds
+      [SOCKET_EVENTS.AI_STATUS_CHANGED]: (data: unknown) =>
+        storeAIStatus(setAiStatusByRoom, data),
       [SOCKET_EVENTS.TOPIC_CHANGED]: (data: unknown) => {
         const typedData = data as { newTopic?: string; changedBy?: string };
         if (typedData?.newTopic) {
-          setRoomInfo((prev) => ({
-            ...prev,
-            topic: typedData.newTopic || prev.topic,
-          }));
+          setRoomInfo((prev) => ({ ...prev, topic: typedData.newTopic || prev.topic }));
           showToast(
             `Topic changed to "${typedData.newTopic}" by ${typedData.changedBy || "someone"}`,
             "info",
@@ -206,14 +192,10 @@ export const useSocketEvents = (opts: UseSocketEventsOptions) => {
 
     handlersRef.current = handlers;
 
-    Object.entries(handlers).forEach(([event, handler]) => {
-      on(event, handler);
-    });
+    Object.entries(handlers).forEach(([event, handler]) => { on(event, handler); });
 
     return () => {
-      Object.entries(handlers).forEach(([event, handler]) => {
-        off(event, handler);
-      });
+      Object.entries(handlers).forEach(([event, handler]) => { off(event, handler); });
     };
   }, [on, off]);
 
@@ -241,14 +223,8 @@ export const useSocketEvents = (opts: UseSocketEventsOptions) => {
     [emit],
   );
 
-  const startTyping = useCallback(
-    () => emit(SOCKET_EVENTS.USER_TYPING_START),
-    [emit],
-  );
-  const stopTyping = useCallback(
-    () => emit(SOCKET_EVENTS.USER_TYPING_STOP),
-    [emit],
-  );
+  const startTyping = useCallback(() => emit(SOCKET_EVENTS.USER_TYPING_START), [emit]);
+  const stopTyping = useCallback(() => emit(SOCKET_EVENTS.USER_TYPING_STOP), [emit]);
 
   return {
     sendMessage,

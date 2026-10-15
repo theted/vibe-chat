@@ -5,6 +5,7 @@
  */
 
 import { normalizeAliasKey, resolveEmoji } from "@/utils/ai";
+import { getModelVoiceKey } from "@/utils/voice";
 import type { Message } from "@/types";
 import type { AiParticipant } from "@/config/aiParticipants";
 
@@ -89,14 +90,17 @@ export const getAIDisplayName = (
 };
 
 /**
- * Provider drives the voice colour; falls back to the display name so an
- * unmatched model still gets a stable colour of its own.
+ * Each model speaks in its own voice (see getModelVoiceKey); a model missing
+ * from the roster falls back to its id or name, so it still keeps one colour.
  */
 export const getVoiceKey = (
   message: Message,
   matchedAI: AiParticipant | null,
   senderName = getAIDisplayName(message, matchedAI),
-): string => matchedAI?.provider || message.providerKey || senderName;
+): string =>
+  matchedAI
+    ? getModelVoiceKey(matchedAI)
+    : normalizeAliasKey(message.aiId || message.alias || senderName);
 
 /** Voice key for a message, or null for humans and system lines. */
 export const getMessageVoiceKey = (

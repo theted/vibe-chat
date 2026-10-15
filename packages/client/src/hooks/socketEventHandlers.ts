@@ -9,6 +9,7 @@ import { isPrivateRoomId } from "@ai-chat/ai-configs";
 import { LOCAL_STORAGE_MESSAGES_LIMIT } from "@/constants/storage";
 import { normalizeAliasKey, resolveEmoji } from "@/utils/ai";
 import type {
+  AIStatus,
   Message,
   ConnectionStatus,
   RoomInfo,
@@ -20,14 +21,30 @@ import type { AiParticipant } from "@/config/aiParticipants";
 
 // Shared option types
 type StateSetter<T> = React.Dispatch<React.SetStateAction<T>>;
+export type AIStatusByRoom = Record<string, AIStatus>;
+
+// --- AI reply budget ---
+
+/**
+ * Files a room's AI status under its room id. Kept per room so a status that
+ * arrives while switching rooms can't land on the wrong one.
+ */
+export const storeAIStatus = (
+  setAiStatusByRoom: StateSetter<AIStatusByRoom>,
+  status: unknown,
+) => {
+  const typedStatus = status as Partial<AIStatus> | undefined;
+  if (!typedStatus?.roomId || !typedStatus.status) return;
+  setAiStatusByRoom((prev) => ({
+    ...prev,
+    [typedStatus.roomId as string]: typedStatus as AIStatus,
+  }));
+};
 
 // --- Connection ---
 
 export const createConnectionStatusHandler =
-  (
-    setConnectionStatus: StateSetter<ConnectionStatus>,
-    setIsJoined: StateSetter<boolean>,
-  ) =>
+  (setConnectionStatus: StateSetter<ConnectionStatus>, setIsJoined: StateSetter<boolean>) =>
   (status: unknown) => {
     setConnectionStatus(status as ConnectionStatus);
     if (!(status as ConnectionStatus).connected) {
@@ -43,27 +60,23 @@ interface PreviewState {
   setPreviewAiParticipants: StateSetter<AiParticipant[] | null>;
   setAiParticipants: StateSetter<AiParticipant[] | null>;
   setMessages: StateSetter<Message[]>;
+  setAiStatusByRoom: StateSetter<AIStatusByRoom>;
   isJoinedRef: React.MutableRefObject<boolean>;
 }
 
-export const createRecentMessagesHandler =
-  (state: PreviewState) =>
+export const createRecentMessagesHandler = (state: PreviewState) =>
   (payload: unknown = {}) => {
     const typedPayload = payload as {
       messages?: Message[];
       participants?: Participant[];
       aiParticipants?: AiParticipant[];
       roomId?: string;
+      aiStatus?: AIStatus;
     };
-    const incomingMessages = Array.isArray(typedPayload.messages)
-      ? typedPayload.messages
-      : [];
-    const incomingParticipants = Array.isArray(typedPayload.participants)
-      ? typedPayload.participants
-      : [];
-    const incomingAiParticipants = Array.isArray(typedPayload.aiParticipants)
-      ? typedPayload.aiParticipants
-      : [];
+    storeAIStatus(state.setAiStatusByRoom, typedPayload.aiStatus);
+    const incomingMessages = Array.isArray(typedPayload.messages) ? typedPayload.messages : [];
+    const incomingParticipants = Array.isArray(typedPayload.participants) ? typedPayload.participants : [];
+    const incomingAiParticipants = Array.isArray(typedPayload.aiParticipants) ? typedPayload.aiParticipants : [];
 
     state.setPreviewMessages(incomingMessages);
     state.setPreviewParticipants(incomingParticipants);
@@ -75,8 +88,7 @@ export const createRecentMessagesHandler =
     }
   };
 
-export const createPreviewMessageHandler =
-  (state: PreviewState) =>
+export const createPreviewMessageHandler = (state: PreviewState) =>
   (payload: unknown = {}) => {
     const typedPayload = payload as {
       message?: Message;
@@ -119,17 +131,20 @@ interface RoomJoinState {
   setIsAuthLoading: StateSetter<boolean>;
   setHasSavedUsername: StateSetter<boolean>;
   setMessages: StateSetter<Message[]>;
+  setAiStatusByRoom: StateSetter<AIStatusByRoom>;
   previewMessagesRef: React.MutableRefObject<Message[]>;
   previewParticipantsRef: React.MutableRefObject<Participant[]>;
   previewAiParticipantsRef: React.MutableRefObject<AiParticipant[] | null>;
 }
 
-export const createRoomJoinedHandler =
-  (state: RoomJoinState) => (data: unknown) => {
+export const createRoomJoinedHandler = (state: RoomJoinState) =>
+  (data: unknown) => {
     const typedData = data as RoomInfo & {
       participants?: Participant[];
       aiParticipants?: AiParticipant[];
+      aiStatus?: AIStatus;
     };
+    storeAIStatus(state.setAiStatusByRoom, typedData.aiStatus);
     state.setIsJoined(true);
     state.setRoomInfo(typedData);
     state.setParticipants(typedData.participants || []);
@@ -163,34 +178,25 @@ interface TypingState {
   usernameRef: React.MutableRefObject<string>;
 }
 
-export const createUserTypingStartHandler =
-  (state: TypingState) => (data: unknown) => {
-    const typedData = data as {
-      username?: string;
-      name?: string;
-      displayName?: string;
-    };
+export const createUserTypingStartHandler = (state: TypingState) =>
+  (data: unknown) => {
+    const typedData = data as { username?: string; name?: string; displayName?: string };
     state.setTypingUsers((prev) => {
       const name = typedData?.username || typedData?.name;
       if (!name) return prev;
       const normalized = name.toLowerCase();
-      const isLocal =
-        !!state.usernameRef.current &&
-        normalized === state.usernameRef.current.toLowerCase();
+      const isLocal = !!state.usernameRef.current && normalized === state.usernameRef.current.toLowerCase();
       const exists = prev.some((user) => user.normalized === normalized);
 
       if (!exists) {
-        return [
-          ...prev,
-          {
-            id: normalized,
-            name,
-            displayName: typedData.displayName || name,
-            normalized,
-            type: "user" as const,
-            isLocal,
-          },
-        ];
+        return [...prev, {
+          id: normalized,
+          name,
+          displayName: typedData.displayName || name,
+          normalized,
+          type: "user" as const,
+          isLocal,
+        }];
       }
 
       if (isLocal) {
@@ -203,8 +209,8 @@ export const createUserTypingStartHandler =
     });
   };
 
-export const createUserTypingStopHandler =
-  (state: TypingState) => (data: unknown) => {
+export const createUserTypingStopHandler = (state: TypingState) =>
+  (data: unknown) => {
     const typedData = data as { username?: string; name?: string };
     const name = typedData?.username || typedData?.name;
     if (!name) return;
@@ -215,8 +221,8 @@ export const createUserTypingStopHandler =
     );
   };
 
-export const createAIGeneratingStartHandler =
-  (setTypingAIs: StateSetter<TypingAI[]>) => (data: unknown) => {
+export const createAIGeneratingStartHandler = (setTypingAIs: StateSetter<TypingAI[]>) =>
+  (data: unknown) => {
     const typedData = data as {
       aiId?: string;
       providerKey?: string;
@@ -232,8 +238,7 @@ export const createAIGeneratingStartHandler =
         (typedData?.providerKey && typedData?.modelKey
           ? `${typedData.providerKey}_${typedData.modelKey}`
           : undefined);
-      const alias =
-        typedData?.alias || typedData?.displayName || typedData?.aiName;
+      const alias = typedData?.alias || typedData?.displayName || typedData?.aiName;
       const displayName = typedData?.displayName || alias || id || "AI";
       const normalized = normalizeAliasKey(alias || displayName || id);
 
@@ -244,23 +249,20 @@ export const createAIGeneratingStartHandler =
       );
       if (exists) return prev;
 
-      return [
-        ...prev,
-        {
-          id: id || normalized,
-          name: alias || displayName,
-          displayName,
-          alias: alias || displayName,
-          normalizedAlias: normalized,
-          type: "ai" as const,
-          emoji: typedData?.emoji || resolveEmoji(alias || displayName || ""),
-        },
-      ];
+      return [...prev, {
+        id: id || normalized,
+        name: alias || displayName,
+        displayName,
+        alias: alias || displayName,
+        normalizedAlias: normalized,
+        type: "ai" as const,
+        emoji: typedData?.emoji || resolveEmoji(alias || displayName || ""),
+      }];
     });
   };
 
-export const createAIGeneratingStopHandler =
-  (setTypingAIs: StateSetter<TypingAI[]>) => (data: unknown) => {
+export const createAIGeneratingStopHandler = (setTypingAIs: StateSetter<TypingAI[]>) =>
+  (data: unknown) => {
     const typedData = data as {
       aiId?: string;
       providerKey?: string;

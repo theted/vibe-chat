@@ -5,8 +5,7 @@
  * loaded history.
  */
 
-import { useMemo } from "react";
-import { voiceStyleFor } from "@/utils/voice";
+import { useVoiceStyle } from "@/context/VoiceContext";
 import type { Message } from "@/types";
 
 const QUOTE_MAX_LENGTH = 140;
@@ -34,10 +33,7 @@ const ReplyQuote = ({
   fallbackSender,
   voiceKey,
 }: ReplyQuoteProps) => {
-  const voice = useMemo(
-    () => (voiceKey ? voiceStyleFor(voiceKey) : undefined),
-    [voiceKey],
-  );
+  const voice = useVoiceStyle(voiceKey);
   const sender =
     quotedMessage?.displayName || quotedMessage?.sender || fallbackSender;
   if (!sender) return null;
