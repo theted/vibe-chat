@@ -1,17 +1,37 @@
 /**
- * Voice palette - hues handed out to providers so every model from the same
- * lab reads as one colour across the transcript, sidebar and typing line.
- * Lightness/chroma live in CSS (--voice-l / --voice-c) per theme.
+ * Voice palette - every model has a colour of its own, used for its name,
+ * avatar, mentions, quotes and typing line. Lightness/chroma live in CSS
+ * (--voice-l / --voice-c) per theme, so a voice is just a hue.
  */
 
-// Spread round the wheel ~30° apart, skipping the amber band (~50–95°) that
-// marks the user's own actions
-export const VOICE_HUES = [
-  20, 115, 145, 175, 205, 235, 265, 295, 325, 355,
-] as const;
+// The amber band (~50–95°) marks the user's own actions, so voices take the
+// rest of the wheel: from 95° round past 360° to 50°
+const VOICE_ARC_START = 95;
+const VOICE_ARC_END = 410;
+const VOICE_HUE_COUNT = 24;
 
-// The labs people see most get fixed, well-separated hues so the common
-// line-up never collides; everyone else is hashed onto VOICE_HUES
+/** Home hues, ~13° apart; each model is hashed onto one of these. */
+export const VOICE_HUES: readonly number[] = Array.from(
+  { length: VOICE_HUE_COUNT },
+  (_, index) =>
+    Math.round(
+      VOICE_ARC_START +
+        (index * (VOICE_ARC_END - VOICE_ARC_START)) / VOICE_HUE_COUNT,
+    ) % 360,
+);
+
+// 141 models can't all look different, but the ones talking can: when two
+// recent speakers' hues sit closer than this, the later one moves. Three
+// palette steps (39-40° after rounding); fits 6-8 clearly distinct voices.
+export const MIN_VOICE_GAP = 38;
+
+// "Recent" for both the sidebar's talking list and the colour spreading:
+// roughly what fits on screen
+export const ROOM_SPEAKER_LOOKBACK = 30;
+export const MAX_LISTED_SPEAKERS = 8;
+
+// Lab-level views (dashboard tables) colour by provider; the labs people see
+// most get fixed, well-separated hues, everyone else is hashed onto VOICE_HUES
 export const PROVIDER_HUES: Record<string, number> = {
   anthropic: 25,
   openai: 150,

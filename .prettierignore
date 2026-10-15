@@ -5,14 +5,3 @@ build
 coverage
 .turbo
 .vite
-
-# Open redesign PR #258 rewrites these; formatting them here would only make it
-# conflict. Remove this block once #258 is merged and formatted.
-packages/client/src/components/Dashboard.tsx
-packages/client/src/components/EnabledParticipantsPanel.tsx
-packages/client/src/components/MetricCard.tsx
-packages/client/src/components/ProgressBar.tsx
-packages/client/src/components/ProviderStatsTable.tsx
-packages/client/src/components/SortIndicator.tsx
-packages/client/src/config/dashboard.ts
-packages/client/src/pages/FavoritesView.tsx
