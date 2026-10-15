@@ -20,7 +20,7 @@
     "build:watch": "swc src -d dist --watch & tsc --noEmit --watch",
     "clean": "rm -rf dist",
     "prepublishOnly": "bun run clean && bun run build",
-    "test": "bun run build && bun test tests/unit tests/integration",
+    "test": "bun run build && bun test tests/unit/ tests/integration/",
     "test:grok": "bun run build && bun tests/integration-ok-grok.ts",
     "test:openai": "bun run build && bun tests/integration-ok-openai.ts",
     "test:mistral": "bun run build && bun tests/integration-ok-mistral.ts",
