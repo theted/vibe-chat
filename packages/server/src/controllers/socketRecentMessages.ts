@@ -6,6 +6,7 @@ import type { RoomManager } from "@/managers/RoomManager.js";
 import type { MessageHistoryService } from "@/services/MessageHistoryService.js";
 import type { ActiveAIParticipant, ChatMessage } from "@/types.js";
 import { warnSocketError } from "@/utils/socketErrors.js";
+import { toAIStatusPayload } from "./socketUtils.js";
 
 export const getRecentMessages = (
   messageHistory: MessageHistoryService,
@@ -40,6 +41,9 @@ export const sendRecentMessages = async (
       messages,
       participants,
       aiParticipants,
+      aiStatus: toAIStatusPayload(
+        options.chatOrchestrator.getRoomAIStatus(roomId),
+      ),
     });
   } catch (error) {
     warnSocketError("Failed to send recent messages", error);

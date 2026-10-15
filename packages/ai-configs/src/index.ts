@@ -57,7 +57,11 @@ export { SOCKET_EVENTS } from "./socketEvents.js";
 export type { SocketEventName } from "./socketEvents.js";
 
 // Socket wire-protocol types
-export type { ChatMessageBase, WireSenderType } from "./wireTypes.js";
+export type {
+  ChatMessageBase,
+  RoomAIStatusPayload,
+  WireSenderType,
+} from "./wireTypes.js";
 
 // Environment/flag utilities
 export { parseBooleanFlag } from "./envUtils.js";
