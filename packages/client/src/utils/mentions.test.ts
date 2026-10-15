@@ -18,10 +18,19 @@ describe("mentions utilities", () => {
     expect(matches[0]?.text).toBe("@Skylar");
   });
 
-  it("resolves a model mention to its provider, aliases included", () => {
-    expect(resolveMentionVoiceKey("@claude-opus-5")).toBe("Anthropic");
-    expect(resolveMentionVoiceKey("@gpt-6")).toBe("OpenAI");
-    expect(resolveMentionVoiceKey("@Claude Opus 5")).toBe("Anthropic");
+  it("resolves a model mention to that model's voice, aliases included", () => {
+    expect(resolveMentionVoiceKey("@claude-opus-5")).toBe(
+      "anthropicclaudeopus5",
+    );
+    expect(resolveMentionVoiceKey("@Claude Opus 5")).toBe(
+      "anthropicclaudeopus5",
+    );
+    expect(resolveMentionVoiceKey("@gpt-6")).toBe(
+      resolveMentionVoiceKey("@gpt-6-astra"),
+    );
+    expect(resolveMentionVoiceKey("@gpt-6")).not.toBe(
+      resolveMentionVoiceKey("@claude-opus-5"),
+    );
   });
 
   it("leaves people and unknown names without a voice", () => {

@@ -5,8 +5,8 @@
  */
 
 import { useMemo } from "react";
+import { useVoiceStyle } from "@/context/VoiceContext";
 import { resolveMentionVoiceKey } from "@/utils/mentions";
-import { voiceStyleFor } from "@/utils/voice";
 import type { AiParticipant } from "@/config/aiParticipants";
 
 interface MentionChipProps {
@@ -19,12 +19,10 @@ const MentionChip = ({ text, aiParticipants }: MentionChipProps) => {
     () => resolveMentionVoiceKey(text, aiParticipants),
     [text, aiParticipants],
   );
+  const voice = useVoiceStyle(voiceKey);
 
   return voiceKey ? (
-    <span
-      className="mention-chip mention-chip-voice"
-      style={voiceStyleFor(voiceKey)}
-    >
+    <span className="mention-chip mention-chip-voice" style={voice}>
       {text}
     </span>
   ) : (

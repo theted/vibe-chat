@@ -76,6 +76,26 @@ describe("AIStreakTracker", () => {
     expect(tracker.claim("default")).toBe(true);
   });
 
+  it("reports every change a viewer could see, and nothing else", () => {
+    const changes: string[] = [];
+    const tracker = new AIStreakTracker(2, {
+      onChange: ({ roomId, remaining, isAsleep }) =>
+        changes.push(`${roomId}:${remaining}:${isAsleep ? "asleep" : "awake"}`),
+    });
+
+    tracker.recordHumanMessage("default"); // full budget already: no change
+    tracker.claim("default");
+    tracker.claim("default");
+    tracker.claim("default"); // refused: no change
+    tracker.recordHumanMessage("default");
+
+    expect(changes).toEqual([
+      "default:1:awake",
+      "default:0:asleep",
+      "default:2:awake",
+    ]);
+  });
+
   it("rejects a limit that could never allow a message", () => {
     expect(() => new AIStreakTracker(0)).toThrow();
   });
