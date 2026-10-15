@@ -28,6 +28,33 @@ vi.mock("./Icon", () => ({
   ),
 }));
 
+const openAllModels = () =>
+  fireEvent.click(screen.getByRole("button", { name: /all models/i }));
+
+const OPENAI_TEST: AiParticipant = {
+  id: "OPENAI_TEST",
+  name: "Test AI",
+  alias: "test-ai",
+  provider: "OpenAI",
+  status: "active",
+  emoji: "✨",
+};
+const ANTHROPIC_TEST: AiParticipant = {
+  id: "ANTHROPIC_TEST",
+  name: "Claude Test",
+  alias: "claude-test",
+  provider: "Anthropic",
+  status: "active",
+  emoji: "🎸",
+};
+
+const speaker = (ai: AiParticipant) => ({
+  voiceKey: ai.id.toLowerCase().replace(/[^a-z0-9]/g, ""),
+  ai,
+  name: ai.name,
+  emoji: ai.emoji ?? "",
+});
+
 describe("ParticipantsList", () => {
   it("groups active AI participants by provider and sorts by model name", () => {
     const aiParticipants: AiParticipant[] = [
@@ -69,6 +96,7 @@ describe("ParticipantsList", () => {
     const { container } = render(
       <ParticipantsList participants={[]} aiParticipants={aiParticipants} />,
     );
+    openAllModels();
 
     const providerHeaders = screen.getAllByTestId(/ai-provider-/i);
     expect(providerHeaders.map((header) => header.textContent)).toEqual([
@@ -104,30 +132,109 @@ describe("ParticipantsList", () => {
   });
 
   it("calls onAISelect when clicking an AI name", () => {
-    const aiParticipants: AiParticipant[] = [
-      {
-        id: "OPENAI_TEST",
-        name: "Test AI",
-        alias: "test-ai",
-        provider: "OpenAI",
-        status: "active",
-        emoji: "✨",
-      },
-    ];
     const onAISelect = vi.fn();
 
     render(
       <ParticipantsList
         participants={[]}
-        aiParticipants={aiParticipants}
+        aiParticipants={[OPENAI_TEST]}
         onAISelect={onAISelect}
       />,
     );
+    openAllModels();
 
     fireEvent.click(screen.getByTestId("ai-name-OPENAI_TEST"));
 
     expect(onAISelect).toHaveBeenCalledWith(
       expect.objectContaining({ id: "OPENAI_TEST" }),
     );
+  });
+
+  it("keeps the full list folded away until asked", () => {
+    render(
+      <ParticipantsList
+        participants={[]}
+        aiParticipants={[OPENAI_TEST, ANTHROPIC_TEST]}
+      />,
+    );
+
+    expect(screen.queryByTestId("ai-name-OPENAI_TEST")).toBeNull();
+    expect(screen.getByRole("button", { name: /all models/i })).toHaveAttribute(
+      "aria-expanded",
+      "false",
+    );
+  });
+
+  it("finds models in the full list by name or lab", () => {
+    render(
+      <ParticipantsList
+        participants={[]}
+        aiParticipants={[OPENAI_TEST, ANTHROPIC_TEST]}
+      />,
+    );
+    openAllModels();
+
+    const search = screen.getByRole("searchbox", { name: /find a model/i });
+    fireEvent.change(search, { target: { value: "anthro" } });
+    expect(screen.queryByTestId("ai-name-OPENAI_TEST")).toBeNull();
+    expect(screen.getByTestId("ai-name-ANTHROPIC_TEST")).toBeInTheDocument();
+
+    fireEvent.change(search, { target: { value: "test ai" } });
+    expect(screen.getByTestId("ai-name-OPENAI_TEST")).toBeInTheDocument();
+    expect(screen.queryByTestId("ai-name-ANTHROPIC_TEST")).toBeNull();
+  });
+
+  it("lists the models talking lately and opens a private chat from there", () => {
+    const onAISelect = vi.fn();
+
+    render(
+      <ParticipantsList
+        participants={[]}
+        aiParticipants={[OPENAI_TEST, ANTHROPIC_TEST]}
+        recentSpeakers={[speaker(ANTHROPIC_TEST), speaker(OPENAI_TEST)]}
+        onAISelect={onAISelect}
+      />,
+    );
+
+    const talking = screen.getByTestId("talking-models");
+    expect(talking.textContent).toBe("🎸Claude Test✨Test AI");
+
+    fireEvent.click(screen.getByRole("button", { name: /claude test/i }));
+    expect(onAISelect).toHaveBeenCalledWith(ANTHROPIC_TEST);
+  });
+
+  it("puts a model writing its first message at the top of the talking list", () => {
+    render(
+      <ParticipantsList
+        participants={[]}
+        aiParticipants={[OPENAI_TEST, ANTHROPIC_TEST]}
+        recentSpeakers={[speaker(ANTHROPIC_TEST)]}
+        typingAIs={[
+          {
+            id: "OPENAI_TEST",
+            name: "Test AI",
+            displayName: "Test AI",
+            alias: "test-ai",
+            normalizedAlias: "testai",
+            type: "ai",
+          },
+        ]}
+      />,
+    );
+
+    expect(screen.getByTestId("talking-models").textContent).toMatch(
+      /^✨Test AI.*Claude Test$/,
+    );
+  });
+
+  it("says so when no model has spoken yet", () => {
+    render(
+      <ParticipantsList participants={[]} aiParticipants={[OPENAI_TEST]} />,
+    );
+
+    expect(screen.getByTestId("section-Talking").textContent).toBe(
+      "Talking (0)",
+    );
+    expect(screen.getByText(/models show up here as they talk/i)).toBeVisible();
   });
 });

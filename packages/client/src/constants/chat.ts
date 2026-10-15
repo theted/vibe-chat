@@ -36,3 +36,6 @@ export const PRIVATE_CONVERSATIONS_ENABLED = parseBooleanFlag(
   import.meta.env.VITE_PRIVATE_CONVERSATIONS_ENABLED,
   true,
 );
+
+// Warn the room once the AIs have this few messages left before they rest
+export const AI_BUDGET_WARNING_AT = 3;

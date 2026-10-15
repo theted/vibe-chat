@@ -3,11 +3,12 @@
  */
 
 import type { Server } from "socket.io";
-import type { ChatOrchestrator } from "@ai-chat/core";
+import type { ChatOrchestrator, RoomAIStatus } from "@ai-chat/core";
 import type { MetricsService } from "@/services/MetricsService.js";
 import type { ChatMessage } from "@/types.js";
-import { SOCKET_EVENTS } from "@ai-chat/ai-configs";
+import { DEFAULT_ROOM_ID, SOCKET_EVENTS } from "@ai-chat/ai-configs";
 import { describeError } from "@/utils/socketErrors.js";
+import { toAIStatusPayload } from "./socketUtils.js";
 
 type BroadcastHandler = (message: ChatMessage, roomId: string) => Promise<void>;
 
@@ -18,9 +19,11 @@ export const setupOrchestratorEventBridge = (options: {
   chatOrchestrator: ChatOrchestrator;
   io: Server;
   metricsService: MetricsService;
+  previewRoomId: string;
   onBroadcast: BroadcastHandler;
 }): void => {
-  const { chatOrchestrator, io, metricsService, onBroadcast } = options;
+  const { chatOrchestrator, io, metricsService, previewRoomId, onBroadcast } =
+    options;
 
   chatOrchestrator.on(
     "message-broadcast",
@@ -36,23 +39,15 @@ export const setupOrchestratorEventBridge = (options: {
     },
   );
 
-  // The AI message budget is per room, so only that room hears about it
-  chatOrchestrator.on(
-    "ais-sleeping",
-    ({ roomId, reason }: { roomId: string; reason?: string }) => {
-      io.to(roomId).emit(SOCKET_EVENTS.AI_STATUS_CHANGED, {
-        status: "sleeping",
-        reason,
-        roomId,
-      });
-    },
-  );
-
-  chatOrchestrator.on("ais-awakened", ({ roomId }: { roomId: string }) => {
-    io.to(roomId).emit(SOCKET_EVENTS.AI_STATUS_CHANGED, {
-      status: "active",
-      roomId,
-    });
+  // The AI message budget is per room, so only that room hears about it -
+  // plus the guests reading the main room through its preview
+  chatOrchestrator.on("ai-status-changed", (status: RoomAIStatus) => {
+    const payload = toAIStatusPayload(status);
+    const rooms =
+      status.roomId === DEFAULT_ROOM_ID
+        ? [status.roomId, previewRoomId]
+        : [status.roomId];
+    io.to(rooms).emit(SOCKET_EVENTS.AI_STATUS_CHANGED, payload);
   });
 
   chatOrchestrator.on(

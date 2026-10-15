@@ -80,6 +80,7 @@ export class ChatOrchestrator extends EventEmitter {
         onSleep: (roomId, reason) =>
           this.emit("ais-sleeping", { roomId, reason }),
         onWake: (roomId) => this.emit("ais-awakened", { roomId }),
+        onChange: (status) => this.emit("ai-status-changed", status),
       },
     );
     this.lastAIMessageTime = 0;

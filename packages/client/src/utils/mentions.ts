@@ -8,6 +8,7 @@
 import { DEFAULT_AI_PARTICIPANTS } from "@/config/aiParticipants";
 import { AI_MENTION_MAPPINGS } from "@/constants/chat";
 import { normalizeAliasKey } from "@/utils/ai";
+import { getModelVoiceKey } from "@/utils/voice";
 import type { AiParticipant } from "@/config/aiParticipants";
 
 const BOUNDARY_REGEX = /[\s.,!?;:'")\]}]/;
@@ -104,8 +105,8 @@ export const findMentionMatches = (
 
 
 /**
- * Provider of the model an @mention names (shorthand aliases included), so
- * the chip can wear that model's voice colour. Null for people and unknowns.
+ * Voice key of the model an @mention names (shorthand aliases included), so
+ * the chip can wear that model's colour. Null for people and unknowns.
  */
 export const resolveMentionVoiceKey = (
   mention: string,
@@ -125,5 +126,5 @@ export const resolveMentionVoiceKey = (
     ({ id, alias, name }) =>
       [id, alias, name].some((value) => targets.has(normalizeAliasKey(value))),
   );
-  return participant?.provider ?? null;
+  return participant ? getModelVoiceKey(participant) : null;
 };

@@ -33,6 +33,8 @@ type RoomStreak = {
 type StreakListeners = {
   onSleep?: (roomId: string, reason: string) => void;
   onWake?: (roomId: string) => void;
+  /** Any change a viewer could see: a message spent, a reset, sleep or wake. */
+  onChange?: (status: RoomAIStatus) => void;
 };
 
 export const SLEEP_REASONS = {
@@ -73,6 +75,8 @@ export class AIStreakTracker {
     room.lastAIMessageAt = Date.now();
     if (room.count >= this.maxMessages) {
       this.sleep(roomId, SLEEP_REASONS.LIMIT_REACHED);
+    } else {
+      this.notifyChange(roomId);
     }
     return true;
   }
@@ -100,6 +104,7 @@ export class AIStreakTracker {
     room.isAsleep = true;
     room.sleepReason = reason;
     if (!wasAsleep) this.listeners.onSleep?.(roomId, reason);
+    this.notifyChange(roomId);
   }
 
   /** Clear the room's count and wake it (an admin action or a human post). */
@@ -136,10 +141,17 @@ export class AIStreakTracker {
 
   private reset(roomId: string, room: RoomStreak): void {
     const wasAsleep = room.isAsleep;
+    // A person posting into a room with a full budget changes nothing
+    const hasChanged = wasAsleep || room.count > 0;
     room.count = 0;
     room.isAsleep = false;
     room.sleepReason = null;
     if (wasAsleep) this.listeners.onWake?.(roomId);
+    if (hasChanged) this.notifyChange(roomId);
+  }
+
+  private notifyChange(roomId: string): void {
+    this.listeners.onChange?.(this.getStatus(roomId));
   }
 
   private getRoom(roomId: string): RoomStreak {

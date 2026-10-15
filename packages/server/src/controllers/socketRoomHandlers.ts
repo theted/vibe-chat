@@ -10,6 +10,7 @@ import {
 import type { SocketHandlerContext } from "./socketHandlerContext.js";
 import {
   applyRoomAIScope,
+  toAIStatusPayload,
   validateTopic,
   validateUsername,
 } from "./socketUtils.js";
@@ -66,6 +67,9 @@ export const handleJoinRoom = (
       topic: room.topic,
       participants: context.roomManager.getRoomParticipants(roomId),
       aiParticipants: context.getActiveAIParticipants(),
+      aiStatus: toAIStatusPayload(
+        context.chatOrchestrator.getRoomAIStatus(roomId),
+      ),
       // Server truth: the client shows its private-chat UI off this, not off
       // the room id, so it never promises a 1-1 chat that was not set up.
       privateAiId: roomScope.privateAiId,
