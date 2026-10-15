@@ -99,6 +99,7 @@
         "jsdom": "^23.0.1",
         "postcss": "^8.5.6",
         "tailwindcss": "^4.1.0",
+        "typescript": "^5.9.3",
         "vite": "^5.1.0",
         "vitest": "^1.1.0",
       },
