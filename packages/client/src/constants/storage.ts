@@ -5,3 +5,5 @@ export const STORAGE_KEYS = {
   MESSAGES: "ai-chat-messages",
   USERNAME: "ai-chat-username",
 } as const;
+
+export const FAVORITES_STORAGE_KEY = "ai-chat-favorites";

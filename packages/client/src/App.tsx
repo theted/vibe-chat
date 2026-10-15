@@ -13,6 +13,7 @@ import { DEFAULT_ROOM_ID } from "@ai-chat/ai-configs";
 import { useSocket } from "./hooks/useSocket";
 import { usePrivateConversation } from "./hooks/usePrivateConversation";
 import { useSocketEvents } from "./hooks/useSocketEvents";
+import type { AIStatusByRoom } from "./hooks/socketEventHandlers";
 import { useTheme } from "./hooks/useTheme";
 import { useToasts } from "./hooks/useToasts";
 import { useScrollToBottom } from "./hooks/useScrollToBottom";
@@ -50,6 +51,7 @@ const App = () => {
   });
   const [typingUsers, setTypingUsers] = useState<TypingUser[]>([]);
   const [typingAIs, setTypingAIs] = useState<TypingAI[]>([]);
+  const [aiStatusByRoom, setAiStatusByRoom] = useState<AIStatusByRoom>({});
   const [hasSavedUsername, setHasSavedUsername] = useState(false);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [roomInfo, setRoomInfo] = useState<RoomInfo>({
@@ -115,6 +117,7 @@ const App = () => {
     setMessages,
     setTypingUsers,
     setTypingAIs,
+    setAiStatusByRoom,
     setError,
     setIsAuthLoading,
     setHasSavedUsername,
@@ -250,6 +253,9 @@ const App = () => {
           messages={messages}
           typingUsers={typingUsers}
           typingAIs={typingAIs}
+          aiStatus={
+            aiStatusByRoom[(isJoined && roomInfo.roomId) || DEFAULT_ROOM_ID]
+          }
           showScrollButton={showScrollButton}
           onScrollToBottom={scrollToBottom}
           onLogout={handleLogout}

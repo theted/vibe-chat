@@ -3,7 +3,11 @@
  */
 
 import type { RefObject, FormEvent } from "react";
-import type { ChatMessageBase, WireSenderType } from "@ai-chat/ai-configs";
+import type {
+  ChatMessageBase,
+  RoomAIStatusPayload,
+  WireSenderType,
+} from "@ai-chat/ai-configs";
 
 // Re-export AI participant types from config
 export type {
@@ -74,10 +78,8 @@ export interface RoomInfo {
 }
 
 // AI status types
-export interface AIStatus {
-  status: "active" | "sleeping";
-  reason?: string;
-}
+/** A room's AI reply budget, as the server reports it. */
+export type AIStatus = RoomAIStatusPayload;
 
 // Toast types
 export type ToastType = "success" | "info" | "warning";
@@ -134,6 +136,7 @@ export interface DashboardMetrics {
 
 // Import for AiParticipant type
 import type { AiParticipant } from "@/config/aiParticipants";
+import type { RoomSpeaker } from "@/utils/roomVoices";
 
 // Component prop types - ChatView
 export interface ChatViewProps {
@@ -149,6 +152,8 @@ export interface ChatViewProps {
   messages: Message[];
   typingUsers: TypingUser[];
   typingAIs: TypingAI[];
+  /** The current room's AI reply budget, once the server has reported it */
+  aiStatus?: AIStatus | null;
   showScrollButton: boolean;
   onScrollToBottom: () => void;
   onLogout: () => void;
@@ -201,16 +206,34 @@ export interface ChatMessageProps {
   isContinuation?: boolean;
 }
 
+// A message saved to favorites (useFavorites), stored in localStorage
+export interface FavoriteSnippet {
+  id: string;
+  content: string;
+  sender: string;
+  senderType: Message["senderType"];
+  timestamp: number;
+  savedAt: number;
+  displayName?: string;
+  emoji?: string;
+}
+
 // Component prop types - ParticipantsList
 export interface ParticipantsListProps {
   participants?: Participant[];
   aiParticipants?: AiParticipant[];
+  /** Models heard lately, newest first (see useRoomVoices) */
+  recentSpeakers?: RoomSpeaker[];
   typingUsers?: TypingUser[];
   typingAIs?: TypingAI[];
   isVisible?: boolean;
   onAISelect?: (ai: AiParticipant) => void;
   /** Id of the AI the user is privately chatting with, highlighted in the list. */
   activePrivateAiId?: string | null;
+  /** "drawer" fills its container instead of hiding below lg */
+  variant?: "sidebar" | "drawer";
+  /** Shows a close button in the header when given */
+  onClose?: () => void;
 }
 
 // Component prop types - TypingIndicator
@@ -248,28 +271,10 @@ export interface TopicControlsProps {
   disabled?: boolean;
 }
 
-// Component prop types - StatusCard
-export interface StatusCardProps {
-  icon: string;
-  iconBackgroundClass?: string;
-  iconTextClass?: string;
-  title: string;
-  subtitle: string;
-  statusText: string;
-  statusIndicatorClass?: string;
-  statusTextClass?: string;
-}
-
 // Component prop types - SectionHeader
 export interface SectionHeaderProps {
   title: string;
   count: number;
-}
-
-// Component prop types - CircuitIcon
-export interface CircuitIconProps {
-  className?: string;
-  title?: string;
 }
 
 // Icon types

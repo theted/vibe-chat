@@ -1,6 +1,6 @@
 /**
- * ChatHeader - wordmark, room topic, connection state and the two header
- * actions (join as guest, settings).
+ * ChatHeader - wordmark, room topic, connection state and the header actions
+ * (join as guest, participants drawer below lg, settings).
  */
 
 import Icon from "./Icon";
@@ -15,6 +15,9 @@ interface ChatHeaderProps {
   isAuthenticated: boolean;
   onLoginOpen: () => void;
   onSettingsOpen: () => void;
+  /** Opens the participants drawer on screens without the sidebar */
+  onParticipantsOpen: () => void;
+  participantCount: number;
 }
 
 const ChatHeader = ({
@@ -23,6 +26,8 @@ const ChatHeader = ({
   isAuthenticated,
   onLoginOpen,
   onSettingsOpen,
+  onParticipantsOpen,
+  participantCount,
 }: ChatHeaderProps) => (
   <header className="flex h-16 shrink-0 items-center gap-4 px-4 sm:px-6">
     <div className="flex min-w-0 flex-1 items-center gap-3.5">
@@ -65,6 +70,15 @@ const ChatHeader = ({
           <span className="hidden sm:inline">Join chat</span>
         </button>
       )}
+      <button
+        type="button"
+        onClick={onParticipantsOpen}
+        className={`${ICON_BUTTON_CLASSES} w-auto gap-1.5 px-2 lg:hidden`}
+        aria-label="Show people and models in the room"
+      >
+        <Icon name="participants" className="h-[18px] w-[18px]" />
+        <span className="text-xs tabular-nums">{participantCount}</span>
+      </button>
       <button
         type="button"
         onClick={onSettingsOpen}

@@ -30,3 +30,20 @@ export interface ChatMessageBase {
   mentionsTriggerMessageId?: string | null;
   mentionsTriggerSender?: string | null;
 }
+
+/**
+ * A room's AI reply budget as clients see it. AIs may send only so many
+ * messages in a row before a person speaks; the server sends this on join,
+ * with the recent messages, and whenever it changes (AI_STATUS_CHANGED).
+ */
+export interface RoomAIStatusPayload {
+  roomId: string;
+  status: "active" | "sleeping";
+  /** Why the AIs sleep: "message-limit-reached" or "manual". */
+  reason?: string;
+  /** AI messages the room can still take before the AIs sleep. */
+  remaining: number;
+  maxMessages: number;
+  /** AI messages since a person last spoke. */
+  messageCount: number;
+}
