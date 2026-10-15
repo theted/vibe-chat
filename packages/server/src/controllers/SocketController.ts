@@ -82,6 +82,7 @@ export class SocketController {
       chatOrchestrator,
       io,
       metricsService,
+      previewRoomId: this.previewRoomId,
       onBroadcast: (message, roomId) =>
         this.handleBroadcastMessage(message, roomId),
     });

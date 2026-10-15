@@ -6,8 +6,10 @@
 
 import { useMemo } from "react";
 import { HUMAN_VOICE_HUE } from "@/config/voices";
+import { useHueFor } from "@/context/VoiceContext";
+import { normalizeAliasKey } from "@/utils/ai";
 import { findTypingAiParticipant } from "@/utils/participants";
-import { getVoiceHue, voiceStyle } from "@/utils/voice";
+import { getModelVoiceKey, voiceStyle } from "@/utils/voice";
 import Spinner from "./Spinner";
 import type { TypingIndicatorProps, TypingParticipant } from "@/types";
 
@@ -36,6 +38,7 @@ const TypingIndicator = ({
   typingAIs = [],
   aiParticipants = [],
 }: TypingIndicatorProps) => {
+  const hueFor = useHueFor();
   const typers = useMemo<Typer[]>(
     () => [
       ...typingUsers
@@ -49,12 +52,16 @@ const TypingIndicator = ({
         const participant = findTypingAiParticipant(ai, aiParticipants);
         return {
           name: getDisplayName(ai),
-          hue: getVoiceHue(participant?.provider ?? getDisplayName(ai)),
+          hue: hueFor(
+            participant
+              ? getModelVoiceKey(participant)
+              : normalizeAliasKey(ai.id || ai.alias || getDisplayName(ai)),
+          ),
           isAI: true,
         };
       }),
     ],
-    [typingUsers, typingAIs, aiParticipants],
+    [typingUsers, typingAIs, aiParticipants, hueFor],
   );
 
   // Models first: the bars should show the voices about to speak

@@ -3,8 +3,8 @@
  * naming the model and offering the way back to the main room.
  */
 
-import { useMemo } from "react";
-import { voiceStyleFor } from "@/utils/voice";
+import { useVoiceStyle } from "@/context/VoiceContext";
+import { getModelVoiceKey } from "@/utils/voice";
 import Icon from "./Icon";
 import type { AiParticipant } from "@/config/aiParticipants";
 
@@ -14,7 +14,7 @@ interface PrivateChatBannerProps {
 }
 
 const PrivateChatBanner = ({ ai, onLeave }: PrivateChatBannerProps) => {
-  const voice = useMemo(() => voiceStyleFor(ai?.provider ?? ai?.name), [ai]);
+  const voice = useVoiceStyle(ai ? getModelVoiceKey(ai) : null);
 
   return (
     <div
