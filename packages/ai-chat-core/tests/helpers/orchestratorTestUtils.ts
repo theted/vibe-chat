@@ -296,15 +296,6 @@ export const createEventCollector = (
   return events;
 };
 
-export const resetEventCollector = (events: CollectedEvents) => {
-  events.aiResponses.length = 0;
-  events.sleepEvents.length = 0;
-  events.wakeEvents.length = 0;
-  events.generatingStart.length = 0;
-  events.generatingStop.length = 0;
-  events.errors.length = 0;
-};
-
 // ---------------------------------------------------------------------------
 // Message Simulation
 // ---------------------------------------------------------------------------
@@ -322,22 +313,4 @@ export const simulateUserMessage = (
     roomId,
     role: "user",
   });
-};
-
-// ---------------------------------------------------------------------------
-// Assertion Helpers
-// ---------------------------------------------------------------------------
-
-/** Assert that a room's sleep state matches the expected value. */
-export const assertSleepState = (
-  orchestrator: ChatOrchestrator,
-  expected: boolean,
-  roomId = "default",
-) => {
-  const { isAsleep } = orchestrator.getRoomAIStatus(roomId);
-  if (isAsleep !== expected) {
-    throw new Error(
-      `Expected isAsleep=${expected} in ${roomId}, got ${isAsleep}`,
-    );
-  }
 };

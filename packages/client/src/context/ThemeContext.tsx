@@ -3,7 +3,7 @@
  * Provides dark/light theme state and toggle helper.
  */
 
-import { createContext, useContext } from "react";
+import { createContext } from "react";
 import type { ThemeContextValue } from "@/types";
 
 export const ThemeContext = createContext<ThemeContextValue>({
@@ -11,5 +11,3 @@ export const ThemeContext = createContext<ThemeContextValue>({
   setTheme: () => {},
   toggleTheme: () => {},
 });
-
-export const useTheme = () => useContext(ThemeContext);
