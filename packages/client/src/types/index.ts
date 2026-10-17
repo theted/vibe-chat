@@ -2,7 +2,7 @@
  * Shared TypeScript type definitions for the client application
  */
 
-import type { RefObject, FormEvent } from "react";
+import type { RefObject, FormEvent, SVGProps } from "react";
 import type {
   ChatMessageBase,
   RoomAIStatusPayload,
@@ -312,7 +312,11 @@ export type IconName =
   | "tag"
   | "contrast";
 
-export interface IconProps {
+// Any other SVG attribute (onClick, aria-*, data-*) is passed through to <svg>
+export interface IconProps extends Omit<
+  SVGProps<SVGSVGElement>,
+  "name" | "strokeWidth"
+> {
   name?: IconName;
   className?: string;
   strokeWidth?: number;
