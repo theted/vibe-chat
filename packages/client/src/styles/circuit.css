@@ -1,0 +1,151 @@
+/*
+ * Circuit look: the logo mark and the trace backdrop (CircuitBackdrop.tsx,
+ * LogoMark.tsx). Colours come from the --circuit* tokens in index.css.
+ */
+
+@layer components {
+  /* ── Logo: a V of two traces, glowing like the board behind it ── */
+  .logo-mark {
+    width: 26px;
+    height: 26px;
+    overflow: visible;
+    color: var(--circuit-bright);
+    filter: drop-shadow(0 0 1px var(--circuit-glow))
+      drop-shadow(0 0 5px var(--circuit-glow));
+  }
+  .logo-mark path,
+  .logo-mark circle {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .logo-mark circle {
+    stroke-width: 2;
+  }
+  /* Loader: a signal in a voice colour runs down one arm and up the other */
+  .logo-mark .logo-signal {
+    stroke: oklch(var(--voice-l) var(--voice-c) var(--voice-h));
+    stroke-width: 3.4;
+    stroke-dasharray: 16 200;
+    stroke-dashoffset: 16;
+    animation: logoSignal 1.4s cubic-bezier(0.45, 0, 0.35, 1) infinite;
+  }
+  @keyframes logoSignal {
+    to {
+      stroke-dashoffset: -100;
+    }
+  }
+
+  /* ── Backdrop: traces in from both edges, faded before the text ── */
+  .circuit-backdrop {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+    contain: strict;
+  }
+  .circuit-side {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    aspect-ratio: 560 / 1000;
+    max-width: 44%;
+    opacity: var(--circuit-opacity);
+    /* Fade toward the transcript, and clear of the header and composer */
+    mask-image:
+      linear-gradient(var(--fade-to), black 10%, transparent 72%),
+      linear-gradient(
+        to bottom,
+        transparent 40px,
+        black 180px,
+        black calc(100% - 260px),
+        transparent calc(100% - 110px)
+      );
+    mask-composite: intersect;
+  }
+  .circuit-side-left {
+    left: 0;
+    --fade-to: to right;
+  }
+  .circuit-side-right {
+    right: 0;
+    --fade-to: to left;
+  }
+  .circuit-side > svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+  .circuit-board {
+    filter: drop-shadow(0 0 3px var(--circuit-glow));
+  }
+  .circuit-trace,
+  .circuit-pad {
+    fill: none;
+    stroke: var(--circuit);
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  /* Own compositing layer: pulses repaint without touching the board */
+  .circuit-signals {
+    will-change: transform;
+  }
+  .circuit-pulse path {
+    fill: none;
+    stroke: oklch(var(--voice-l) var(--voice-c) var(--pulse-h));
+    stroke-linecap: round;
+    stroke-dasharray: 7 200;
+    stroke-dashoffset: 7;
+    animation: circuitPulse var(--pulse-cycle) linear var(--pulse-delay)
+      infinite;
+  }
+  .circuit-pulse .circuit-pulse-core {
+    stroke-width: 2.6;
+  }
+  /* A wide faint copy instead of a blur filter keeps each frame cheap */
+  .circuit-pulse .circuit-pulse-halo {
+    stroke-width: 9;
+    opacity: 0.25;
+  }
+  /* Crosses its trace in the first third of the cycle, then rests */
+  @keyframes circuitPulse {
+    32%,
+    to {
+      stroke-dashoffset: -100;
+    }
+  }
+
+  /* Hidden overlays keep their markup for the fade but stop ticking */
+  .circuit-paused :is(.circuit-pulse path, .logo-signal) {
+    animation-play-state: paused;
+  }
+
+  /* On a phone the traces sit behind the text, so they step right back */
+  @media (max-width: 640px) {
+    .circuit-side {
+      opacity: calc(var(--circuit-opacity) * 0.5);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .circuit-signals {
+      display: none;
+    }
+    .logo-mark .logo-signal {
+      animation: logoSignalCalm 2.4s ease-in-out infinite;
+      stroke-dasharray: none;
+      opacity: 0;
+    }
+    @keyframes logoSignalCalm {
+      50% {
+        opacity: 0.8;
+      }
+    }
+  }
+}
