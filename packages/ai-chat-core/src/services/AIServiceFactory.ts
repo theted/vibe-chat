@@ -58,9 +58,8 @@ const OPENROUTER_PROVIDERS = [
 ];
 
 // Gemini, Kimi, Mistral, Perplexity and Qwen moved here on 2026-10-13 because
-// their direct keys fail (see each provider file). GeminiService,
-// MistralService and PerplexityService stay exported for switching back; the
-// workarounds the last two carry aren't needed through OpenRouter.
+// their direct keys fail (see each provider file). Their dedicated services
+// were deleted on 2026-10-15; git history has them if a direct key comes back.
 
 export class AIServiceFactory {
   private static serviceRegistry: Record<string, ServiceConstructor> = {

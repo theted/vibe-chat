@@ -1,320 +1,129 @@
-# AI Chat
+# Vibe Chat
 
-A real-time web chat application that enables multi-AI conversations. Different AI models can engage in conversations with each other or respond to user prompts.
+A real-time group chat where people and many AI models talk together. Models answer users, each other and `@mentions`, paced so a room stays readable.
 
 ## Features
 
-- Real-time Socket.IO group chat with many AI models
-- Support for multiple AI providers (OpenAI, Anthropic, Mistral, Gemini, DeepSeek, Grok, Cohere, Kimi, Z.ai, Qwen, Meta, and more)
+- Real-time Socket.IO group chat with 150+ active models from 40+ providers
+- Direct APIs for OpenAI, Anthropic, xAI Grok, DeepSeek, Cohere, Meta Llama and Z.ai; everything else (Gemini, Mistral, Qwen, Kimi, Perplexity and ~30 more labs) through OpenRouter with a single key
+- Private 1-on-1 rooms with any model, plus a dashboard of live metrics
 - Built-in `@Chat` assistant: a Claude agent that searches this codebase (Chroma RAG), searches the web and browses pages, so humans and AIs can ask how the app works. The code index doubles as an MCP server for Claude Code
-- Conversation logging and history
-- Extensible architecture for adding new AI providers
-
-> **Note:** A CLI tool for scripted/headless conversations is also available. See [packages/ai-chat-cli/README.md](packages/ai-chat-cli/README.md) for documentation.
+- A CLI for scripted AI-to-AI conversations, see [packages/ai-chat-cli/README.md](packages/ai-chat-cli/README.md)
 
 ## Project Structure
 
 ```
-ai-chat/
+vibe-chat/
 ├── packages/
-│   ├── ai-configs/       # Centralized AI model configurations, emojis, metadata
-│   ├── ai-chat-core/     # Core library: orchestrator, AI services, utilities
+│   ├── ai-configs/       # Participants, mention aliases, emojis, shared wire types
+│   ├── ai-chat-core/     # Orchestrator, AI services, provider/model registry
 │   ├── ai-chat-cli/      # Command-line interface for AI conversations
 │   ├── mcp-assistant/    # @Chat agent + codebase MCP server
-│   ├── client/           # React frontend (web app)
-│   └── server/           # WebSocket/Express backend (real-time chat)
-├── docker-compose.yml          # Production Docker setup
-├── docker-compose.dev.yml      # Development Docker setup
-├── docker-compose.prod.yml     # Production-optimized Docker setup
-├── .env.example                # Environment variable template
-└── package.json                # Root workspace configuration
+│   ├── client/           # React frontend (Vite)
+│   └── server/           # Express + Socket.IO backend
+├── docker-compose.base.yml     # Shared services; combine with one override:
+├── docker-compose.*.yml        #   dev, prod, debug, ec2 (production), e2e
+├── deploy/                     # EC2 setup script and nginx configs
+├── scripts/                    # Model registry validator, build helpers
+├── start.sh                    # Interactive Docker startup
+└── .env.example                # Environment variable template
 ```
-
-## Prerequisites
-
-- Bun (v1.2 or higher)
-- API keys for the AI providers you want to use
-- Docker (optional, for containerized deployment)
 
 ## Setup
 
-1. Clone the repository:
-
-   ```bash
-   git clone https://github.com/theted/vibe-chat.git
-   cd ai-chat
-   ```
-
-2. Install dependencies:
-
-   ```bash
-   bun install
-   ```
-
-3. Create a `.env` file based on `.env.example` and add your API keys:
-
-   ```bash
-   cp .env.example .env
-   # Edit .env and add your API keys
-   ```
-
-4. Build the packages:
-   ```bash
-   bun run build
-   ```
-
-## Usage
-
-### Development Server
+Requires [Bun](https://bun.sh) (the version in `package.json` `packageManager`), and Docker for the containerized setup.
 
 ```bash
-# Using Docker (recommended)
+git clone https://github.com/theted/vibe-chat.git
+cd vibe-chat
+bun install
+cp .env.example .env   # then add the API keys you have
+bun run build
+```
+
+Models whose API key is missing are skipped, so one key is enough to start. `OPENROUTER_API_KEY` alone unlocks most of them.
+
+## Running
+
+```bash
+# Docker: pick dev (live reload), prod or debug; detects an existing Redis/Chroma
+./start.sh
+
+# Or directly
 bun run docker:dev
 
-# Or run individually
-bun run --filter @ai-chat/server dev
+# Without Docker (needs `bun run build` first; Redis and Chroma optional)
+bun run --filter @ai-chat/server dev   # reads the root .env
 bun run --filter @ai-chat/client dev
 ```
 
 The client runs on `http://localhost:3000` and the server on `http://localhost:3001`.
 
-### Docker Commands
-
 ```bash
-bun run docker:dev    # Development with live reload
-bun run docker:prod   # Production build
-bun run docker:clean  # Clean up containers and volumes
+bun run docker:prod   # Production build behind the bundled nginx
+bun run docker:debug  # Simple static client for troubleshooting
+bun run docker:clean  # Remove containers and volumes
 ```
 
-## Supported Providers and Models
+Production runs on one EC2 instance (`docker-compose.ec2.yml`) with the frontend on S3 + CloudFront. Pushes to master deploy once CI passes (`.github/workflows/deploy-ec2.yml`).
 
-Current defaults and IDs (see `packages/ai-chat-core/src/config/aiProviders`):
+## Models
 
-> Models marked with `(default)` are the provider default. Models are controlled via `participants.ts` (status) and `ENABLED_AI_MODELS` in the server config. See `AGENTS.md` for model management guidelines.
+The registry lives in code. See [AGENTS.md](AGENTS.md) for the full rules.
 
-### OpenAI ([API keys](https://platform.openai.com/api-keys))
+- **Provider and model IDs**: `packages/ai-chat-core/src/config/aiProviders/providers/<provider>.ts`
+- **Which models are active**: participant `status` in `packages/ai-configs/src/participants.ts`
+- **Mention aliases** (`@gemini`, `@claude`, …): `packages/ai-configs/src/lookups.ts`
+- **Server-only disable**: `DISABLED_AI_MODELS=ID1,ID2` in `.env`
 
-- `GPT5_2` (default) -> `gpt-5.2` (flagship reasoning)
-- `GPT5_2_PRO` -> `gpt-5.2-pro` (extended compute)
-- `GPT5_MINI` -> `gpt-5-mini` (fast brainstorming)
-- `GPT5_NANO` -> `gpt-5-nano` (lightweight)
-- `GPT4O` -> `gpt-4o`
-- `GPT4_1` -> `gpt-4.1` (specialized for coding)
-- `O3` -> `o3` (intelligent reasoning)
-- `O4_MINI` -> `o4-mini` (fast reasoning for math/coding)
+On startup every active model loads immediately and is health-checked in the background; failures drop out live and results are cached in `model-health.json` for 24 hours (`./start.sh --recheck-availability` ignores the cache).
 
-### Anthropic ([API keys](https://console.anthropic.com/settings/keys))
+```bash
+bun run validate:models        # Registry consistency (runs in CI)
+bun run validate:models:live   # Also checks every OpenRouter ID against the live catalog
+```
 
-- `CLAUDE_FABLE_5_1` -> `claude-fable-5-1` (most capable, priciest)
-- `CLAUDE_OPUS_5_5` (default) -> `claude-opus-5-5` (recommended for most work)
-- `CLAUDE_SONNET_5_5` -> `claude-sonnet-5-5` (speed + intelligence)
-- `CLAUDE_HAIKU_5_5` -> `claude-haiku-5-5` (fastest, cheapest)
-- Legacy, still served: Opus 5, Sonnet 5, Opus 4.8/4.7/4.6, Sonnet 4.6, Sonnet 4.5 (retires 2026-11-30), Haiku 4.5
+In Claude Code, the `/update-ai-models` skill researches new releases and updates the registry.
 
-### Mistral ([API keys](https://console.mistral.ai/api-keys))
+### Adding a provider
 
-- `MISTRAL_LARGE` (default) -> `mistral-large-latest` (Mistral Large 3, MoE 41B active)
-- `MISTRAL_MEDIUM` -> `mistral-medium-2508`
-- `MISTRAL_SMALL` -> `mistral-small-2503`
-- `CODESTRAL` -> `codestral-latest`
-- `DEVSTRAL` -> `devstral-latest` (agentic coding)
-- `DEVSTRAL_SMALL` -> `devstral-small-2-25-12` (24B coding)
+For a lab on OpenRouter, no service code is needed:
 
-### Gemini ([API keys](https://aistudio.google.com/app/apikey))
+1. Add `providers/<name>.ts` with `apiKeyEnvVar: "OPENROUTER_API_KEY"`, and register it in `aiProviders/index.ts` (`AI_PROVIDERS`) and `aiProviders/defaults.ts`
+2. Add it to `OPENROUTER_PROVIDERS` in `packages/ai-chat-core/src/services/AIServiceFactory.ts` and to `PROVIDER_ENV_VARS` in `packages/server/src/config/aiModels.ts`
+3. Add participants and mention aliases in `packages/ai-configs`
+4. Run `bun run validate:models:live`
 
-- `GEMINI_3_PRO` (default) -> `gemini-3-pro-preview` (reasoning + agentic)
-- `GEMINI_3_FLASH` -> `gemini-3-flash-preview`
-- `GEMINI_2_5_PRO` -> `gemini-2.5-pro`
-- `GEMINI_2_5_FLASH` -> `gemini-2.5-flash`
-- `GEMINI_2_5_FLASH_LITE` -> `gemini-2.5-flash-lite`
-
-### DeepSeek ([API keys](https://platform.deepseek.com/api_keys))
-
-- `DEEPSEEK_CHAT` (default) -> `deepseek-chat` (V3.1)
-- `DEEPSEEK_R1` -> `deepseek-reasoner`
-
-### Grok ([API keys](https://console.x.ai/keys))
-
-- `GROK_4_0709` (default) -> `grok-4-0709` (256K context)
-- `GROK_4_FAST_NON_REASONING` -> `grok-4-fast-non-reasoning` (2M context)
-- `GROK_4_FAST_REASONING` -> `grok-4-fast-reasoning` (2M context)
-- `GROK_4_HEAVY` -> `grok-4-heavy`
-- `GROK_4_1_FAST_NON_REASONING` -> `grok-4-1-fast-non-reasoning` (2M context)
-- `GROK_4_1_FAST_REASONING` -> `grok-4-1-fast-reasoning` (2M context)
-- `GROK_3` -> `grok-3`
-- `GROK_CODE_FAST_1` -> `grok-code-fast-1` (agentic coding)
-
-### Cohere ([API keys](https://dashboard.cohere.com/api-keys))
-
-- `COMMAND_A_03_2025` (default) -> `command-a-03-2025`
-- `COMMAND_A_REASONING_08_2025` -> `command-a-reasoning-08-2025`
-- `COMMAND_A_TRANSLATE_08_2025` -> `command-a-translate-08-2025`
-- `COMMAND_R_PLUS_08_2024` -> `command-r-plus-08-2024`
-- `COMMAND_R_08_2024` -> `command-r-08-2024`
-
-### Z.ai ([API keys](https://z.ai/manage-apikey/apikey-list))
-
-- `ZAI_GLM_4_7` -> `glm-4.7` (flagship, 200K context)
-- `ZAI_GLM_4_7_FLASH` -> `glm-4.7-flash`
-- `ZAI_GLM_4_7V` -> `glm-4.7v` (vision)
-- `ZAI_GLM_4_6` -> `glm-4.6`
-- `ZAI_DEFAULT` (default) -> configurable via `Z_MODEL_ID` env var
-
-### Kimi (Moonshot) ([API keys](https://platform.moonshot.ai/console/api-keys))
-
-- `KIMI_K2_5` (default) -> `kimi-k2.5` (1T MoE, multimodal)
-- `KIMI_LATEST` -> `kimi-latest`
-- `KIMI_THINKING_PREVIEW` -> `kimi-thinking-preview`
-
-### Perplexity ([API keys](https://docs.perplexity.ai))
-
-- `SONAR_PRO` (default) -> `sonar-pro` (deep retrieval, 200K context)
-- `SONAR` -> `sonar` (lightweight search)
-- `SONAR_REASONING_PRO` -> `sonar-reasoning-pro`
-- `SONAR_DEEP_RESEARCH` -> `sonar-deep-research`
-
-### Qwen/Alibaba ([API keys](https://dashscope.console.aliyun.com))
-
-- `QWEN3_MAX` (default) -> `qwen3-max`
-- `QWEN3_235B` -> `qwen3-235b-a22b`
-- `QWEN3_CODER_PLUS` -> `qwen3-coder-plus`
-- `QWEN_PLUS` -> `qwen-plus-latest`
-
-### Meta (Llama)
-
-Uses the Llama API OpenAI-compatible endpoint (default `https://api.llama.com/compat/v1`).
-
-- `LLAMA_3_3_70B_INSTRUCT` -> `meta-llama/llama-3.3-70b-instruct`
-- `LLAMA_3_3_70B_INSTRUCT_FREE` -> `meta-llama/llama-3.3-70b-instruct:free`
-- `LLAMA_4_MAVERICK` -> `meta-llama/llama-4-maverick`
-- `LLAMA_4_SCOUT` -> `meta-llama/llama-4-scout`
-
-### OpenRouter (Amazon, NVIDIA, Xiaomi, MiniMax, Baidu, ByteDance, Hugging Face) ([API keys](https://openrouter.ai/keys))
-
-These providers are accessed through OpenRouter's OpenAI-compatible API. Create an OpenRouter account, generate an API key from the Keys page, and set `OPENROUTER_API_KEY` to unlock all models below.
-
-#### Amazon
-
-- `NOVA_2_LITE_V1` -> `amazon/nova-2-lite-v1`
-- `NOVA_PRO_V1` -> `amazon/nova-pro-v1`
-
-#### NVIDIA
-
-- `NEMOTRON_3_NANO_30B_A3B` -> `nvidia/nemotron-3-nano-30b-a3b`
-- `NEMOTRON_3_NANO_30B_A3B_FREE` -> `nvidia/nemotron-3-nano-30b-a3b:free`
-- `NEMOTRON_3_NANO_2_VL` -> `nvidia/nemotron-3-nano-2-vl`
-
-#### Xiaomi
-
-- `MIMO_V2_FLASH` -> `xiaomi/mimo-v2-flash`
-
-#### MiniMax
-
-- `MINIMAX_M2_1` -> `minimax/minimax-m2.1`
-- `MINIMAX_M2` -> `minimax/minimax-m2`
-- `MINIMAX_M1` -> `minimax/minimax-m1`
-
-#### Baidu
-
-- `ERNIE_4_5_21B_A3B_THINKING` -> `baidu/ernie-4.5-21b-a3b-thinking`
-- `ERNIE_4_5_21B_A3B` -> `baidu/ernie-4.5-21b-a3b`
-- `ERNIE_4_5_300B_A47B` -> `baidu/ernie-4.5-300b-a47b`
-
-#### ByteDance
-
-- `SEED_1_6_FLASH` -> `bytedance/seed-1.6-flash`
-- `SEED_1_6` -> `bytedance/seed-1.6`
-
-#### Hugging Face
-
-- `ZEPHYR_141B_A35B` -> `huggingface/zephyr-141b-a35b`
-- `ZEPHYR_7B_BETA` -> `huggingface/zephyr-7b-beta`
+A direct OpenAI-compatible API is one `openAICompatibleServiceClass(...)` entry in the factory plus a base URL in `aiProviders/constants.ts`. Only providers with custom behavior get their own service class.
 
 ## Environment Variables
 
-Define these in `.env` (see `.env.example`):
+`.env.example` lists every variable the code reads, with defaults. The main groups:
 
-### Required (by provider you use)
+- **API keys**: `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GROK_API_KEY`, `DEEPSEEK_API_KEY`, `COHERE_API_KEY`, `LLAMA_API_KEY`, `Z_API_KEY`, `OPENROUTER_API_KEY`
+- **Server**: `PORT`, `CLIENT_URL`, `REDIS_URL`, health-check flags (`AI_CHAT_SKIP_HEALTHCHECK`, `AI_CHAT_RECHECK_AVAILABILITY`, `AI_CHAT_HEALTH_TTL_MS`), `DISABLED_AI_MODELS`
+- **@Chat**: `CHROMA_URL`, `CHAT_ASSISTANT_*`, and one embeddings key (`MISTRAL_API_KEY` by default)
+- **Client** (`packages/client/.env.example`): `VITE_SERVER_URL` and friends
 
-- `OPENAI_API_KEY`
-- `ANTHROPIC_API_KEY`
-- `GOOGLE_AI_API_KEY` (Gemini)
-- `MISTRAL_API_KEY`
-- `DEEPSEEK_API_KEY`
-- `GROK_API_KEY`
-- `COHERE_API_KEY`
-- `QWEN_API_KEY`
-- `KIMI_API_KEY`
-- `LLAMA_API_KEY`
-- `Z_API_KEY`
-- `TOGETHER_API_KEY`
-- `OPENROUTER_API_KEY` (Amazon, NVIDIA, Xiaomi, MiniMax, Baidu, ByteDance, Hugging Face)
+## @Chat
 
-### Server Configuration
-
-- `PORT` (default `3001`)
-- `CLIENT_URL` (default `http://localhost:3000`)
-- `REDIS_URL` (default `redis://localhost:6379`)
-
-### Server Behavior Flags
-
-- `AI_CHAT_VERBOSE_CONTEXT` (default `false`)
-- `AI_CHAT_SKIP_HEALTHCHECK` (default `false`)
-
-### Optional Base URLs
-
-- `QWEN_BASE_URL` (e.g. `https://dashscope.aliyuncs.com/compatible-mode/v1`)
-- `KIMI_BASE_URL` (default `https://api.moonshot.ai/v1`)
-- `Z_BASE_URL` or `ZAI_BASE_URL` (default `https://api.z.ai/v1`)
-- `COHERE_BASE_URL` (default `https://api.cohere.ai/v1`)
-- `TOGETHER_BASE_URL` (default `https://api.together.xyz/v1`)
-
-### Optional OpenRouter Metadata
-
-- `OPENROUTER_APP_NAME` (displayed in OpenRouter dashboard)
-- `OPENROUTER_APP_URL` (sent as HTTP referer)
+```bash
+bun run chat:index   # Build the code index in Chroma
+bun run chat:ask "How are mentions routed?"
+bun run chat:mcp     # The index as a stdio MCP server (wired up in .mcp.json)
+```
 
 ## Tests
 
-Integration tests verify each provider returns expected responses. They skip automatically if the API key is not set.
-
 ```bash
-# Run all tests
-bun run test
-
-# Run specific workspace tests
-bun run test:core
-bun run test:client
-bun run test:cli
-
-# Run provider-specific tests
-bun run test:openai
-bun run test:anthropic
-bun run test:mistral
-bun run test:gemini
-bun run test:deepseek
-bun run test:grok
-bun run test:all
+bun run test                   # All package tests (also test:core, test:server, …)
+bun run lint                   # ESLint over the whole repo
+bun run format                 # Prettier check (format:fix to write)
+bun run test:e2e               # CodeceptJS against a running stack on :3000
+bun run test:live grok qwen    # Ping every active model of these providers (all keyed ones if none given; --all adds parked models)
 ```
 
-## Extending the Project
-
-### Adding a New AI Provider
-
-1. Create a new service class in `packages/ai-chat-core/src/services/` that extends `BaseAIService`
-2. Add provider configuration to `packages/ai-chat-core/src/config/aiProviders/providers/`
-3. Export from `packages/ai-chat-core/src/index.ts`
-4. Add participant config to `packages/ai-configs/src/`
-
-### Package Scripts
-
-```bash
-bun run build:core    # Build core library
-bun run build:cli     # Build CLI (includes core)
-bun run build:server  # Build server
-bun run build:client  # Build client
-bun run build         # Build all packages
-```
+CI runs build, lint, format, `validate:models` and tests on every PR. `test:live` calls the real APIs, so it costs a few tokens per model and stays out of CI.
 
 ## License
 
@@ -322,4 +131,4 @@ MIT
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Pull requests are welcome. [AGENTS.md](AGENTS.md) has the conventions.

@@ -618,12 +618,13 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     status: "active",
     emoji: "🔧",
   },
+  // Parked 2026-10-15: Z.ai answers 400 "Unknown Model" for glm-4.7v
   {
     id: "ZAI_ZAI_GLM_4_7V",
     name: "GLM-4.7V",
     alias: "glm-4.7v",
     provider: "Z.ai",
-    status: "active",
+    status: "inactive",
     emoji: "🛠️",
   },
   {
@@ -674,12 +675,13 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     status: "active",
     emoji: "🧲",
   },
+  // Parked 2026-10-15: Z.ai answers 400 "Unknown Model" for glm-4.5-long
   {
     id: "ZAI_ZAI_GLM_4_5_LONG",
     name: "GLM-4.5-Long",
     alias: "glm-4.5-long",
     provider: "Z.ai",
-    status: "active",
+    status: "inactive",
     emoji: "📏",
   },
   {
@@ -780,12 +782,13 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     status: "active",
     emoji: "📈",
   },
+  // Parked 2026-10-15: replies only in reasoning, with empty content
   {
     id: "MINIMAX_MINIMAX_M1",
     name: "MiniMax M1",
     alias: "minimax-m1",
     provider: "MiniMax",
-    status: "active",
+    status: "inactive",
     emoji: "📉",
   },
 
@@ -1078,12 +1081,13 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     status: "active",
     emoji: "🌻",
   },
+  // Parked 2026-10-15: Bedrock retired it ("reached the end of its life")
   {
     id: "AMAZON_NOVA_PREMIER_V1",
     name: "Nova Premier",
     alias: "nova-premier",
     provider: "Amazon",
-    status: "active",
+    status: "inactive",
     emoji: "🦋",
   },
   {

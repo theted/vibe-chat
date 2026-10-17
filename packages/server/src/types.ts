@@ -1,6 +1,4 @@
-import type { ChatMessageBase, WireSenderType } from "@ai-chat/ai-configs";
-
-export type SenderType = WireSenderType;
+import type { ChatMessageBase } from "@ai-chat/ai-configs";
 
 // Shared wire fields come from ChatMessageBase; the rest is server-internal
 export type ChatMessage = ChatMessageBase & {

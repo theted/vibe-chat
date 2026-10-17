@@ -1,6 +1,9 @@
-node_modules
+**/node_modules
 npm-debug.log
-dist
+**/dist
+.turbo
+# Local worktrees are full repo copies (node_modules included)
+.claude/worktrees
 .git
 .github
 # Root *.md docs (README, AGENTS.md) stay in: @Chat indexes them to answer
@@ -10,7 +13,3 @@ tests
 **/*.test.tsx
 .env*
 !.env.example
-ai-chat-realtime/packages/client/node_modules
-ai-chat-realtime/packages/client/dist
-ai-chat-realtime/packages/server/node_modules
-ai-chat-realtime/packages/server/public

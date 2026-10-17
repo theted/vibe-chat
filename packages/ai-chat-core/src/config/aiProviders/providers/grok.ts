@@ -52,6 +52,9 @@ export const GROK: AIProvider = {
       id: "grok-4.20-multi-agent-0309",
       maxTokens: DEFAULT_MAX_TOKENS,
       temperature: 0.9,
+      // xAI rejects multi-agent on chat completions ("Multi Agent requests are
+      // not allowed on chat completions"); its Responses API serves it
+      useResponsesApi: true,
       systemPrompt:
         "You are Grok 4.20 Multi-Agent by xAI, leveraging multi-agent architecture for complex problem-solving. Greet briefly, then deliver bold, structured insights with a mischievous edge.",
     },

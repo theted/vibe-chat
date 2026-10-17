@@ -7,8 +7,8 @@ Command-line interface for multi-AI conversations. Enables scripted/headless con
 From the root of the monorepo:
 
 ```bash
-pnpm install
-pnpm run build:cli
+bun install
+bun run build:cli
 ```
 
 ## Usage
@@ -18,20 +18,20 @@ pnpm run build:cli
 Start conversations between two AI providers:
 
 ```bash
-pnpm run cli [provider[:MODEL]] [provider[:MODEL]] [topic] [maxTurns]
+bun run cli [provider[:MODEL]] [provider[:MODEL]] [topic] [maxTurns]
 ```
 
 **Examples:**
 
 ```bash
 # Basic conversation
-pnpm run cli openai anthropic "Discuss the future of AI"
+bun run cli openai anthropic "Discuss the future of AI"
 
 # Specify models
-pnpm run cli mistral:MISTRAL_SMALL grok:GROK_3_MINI openai:GPT4O "Be sarcastic about love"
+bun run cli mistral:MISTRAL_SMALL grok:GROK_4_7 openai:GPT6_LUNA "Be sarcastic about love"
 
 # Set conversation length
-pnpm run cli grok gemini "Nature of consciousness?" 8
+bun run cli grok gemini "Nature of consciousness?" 8
 ```
 
 ### Single Prompt Mode
@@ -39,7 +39,7 @@ pnpm run cli grok gemini "Nature of consciousness?" 8
 Get a single response from one or more providers:
 
 ```bash
-pnpm run cli gemini grok "What is your favorite book?"
+bun run cli gemini grok "What is your favorite book?"
 ```
 
 ### Provider Aliases
@@ -142,34 +142,23 @@ The CLI supports all providers configured in `@ai-chat/core`. See the main proje
 
 ### Required API Keys
 
-Set these in your `.env` file (only needed for providers you use):
+Set these in the root `.env` (only for the providers you use; `.env.example` has the full list):
 
-- `OPENAI_API_KEY`
-- `ANTHROPIC_API_KEY`
-- `GOOGLE_AI_API_KEY` (Gemini)
-- `MISTRAL_API_KEY`
-- `DEEPSEEK_API_KEY`
-- `GROK_API_KEY`
-- `COHERE_API_KEY`
-- `QWEN_API_KEY`
-- `KIMI_API_KEY`
-- `LLAMA_API_KEY`
-- `Z_API_KEY`
-- `TOGETHER_API_KEY`
-- `OPENROUTER_API_KEY` (Amazon, NVIDIA, Xiaomi, MiniMax, Baidu, ByteDance, Hugging Face)
+- `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GROK_API_KEY`, `DEEPSEEK_API_KEY`, `COHERE_API_KEY`, `LLAMA_API_KEY`, `Z_API_KEY` for the direct APIs
+- `OPENROUTER_API_KEY` for everything else, including Gemini, Mistral, Qwen, Kimi and Perplexity
 
 ## Development
 
 ### Build
 
 ```bash
-pnpm run build:cli
+bun run build:cli
 ```
 
 ### Tests
 
 ```bash
-pnpm run test:cli
+bun run test:cli
 ```
 
 ### Project Structure

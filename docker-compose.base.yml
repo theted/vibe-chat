@@ -5,10 +5,10 @@
 #   docker compose -f docker-compose.base.yml -f docker-compose.prod.yml up
 #   docker compose -f docker-compose.base.yml -f docker-compose.ec2.yml up
 #   docker compose -f docker-compose.base.yml -f docker-compose.debug.yml up
+#   docker compose -f docker-compose.base.yml -f docker-compose.e2e.yml up
 #
 # Overrides own anything environment-specific: container names, published
 # ports vs expose, redis/chroma profiles, NODE_ENV, extra volumes, logging.
-# (docker-compose.yml remains a self-contained file for the e2e workflow.)
 
 services:
   redis:
@@ -58,18 +58,17 @@ services:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
       - GROK_API_KEY=${GROK_API_KEY}
+      # Gemini and Mistral chat run through OpenRouter; these two keys only
+      # feed @Chat's embeddings
       - GOOGLE_AI_API_KEY=${GOOGLE_AI_API_KEY}
       - MISTRAL_API_KEY=${MISTRAL_API_KEY}
       - COHERE_API_KEY=${COHERE_API_KEY}
       - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
-      - QWEN_API_KEY=${QWEN_API_KEY}
-      - KIMI_API_KEY=${KIMI_API_KEY}
       - Z_API_KEY=${Z_API_KEY}
       - LLAMA_API_KEY=${LLAMA_API_KEY}
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
       - OPENROUTER_APP_NAME=${OPENROUTER_APP_NAME:-}
       - OPENROUTER_APP_URL=${OPENROUTER_APP_URL:-}
-      - PERPLEXITY_API_KEY=${PERPLEXITY_API_KEY}
       - AI_CHAT_VERBOSE_CONTEXT=${AI_CHAT_VERBOSE_CONTEXT:-false}
       - AI_CHAT_SKIP_HEALTHCHECK=${AI_CHAT_SKIP_HEALTHCHECK:-false}
       - AI_CHAT_RECHECK_AVAILABILITY=${AI_CHAT_RECHECK_AVAILABILITY:-false}

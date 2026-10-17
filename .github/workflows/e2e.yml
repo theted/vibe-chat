@@ -26,14 +26,14 @@ jobs:
 
       - name: Build and start application stack
         env:
-          COMPOSE_FILE: docker-compose.yml
+          COMPOSE_FILE: docker-compose.base.yml:docker-compose.e2e.yml
         run: docker compose up -d --build
 
       - name: Wait for application readiness
         env:
           HEALTH_URL: http://localhost:3001/health
           CLIENT_URL: http://localhost:3000
-          COMPOSE_FILE: docker-compose.yml
+          COMPOSE_FILE: docker-compose.base.yml:docker-compose.e2e.yml
         run: |
           set -euo pipefail
 
@@ -65,5 +65,5 @@ jobs:
       - name: Stop application stack
         if: always()
         env:
-          COMPOSE_FILE: docker-compose.yml
+          COMPOSE_FILE: docker-compose.base.yml:docker-compose.e2e.yml
         run: docker compose down -v

@@ -44,7 +44,7 @@ If you add new folders, extend this list so future contributors (and agents) sta
 
 ## AI model management
 
-This project supports 28+ AI providers (including OpenRouter-based providers). Model lifecycle is controlled by **participant status** as the single source of truth — there is no hand-maintained allowlist to keep in sync.
+This project supports 40+ AI providers: seven direct APIs, and the rest through OpenRouter. Model lifecycle is controlled by **participant status** as the single source of truth — there is no hand-maintained allowlist to keep in sync.
 
 ### How model activation works
 
