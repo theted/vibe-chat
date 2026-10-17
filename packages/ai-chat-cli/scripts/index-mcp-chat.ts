@@ -127,7 +127,7 @@ const main = async (): Promise<void> => {
   } catch (error) {
     if (getErrorCode(error) === MCP_ERROR_CODES.VECTOR_STORE_UNAVAILABLE) {
       console.error(
-        `index-mcp-chat: Unable to reach Chroma at ${chromaUrl}. Start the vector store (e.g. 'docker compose up chroma') or set CHROMA_URL before retrying.`,
+        `index-mcp-chat: Unable to reach Chroma at ${chromaUrl}. Start the vector store (e.g. 'bun run docker:dev') or set CHROMA_URL before retrying.`,
       );
     } else {
       console.error(`index-mcp-chat failed: ${getErrorMessage(error)}`);
