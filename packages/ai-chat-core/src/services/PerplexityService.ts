@@ -7,7 +7,10 @@
 
 import { OpenAICompatibleService } from "./base/OpenAICompatibleService.js";
 import { PROVIDER_BASE_URLS } from "@/config/aiProviders/constants.js";
-import type { OpenAIClient, OpenAICompletionRequest } from "@/types/services.js";
+import type {
+  OpenAIClient,
+  OpenAICompletionRequest,
+} from "@/types/services.js";
 import type {
   AIServiceConfig,
   OpenAIMessage,
@@ -26,7 +29,8 @@ export class PerplexityService extends OpenAICompatibleService {
   ): OpenAIClient {
     return new OpenAI({
       apiKey,
-      baseURL: options?.baseURL || this.getBaseURL() || PROVIDER_BASE_URLS.PERPLEXITY,
+      baseURL:
+        options?.baseURL || this.getBaseURL() || PROVIDER_BASE_URLS.PERPLEXITY,
     }) as OpenAIClient;
   }
 

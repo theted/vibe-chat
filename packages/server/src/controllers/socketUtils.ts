@@ -113,8 +113,10 @@ export const describeWindow = (windowMs: number): string => {
 
 /** Rounded up, so "1 minute" never turns out to be too early. */
 export const describeWait = (waitMs: number): string => {
-  if (waitMs >= 2 * HOUR_MS) return pluralize(Math.ceil(waitMs / HOUR_MS), "hour");
-  if (waitMs >= MINUTE_MS) return pluralize(Math.ceil(waitMs / MINUTE_MS), "minute");
+  if (waitMs >= 2 * HOUR_MS)
+    return pluralize(Math.ceil(waitMs / HOUR_MS), "hour");
+  if (waitMs >= MINUTE_MS)
+    return pluralize(Math.ceil(waitMs / MINUTE_MS), "minute");
   return pluralize(Math.max(Math.ceil(waitMs / 1000), 1), "second");
 };
 

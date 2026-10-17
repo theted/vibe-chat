@@ -8,7 +8,10 @@
 
 import { AIServiceFactory } from "@/services/AIServiceFactory.js";
 import type { OrchestratorAIService } from "@/utils/orchestrator/aiLookup.js";
-import { resolveTraits, type ConfiguredTraits } from "@/utils/orchestrator/traits.js";
+import {
+  resolveTraits,
+  type ConfiguredTraits,
+} from "@/utils/orchestrator/traits.js";
 import { normalizeAlias, toMentionAlias } from "@/utils/stringUtils.js";
 import { runWithConcurrencyLimit } from "@/utils/concurrency.js";
 

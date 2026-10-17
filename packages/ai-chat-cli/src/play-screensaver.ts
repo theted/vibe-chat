@@ -101,7 +101,9 @@ process.on("SIGINT", () => {
   if (process.stdin.isTTY) {
     try {
       process.stdin.setRawMode(false);
-    } catch {}
+    } catch {
+      // Already exiting; a terminal that refuses raw-mode reset changes nothing
+    }
     process.stdin.pause();
   }
   process.exit(0);

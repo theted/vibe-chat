@@ -22,10 +22,7 @@ const MentionChip = ({ text, aiParticipants }: MentionChipProps) => {
   const voice = useVoiceStyle(voiceKey);
 
   return voiceKey ? (
-    <span
-      className="mention-chip mention-chip-voice"
-      style={voice}
-    >
+    <span className="mention-chip mention-chip-voice" style={voice}>
       {text}
     </span>
   ) : (

@@ -140,7 +140,10 @@ describe("App command handling", () => {
 
     fireEvent.click(screen.getByTestId("command-clear"));
 
-    expect(emitMock).not.toHaveBeenCalledWith("user-message", expect.anything());
+    expect(emitMock).not.toHaveBeenCalledWith(
+      "user-message",
+      expect.anything(),
+    );
 
     await waitFor(() => {
       expect(screen.getByTestId("message-count")).toHaveTextContent("0");
@@ -167,10 +170,7 @@ describe("App command handling", () => {
       throw new Error("Missing OPENAI_GPT5_5 participant fixture");
     }
 
-    await joinRoomWithMessages(
-      [],
-      [gpt5Participant],
-    );
+    await joinRoomWithMessages([], [gpt5Participant]);
 
     await waitFor(() => {
       expect(screen.getByTestId("ai-count")).toHaveTextContent("1");

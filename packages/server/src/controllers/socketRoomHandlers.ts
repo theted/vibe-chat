@@ -92,7 +92,12 @@ export const handleJoinRoom = (
     });
     console.log(`${userData.username} joined room ${roomId}`);
   } catch (error) {
-    replySocketError(socket, "handling join room", error, "Failed to join room");
+    replySocketError(
+      socket,
+      "handling join room",
+      error,
+      "Failed to join room",
+    );
   }
 };
 
@@ -133,7 +138,12 @@ export const handleTopicChange = (
       `${user.username} changed topic in ${user.roomId} to: ${newTopic}`,
     );
   } catch (error) {
-    replySocketError(socket, "handling topic change", error, "Failed to change topic");
+    replySocketError(
+      socket,
+      "handling topic change",
+      error,
+      "Failed to change topic",
+    );
   }
 };
 
@@ -157,7 +167,12 @@ export const handleGetRoomInfo = (
       aiParticipants: context.getActiveAIParticipants(),
     });
   } catch (error) {
-    replySocketError(socket, "getting room info", error, "Failed to get room info");
+    replySocketError(
+      socket,
+      "getting room info",
+      error,
+      "Failed to get room info",
+    );
   }
 };
 

@@ -100,7 +100,8 @@ describe("room membership on join", () => {
     roomId: string,
     previousRoomId?: string,
   ) => {
-    if (previousRoomId && previousRoomId !== roomId) socket.leave(previousRoomId);
+    if (previousRoomId && previousRoomId !== roomId)
+      socket.leave(previousRoomId);
     socket.leave("preview");
     socket.join(roomId);
   };

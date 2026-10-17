@@ -35,13 +35,19 @@ describe("resolveMentionTarget", () => {
   it("resolves generic aliases to canonical participant aliases", () => {
     // derive from the mapping so the test survives flagship model updates
     expect(resolveMentionTarget("claude")).toBe(AI_MENTION_MAPPINGS["claude"]);
-    expect(resolveMentionTarget("chatgpt")).toBe(AI_MENTION_MAPPINGS["chatgpt"]);
+    expect(resolveMentionTarget("chatgpt")).toBe(
+      AI_MENTION_MAPPINGS["chatgpt"],
+    );
     expect(resolveMentionTarget("grok")).toBe(AI_MENTION_MAPPINGS["grok"]);
   });
 
   it("is case-insensitive and tolerates stray punctuation", () => {
-    expect(resolveMentionTarget("ChatGPT")).toBe(AI_MENTION_MAPPINGS["chatgpt"]);
-    expect(resolveMentionTarget("chatgpt,")).toBe(AI_MENTION_MAPPINGS["chatgpt"]);
+    expect(resolveMentionTarget("ChatGPT")).toBe(
+      AI_MENTION_MAPPINGS["chatgpt"],
+    );
+    expect(resolveMentionTarget("chatgpt,")).toBe(
+      AI_MENTION_MAPPINGS["chatgpt"],
+    );
     expect(resolveMentionTarget("GPT-4!")).toBe(AI_MENTION_MAPPINGS["gpt-4"]);
   });
 

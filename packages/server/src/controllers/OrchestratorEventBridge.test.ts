@@ -49,7 +49,12 @@ describe("AI status bridge", () => {
 
     orchestrator.emit(
       "ai-status-changed",
-      status({ messageCount: 10, remaining: 0, isAsleep: true, sleepReason: "message-limit-reached" }),
+      status({
+        messageCount: 10,
+        remaining: 0,
+        isAsleep: true,
+        sleepReason: "message-limit-reached",
+      }),
     );
 
     expect(sent).toEqual([

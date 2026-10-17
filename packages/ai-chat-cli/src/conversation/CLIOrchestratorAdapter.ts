@@ -24,13 +24,7 @@ import {
   normalizeAliasKey,
   DEFAULT_CONVERSATION_CONFIG,
 } from "@ai-chat/core";
-import type {
-  AIServiceConfig,
-  IAIService,
-  Message,
-  AIProvider,
-  AIModel,
-} from "@ai-chat/core";
+import type { IAIService, Message, AIProvider, AIModel } from "@ai-chat/core";
 import { statsTracker } from "../services/StatsTracker.js";
 import {
   STREAM_WORD_DELAY_MS,

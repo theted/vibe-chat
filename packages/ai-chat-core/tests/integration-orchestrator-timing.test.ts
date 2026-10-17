@@ -122,11 +122,7 @@ describe("Single user message response limit", () => {
     const earlyCount = events.aiResponses.length;
 
     // Advance fake time enough for scheduled responses to arrive
-    await tickUntil(
-      clock,
-      () => events.aiResponses.length > earlyCount,
-      5_000,
-    );
+    await tickUntil(clock, () => events.aiResponses.length > earlyCount, 5_000);
 
     expect(events.aiResponses.length).toBeGreaterThan(earlyCount);
   });

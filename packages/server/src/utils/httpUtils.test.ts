@@ -30,7 +30,9 @@ describe("getClientIp", () => {
   });
 
   it("keeps the old behaviour on an all-private network", () => {
-    const socket = socketWith({ "x-forwarded-for": "192.168.1.20, 172.18.0.1" });
+    const socket = socketWith({
+      "x-forwarded-for": "192.168.1.20, 172.18.0.1",
+    });
     expect(getClientIp(socket)).toBe("192.168.1.20");
   });
 });

@@ -103,7 +103,6 @@ export const findMentionMatches = (
   return matches;
 };
 
-
 /**
  * Voice key of the model an @mention names (shorthand aliases included), so
  * the chip can wear that model's colour. Null for people and unknowns.

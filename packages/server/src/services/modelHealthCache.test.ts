@@ -18,9 +18,10 @@ const NOW = Date.parse("2026-06-10T12:00:00.000Z");
 const at = (offsetHours: number): string =>
   new Date(NOW + offsetHours * HOUR_MS).toISOString();
 
-const cacheWith = (
-  entries: ModelHealthCache["entries"],
-): ModelHealthCache => ({ updatedAt: at(0), entries });
+const cacheWith = (entries: ModelHealthCache["entries"]): ModelHealthCache => ({
+  updatedAt: at(0),
+  entries,
+});
 
 const model = (id: string, modelId: string) => ({ id, modelId });
 
@@ -31,7 +32,11 @@ describe("classifyModels", () => {
     const cache = cacheWith({
       A_1: { modelId: "a-v1", lastSuccessAt: at(-1) },
     });
-    const { trusted, toCheck } = classifyModels([model("A_1", "a-v1")], cache, options);
+    const { trusted, toCheck } = classifyModels(
+      [model("A_1", "a-v1")],
+      cache,
+      options,
+    );
     expect(trusted.map((m) => m.id)).toEqual(["A_1"]);
     expect(toCheck).toEqual([]);
   });
@@ -40,7 +45,11 @@ describe("classifyModels", () => {
     const cache = cacheWith({
       A_1: { modelId: "a-v1", lastSuccessAt: at(-25) },
     });
-    const { trusted, toCheck } = classifyModels([model("A_1", "a-v1")], cache, options);
+    const { trusted, toCheck } = classifyModels(
+      [model("A_1", "a-v1")],
+      cache,
+      options,
+    );
     expect(trusted).toEqual([]);
     expect(toCheck.map((m) => m.id)).toEqual(["A_1"]);
   });
@@ -78,17 +87,20 @@ describe("classifyModels", () => {
     const cache = cacheWith({
       A_1: { modelId: "a-v1", lastSuccessAt: at(-1) },
     });
-    const { trusted, toCheck } = classifyModels(
-      [model("A_1", "a-v1")],
-      cache,
-      { ...options, recheckAll: true },
-    );
+    const { trusted, toCheck } = classifyModels([model("A_1", "a-v1")], cache, {
+      ...options,
+      recheckAll: true,
+    });
     expect(trusted).toEqual([]);
     expect(toCheck.map((m) => m.id)).toEqual(["A_1"]);
   });
 
   it("rechecks everything when there is no cache", () => {
-    const { trusted, toCheck } = classifyModels([model("A_1", "a-v1")], null, options);
+    const { trusted, toCheck } = classifyModels(
+      [model("A_1", "a-v1")],
+      null,
+      options,
+    );
     expect(trusted).toEqual([]);
     expect(toCheck.map((m) => m.id)).toEqual(["A_1"]);
   });

@@ -28,10 +28,7 @@ describe("ChatMessage", () => {
     };
 
     render(
-      <ChatMessage
-        message={message}
-        participants={[{ username: "Skylar" }]}
-      />,
+      <ChatMessage message={message} participants={[{ username: "Skylar" }]} />,
     );
 
     const mention = screen.getByText("@Skylar");

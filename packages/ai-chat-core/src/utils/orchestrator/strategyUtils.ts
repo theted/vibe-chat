@@ -150,7 +150,9 @@ export const determineInteractionStrategy = (
     const replyToAI = findAIFromContextMessage(lastMessage);
     if (replyToAI && replyToAI.id !== aiService.id) {
       shouldMention = Math.random() < MENTION_CONFIG.RANDOM_MENTION_PROBABILITY;
-      targetAI = shouldMention ? (getMentionTokenForAI(replyToAI) ?? null) : null;
+      targetAI = shouldMention
+        ? (getMentionTokenForAI(replyToAI) ?? null)
+        : null;
     }
   }
 
@@ -255,7 +257,9 @@ export const buildTurnInstruction = (
   // to, so the mention instruction is dropped outright.
   const handleAlreadyReferenced =
     strategy.mentionHandle &&
-    instructionPrompt.toLowerCase().includes(strategy.mentionHandle.toLowerCase());
+    instructionPrompt
+      .toLowerCase()
+      .includes(strategy.mentionHandle.toLowerCase());
   const mentionInstruction =
     !strategy.isPrivateChat &&
     strategy.shouldMention &&

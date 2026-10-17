@@ -50,21 +50,15 @@ export const setupOrchestratorEventBridge = (options: {
     io.to(rooms).emit(SOCKET_EVENTS.AI_STATUS_CHANGED, payload);
   });
 
-  chatOrchestrator.on(
-    "ai-generating-start",
-    (payload: { roomId?: string }) => {
-      if (!payload?.roomId) return;
-      io.to(payload.roomId).emit(SOCKET_EVENTS.AI_GENERATING_START, payload);
-    },
-  );
+  chatOrchestrator.on("ai-generating-start", (payload: { roomId?: string }) => {
+    if (!payload?.roomId) return;
+    io.to(payload.roomId).emit(SOCKET_EVENTS.AI_GENERATING_START, payload);
+  });
 
-  chatOrchestrator.on(
-    "ai-generating-stop",
-    (payload: { roomId?: string }) => {
-      if (!payload?.roomId) return;
-      io.to(payload.roomId).emit(SOCKET_EVENTS.AI_GENERATING_STOP, payload);
-    },
-  );
+  chatOrchestrator.on("ai-generating-stop", (payload: { roomId?: string }) => {
+    if (!payload?.roomId) return;
+    io.to(payload.roomId).emit(SOCKET_EVENTS.AI_GENERATING_STOP, payload);
+  });
 
   chatOrchestrator.on(
     "ai-response",

@@ -21,7 +21,8 @@ const saveToStorage = (favorites: FavoriteSnippet[]) => {
 };
 
 export const useFavorites = () => {
-  const [favorites, setFavorites] = useState<FavoriteSnippet[]>(loadFromStorage);
+  const [favorites, setFavorites] =
+    useState<FavoriteSnippet[]>(loadFromStorage);
 
   const isFavorited = useCallback(
     (id: string) => favorites.some((f) => f.id === id),
@@ -42,7 +43,8 @@ export const useFavorites = () => {
               senderType: message.senderType,
               timestamp: message.timestamp,
               savedAt: Date.now(),
-              displayName: message.displayName ?? message.aiName ?? message.sender,
+              displayName:
+                message.displayName ?? message.aiName ?? message.sender,
               emoji: message.emoji ?? message.aiEmoji,
             },
           ];

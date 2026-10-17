@@ -118,7 +118,7 @@ describe("MessageHistoryService", () => {
 
       const messages = await service.getRecentMessages(
         "test-room",
-        mockContextManager
+        mockContextManager,
       );
 
       expect(messages.length).toBe(1);
@@ -137,7 +137,7 @@ describe("MessageHistoryService", () => {
 
       const messages = await service.getRecentMessages(
         "test-room",
-        mockContextManager
+        mockContextManager,
       );
 
       expect(messages.length).toBe(1);

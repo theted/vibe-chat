@@ -84,8 +84,6 @@ describe("ChatOrchestrator user mention behavior", () => {
     const message = "@Claude and @GPT should weigh in, plus @Gemini too.";
     const updated = orchestrator.limitMentionsInResponse(message);
 
-    expect(updated).toBe(
-      "@Claude and @GPT should weigh in, plus Gemini too.",
-    );
+    expect(updated).toBe("@Claude and @GPT should weigh in, plus Gemini too.");
   });
 });

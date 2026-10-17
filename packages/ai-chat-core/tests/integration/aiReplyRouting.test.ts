@@ -19,7 +19,10 @@ import {
 
 const OTHER_ROOM = "room-2";
 // Long enough that background chatter never interferes
-const NO_BACKGROUND = { minBackgroundDelay: 10_000_000, maxBackgroundDelay: 10_000_000 };
+const NO_BACKGROUND = {
+  minBackgroundDelay: 10_000_000,
+  maxBackgroundDelay: 10_000_000,
+};
 
 let clock: FakeTimers.InstalledClock;
 let restoreRegistry: () => void;
@@ -91,7 +94,11 @@ describe("@mentions", () => {
     }));
     events = createEventCollector(orchestrator);
 
-    simulateUserMessage(orchestrator, "default", "@MockAI-3 what do you think?");
+    simulateUserMessage(
+      orchestrator,
+      "default",
+      "@MockAI-3 what do you think?",
+    );
     await tickUntil(clock, () => events.aiResponses.length > 0, 10_000);
     await clock.tickAsync(30_000);
 
@@ -137,7 +144,11 @@ describe("@mentions", () => {
     simulateUserMessage(orchestrator, "default", "first thought");
     // Under the 10ms minimum reply delay these tests use: nothing is due yet
     await clock.tickAsync(5);
-    simulateUserMessage(orchestrator, "default", "@MockAI-4 actually, you answer");
+    simulateUserMessage(
+      orchestrator,
+      "default",
+      "@MockAI-4 actually, you answer",
+    );
     await tickUntil(clock, () => events.aiResponses.length > 0, 10_000);
     await clock.tickAsync(30_000);
 

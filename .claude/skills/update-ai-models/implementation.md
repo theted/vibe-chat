@@ -8,9 +8,11 @@ retire or remove one.
 When adding or updating models, modify these files in order:
 
 ### 1. Provider Configuration
+
 **Path:** `packages/ai-chat-core/src/config/aiProviders/providers/{provider}.ts`
 
 Add model to the `models` object:
+
 ```typescript
 MODEL_KEY: {
   id: "actual-api-model-id",
@@ -21,9 +23,11 @@ MODEL_KEY: {
 ```
 
 ### 2. Participants List
+
 **Path:** `packages/ai-configs/src/participants.ts`
 
 Add entry to `DEFAULT_AI_PARTICIPANTS` array:
+
 ```typescript
 {
   id: "PROVIDER_MODEL_KEY",
@@ -48,6 +52,7 @@ add entries to them:
   ops-side override.
 
 ### 4. Default Model (only if it isn't the newest)
+
 **Path:** `packages/ai-chat-core/src/config/aiProviders/defaults.ts`
 
 Each provider defaults to the **first** model in its `models` object, which by
@@ -78,20 +83,24 @@ When adding models via OpenRouter:
 ## Naming Conventions
 
 ### Model Keys (TypeScript)
+
 - Use UPPER_SNAKE_CASE
 - Format: `MODEL_NAME` or `MODEL_NAME_VERSION`
 - Examples: `GPT4O`, `CLAUDE_SONNET_4_5`, `MISTRAL_LARGE`
 
 ### Participant IDs
+
 - Format: `PROVIDER_MODEL_KEY`
 - Examples: `OPENAI_GPT4O`, `ANTHROPIC_CLAUDE_SONNET_4`
 
 ### Aliases
+
 - Use lowercase with hyphens
 - Keep concise for easy mentions
 - Examples: `gpt-4o`, `claude-sonnet-4`, `mistral`
 
 ### API Model IDs
+
 - Use exact ID from provider documentation
 - Include version dates when provided
 - Examples: `claude-sonnet-4-20250514`, `gpt-4o-2024-08-06`
@@ -115,6 +124,7 @@ To fully remove a deprecated model:
 Adding "Claude 5 Opus" to Anthropic:
 
 **1. Update `providers/anthropic.ts`:**
+
 ```typescript
 CLAUDE_OPUS_5: {
   id: "claude-opus-5-20260101",
@@ -126,6 +136,7 @@ CLAUDE_OPUS_5: {
 ```
 
 **2. Update `participants.ts`:**
+
 ```typescript
 {
   id: "ANTHROPIC_CLAUDE_OPUS_5",

@@ -129,9 +129,13 @@ export const initializeAISystem = async (): Promise<AISystem> => {
       `(${trusted.length} trusted from health cache, ${toCheck.length} queued for background check)`,
   );
   if (skipHealthCheck) {
-    console.log("⚠️  AI_CHAT_SKIP_HEALTHCHECK — background health checks disabled");
+    console.log(
+      "⚠️  AI_CHAT_SKIP_HEALTHCHECK — background health checks disabled",
+    );
   } else if (recheckAll) {
-    console.log("⚠️  AI_CHAT_RECHECK_AVAILABILITY — health cache ignored, rechecking all models");
+    console.log(
+      "⚠️  AI_CHAT_RECHECK_AVAILABILITY — health cache ignored, rechecking all models",
+    );
   }
 
   const startBackgroundRevalidation = async ({
@@ -139,7 +143,9 @@ export const initializeAISystem = async (): Promise<AISystem> => {
   }: BackgroundRevalidationOptions = {}): Promise<void> => {
     if (skipHealthCheck || toCheck.length === 0) {
       if (!skipHealthCheck) {
-        console.log("🩺 All models trusted from health cache — nothing to revalidate");
+        console.log(
+          "🩺 All models trusted from health cache — nothing to revalidate",
+        );
       }
       return;
     }
@@ -165,8 +171,7 @@ export const initializeAISystem = async (): Promise<AISystem> => {
         return;
       }
 
-      const error =
-        service.getLastValidationError?.() ?? "health check failed";
+      const error = service.getLastValidationError?.() ?? "health check failed";
       recordFailure(candidate.id, candidate.modelId, error);
       orchestrator.removeAI(candidate.id);
       failures += 1;

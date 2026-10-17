@@ -44,7 +44,10 @@ export const storeAIStatus = (
 // --- Connection ---
 
 export const createConnectionStatusHandler =
-  (setConnectionStatus: StateSetter<ConnectionStatus>, setIsJoined: StateSetter<boolean>) =>
+  (
+    setConnectionStatus: StateSetter<ConnectionStatus>,
+    setIsJoined: StateSetter<boolean>,
+  ) =>
   (status: unknown) => {
     setConnectionStatus(status as ConnectionStatus);
     if (!(status as ConnectionStatus).connected) {
@@ -64,7 +67,8 @@ interface PreviewState {
   isJoinedRef: React.MutableRefObject<boolean>;
 }
 
-export const createRecentMessagesHandler = (state: PreviewState) =>
+export const createRecentMessagesHandler =
+  (state: PreviewState) =>
   (payload: unknown = {}) => {
     const typedPayload = payload as {
       messages?: Message[];
@@ -74,9 +78,15 @@ export const createRecentMessagesHandler = (state: PreviewState) =>
       aiStatus?: AIStatus;
     };
     storeAIStatus(state.setAiStatusByRoom, typedPayload.aiStatus);
-    const incomingMessages = Array.isArray(typedPayload.messages) ? typedPayload.messages : [];
-    const incomingParticipants = Array.isArray(typedPayload.participants) ? typedPayload.participants : [];
-    const incomingAiParticipants = Array.isArray(typedPayload.aiParticipants) ? typedPayload.aiParticipants : [];
+    const incomingMessages = Array.isArray(typedPayload.messages)
+      ? typedPayload.messages
+      : [];
+    const incomingParticipants = Array.isArray(typedPayload.participants)
+      ? typedPayload.participants
+      : [];
+    const incomingAiParticipants = Array.isArray(typedPayload.aiParticipants)
+      ? typedPayload.aiParticipants
+      : [];
 
     state.setPreviewMessages(incomingMessages);
     state.setPreviewParticipants(incomingParticipants);
@@ -88,7 +98,8 @@ export const createRecentMessagesHandler = (state: PreviewState) =>
     }
   };
 
-export const createPreviewMessageHandler = (state: PreviewState) =>
+export const createPreviewMessageHandler =
+  (state: PreviewState) =>
   (payload: unknown = {}) => {
     const typedPayload = payload as {
       message?: Message;
@@ -137,8 +148,8 @@ interface RoomJoinState {
   previewAiParticipantsRef: React.MutableRefObject<AiParticipant[] | null>;
 }
 
-export const createRoomJoinedHandler = (state: RoomJoinState) =>
-  (data: unknown) => {
+export const createRoomJoinedHandler =
+  (state: RoomJoinState) => (data: unknown) => {
     const typedData = data as RoomInfo & {
       participants?: Participant[];
       aiParticipants?: AiParticipant[];
@@ -178,25 +189,34 @@ interface TypingState {
   usernameRef: React.MutableRefObject<string>;
 }
 
-export const createUserTypingStartHandler = (state: TypingState) =>
-  (data: unknown) => {
-    const typedData = data as { username?: string; name?: string; displayName?: string };
+export const createUserTypingStartHandler =
+  (state: TypingState) => (data: unknown) => {
+    const typedData = data as {
+      username?: string;
+      name?: string;
+      displayName?: string;
+    };
     state.setTypingUsers((prev) => {
       const name = typedData?.username || typedData?.name;
       if (!name) return prev;
       const normalized = name.toLowerCase();
-      const isLocal = !!state.usernameRef.current && normalized === state.usernameRef.current.toLowerCase();
+      const isLocal =
+        !!state.usernameRef.current &&
+        normalized === state.usernameRef.current.toLowerCase();
       const exists = prev.some((user) => user.normalized === normalized);
 
       if (!exists) {
-        return [...prev, {
-          id: normalized,
-          name,
-          displayName: typedData.displayName || name,
-          normalized,
-          type: "user" as const,
-          isLocal,
-        }];
+        return [
+          ...prev,
+          {
+            id: normalized,
+            name,
+            displayName: typedData.displayName || name,
+            normalized,
+            type: "user" as const,
+            isLocal,
+          },
+        ];
       }
 
       if (isLocal) {
@@ -209,8 +229,8 @@ export const createUserTypingStartHandler = (state: TypingState) =>
     });
   };
 
-export const createUserTypingStopHandler = (state: TypingState) =>
-  (data: unknown) => {
+export const createUserTypingStopHandler =
+  (state: TypingState) => (data: unknown) => {
     const typedData = data as { username?: string; name?: string };
     const name = typedData?.username || typedData?.name;
     if (!name) return;
@@ -221,8 +241,8 @@ export const createUserTypingStopHandler = (state: TypingState) =>
     );
   };
 
-export const createAIGeneratingStartHandler = (setTypingAIs: StateSetter<TypingAI[]>) =>
-  (data: unknown) => {
+export const createAIGeneratingStartHandler =
+  (setTypingAIs: StateSetter<TypingAI[]>) => (data: unknown) => {
     const typedData = data as {
       aiId?: string;
       providerKey?: string;
@@ -238,7 +258,8 @@ export const createAIGeneratingStartHandler = (setTypingAIs: StateSetter<TypingA
         (typedData?.providerKey && typedData?.modelKey
           ? `${typedData.providerKey}_${typedData.modelKey}`
           : undefined);
-      const alias = typedData?.alias || typedData?.displayName || typedData?.aiName;
+      const alias =
+        typedData?.alias || typedData?.displayName || typedData?.aiName;
       const displayName = typedData?.displayName || alias || id || "AI";
       const normalized = normalizeAliasKey(alias || displayName || id);
 
@@ -249,20 +270,23 @@ export const createAIGeneratingStartHandler = (setTypingAIs: StateSetter<TypingA
       );
       if (exists) return prev;
 
-      return [...prev, {
-        id: id || normalized,
-        name: alias || displayName,
-        displayName,
-        alias: alias || displayName,
-        normalizedAlias: normalized,
-        type: "ai" as const,
-        emoji: typedData?.emoji || resolveEmoji(alias || displayName || ""),
-      }];
+      return [
+        ...prev,
+        {
+          id: id || normalized,
+          name: alias || displayName,
+          displayName,
+          alias: alias || displayName,
+          normalizedAlias: normalized,
+          type: "ai" as const,
+          emoji: typedData?.emoji || resolveEmoji(alias || displayName || ""),
+        },
+      ];
     });
   };
 
-export const createAIGeneratingStopHandler = (setTypingAIs: StateSetter<TypingAI[]>) =>
-  (data: unknown) => {
+export const createAIGeneratingStopHandler =
+  (setTypingAIs: StateSetter<TypingAI[]>) => (data: unknown) => {
     const typedData = data as {
       aiId?: string;
       providerKey?: string;

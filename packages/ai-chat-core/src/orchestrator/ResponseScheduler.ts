@@ -50,7 +50,10 @@ type ResponseSchedulerDeps = {
   findPending: (roomId: string, aiId: string) => QueuedResponse | undefined;
   retarget: (
     pending: QueuedResponse,
-    update: Pick<QueuedResponse, "isUserResponse" | "options" | "scheduledTime">,
+    update: Pick<
+      QueuedResponse,
+      "isUserResponse" | "options" | "scheduledTime"
+    >,
   ) => void;
   getDelays: () => ResponseDelays;
 };
@@ -219,7 +222,9 @@ export class ResponseScheduler {
       const max = Math.min(
         Math.max(
           RESPONDER_CONFIG.USER_RESPONSE_MIN_COUNT,
-          Math.ceil(eligibleCount * RESPONDER_CONFIG.USER_RESPONSE_MAX_MULTIPLIER),
+          Math.ceil(
+            eligibleCount * RESPONDER_CONFIG.USER_RESPONSE_MAX_MULTIPLIER,
+          ),
         ),
         RESPONDER_CONFIG.USER_RESPONSE_MAX_COUNT,
       );
@@ -244,7 +249,13 @@ export class ResponseScheduler {
   private enqueueReplies(
     aiIds: string[],
     budget: number,
-    { roomId, trigger, isUserResponse, isMentioned, delayMultiplier = 1 }: ReplyPlan,
+    {
+      roomId,
+      trigger,
+      isUserResponse,
+      isMentioned,
+      delayMultiplier = 1,
+    }: ReplyPlan,
   ): void {
     const { registry, getDelays, findPending, retarget } = this.deps;
     const delays = getDelays();

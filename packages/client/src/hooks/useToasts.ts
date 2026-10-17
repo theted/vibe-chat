@@ -9,11 +9,15 @@ const TOAST_DURATION_MS = 3_500;
 
 export const useToasts = () => {
   const [toasts, setToasts] = useState<Toast[]>([]);
-  const timeouts = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+  const timeouts = useRef<Map<string, ReturnType<typeof setTimeout>>>(
+    new Map(),
+  );
 
   useEffect(
     () => () => {
-      timeouts.current.forEach((id) => { clearTimeout(id); });
+      timeouts.current.forEach((id) => {
+        clearTimeout(id);
+      });
       timeouts.current.clear();
     },
     [],

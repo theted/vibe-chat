@@ -25,16 +25,14 @@ describe("StatsTracker", () => {
   it("records assistant messages when redis is available", async () => {
     process.env.REDIS_URL = "redis://localhost:6379";
     const pipeline = {
-      incr: mock((key: string) => pipeline),
-      lPush: mock((key: string, value: string) => pipeline),
-      lTrim: mock((key: string, start: number, end: number) => pipeline),
+      incr: mock((_key: string) => pipeline),
+      lPush: mock((_key: string, _value: string) => pipeline),
+      lTrim: mock((_key: string, _start: number, _end: number) => pipeline),
       exec: mock(async () => {}),
     };
     const fakeClient = {
       connect: mock(async () => {}),
-      on: mock(
-        (_event: string, _handler: (...args: unknown[]) => void) => {},
-      ),
+      on: mock((_event: string, _handler: (...args: unknown[]) => void) => {}),
       multi: mock(() => pipeline),
     };
     const tracker = new StatsTracker({
@@ -57,11 +55,10 @@ describe("StatsTracker", () => {
     expect(fakeClient.multi.mock.calls.length).toBe(1);
 
     expect(pipeline.incr.mock.calls.length).toBe(2);
-    expect(
-      pipeline.incr.mock.calls.map(([key]) => key),
-    ).toEqual(
-      [STATS_TOTAL_MESSAGES_KEY, STATS_TOTAL_AI_MESSAGES_KEY],
-    );
+    expect(pipeline.incr.mock.calls.map(([key]) => key)).toEqual([
+      STATS_TOTAL_MESSAGES_KEY,
+      STATS_TOTAL_AI_MESSAGES_KEY,
+    ]);
 
     expect(pipeline.lPush.mock.calls.length).toBe(1);
     const payload = pipeline.lPush.mock.calls[0][1];

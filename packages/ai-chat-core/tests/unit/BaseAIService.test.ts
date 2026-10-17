@@ -1,5 +1,9 @@
 import { afterEach, beforeEach, describe, it, expect } from "bun:test";
-import { BaseAIService, type AIServiceConfig, type Message } from "@ai-chat/core";
+import {
+  BaseAIService,
+  type AIServiceConfig,
+  type Message,
+} from "@ai-chat/core";
 
 // Inline type since ServiceResponse is not exported from @ai-chat/core
 type ServiceResponse = { content: string };
@@ -28,7 +32,7 @@ class TestAIService extends BaseAIService {
 
   protected async performGenerateResponse(
     messages: Message[],
-    _context?: Record<string, unknown>
+    _context?: Record<string, unknown>,
   ): Promise<ServiceResponse> {
     this.generateCallCount++;
     if (this.shouldThrowOnGenerate) {
@@ -93,7 +97,9 @@ describe("BaseAIService", () => {
         model: { id: "test" },
       } as AIServiceConfig;
 
-      expect(() => new TestAIService(config)).toThrow("Provider name is required");
+      expect(() => new TestAIService(config)).toThrow(
+        "Provider name is required",
+      );
     });
 
     it("throws error when model id is missing", () => {
@@ -117,7 +123,9 @@ describe("BaseAIService", () => {
         model: { id: "test" },
       } as AIServiceConfig;
 
-      expect(() => new TestAIService(config)).toThrow("API key environment variable is required");
+      expect(() => new TestAIService(config)).toThrow(
+        "API key environment variable is required",
+      );
     });
   });
 
@@ -211,8 +219,12 @@ describe("BaseAIService", () => {
       ]);
 
       expect(response.content).toBeTruthy();
-      expect((response as { responseTime?: number }).responseTime !== undefined).toBeTruthy();
-      expect((response as { responseTime?: number }).responseTime! >= 0).toBeTruthy();
+      expect(
+        (response as { responseTime?: number }).responseTime !== undefined,
+      ).toBeTruthy();
+      expect(
+        (response as { responseTime?: number }).responseTime! >= 0,
+      ).toBeTruthy();
       expect((response as { model?: string }).model).toBe("test-model-v1");
     });
 

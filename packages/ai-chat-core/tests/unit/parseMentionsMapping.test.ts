@@ -1,8 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import {
-  AI_MENTION_MAPPINGS,
-  normalizeAliasKey,
-} from "@ai-chat/ai-configs";
+import { AI_MENTION_MAPPINGS, normalizeAliasKey } from "@ai-chat/ai-configs";
 import { parseMentions } from "@/utils/stringUtils.js";
 
 // Mention targeting happens server-side from message content, so generic
@@ -12,9 +9,9 @@ describe("parseMentions alias mapping", () => {
   it("resolves generic aliases to the mapped participant's normalized alias", () => {
     // derive from the mapping so the test survives flagship model updates
     const expected = normalizeAliasKey(AI_MENTION_MAPPINGS["chatgpt"]);
-    expect(parseMentions("hey @chatgpt what do you think?").normalized).toEqual([
-      expected,
-    ]);
+    expect(parseMentions("hey @chatgpt what do you think?").normalized).toEqual(
+      [expected],
+    );
   });
 
   it("resolves bare provider aliases case-insensitively", () => {

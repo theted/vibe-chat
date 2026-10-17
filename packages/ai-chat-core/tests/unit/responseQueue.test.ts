@@ -1,6 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 import type FakeTimers from "@sinonjs/fake-timers";
-import { ResponseQueue, type QueuedResponse } from "@/orchestrator/ResponseQueue.js";
+import {
+  ResponseQueue,
+  type QueuedResponse,
+} from "@/orchestrator/ResponseQueue.js";
 import { installFakeClock } from "../helpers/orchestratorTestUtils.js";
 
 let clock: FakeTimers.InstalledClock;

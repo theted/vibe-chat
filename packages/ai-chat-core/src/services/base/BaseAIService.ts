@@ -74,11 +74,13 @@ export abstract class BaseAIService implements IAIServiceExtended {
         if (!isValid) {
           const errorDetail = this.lastValidationError
             ? `: ${this.lastValidationError}`
-            : '';
+            : "";
           throw new ServiceInitializationError(
             `Service configuration validation failed${errorDetail}`,
             this.name,
-            this.lastValidationError ? { reason: this.lastValidationError } : undefined
+            this.lastValidationError
+              ? { reason: this.lastValidationError }
+              : undefined,
           );
         }
       }
@@ -219,22 +221,24 @@ export abstract class BaseAIService implements IAIServiceExtended {
     try {
       // Basic configuration checks
       if (!this.isConfigured()) {
-        this.lastValidationError = 'Service is not properly configured (missing API key or config)';
+        this.lastValidationError =
+          "Service is not properly configured (missing API key or config)";
         return false;
       }
 
       // Perform health check
       const healthCheckResult = await this.healthCheck();
       if (!healthCheckResult && !this.lastValidationError) {
-        this.lastValidationError = 'Health check failed';
+        this.lastValidationError = "Health check failed";
       }
       return healthCheckResult;
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       this.lastValidationError = errorMessage;
-      this.logger?.warn('Configuration validation failed', {
+      this.logger?.warn("Configuration validation failed", {
         service: this.name,
-        error: errorMessage
+        error: errorMessage,
       });
       return false;
     }

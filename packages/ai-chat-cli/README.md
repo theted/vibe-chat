@@ -44,12 +44,12 @@ pnpm run cli gemini grok "What is your favorite book?"
 
 ### Provider Aliases
 
-| Alias | Resolves To |
-|-------|-------------|
-| `gemeni` (typo) | `gemini` |
-| `google` | `gemini` |
-| `moonshot` | `kimi` |
-| `z`, `z.ai` | `zai` |
+| Alias           | Resolves To |
+| --------------- | ----------- |
+| `gemeni` (typo) | `gemini`    |
+| `google`        | `gemini`    |
+| `moonshot`      | `kimi`      |
+| `z`, `z.ai`     | `zai`       |
 
 ## Playback Tools
 
@@ -68,16 +68,17 @@ bun dist/play.js conversations/2025-09-10T17-44-19-366Z-we-re-stoned-bro-s.json
 ```
 
 **Features:**
+
 - Typing simulation with configurable delays
 - Distinct colors for each speaker
 - Smooth playback of saved conversations
 
 **Environment Variables:**
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `PLAY_TYPING_DELAY_MS` | `8` | Delay per character (typing speed) |
-| `PLAY_BETWEEN_MESSAGES_MS` | `500` | Delay between messages |
+| Variable                   | Default | Description                        |
+| -------------------------- | ------- | ---------------------------------- |
+| `PLAY_TYPING_DELAY_MS`     | `8`     | Delay per character (typing speed) |
+| `PLAY_BETWEEN_MESSAGES_MS` | `500`   | Delay between messages             |
 
 ### Screensaver Mode (`play-screensaver.ts`)
 
@@ -88,14 +89,15 @@ bun dist/play-screensaver.js
 ```
 
 **Controls:**
+
 - Press **Enter** to skip to next conversation
 - Press **Ctrl+C** to stop
 
 **Environment Variables:**
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `SCREENSAVER_DELAY_MS` | `1500` | Delay between conversation replays |
+| Variable               | Default | Description                        |
+| ---------------------- | ------- | ---------------------------------- |
+| `SCREENSAVER_DELAY_MS` | `1500`  | Delay between conversation replays |
 
 ## @Chat Assistant
 
@@ -116,14 +118,14 @@ bun run chat:ask "How are messages styled?"
 
 ### Environment Variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `ANTHROPIC_API_KEY` | – | Runs the agent |
-| `CHAT_ASSISTANT_MODEL` | `claude-opus-5-5` | Claude model for the agent |
-| `CHAT_ASSISTANT_EMBEDDINGS` | `mistral` | Embeddings provider: `mistral`, `openai`, `gemini` or `cohere` (needs that provider's API key) |
-| `CHROMA_URL` | `http://localhost:8000` | Chroma vector store URL |
-| `CHAT_ASSISTANT_AUTO_INDEX` | `false` | Server rebuilds a missing or stale index on startup |
-| `CHAT_ASSISTANT_COLLECTION` | `ai-chat-workspace` | Chroma collection name |
+| Variable                    | Default                 | Description                                                                                    |
+| --------------------------- | ----------------------- | ---------------------------------------------------------------------------------------------- |
+| `ANTHROPIC_API_KEY`         | –                       | Runs the agent                                                                                 |
+| `CHAT_ASSISTANT_MODEL`      | `claude-opus-5-5`       | Claude model for the agent                                                                     |
+| `CHAT_ASSISTANT_EMBEDDINGS` | `mistral`               | Embeddings provider: `mistral`, `openai`, `gemini` or `cohere` (needs that provider's API key) |
+| `CHROMA_URL`                | `http://localhost:8000` | Chroma vector store URL                                                                        |
+| `CHAT_ASSISTANT_AUTO_INDEX` | `false`                 | Server rebuilds a missing or stale index on startup                                            |
+| `CHAT_ASSISTANT_COLLECTION` | `ai-chat-workspace`     | Chroma collection name                                                                         |
 
 ### Search the index from Claude Code (MCP)
 

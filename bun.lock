@@ -112,7 +112,7 @@
         "chromadb": "^3.5.0",
         "fast-glob": "^3.3.2",
         "openai": "^4.89.0",
-        "zod": "^4",
+        "zod": "^4.3.6",
       },
       "devDependencies": {
         "@types/node": "^24.10.1",

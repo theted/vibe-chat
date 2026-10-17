@@ -4,7 +4,10 @@
 
 import { describe, expect, it } from "bun:test";
 import type { ContextMessage } from "@/types/orchestrator.js";
-import { findAIFromContextMessage, getMentionTokenForAI } from "@/utils/orchestrator/aiLookup.js";
+import {
+  findAIFromContextMessage,
+  getMentionTokenForAI,
+} from "@/utils/orchestrator/aiLookup.js";
 import { limitMentionsInResponse } from "@/utils/orchestrator/mentionUtils.js";
 import {
   buildTurnInstruction,
@@ -76,9 +79,15 @@ describe("buildTranscript", () => {
   it("labels everyone else's messages and keeps the model's own as its turns", () => {
     const transcript = buildTranscript(claude, context, "NOTE");
 
-    expect(transcript.map((turn) => turn.role)).toEqual(["user", "assistant", "user"]);
+    expect(transcript.map((turn) => turn.role)).toEqual([
+      "user",
+      "assistant",
+      "user",
+    ]);
     expect(transcript[1].content).toBe("I said this earlier.");
-    expect(transcript[2].content).toContain("[Ada (human)] What do you all think?");
+    expect(transcript[2].content).toContain(
+      "[Ada (human)] What do you all think?",
+    );
     expect(transcript[2].content).toContain("[GPT] Tabs, obviously.");
     expect(transcript[2].content).toContain("[Gemini] Spaces.");
   });
@@ -146,7 +155,9 @@ describe("replying to the right speaker", () => {
     const instruction = buildTurnInstruction(strategy, claude, question);
 
     expect(strategy.mentionHandle).toBe("@Ada");
-    expect(instruction).toContain('replying to Ada (human), who said: "Claude, is Rust worth it?"');
+    expect(instruction).toContain(
+      'replying to Ada (human), who said: "Claude, is Rust worth it?"',
+    );
     expect(instruction).not.toContain("GPT");
   });
 
@@ -156,7 +167,8 @@ describe("replying to the right speaker", () => {
 
     for (let round = 0; round < 50; round += 1) {
       const strategy = strategyFor(claude, context, replyTarget);
-      if (strategy.shouldMention) expect(strategy.mentionHandle).toBe("@gemini");
+      if (strategy.shouldMention)
+        expect(strategy.mentionHandle).toBe("@gemini");
     }
   });
 

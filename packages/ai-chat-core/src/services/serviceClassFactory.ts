@@ -18,7 +18,9 @@ import OpenAI from "openai";
 /**
  * Service class for a provider accessed via OpenRouter.
  */
-export const openRouterServiceClass = (displayName: string): ServiceConstructor =>
+export const openRouterServiceClass = (
+  displayName: string,
+): ServiceConstructor =>
   class extends OpenRouterCompatibleService {
     constructor(config: AIServiceConfig) {
       super(config, displayName);

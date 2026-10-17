@@ -7,7 +7,10 @@ import { describe, it, expect } from "bun:test";
 import { stripAIMentions } from "@/utils/orchestrator/mentionUtils.js";
 import { ContextManager } from "@/orchestrator/ContextManager.js";
 import { RoomScope } from "@/orchestrator/RoomScope.js";
-import { makeTestScheduler, roomMessage } from "../helpers/schedulerTestUtils.js";
+import {
+  makeTestScheduler,
+  roomMessage,
+} from "../helpers/schedulerTestUtils.js";
 
 const PRIVATE_ROOM = "private:ada:AI_ONE";
 
@@ -228,7 +231,10 @@ describe("private room mentions", () => {
 
   it("demotes a mention of another AI to plain text", () => {
     expect(
-      stripAIMentions("Good point @claude-sonnet-4-5 — worth a look.", isOtherAI),
+      stripAIMentions(
+        "Good point @claude-sonnet-4-5 — worth a look.",
+        isOtherAI,
+      ),
     ).toBe("Good point claude-sonnet-4-5 — worth a look.");
   });
 

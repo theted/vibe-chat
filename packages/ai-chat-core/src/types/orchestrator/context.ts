@@ -11,8 +11,10 @@ import { Message } from "../index.js";
  * sender/senderType are optional here because internal prompt-instruction
  * messages don't carry them.
  */
-export interface ContextMessage
-  extends Omit<ChatMessageBase, "sender" | "senderType"> {
+export interface ContextMessage extends Omit<
+  ChatMessageBase,
+  "sender" | "senderType"
+> {
   sender?: ChatMessageBase["sender"];
   senderType?: ChatMessageBase["senderType"];
   /** LLM prompt role - ContextManager derives it from senderType on add. */

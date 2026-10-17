@@ -4,7 +4,10 @@
  */
 
 import { describe, expect, it } from "bun:test";
-import { makeTestScheduler, roomMessage } from "../helpers/schedulerTestUtils.js";
+import {
+  makeTestScheduler,
+  roomMessage,
+} from "../helpers/schedulerTestUtils.js";
 
 const ROUNDS = 50;
 
@@ -33,7 +36,10 @@ describe("mentions decide who answers", () => {
     services.get("AI_TWO")!.isGenerating = true;
 
     scheduler.schedule("default", true, {
-      trigger: roomMessage({ senderType: "user", mentionsNormalized: ["aitwo"] }),
+      trigger: roomMessage({
+        senderType: "user",
+        mentionsNormalized: ["aitwo"],
+      }),
     });
 
     expect(pending.map((reply) => reply.aiId)).toEqual(["AI_TWO"]);
@@ -127,7 +133,11 @@ describe("one queued reply per AI", () => {
     scheduler.schedule("default", true, { trigger: personAsks });
     scheduler.scheduleMentionReplies(
       "default",
-      roomMessage({ senderType: "ai", aiId: "AI_ONE", mentionsNormalized: ["aitwo"] }),
+      roomMessage({
+        senderType: "ai",
+        aiId: "AI_ONE",
+        mentionsNormalized: ["aitwo"],
+      }),
     );
 
     expect(pending).toHaveLength(1);
@@ -144,7 +154,11 @@ describe("AI message budget and holds", () => {
     });
     scheduler.scheduleMentionReplies(
       "default",
-      roomMessage({ senderType: "ai", aiId: "AI_ONE", mentionsNormalized: ["aitwo"] }),
+      roomMessage({
+        senderType: "ai",
+        aiId: "AI_ONE",
+        mentionsNormalized: ["aitwo"],
+      }),
     );
 
     expect(batches).toHaveLength(0);
@@ -164,14 +178,20 @@ describe("AI message budget and holds", () => {
   });
 
   it("starts no AI-driven rounds while @Chat is answering, but still answers people", () => {
-    const { scheduler, pending } = makeTestScheduler({ heldRooms: ["default"] });
+    const { scheduler, pending } = makeTestScheduler({
+      heldRooms: ["default"],
+    });
 
     scheduler.schedule("default", false, {
       trigger: roomMessage({ senderType: "ai", aiId: "AI_ONE" }),
     });
     scheduler.scheduleMentionReplies(
       "default",
-      roomMessage({ senderType: "ai", aiId: "AI_ONE", mentionsNormalized: ["aitwo"] }),
+      roomMessage({
+        senderType: "ai",
+        aiId: "AI_ONE",
+        mentionsNormalized: ["aitwo"],
+      }),
     );
     expect(pending).toHaveLength(0);
 

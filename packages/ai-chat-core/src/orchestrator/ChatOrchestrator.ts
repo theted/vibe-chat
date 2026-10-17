@@ -134,8 +134,7 @@ export class ChatOrchestrator extends EventEmitter {
       isDirectOnly: (roomId) => this.isRoomDirectOnly(roomId),
       isOnHold: (roomId) => this.heldRooms.has(roomId),
       getAvailableBudget: (roomId) =>
-        this.streak.remaining(roomId) -
-        this.responseQueue.countForRoom(roomId),
+        this.streak.remaining(roomId) - this.responseQueue.countForRoom(roomId),
       getFatigue: (roomId) => this.streak.getFatigue(roomId),
       enqueueBatch: (responses) => this.responseQueue.enqueueBatch(responses),
       findPending: (roomId, aiId) =>
@@ -239,7 +238,10 @@ export class ChatOrchestrator extends EventEmitter {
    * for older messages are dropped (the new round takes over), and a new
    * round is scheduled - unless @Chat is taking this one.
    */
-  private handleUserMessage(message: ContextMessage, suppressAIResponses = false) {
+  private handleUserMessage(
+    message: ContextMessage,
+    suppressAIResponses = false,
+  ) {
     const roomId = normalizeRoomId(message.roomId);
     this.streak.recordHumanMessage(roomId);
     if (!this.backgroundLoop.isRunning) {
@@ -411,9 +413,7 @@ export class ChatOrchestrator extends EventEmitter {
 
   private targetRooms(roomId?: string): string[] {
     if (roomId !== undefined) return [normalizeRoomId(roomId)];
-    return Array.from(
-      new Set([DEFAULT_ROOM_ID, ...this.streak.knownRoomIds]),
-    );
+    return Array.from(new Set([DEFAULT_ROOM_ID, ...this.streak.knownRoomIds]));
   }
 
   // --- Public API ---

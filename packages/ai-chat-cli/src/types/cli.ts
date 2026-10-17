@@ -2,7 +2,12 @@
  * CLI Type Definitions
  */
 
-import type { AIModel, AIProvider, AIServiceConfig, Message } from "@ai-chat/core";
+import type {
+  AIModel,
+  AIProvider,
+  AIServiceConfig,
+  Message,
+} from "@ai-chat/core";
 
 export interface ParticipantConfig {
   provider: string;

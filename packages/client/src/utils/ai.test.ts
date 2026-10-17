@@ -71,7 +71,9 @@ describe("resolveEmoji", () => {
     expect(resolveEmoji("gpt4")).toBe(resolveParticipantEmoji("gpt-4o"));
     expect(resolveEmoji("openai")).toBe(gptEmoji);
     expect(resolveEmoji("grok")).toBe(resolveParticipantEmoji(GROK_FLAGSHIP));
-    expect(resolveEmoji("gemini")).toBe(resolveParticipantEmoji(GEMINI_FLAGSHIP));
+    expect(resolveEmoji("gemini")).toBe(
+      resolveParticipantEmoji(GEMINI_FLAGSHIP),
+    );
     expect(resolveEmoji("mistral")).toBe("🌪️");
     expect(resolveEmoji("cohere")).toBe("⚓");
     expect(resolveEmoji("kimi")).toBe(kimiEmoji);
@@ -80,9 +82,13 @@ describe("resolveEmoji", () => {
   });
 
   it("should handle case insensitivity", () => {
-    expect(resolveEmoji("CLAUDE")).toBe(resolveParticipantEmoji(CLAUDE_FLAGSHIP));
+    expect(resolveEmoji("CLAUDE")).toBe(
+      resolveParticipantEmoji(CLAUDE_FLAGSHIP),
+    );
     expect(resolveEmoji("GPT")).toBe(resolveParticipantEmoji(GPT_FLAGSHIP));
-    expect(resolveEmoji("Gemini")).toBe(resolveParticipantEmoji(GEMINI_FLAGSHIP));
+    expect(resolveEmoji("Gemini")).toBe(
+      resolveParticipantEmoji(GEMINI_FLAGSHIP),
+    );
   });
 
   it("should handle special characters in input", () => {
@@ -94,8 +100,12 @@ describe("resolveEmoji", () => {
 
   it("should resolve partial matches", () => {
     // "claude-opus" normalizes to "claudeopus", matches "claude" prefix
-    expect(resolveEmoji("claude-opus")).toBe(resolveParticipantEmoji(CLAUDE_FLAGSHIP));
-    expect(resolveEmoji("gemini-pro")).toBe(resolveParticipantEmoji(GEMINI_FLAGSHIP));
+    expect(resolveEmoji("claude-opus")).toBe(
+      resolveParticipantEmoji(CLAUDE_FLAGSHIP),
+    );
+    expect(resolveEmoji("gemini-pro")).toBe(
+      resolveParticipantEmoji(GEMINI_FLAGSHIP),
+    );
     expect(resolveEmoji("mistral-large")).toBe("🌪️");
   });
 
@@ -113,7 +123,9 @@ describe("resolveEmoji", () => {
   it("should handle aliases correctly", () => {
     const kimiEmoji = resolveParticipantEmoji("kimi-k2.5");
     expect(resolveEmoji("xai")).toBe(resolveParticipantEmoji(GROK_FLAGSHIP));
-    expect(resolveEmoji("google")).toBe(resolveParticipantEmoji(GEMINI_FLAGSHIP));
+    expect(resolveEmoji("google")).toBe(
+      resolveParticipantEmoji(GEMINI_FLAGSHIP),
+    );
     expect(resolveEmoji("bard")).toBe(resolveParticipantEmoji(GEMINI_FLAGSHIP));
     expect(resolveEmoji("moonshot")).toBe(kimiEmoji);
   });

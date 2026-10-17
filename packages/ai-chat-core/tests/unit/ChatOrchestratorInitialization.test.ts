@@ -61,14 +61,14 @@ beforeEach(() => {
   maxConcurrentInitializations = 0;
 
   for (const provider of Object.values(AI_PROVIDERS)) {
-    envState.set(
-      provider.apiKeyEnvVar,
-      process.env[provider.apiKeyEnvVar],
-    );
+    envState.set(provider.apiKeyEnvVar, process.env[provider.apiKeyEnvVar]);
     process.env[provider.apiKeyEnvVar] = "test-key";
   }
 
-  envState.set("AI_CHAT_SKIP_HEALTHCHECK", process.env.AI_CHAT_SKIP_HEALTHCHECK);
+  envState.set(
+    "AI_CHAT_SKIP_HEALTHCHECK",
+    process.env.AI_CHAT_SKIP_HEALTHCHECK,
+  );
   process.env.AI_CHAT_SKIP_HEALTHCHECK = "true";
 
   previousRegistry = AIServiceFactory.__getServiceRegistryForTesting();
@@ -108,7 +108,9 @@ describe("ChatOrchestrator initialization", () => {
 
     expect(orchestrator.aiServices.size).toBe(configs.length);
     expect(maxConcurrentInitializations <= 8).toBeTruthy();
-    expect(maxConcurrentInitializations >= Math.min(2, configs.length)).toBeTruthy();
+    expect(
+      maxConcurrentInitializations >= Math.min(2, configs.length),
+    ).toBeTruthy();
 
     orchestrator.cleanup();
   });

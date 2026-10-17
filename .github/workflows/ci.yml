@@ -16,7 +16,7 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: "latest"
+          bun-version-file: package.json
 
       - name: Install dependencies
         run: bun install --ignore-scripts
@@ -24,16 +24,14 @@ jobs:
       - name: Build packages
         run: bun run build
 
+      - name: Lint
+        run: bun run lint
+
+      - name: Check formatting
+        run: bun run format
+
       - name: Validate AI model registry
         run: bun run validate:models
 
       - name: Run tests
         run: bun run test
-
-  deploy:
-    needs: test
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Awaiting deployment implementation
-        run: echo "Deploy placeholder - requires successful tests"
