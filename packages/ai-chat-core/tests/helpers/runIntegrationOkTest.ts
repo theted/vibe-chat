@@ -1,9 +1,12 @@
 import dotenv from "dotenv";
 import fs from "node:fs";
 import path from "node:path";
-import { AIServiceFactory, AI_PROVIDERS } from "@ai-chat/core";
+import {
+  AIServiceFactory,
+  AI_PROVIDERS,
+  getActiveParticipants,
+} from "@ai-chat/core";
 import type { Message } from "@ai-chat/core";
-import type { ServiceInitOptions } from "@/types/index.js";
 
 const loadEnvForKey = (envVar: string): void => {
   if (process.env[envVar]) {
@@ -28,118 +31,81 @@ const loadEnvForKey = (envVar: string): void => {
   }
 };
 
-type BuildMessages =
-  | Message[]
-  | ((modelKey: string, providerKey: string) => Message[]);
+const PING_MESSAGES: Message[] = [
+  {
+    role: "system",
+    content:
+      "Reply with exactly: OK. Do not add quotes, punctuation, or extra text.",
+  },
+  { role: "user", content: "Ping" },
+];
 
-type NormalizeResponse = (text: string) => string;
-type IsPassingResponse = (text: string, rawResponse: unknown) => boolean;
+// Reasoning and search models wrap the answer ("OK.", "**OK**", citations),
+// so any non-empty reply passes; the reply is printed for a human to judge
+const MAX_SHOWN_REPLY_CHARS = 60;
 
-const baseNormalize: NormalizeResponse = (text) => (text || "").trim();
-const baseIsPassingResponse: IsPassingResponse = (text) =>
-  text.startsWith("OK") || text.startsWith("Pong");
-
-type ResponseLike = { content?: string };
-
-const unwrapResponse = (response: unknown): string => {
-  if (typeof response === "string") {
-    return response;
-  }
-
-  const typed = response as ResponseLike | null;
-  if (typed && typeof typed.content === "string") {
-    return typed.content;
-  }
-
-  return "";
+export type ModelCheck = {
+  providerKey: string;
+  modelKey: string;
 };
 
-export function defaultMessages(): Message[] {
-  return [
-    {
-      role: "system",
-      content:
-        "Reply with exactly: OK. Do not add quotes, punctuation, or extra text.",
-    },
-    { role: "user", content: "Ping" },
-  ];
-}
+export type ModelCheckResult = ModelCheck & {
+  pass: boolean;
+  detail: string;
+};
 
-export async function runIntegrationOkTest({
-  providerKey,
-  displayName = providerKey,
-  buildMessages = defaultMessages,
-  normalizeResponse = baseNormalize,
-  isPassingResponse = baseIsPassingResponse,
-  initOptions,
-  requestContext,
-}: {
-  providerKey: string;
-  displayName?: string;
-  buildMessages?: BuildMessages;
-  normalizeResponse?: NormalizeResponse;
-  isPassingResponse?: IsPassingResponse;
-  initOptions?: ServiceInitOptions;
-  requestContext?: Record<string, unknown>;
-}): Promise<void> {
-  const providerConfig = AI_PROVIDERS[providerKey];
-  if (!providerConfig) {
+/**
+ * Models to check for a provider: active participants only unless
+ * includeInactive, and none when the provider's API key is missing.
+ */
+export const listModelChecks = (
+  providerKey: string,
+  { includeInactive = false } = {},
+): { checks: ModelCheck[]; missingKey?: string } => {
+  const provider = AI_PROVIDERS[providerKey];
+  if (!provider) {
     throw new Error(`Unknown provider key: ${providerKey}`);
   }
 
-  const { apiKeyEnvVar, models } = providerConfig;
-  loadEnvForKey(apiKeyEnvVar);
-
-  if (!process.env[apiKeyEnvVar]) {
-    console.error(
-      `Missing ${apiKeyEnvVar}. Skipping ${displayName} integration tests.`,
-    );
-    process.exit(0);
+  loadEnvForKey(provider.apiKeyEnvVar);
+  if (!process.env[provider.apiKeyEnvVar]) {
+    return { checks: [], missingKey: provider.apiKeyEnvVar };
   }
 
-  const results: Array<{
-    modelKey: string;
-    pass: boolean;
-    got?: string;
-    error?: string;
-  }> = [];
+  const activeIds = new Set(getActiveParticipants().map(({ id }) => id));
+  const checks = Object.keys(provider.models)
+    .filter(
+      (modelKey) =>
+        includeInactive || activeIds.has(`${providerKey}_${modelKey}`),
+    )
+    .map((modelKey) => ({ providerKey, modelKey }));
+  return { checks };
+};
 
-  for (const modelKey of Object.keys(models)) {
-    try {
-      process.stdout.write(`${displayName} ${modelKey}: `);
-      const service = AIServiceFactory.createServiceByName(
-        providerKey,
-        modelKey,
-      );
-      await service.initialize(initOptions);
-
-      const messages =
-        typeof buildMessages === "function"
-          ? buildMessages(modelKey, providerKey)
-          : buildMessages;
-
-      const response = await service.generateResponse(messages, requestContext);
-      const got = normalizeResponse(unwrapResponse(response));
-      const pass = isPassingResponse(got, response);
-
-      if (pass) {
-        console.log("PASS");
-        results.push({ modelKey, pass: true });
-      } else {
-        console.log(`FAIL (got: ${JSON.stringify(got)})`);
-        results.push({ modelKey, pass: false, got });
-      }
-    } catch (err) {
-      console.log(`ERROR (${err.message})`);
-      results.push({ modelKey, pass: false, error: err.message });
-    }
+/** Send one model a ping through its real API. */
+export const runIntegrationOkTest = async ({
+  providerKey,
+  modelKey,
+}: ModelCheck): Promise<ModelCheckResult> => {
+  try {
+    const service = AIServiceFactory.createServiceByName(providerKey, modelKey);
+    await service.initialize({ validateOnInit: false });
+    const response = await service.generateResponse(PING_MESSAGES);
+    const reply = (response.content || "").trim();
+    return reply
+      ? {
+          providerKey,
+          modelKey,
+          pass: true,
+          detail: JSON.stringify(reply.slice(0, MAX_SHOWN_REPLY_CHARS)),
+        }
+      : { providerKey, modelKey, pass: false, detail: "empty reply" };
+  } catch (error) {
+    return {
+      providerKey,
+      modelKey,
+      pass: false,
+      detail: error instanceof Error ? error.message : String(error),
+    };
   }
-
-  const failed = results.filter((r) => !r.pass);
-  if (failed.length > 0) {
-    console.error(`\n${failed.length} ${displayName} model(s) failed.`);
-    process.exit(1);
-  }
-
-  console.log(`\nAll ${displayName} models passed.`);
-}
+};

@@ -120,9 +120,10 @@ bun run test                   # All package tests (also test:core, test:server,
 bun run lint                   # ESLint over the whole repo
 bun run format                 # Prettier check (format:fix to write)
 bun run test:e2e               # CodeceptJS against a running stack on :3000
+bun run test:live grok qwen    # Ping every active model of these providers (all keyed ones if none given; --all adds parked models)
 ```
 
-CI runs build, lint, format, `validate:models` and tests on every PR. Live provider smoke tests are in `packages/ai-chat-core/tests/integration-ok-*.ts` and need real API keys.
+CI runs build, lint, format, `validate:models` and tests on every PR. `test:live` calls the real APIs, so it costs a few tokens per model and stays out of CI.
 
 ## License
 
