@@ -11,12 +11,6 @@ export interface Message {
   metadata?: Record<string, unknown>;
 }
 
-// Formatted message for AI services
-export interface FormattedMessage {
-  role: "user" | "assistant" | "system";
-  content: string;
-}
-
 // AI Model configuration
 export interface AIModel {
   id: string;
@@ -84,49 +78,6 @@ export interface ServiceResponse<T = unknown> {
   model?: string;
   finishReason?: string;
   rawResponse?: T;
-}
-
-export interface OpenAIResponse {
-  choices: Array<{
-    message: {
-      role: string;
-      content: string;
-    };
-    finish_reason: string;
-  }>;
-  usage?: {
-    prompt_tokens: number;
-    completion_tokens: number;
-    total_tokens: number;
-  };
-  model: string;
-}
-
-export interface AnthropicResponse {
-  content: Array<{
-    type: string;
-    text: string;
-  }>;
-  usage?: {
-    input_tokens: number;
-    output_tokens: number;
-  };
-  model: string;
-  stop_reason?: string;
-}
-
-export interface GeminiResponse {
-  candidates: Array<{
-    content: {
-      parts: Array<{ text: string }>;
-    };
-    finishReason?: string;
-  }>;
-  usageMetadata?: {
-    promptTokenCount: number;
-    candidatesTokenCount: number;
-    totalTokenCount: number;
-  };
 }
 
 // Stream text options
@@ -219,30 +170,10 @@ export type ServiceRegistry<
   [K in keyof T]: ServiceConstructor<T[K]>;
 };
 
-// AI Response types
-export interface AIResponse {
-  content: string;
-  usage: {
-    promptTokens: number;
-    completionTokens: number;
-    totalTokens: number;
-  };
-  model: string;
-  finishReason: string;
-}
-
 // Service-specific configuration types
 export interface AnthropicServiceConfig extends AIServiceConfig {
   provider: {
     name: "anthropic";
-    displayName: string;
-    apiKeyEnvVar: string;
-  };
-}
-
-export interface GeminiServiceConfig extends AIServiceConfig {
-  provider: {
-    name: "gemini";
     displayName: string;
     apiKeyEnvVar: string;
   };
@@ -300,57 +231,9 @@ export class NetworkError extends Error {
   }
 }
 
-export class InitializationError extends Error {
-  constructor(
-    message: string,
-    public readonly service?: string,
-    public readonly details?: Record<string, unknown>,
-  ) {
-    super(message);
-    this.name = "InitializationError";
-  }
-}
-
-export class ValidationError extends Error {
-  constructor(
-    message: string,
-    public readonly field?: string,
-    public readonly constraints?: string[],
-  ) {
-    super(message);
-    this.name = "ValidationError";
-  }
-}
-
 // Utility types
 export type DeepPartial<T> = {
   [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
 };
 
 export type RequiredKeys<T, K extends keyof T> = T & Required<Pick<T, K>>;
-
-export type AsyncResult<T> = Promise<T>;
-
-export type AsyncCallback<T> = (result: T) => void | Promise<void>;
-
-export type ErrorCallback = (error: Error) => void | Promise<void>;
-
-// Type guards
-export const isMessage = (obj: unknown): obj is Message => {
-  return (
-    typeof obj === "object" &&
-    obj !== null &&
-    "role" in obj &&
-    "content" in obj &&
-    typeof (obj as Message).content === "string"
-  );
-};
-
-export const isServiceResponse = (obj: unknown): obj is ServiceResponse => {
-  return (
-    typeof obj === "object" &&
-    obj !== null &&
-    "content" in obj &&
-    typeof (obj as ServiceResponse).content === "string"
-  );
-};

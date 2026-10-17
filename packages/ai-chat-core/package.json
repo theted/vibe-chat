@@ -47,9 +47,6 @@
   "dependencies": {
     "@ai-chat/ai-configs": "file:../ai-configs",
     "@anthropic-ai/sdk": "^0.39.0",
-    "@google/generative-ai": "^0.24.0",
-    "@mistralai/mistralai": "^1.5.2",
-    "dotenv": "^16.4.7",
     "openai": "^4.89.0"
   },
   "devDependencies": {
@@ -58,6 +55,7 @@
     "@swc/core": "^1.4.0",
     "@types/node": "^24.10.1",
     "@types/sinonjs__fake-timers": "^15.0.1",
+    "dotenv": "^16.4.7",
     "eslint": "^8.56.0",
     "typescript": "^5.9.3"
   },

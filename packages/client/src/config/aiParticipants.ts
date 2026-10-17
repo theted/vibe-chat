@@ -5,9 +5,7 @@
 export {
   DEFAULT_AI_PARTICIPANTS,
   getParticipantById,
-  getParticipantByAlias,
   getActiveParticipants,
-  getParticipantsByProvider,
 } from "@ai-chat/ai-configs";
 
 export type { AiParticipant, AiParticipantStatus } from "@ai-chat/ai-configs";

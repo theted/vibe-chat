@@ -88,9 +88,8 @@ export const initializeAISystem = async (): Promise<AISystem> => {
       "⚠️  No AI API keys found! Please set API keys in environment variables.",
     );
     console.warn(
-      `Available keys: ${Object.values(PROVIDER_ENV_VARS).join(", ")}`,
+      `Available keys: ${[...new Set(Object.values(PROVIDER_ENV_VARS))].join(", ")}`,
     );
-    aiConfigs.push({ providerKey: "MOCK", modelKey: "MOCK_AI" });
   }
 
   const skipHealthCheck = parseBoolFlag(process.env.AI_CHAT_SKIP_HEALTHCHECK);

@@ -44,10 +44,7 @@ export { AIServiceFactory } from "./services/AIServiceFactory.js";
 // dedicated classes; the rest are data-driven entries in AIServiceFactory)
 export { OpenAIService } from "./services/OpenAIService.js";
 export { AnthropicService } from "./services/AnthropicService.js";
-export { GeminiService } from "./services/GeminiService.js";
-export { MistralService } from "./services/MistralService.js";
 export { ZaiService } from "./services/ZaiService.js";
-export { PerplexityService } from "./services/PerplexityService.js";
 export { OpenAICompatibleService } from "./services/base/OpenAICompatibleService.js";
 export { OpenRouterCompatibleService } from "./services/base/OpenRouterCompatibleService.js";
 

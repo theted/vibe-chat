@@ -129,30 +129,6 @@ export const createAIConfig = (
 };
 
 /**
- * Gets all AI configs for providers with available API keys
- * Dynamically pulls all models from AI_PROVIDERS
- */
-export const getAvailableAIConfigs = (): AIConfig[] => {
-  const configs: AIConfig[] = [];
-
-  for (const [providerKey, envVar] of Object.entries(PROVIDER_ENV_VARS)) {
-    if (!process.env[envVar]) continue;
-
-    const models = getProviderModels(providerKey);
-    models.forEach((modelKey) => {
-      if (!isModelEnabled(providerKey, modelKey)) return;
-      // Only add models that have display info configured
-      const displayKey = `${providerKey}_${modelKey}`;
-      if (AI_DISPLAY_INFO[displayKey]) {
-        configs.push(createAIConfig(providerKey, modelKey));
-      }
-    });
-  }
-
-  return configs;
-};
-
-/**
  * Parses an allowlist env var and filters to valid model keys
  */
 export const parseModelAllowlist = (
