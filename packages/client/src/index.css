@@ -338,7 +338,7 @@
     }
   }
 
-  /* ── Markdown in AI messages ── */
+  /* ── Markdown in message bodies (people, models and @Chat alike) ── */
   .markdown-content {
     @apply break-words;
     overflow-wrap: anywhere;
@@ -395,6 +395,24 @@
   }
   .markdown-content hr {
     @apply my-6 border-0 border-t border-line;
+  }
+  .markdown-content del {
+    @apply text-muted;
+  }
+
+  /* Wide tables scroll inside the message instead of stretching the row */
+  .markdown-table {
+    @apply overflow-x-auto;
+  }
+  .markdown-table table {
+    @apply border-collapse text-sm;
+  }
+  .markdown-table th,
+  .markdown-table td {
+    @apply border border-line px-2.5 py-1 text-left align-top;
+  }
+  .markdown-table th {
+    @apply bg-raised font-semibold;
   }
 
   /* Breaks only when a token can't fit a line, not mid-word by default */
