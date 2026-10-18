@@ -3,6 +3,100 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import ChatMessage from "./ChatMessage";
 import type { Message } from "@/types";
 
+const makeMessage = (overrides: Partial<Message>): Message => ({
+  id: "link-message",
+  senderType: "user",
+  sender: "Skylar",
+  content: "",
+  timestamp: Date.now(),
+  ...overrides,
+});
+
+describe("ChatMessage links", () => {
+  it.each([
+    ["human", makeMessage({ senderType: "user", sender: "Skylar" })],
+    ["AI", makeMessage({ senderType: "ai", sender: "Claude Opus 5.5" })],
+    ["@Chat", makeMessage({ senderType: "ai", sender: "@Chat" })],
+  ])("links a bare URL in a %s message", (_label, message) => {
+    render(
+      <ChatMessage
+        message={{ ...message, content: "Docs at https://example.com/docs ok" }}
+      />,
+    );
+
+    const link = screen.getByRole("link", {
+      name: "https://example.com/docs",
+    });
+    expect(link).toHaveAttribute("href", "https://example.com/docs");
+    expect(link).toHaveAttribute("target", "_blank");
+    expect(link).toHaveAttribute("rel", "noopener noreferrer");
+    expect(link).toHaveClass("markdown-link");
+  });
+
+  it("renders markdown links in human messages", () => {
+    render(
+      <ChatMessage
+        message={makeMessage({
+          content: "See [the repo](https://github.com/theted/vibe-chat)",
+        })}
+      />,
+    );
+
+    expect(screen.getByRole("link", { name: "the repo" })).toHaveAttribute(
+      "href",
+      "https://github.com/theted/vibe-chat",
+    );
+  });
+
+  it("keeps mention chips next to links in human messages", () => {
+    render(
+      <ChatMessage
+        message={makeMessage({
+          content: "@Claude Haiku 4.5 look at https://example.com",
+        })}
+      />,
+    );
+
+    expect(screen.getByText("@Claude Haiku 4.5")).toHaveClass("mention-chip");
+    expect(
+      screen.getByRole("link", { name: "https://example.com" }),
+    ).toBeInTheDocument();
+  });
+
+  it("leaves an @ inside a URL as part of the link", () => {
+    render(
+      <ChatMessage
+        message={makeMessage({
+          content: "Read https://medium.com/@Claude Haiku 4.5",
+        })}
+      />,
+    );
+
+    expect(screen.getByRole("link")).toHaveAttribute(
+      "href",
+      "https://medium.com/@Claude",
+    );
+  });
+
+  it("keeps line breaks people type", () => {
+    const { container } = render(
+      <ChatMessage message={makeMessage({ content: "first line\nsecond" })} />,
+    );
+
+    expect(container.querySelector("br")).toBeInTheDocument();
+  });
+
+  it("shows raw HTML in a human message as text, never as markup", () => {
+    const { container } = render(
+      <ChatMessage
+        message={makeMessage({ content: "<img src=x onerror=alert(1)>" })}
+      />,
+    );
+
+    expect(container.querySelector("img")).not.toBeInTheDocument();
+  });
+});
+
 describe("ChatMessage", () => {
   it("highlights @mentions with spaces without brackets", () => {
     const message: Message = {

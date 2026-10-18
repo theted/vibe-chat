@@ -16,6 +16,7 @@ type SchedulerTestOptions = {
   /** AI messages the room may still take. */
   budget?: number;
   directOnlyRooms?: string[];
+  privateGroupRooms?: string[];
   heldRooms?: string[];
   allowedByRoom?: Record<string, string[]>;
   lastMessage?: ContextMessage;
@@ -25,6 +26,7 @@ export const makeTestScheduler = ({
   fatigue = 0,
   budget = 10,
   directOnlyRooms = [],
+  privateGroupRooms = [],
   heldRooms = [],
   allowedByRoom = {},
   lastMessage,
@@ -58,6 +60,7 @@ export const makeTestScheduler = ({
         ? aiIds.filter((id) => allowedByRoom[roomId].includes(id))
         : aiIds,
     isDirectOnly: (roomId) => directOnlyRooms.includes(roomId),
+    isPrivateGroup: (roomId) => privateGroupRooms.includes(roomId),
     isOnHold: (roomId) => heldRooms.includes(roomId),
     getAvailableBudget: (roomId) =>
       state.budget - pending.filter((r) => r.roomId === roomId).length,

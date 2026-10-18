@@ -290,7 +290,9 @@ export const buildTurnInstruction = (
     : "";
   const privateChatInstruction = strategy.isPrivateChat
     ? STRATEGY_INSTRUCTIONS.PRIVATE_CHAT
-    : "";
+    : strategy.isPrivateGroup
+      ? STRATEGY_INSTRUCTIONS.PRIVATE_GROUP
+      : "";
 
   const body = [
     selfName ? `Your turn, ${selfName}.` : "",

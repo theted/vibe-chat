@@ -114,6 +114,7 @@ export class ChatOrchestrator extends EventEmitter {
       claimTurn: (roomId) => this.streak.claim(roomId),
       getFatigue: (roomId) => this.streak.getFatigue(roomId),
       isDirectOnly: (roomId) => this.isRoomDirectOnly(roomId),
+      isPrivateGroup: (roomId) => this.isRoomPrivateGroup(roomId),
       getRoomAIs: (roomId) =>
         this.filterAIsForRoom(roomId, this.activeAIs)
           .map((aiId) => this.aiServices.get(aiId))
@@ -136,6 +137,7 @@ export class ChatOrchestrator extends EventEmitter {
         this.contextManager.getLastMessage(roomId) ?? undefined,
       filterAIsForRoom: (roomId, aiIds) => this.filterAIsForRoom(roomId, aiIds),
       isDirectOnly: (roomId) => this.isRoomDirectOnly(roomId),
+      isPrivateGroup: (roomId) => this.isRoomPrivateGroup(roomId),
       isOnHold: (roomId) => this.heldRooms.has(roomId),
       getAvailableBudget: (roomId) =>
         this.streak.remaining(roomId) - this.responseQueue.countForRoom(roomId),
@@ -315,6 +317,32 @@ export class ChatOrchestrator extends EventEmitter {
 
   isRoomDirectOnly(roomId: string): boolean {
     return this.roomScope.isDirectOnly(roomId);
+  }
+
+  /**
+   * Mark a room as a private group: it runs like the main room, but only its
+   * members speak and only they may be addressed. Pair it with
+   * setRoomAllowedAIs.
+   */
+  setRoomPrivateGroup(roomId: string, isGroup = true): void {
+    this.roomScope.setPrivateGroup(roomId, isGroup);
+  }
+
+  isRoomPrivateGroup(roomId: string): boolean {
+    return this.roomScope.isPrivateGroup(roomId);
+  }
+
+  /**
+   * Seed an empty room with another room's conversation, so models added to
+   * a private chat (which moves it to a new room id) see what was said. A room
+   * that already has a conversation of its own keeps it. Returns how many
+   * messages were copied.
+   */
+  copyRoomContext(fromRoomId: string, toRoomId: string): number {
+    return this.contextManager.copyRoom(
+      normalizeRoomId(fromRoomId),
+      normalizeRoomId(toRoomId),
+    );
   }
 
   filterAIsForRoom(roomId: string, aiIds: string[]): string[] {

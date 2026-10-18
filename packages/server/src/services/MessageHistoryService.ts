@@ -126,6 +126,58 @@ export class MessageHistoryService {
   }
 
   /**
+   * Seed an empty room's history with another room's, retagged with the new
+   * room - a private chat that gains or loses a model moves to a new room id,
+   * and the transcript should come along. A room that already has history
+   * keeps it. Returns how many messages were copied.
+   */
+  async copyRoomHistory(fromRoomId: string, toRoomId: string): Promise<number> {
+    if (!this.redisClient || fromRoomId === toRoomId) return 0;
+
+    const fromKey = this.getRoomMessageKey(fromRoomId);
+    const toKey = this.getRoomMessageKey(toRoomId);
+    try {
+      const existing = await this.redisClient.lRange(toKey, 0, 0);
+      if (existing.length > 0) return 0;
+
+      // Newest first, as storeMessage pushes them
+      const entries = await this.redisClient.lRange(
+        fromKey,
+        0,
+        this.recentMessageLimit - 1,
+      );
+      const retagged = entries.flatMap((entry) => {
+        try {
+          const message = JSON.parse(entry) as ChatMessage;
+          return [JSON.stringify({ ...message, roomId: toRoomId })];
+        } catch {
+          return [];
+        }
+      });
+      if (retagged.length === 0) return 0;
+
+      // Push oldest first so the newest message ends up at the head again
+      const transaction = this.redisClient.multi();
+      [...retagged]
+        .reverse()
+        .forEach((entry) => transaction.lPush(toKey, entry));
+      await transaction
+        .lTrim(toKey, 0, this.recentMessageLimit - 1)
+        .expire(toKey, this.messageTtlSeconds)
+        .exec();
+      return retagged.length;
+    } catch (error) {
+      const messageText =
+        error instanceof Error ? error.message : String(error);
+      console.warn(
+        `Failed to copy message history from ${fromRoomId} to ${toRoomId}:`,
+        messageText,
+      );
+      return 0;
+    }
+  }
+
+  /**
    * Check if Redis is available
    */
   isAvailable(): boolean {

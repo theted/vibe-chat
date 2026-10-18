@@ -148,6 +148,11 @@ export type TriggerChatAssistantPayload = {
 export type JoinRoomPayload = {
   username?: string;
   roomId?: string;
+  /**
+   * The private room the user is coming from when they add or remove a model:
+   * its transcript seeds the new room if that room has none yet.
+   */
+  carryHistoryFrom?: string;
 };
 
 export type UserMessagePayload = {

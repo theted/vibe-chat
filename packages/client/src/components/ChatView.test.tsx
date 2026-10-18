@@ -143,7 +143,7 @@ describe("ChatView Component", () => {
     onSendMessage: vi.fn(),
     onTypingStart: vi.fn(),
     onTypingStop: vi.fn(),
-    onPrivateConversationStart: vi.fn(),
+    onModelSelect: vi.fn(),
     error: null,
     messagesEndRef: { current: null } as RefObject<HTMLDivElement | null>,
     messagesContainerRef: { current: null } as RefObject<HTMLDivElement | null>,
@@ -170,7 +170,7 @@ describe("ChatView Component", () => {
         <ChatView
           {...defaultProps}
           isPrivateChat
-          privateChatAi={privateAi}
+          privateChatAis={[privateAi]}
           onPrivateConversationEnd={vi.fn()}
         />,
       );
@@ -180,13 +180,53 @@ describe("ChatView Component", () => {
       expect(banner.textContent).toContain("AI 3");
     });
 
+    it("names every model in a private group", () => {
+      const secondAi: AiParticipant = {
+        ...privateAi,
+        id: "ai-4",
+        name: "AI 4",
+      };
+      const thirdAi: AiParticipant = { ...privateAi, id: "ai-5", name: "AI 5" };
+      renderWithRouter(
+        <ChatView
+          {...defaultProps}
+          isPrivateChat
+          privateChatAis={[privateAi, secondAi, thirdAi]}
+          onPrivateConversationEnd={vi.fn()}
+        />,
+      );
+
+      const banner = screen.getByTestId("private-chat-banner");
+      expect(banner.textContent).toContain(
+        "Private chat with AI 3, AI 4 and AI 5",
+      );
+      expect(banner.textContent).toContain("Only you and these models");
+    });
+
+    it("opens the models list from the banner to add more", () => {
+      renderWithRouter(
+        <ChatView
+          {...defaultProps}
+          isPrivateChat
+          privateChatAis={[privateAi]}
+          onPrivateConversationEnd={vi.fn()}
+        />,
+      );
+
+      fireEvent.click(screen.getByTestId("add-private-models"));
+
+      expect(
+        screen.getByRole("dialog", { name: /people and models/i }),
+      ).toBeInTheDocument();
+    });
+
     it("leaves the private chat when the back button is clicked", () => {
       const onPrivateConversationEnd = vi.fn();
       renderWithRouter(
         <ChatView
           {...defaultProps}
           isPrivateChat
-          privateChatAi={privateAi}
+          privateChatAis={[privateAi]}
           onPrivateConversationEnd={onPrivateConversationEnd}
         />,
       );

@@ -1,54 +1,27 @@
 /**
  * ChatMessage Component - one row of the transcript. AI rows carry their
  * provider's voice colour; consecutive rows from one sender drop the header.
- * (Mention rendering, AI metadata, and code rendering are extracted.)
+ * (Body markdown and AI metadata are extracted.)
  */
 
 import { useCallback, useMemo } from "react";
-import ReactMarkdown from "react-markdown";
 import { formatMessageTime } from "@/utils/formatters";
-import {
-  formatMentionsForMarkdown,
-  highlightMentions,
-} from "@/utils/chatMentions";
 import { messageElementId } from "@/utils/messageAnchor";
 import { getMessageVoiceKey } from "@/utils/messageSender";
 import { useVoiceStyle } from "@/context/VoiceContext";
 import { useAIMetadata } from "@/hooks/useAIMetadata";
 import Icon from "./Icon";
-import MarkdownCodeBlock from "./MarkdownCodeBlock";
 import MessageAvatar from "./MessageAvatar";
+import MessageMarkdown from "./MessageMarkdown";
 import ReplyQuote from "./ReplyQuote";
 import type { ChatMessageProps } from "@/types";
 
-const BODY_CLASSES = "text-[15px] leading-relaxed text-fg break-words";
 // Shown on hover, and on touch once a tap focuses the row; it ignores taps
 // while hidden so an invisible button can't start a reply by accident
 const REPLY_BUTTON_CLASSES =
   "pointer-events-none absolute -top-3 right-4 z-10 flex h-7 w-7 items-center justify-center rounded-md border border-line bg-raised text-muted opacity-0 shadow-sm transition-opacity hover:text-fg focus-visible:pointer-events-auto focus-visible:opacity-100 group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100";
-
-const MARKDOWN_COMPONENTS_BASE = {
-  h1: ({ children }: { children?: React.ReactNode }) => <h4>{children}</h4>,
-  h2: ({ children }: { children?: React.ReactNode }) => <h4>{children}</h4>,
-  h3: "h3" as const,
-  pre: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
-  ul: ({ children }: { children?: React.ReactNode }) => (
-    <ul className="markdown-list">{children}</ul>
-  ),
-  ol: ({ children }: { children?: React.ReactNode }) => (
-    <ol className="markdown-list">{children}</ol>
-  ),
-  a: ({ href, children }: { href?: string; children?: React.ReactNode }) => (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="markdown-link"
-    >
-      {children}
-    </a>
-  ),
-};
+const BODY_CLASSES =
+  "markdown-content text-[15px] leading-relaxed text-fg break-words";
 
 const ChatMessage = ({
   message,
@@ -70,26 +43,6 @@ const ChatMessage = ({
     aiParticipants,
   );
   const isAI = message.senderType === "ai";
-
-  const renderMarkdownCode = useCallback(
-    (props: {
-      className?: string;
-      children?: React.ReactNode;
-      node?: { type?: string };
-    }) => (
-      <MarkdownCodeBlock
-        {...props}
-        aiParticipants={aiParticipants}
-        participantMentions={participantMentions}
-      />
-    ),
-    [aiParticipants, participantMentions],
-  );
-
-  const markdownComponents = useMemo(
-    () => ({ ...MARKDOWN_COMPONENTS_BASE, code: renderMarkdownCode }),
-    [renderMarkdownCode],
-  );
 
   const voice = useVoiceStyle(voiceKey);
   const quotedVoiceKey = useMemo(
@@ -178,25 +131,13 @@ const ChatMessage = ({
           />
         )}
 
-        {isAI ? (
-          <div className={`markdown-content ${BODY_CLASSES}`}>
-            <ReactMarkdown components={markdownComponents}>
-              {formatMentionsForMarkdown(
-                message.content,
-                aiParticipants,
-                participantMentions,
-              )}
-            </ReactMarkdown>
-          </div>
-        ) : (
-          <div className={`whitespace-pre-wrap ${BODY_CLASSES}`}>
-            {highlightMentions(
-              message.content,
-              aiParticipants,
-              participantMentions,
-            )}
-          </div>
-        )}
+        <div className={BODY_CLASSES}>
+          <MessageMarkdown
+            content={message.content}
+            aiParticipants={aiParticipants}
+            participantMentions={participantMentions}
+          />
+        </div>
       </div>
     </article>
   );

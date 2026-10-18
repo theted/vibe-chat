@@ -56,6 +56,8 @@ type ResponseGeneratorDeps = {
   getFatigue: (roomId: string) => number;
   /** Private 1-1 room: no other AI is present to address. */
   isDirectOnly: (roomId: string) => boolean;
+  /** Private group: only the room's members may be addressed. */
+  isPrivateGroup: (roomId: string) => boolean;
   /** The AIs allowed to speak in the room, for the system prompt. */
   getRoomAIs: (roomId: string) => OrchestratorAIService[];
   isVerbose: () => boolean;
@@ -131,9 +133,13 @@ export class ResponseGenerator {
         replyTarget,
       );
 
+      const roomAIs = this.deps.getRoomAIs(roomId);
+
       // In a 1-1 room there is nobody else to hand off to, so drop any mention
       // the strategy picked before it reaches the prompt.
       const isPrivateChat = this.deps.isDirectOnly(roomId);
+      const isPrivateGroup = !isPrivateChat && this.deps.isPrivateGroup(roomId);
+      const memberIds = new Set(roomAIs.map((ai) => ai.id));
       if (isPrivateChat) {
         interactionStrategy = {
           ...interactionStrategy,
@@ -141,6 +147,23 @@ export class ResponseGenerator {
           shouldMention: false,
           mentionHandle: null,
           targetAI: null,
+        };
+      }
+
+      // A private group's transcript can name a model that has since been
+      // removed (history carries over when the cast changes), so only members
+      // are handed the turn.
+      if (isPrivateGroup) {
+        const memberTokens = new Set(roomAIs.map(getMentionTokenForAI));
+        const { targetAI } = interactionStrategy;
+        const targetsOutsider =
+          typeof targetAI === "string" && !memberTokens.has(targetAI);
+        interactionStrategy = {
+          ...interactionStrategy,
+          isPrivateGroup: true,
+          ...(targetsOutsider
+            ? { shouldMention: false, mentionHandle: null, targetAI: null }
+            : {}),
         };
       }
 
@@ -169,7 +192,7 @@ export class ResponseGenerator {
         aiServices,
         {
           conversationDigest: contextManager.getConversationDigest(roomId),
-          roomAIs: this.deps.getRoomAIs(roomId),
+          roomAIs,
         },
       );
       const messages: Message[] = [
@@ -193,7 +216,8 @@ export class ResponseGenerator {
       const processedResponse = this.cleanResponse(
         responseText,
         aiService,
-        isPrivateChat,
+        (target) =>
+          !isPrivateChat && (!isPrivateGroup || memberIds.has(target.id)),
       );
       if (!processedResponse) {
         throw new Error("Model returned an empty response");
@@ -294,12 +318,13 @@ export class ResponseGenerator {
    * Tidy a raw model reply: drop a "[Name]" label copied from the transcript,
    * mention each target at most once (MENTION_LIMITS caps how many), and
    * demote mentions that would misfire - the AI's own handle anywhere, and
-   * any other AI's in a private room, where nobody else is present.
+   * any AI that isn't there to answer: every other AI in a 1-1 room, anyone
+   * outside a private group.
    */
   private cleanResponse(
     response: string,
     aiService: OrchestratorAIService,
-    isPrivateChat: boolean,
+    canAddress: (target: OrchestratorAIService) => boolean,
   ): string {
     const aiServices = this.deps.registry.services;
     const withoutLabel = stripOwnSpeakerLabel(response, aiService).trim();
@@ -307,7 +332,7 @@ export class ResponseGenerator {
       // A token that resolves to no AI is a person's handle and keeps its @
       const target = findAIByNormalizedAlias(aiServices, token);
       if (!target) return false;
-      return target.id === aiService.id || isPrivateChat;
+      return target.id === aiService.id || !canAddress(target);
     });
     return limitMentionsInResponse(withoutMisfires);
   }

@@ -1,5 +1,9 @@
 import type { Socket } from "socket.io";
-import { SOCKET_EVENTS } from "@ai-chat/ai-configs";
+import {
+  MAX_PRIVATE_ROOM_AIS,
+  SOCKET_EVENTS,
+  getPrivateRoomAiIds,
+} from "@ai-chat/ai-configs";
 
 import type { JoinRoomPayload, TopicChangePayload } from "@/types.js";
 import {
@@ -10,10 +14,33 @@ import {
 import type { SocketHandlerContext } from "./socketHandlerContext.js";
 import {
   applyRoomAIScope,
+  canCarryHistory,
   toAIStatusPayload,
   validateTopic,
   validateUsername,
 } from "./socketUtils.js";
+
+/**
+ * Seed a new private room with the one the user came from, unless it already
+ * has a conversation. The client reads Redis (or the orchestrator's context
+ * without Redis) and the models read the orchestrator's context, so both get
+ * the copy - and both are judged empty by what the client would be shown.
+ */
+const carryRoomHistory = async (
+  context: SocketHandlerContext,
+  fromRoomId: string,
+  toRoomId: string,
+): Promise<void> => {
+  const { chatOrchestrator, messageHistory } = context;
+  const existing = await messageHistory.getRecentMessages(
+    toRoomId,
+    chatOrchestrator.contextManager,
+  );
+  if (existing.length > 0) return;
+
+  await messageHistory.copyRoomHistory(fromRoomId, toRoomId);
+  chatOrchestrator.copyRoomContext(fromRoomId, toRoomId);
+};
 
 export const handleJoinRoom = (
   context: SocketHandlerContext,
@@ -25,6 +52,13 @@ export const handleJoinRoom = (
     const usernameValidation = validateUsername(username);
     if (!usernameValidation.valid) {
       socket.emit(SOCKET_EVENTS.ERROR, { message: usernameValidation.message });
+      return;
+    }
+
+    if (getPrivateRoomAiIds(roomId).length > MAX_PRIVATE_ROOM_AIS) {
+      socket.emit(SOCKET_EVENTS.ERROR, {
+        message: `A private chat can hold up to ${MAX_PRIVATE_ROOM_AIS} models.`,
+      });
       return;
     }
 
@@ -71,20 +105,42 @@ export const handleJoinRoom = (
         context.chatOrchestrator.getRoomAIStatus(roomId),
       ),
       // Server truth: the client shows its private-chat UI off this, not off
-      // the room id, so it never promises a 1-1 chat that was not set up.
-      privateAiId: roomScope.privateAiId,
+      // the room id, so it never promises models that were not set up.
+      privateAiIds: roomScope.privateAiIds,
     });
 
-    if (roomScope.requestedPrivate && !roomScope.privateAiId) {
+    if (roomScope.requestedPrivate && roomScope.privateAiIds.length === 0) {
+      const subject =
+        roomScope.unavailableAiIds.length === 1
+          ? "That model is"
+          : "None of those models are";
       socket.emit(SOCKET_EVENTS.ERROR, {
-        message:
-          "That model is not available right now, so this room behaves like the main room.",
+        message: `${subject} available right now, so this room behaves like the main room.`,
+      });
+    } else if (roomScope.unavailableAiIds.length > 0) {
+      socket.emit(SOCKET_EVENTS.ERROR, {
+        message: `${roomScope.unavailableAiIds.join(", ")} ${
+          roomScope.unavailableAiIds.length === 1 ? "isn't" : "aren't"
+        } available right now, so ${
+          roomScope.unavailableAiIds.length === 1 ? "it's" : "they're"
+        } not in this chat.`,
       });
     }
 
-    context.sendRecentMessages(socket, roomId).catch((error) => {
-      warnSocketError("Failed to send room history after join", error);
-    });
+    const { carryHistoryFrom } = data;
+    const historyReady = canCarryHistory(
+      carryHistoryFrom,
+      roomId,
+      userData.username,
+    )
+      ? carryRoomHistory(context, carryHistoryFrom, roomId)
+      : Promise.resolve();
+
+    historyReady
+      .then(() => context.sendRecentMessages(socket, roomId))
+      .catch((error) => {
+        warnSocketError("Failed to send room history after join", error);
+      });
 
     socket.to(roomId).emit(SOCKET_EVENTS.USER_JOINED, {
       username: userData.username,

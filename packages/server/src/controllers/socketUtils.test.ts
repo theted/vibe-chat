@@ -3,17 +3,22 @@ import type { ChatOrchestrator } from "@ai-chat/core";
 
 import {
   applyRoomAIScope,
+  canCarryHistory,
   describeWait,
   describeWindow,
-  getPrivateRoomAiId,
   getRateLimitError,
 } from "./socketUtils.js";
 
-type ScopeCall = { roomId: string; aiIds?: string[]; directOnly?: boolean };
+type ScopeCall = {
+  roomId: string;
+  aiIds?: string[];
+  directOnly?: boolean;
+  privateGroup?: boolean;
+};
 
 /**
  * Minimal orchestrator stand-in: applyRoomAIScope only needs the AI lookup
- * plus the three room-scope setters, so the rest stays out of the way.
+ * plus the room-scope setters, so the rest stays out of the way.
  */
 const makeOrchestrator = (knownAiIds: string[]) => {
   const calls: ScopeCall[] = [];
@@ -30,24 +35,12 @@ const makeOrchestrator = (knownAiIds: string[]) => {
     clearRoomAllowedAIs: (roomId: string) => calls.push({ roomId }),
     setRoomDirectOnly: (roomId: string, directOnly: boolean) =>
       calls.push({ roomId, directOnly }),
+    setRoomPrivateGroup: (roomId: string, privateGroup: boolean) =>
+      calls.push({ roomId, privateGroup }),
   } as unknown as ChatOrchestrator;
 
   return { orchestrator, calls };
 };
-
-describe("getPrivateRoomAiId", () => {
-  it("reads the AI out of a private room id", () => {
-    expect(getPrivateRoomAiId("private:ada:ANTHROPIC_CLAUDE_OPUS_5_5")).toBe(
-      "ANTHROPIC_CLAUDE_OPUS_5_5",
-    );
-  });
-
-  it("returns null for ordinary rooms and malformed ids", () => {
-    expect(getPrivateRoomAiId("default")).toBeNull();
-    expect(getPrivateRoomAiId("private:ada")).toBeNull();
-    expect(getPrivateRoomAiId("private:ada:")).toBeNull();
-  });
-});
 
 describe("applyRoomAIScope", () => {
   it("scopes a private room to its AI and marks it direct-only", () => {
@@ -72,9 +65,61 @@ describe("applyRoomAIScope", () => {
   it("falls back to an unscoped room when the AI is unknown", () => {
     const { orchestrator, calls } = makeOrchestrator(["OPENAI_GPT6_SOL"]);
 
-    applyRoomAIScope(orchestrator, "private:ada:RETIRED_MODEL");
+    const scope = applyRoomAIScope(orchestrator, "private:ada:RETIRED_MODEL");
 
     expect(calls).toEqual([{ roomId: "private:ada:RETIRED_MODEL" }]);
+    expect(scope).toEqual({
+      requestedPrivate: true,
+      privateAiIds: [],
+      unavailableAiIds: ["RETIRED_MODEL"],
+    });
+  });
+
+  it("scopes a room naming several AIs to all of them as a private group", () => {
+    const room = "private:ada:ANTHROPIC_OPUS+OPENAI_GPT6_SOL";
+    const { orchestrator, calls } = makeOrchestrator([
+      "ANTHROPIC_OPUS",
+      "OPENAI_GPT6_SOL",
+      "XAI_GROK",
+    ]);
+
+    const scope = applyRoomAIScope(orchestrator, room);
+
+    expect(calls).toEqual([
+      { roomId: room, aiIds: ["ANTHROPIC_OPUS", "OPENAI_GPT6_SOL"] },
+      { roomId: room, privateGroup: true },
+    ]);
+    expect(scope.privateAiIds).toEqual(["ANTHROPIC_OPUS", "OPENAI_GPT6_SOL"]);
+    expect(scope.unavailableAiIds).toEqual([]);
+  });
+
+  it("leaves unknown AIs out of a group and reports them", () => {
+    const room = "private:ada:ANTHROPIC_OPUS+OPENAI_GPT6_SOL+RETIRED_MODEL";
+    const { orchestrator, calls } = makeOrchestrator([
+      "ANTHROPIC_OPUS",
+      "OPENAI_GPT6_SOL",
+    ]);
+
+    const scope = applyRoomAIScope(orchestrator, room);
+
+    expect(calls[0]).toEqual({
+      roomId: room,
+      aiIds: ["ANTHROPIC_OPUS", "OPENAI_GPT6_SOL"],
+    });
+    expect(scope.unavailableAiIds).toEqual(["RETIRED_MODEL"]);
+  });
+
+  it("runs a group down to one available model as a 1-1 chat", () => {
+    const room = "private:ada:OPENAI_GPT6_SOL+RETIRED_MODEL";
+    const { orchestrator, calls } = makeOrchestrator(["OPENAI_GPT6_SOL"]);
+
+    const scope = applyRoomAIScope(orchestrator, room);
+
+    expect(calls).toEqual([
+      { roomId: room, aiIds: ["OPENAI_GPT6_SOL"] },
+      { roomId: room, directOnly: true },
+    ]);
+    expect(scope.privateAiIds).toEqual(["OPENAI_GPT6_SOL"]);
   });
 });
 
@@ -162,5 +207,27 @@ describe("rate limit error", () => {
     expect(describeWait(5 * 60 * 60 * 1000 + 1)).toBe("6 hours");
     expect(describeWait(90 * 60 * 1000)).toBe("90 minutes");
     expect(describeWait(400)).toBe("1 second");
+  });
+});
+
+describe("canCarryHistory", () => {
+  it("allows moving between the joining user's own private rooms", () => {
+    expect(canCarryHistory("private:ada:A", "private:ada:A+B", "ada")).toBe(
+      true,
+    );
+  });
+
+  it("refuses the main room, the same room, and other users' rooms", () => {
+    expect(canCarryHistory(undefined, "private:ada:A+B", "ada")).toBe(false);
+    expect(canCarryHistory("default", "private:ada:A+B", "ada")).toBe(false);
+    expect(canCarryHistory("private:ada:A", "private:ada:A", "ada")).toBe(
+      false,
+    );
+    expect(canCarryHistory("private:bob:A", "private:ada:A+B", "ada")).toBe(
+      false,
+    );
+    expect(canCarryHistory("private:ada:A", "private:bob:A+B", "bob")).toBe(
+      false,
+    );
   });
 });

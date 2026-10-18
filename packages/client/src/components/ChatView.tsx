@@ -6,8 +6,11 @@ import { useQuoteReply } from "@/hooks/useQuoteReply";
 import { useRoomVoices } from "@/hooks/useRoomVoices";
 import { useStickToBottom } from "@/hooks/useStickToBottom";
 import { toPanelAiParticipants } from "@/utils/participants";
-import { getRoomHues, roomHueStyle } from "@/utils/roomVoices";
-import { getModelVoiceKey } from "@/utils/voice";
+import {
+  getPrivateRoomHues,
+  getRoomHues,
+  roomHueStyle,
+} from "@/utils/roomVoices";
 import AIStatusNotice from "./AIStatusNotice";
 import ChatHeader from "./ChatHeader";
 import CircuitBackdrop from "./CircuitBackdrop";
@@ -22,6 +25,7 @@ import PrivateChatBanner from "./PrivateChatBanner";
 import RoomAura from "./RoomAura";
 import SettingsModal from "./SettingsModal";
 import TypingIndicator from "./TypingIndicator";
+import type { AiParticipant } from "@/config/aiParticipants";
 import type { ChatViewProps } from "@/types";
 
 // Transcript and composer share one measure so their left edges line up
@@ -29,6 +33,7 @@ const COLUMN_CLASSES = "mx-auto w-full max-w-4xl";
 const ERROR_BORDER_STYLE = {
   borderColor: "color-mix(in oklab, var(--danger) 40%, transparent)",
 };
+const NO_PRIVATE_CHAT_AIS: AiParticipant[] = [];
 
 const ChatView = ({
   theme,
@@ -51,10 +56,11 @@ const ChatView = ({
   onSendMessage,
   onTypingStart,
   onTypingStop,
-  onPrivateConversationStart,
+  onModelSelect,
   onPrivateConversationEnd,
   isPrivateChat = false,
-  privateChatAi = null,
+  privateChatAis = NO_PRIVATE_CHAT_AIS,
+  privateRoster = null,
   error,
   messagesEndRef,
   messagesContainerRef,
@@ -87,19 +93,15 @@ const ChatView = ({
   useStickToBottom(messagesContainerRef, messagesEndRef, !showScrollButton);
 
   // The aura and composer edge take on the colours of whoever spoke last; a
-  // private chat glows in its one partner's voice before it has said a word
-  const privateHue = privateChatAi
-    ? hueFor(getModelVoiceKey(privateChatAi))
-    : null;
-  const roomStyle = useMemo(
-    () =>
-      roomHueStyle(
-        privateHue != null
-          ? [privateHue, privateHue, privateHue]
-          : getRoomHues(messages, aiParticipantList, hueFor),
-      ),
-    [privateHue, messages, aiParticipantList, hueFor],
-  );
+  // private chat glows in its members' voices before any of them has spoken
+  const roomStyle = useMemo(() => {
+    const privateHues = getPrivateRoomHues(privateChatAis, hueFor);
+    return roomHueStyle(
+      privateHues.length > 0
+        ? privateHues
+        : getRoomHues(messages, aiParticipantList, hueFor),
+    );
+  }, [privateChatAis, messages, aiParticipantList, hueFor]);
 
   return (
     <VoiceContext.Provider value={hueFor}>
@@ -122,8 +124,9 @@ const ChatView = ({
 
           {isPrivateChat && onPrivateConversationEnd && (
             <PrivateChatBanner
-              ai={privateChatAi}
+              ais={privateChatAis}
               onLeave={onPrivateConversationEnd}
+              onAddModels={participantsDrawer.open}
             />
           )}
 
@@ -222,8 +225,8 @@ const ChatView = ({
           recentSpeakers={recentSpeakers}
           typingUsers={typingUsers}
           typingAIs={typingAIs}
-          onAISelect={onPrivateConversationStart}
-          activePrivateAiId={privateChatAi?.id ?? null}
+          onAISelect={onModelSelect}
+          privateRoster={privateRoster}
         />
 
         <ParticipantsList
@@ -233,8 +236,8 @@ const ChatView = ({
           typingUsers={typingUsers}
           typingAIs={typingAIs}
           isVisible={true}
-          onAISelect={onPrivateConversationStart}
-          activePrivateAiId={privateChatAi?.id ?? null}
+          onAISelect={onModelSelect}
+          privateRoster={privateRoster}
         />
       </div>
     </VoiceContext.Provider>

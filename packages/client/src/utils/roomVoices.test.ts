@@ -1,6 +1,11 @@
 import { describe, it, expect } from "vitest";
 import { AMBIENT_ROOM_HUES } from "@/config/voices";
-import { getRoomHues, getRoomSpeakers, roomHueStyle } from "./roomVoices";
+import {
+  getPrivateRoomHues,
+  getRoomHues,
+  getRoomSpeakers,
+  roomHueStyle,
+} from "./roomVoices";
 import { getVoiceHue, resolveVoiceHues } from "./voice";
 import type { Message } from "@/types";
 import type { AiParticipant } from "@/config/aiParticipants";
@@ -137,5 +142,25 @@ describe("roomHueStyle", () => {
       "--room-h2": 20,
       "--room-h3": 30,
     });
+  });
+});
+
+describe("getPrivateRoomHues", () => {
+  const hueFor = (voiceKey: string) => voiceKey.length * 10;
+  const [first, second] = roster;
+
+  it("glows in the one partner's voice in a 1-1 chat", () => {
+    const hue = getPrivateRoomHues([first], hueFor)[0];
+    expect(getPrivateRoomHues([first], hueFor)).toEqual([hue, hue, hue]);
+  });
+
+  it("spreads a group's members across the aura", () => {
+    const hues = getPrivateRoomHues([first, second], hueFor, 3);
+    expect(hues).toHaveLength(3);
+    expect(hues[2]).toBe(hues[0]);
+  });
+
+  it("is empty without known members", () => {
+    expect(getPrivateRoomHues([], hueFor)).toEqual([]);
   });
 });

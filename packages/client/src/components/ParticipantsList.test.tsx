@@ -203,6 +203,46 @@ describe("ParticipantsList", () => {
     expect(onAISelect).toHaveBeenCalledWith(ANTHROPIC_TEST);
   });
 
+  it("highlights a private group's members and offers to add the rest", () => {
+    render(
+      <ParticipantsList
+        participants={[]}
+        aiParticipants={[OPENAI_TEST, ANTHROPIC_TEST]}
+        onAISelect={vi.fn()}
+        privateRoster={{ memberIds: ["ANTHROPIC_TEST"], isFull: false }}
+      />,
+    );
+
+    // A private chat opens the list, since that's where models get added
+    const member = screen
+      .getByTestId("ai-name-ANTHROPIC_TEST")
+      .closest("button");
+    const outsider = screen
+      .getByTestId("ai-name-OPENAI_TEST")
+      .closest("button");
+    expect(member).toHaveAttribute("aria-current", "true");
+    expect(outsider).toHaveAttribute("title", "Add Test AI to this chat");
+    expect(outsider).not.toHaveAttribute("aria-current");
+  });
+
+  it("stops offering models once a private chat is full", () => {
+    const onAISelect = vi.fn();
+    render(
+      <ParticipantsList
+        participants={[]}
+        aiParticipants={[OPENAI_TEST, ANTHROPIC_TEST]}
+        onAISelect={onAISelect}
+        privateRoster={{ memberIds: ["ANTHROPIC_TEST"], isFull: true }}
+      />,
+    );
+
+    expect(
+      screen.getByTestId("ai-name-OPENAI_TEST").closest("button"),
+    ).toBeNull();
+    fireEvent.click(screen.getByTestId("ai-name-OPENAI_TEST"));
+    expect(onAISelect).not.toHaveBeenCalled();
+  });
+
   it("puts a model writing its first message at the top of the talking list", () => {
     render(
       <ParticipantsList
