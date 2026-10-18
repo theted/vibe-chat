@@ -18,6 +18,16 @@ describe("mentions utilities", () => {
     expect(matches[0]?.text).toBe("@Skylar");
   });
 
+  it("ignores an @ inside an email address or URL", () => {
+    expect(
+      findMentionMatches("mail skylar@Skylar.dev", [], ["Skylar"]),
+    ).toHaveLength(0);
+    expect(
+      findMentionMatches("https://medium.com/@Skylar/post", [], ["Skylar"]),
+    ).toHaveLength(0);
+    expect(findMentionMatches("(@Skylar)", [], ["Skylar"])).toHaveLength(1);
+  });
+
   it("resolves a model mention to that model's voice, aliases included", () => {
     expect(resolveMentionVoiceKey("@claude-opus-5")).toBe(
       "anthropicclaudeopus5",

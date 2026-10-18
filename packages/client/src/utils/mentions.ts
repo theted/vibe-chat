@@ -12,6 +12,9 @@ import { getModelVoiceKey } from "@/utils/voice";
 import type { AiParticipant } from "@/config/aiParticipants";
 
 const BOUNDARY_REGEX = /[\s.,!?;:'")\]}]/;
+// An @ glued to these is part of an email or URL path (medium.com/@someone),
+// and wrapping it as a mention would break the link around it
+const URL_OR_EMAIL_CHAR_REGEX = /[\w./%+=-]/;
 
 export interface MentionMatch {
   start: number;
@@ -76,6 +79,7 @@ export const findMentionMatches = (
 
   for (let index = 0; index < text.length; index += 1) {
     if (text[index] !== "@") continue;
+    if (index > 0 && URL_OR_EMAIL_CHAR_REGEX.test(text[index - 1])) continue;
 
     const remaining = text.slice(index + 1);
     const remainingLower = remaining.toLowerCase();
