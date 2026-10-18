@@ -23,9 +23,8 @@ so, implements them as a PR.
 
 1. Fine-grained token: owner `theted`, only repo `theted/vibe-chat`, only
    permission **Issues: read and write**. Set an expiry.
-2. Create the label once: `gh label create from-chat --color 5319e7
-   --description "Filed by @Chat from Vibe Chat"`. Without it, issues still
-   get filed, just unlabelled.
+2. The `from-chat` label exists (created 2026-10-18). Without it, issues
+   still get filed, just unlabelled.
 3. Add `GITHUB_ISSUES_TOKEN=...` to `/opt/vibe-chat/.env` on the box and
    redeploy. Startup logs `issuesRepo: "theted/vibe-chat"` when it's on.
 
@@ -36,6 +35,7 @@ reads it. The design keeps the agent that can write code behind a
 maintainer's decision.
 
 **Triage** (automatic, runs on `issues: opened` with label `from-chat`):
+
 - `anthropics/claude-code-action`, cheaper model (Sonnet/Haiku).
 - Permissions `contents: read`, `issues: write`. No other secrets.
 - Finds duplicates (comments + `duplicate` label), adds area labels
@@ -44,6 +44,7 @@ maintainer's decision.
 - Daily cap on runs.
 
 **Implement** (only on a maintainer's word):
+
 - Trigger: label `agent:implement` added, or `/implement` comment, checked
   against `author_association` OWNER/MEMBER (labels need write access
   anyway).
