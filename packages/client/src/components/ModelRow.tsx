@@ -1,6 +1,6 @@
 /**
  * ModelRow - one model in the sidebar: emoji, name and a typing mark. A
- * button that starts a private chat when the list allows it.
+ * button when the list lets the model be picked (see getModelSelection).
  */
 
 import { useHueFor } from "@/context/VoiceContext";
@@ -19,6 +19,8 @@ interface ModelRowProps {
   isPrivatePartner: boolean;
   /** Talking rows name the model in its colour; the full list only shows a dot */
   showVoiceName?: boolean;
+  /** Says what picking the row does */
+  title?: string;
   onSelect?: () => void;
   testId?: string;
 }
@@ -30,6 +32,7 @@ const ModelRow = ({
   isTyping,
   isPrivatePartner,
   showVoiceName = false,
+  title,
   onSelect,
   testId,
 }: ModelRowProps) => {
@@ -72,16 +75,17 @@ const ModelRow = ({
             isPrivatePartner ? "bg-voice-soft" : "hover:bg-raised"
           }`}
           aria-current={isPrivatePartner ? "true" : undefined}
-          title={
-            isPrivatePartner
-              ? `You are privately chatting with ${name}`
-              : `Start private chat with ${name}`
-          }
+          title={title}
         >
           {content}
         </button>
       ) : (
-        <div className={ROW_CLASSES}>{content}</div>
+        <div
+          className={`${ROW_CLASSES} ${isPrivatePartner ? "bg-voice-soft" : ""}`}
+          title={title}
+        >
+          {content}
+        </div>
       )}
     </li>
   );

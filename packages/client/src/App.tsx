@@ -189,9 +189,10 @@ const App = () => {
   }, [setPreviewMessages]);
 
   const {
-    privateChatAi,
+    privateChatAis,
+    privateRoster,
     isPrivateChat,
-    startPrivateConversation,
+    selectModel,
     leavePrivateConversation,
   } = usePrivateConversation({
     roomInfo,
@@ -264,10 +265,11 @@ const App = () => {
           onSendMessage={handleSendMessage}
           onTypingStart={startTyping}
           onTypingStop={stopTyping}
-          onPrivateConversationStart={startPrivateConversation}
+          onModelSelect={selectModel}
           onPrivateConversationEnd={leavePrivateConversation}
           isPrivateChat={isPrivateChat}
-          privateChatAi={privateChatAi}
+          privateChatAis={privateChatAis}
+          privateRoster={privateRoster}
           error={error}
           messagesEndRef={messagesEndRef}
           messagesContainerRef={messagesContainerRef}

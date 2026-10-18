@@ -20,7 +20,7 @@ import {
   getMessageVoiceKey,
   getVoiceKey,
 } from "@/utils/messageSender";
-import { getVoiceHue } from "@/utils/voice";
+import { getModelVoiceKey, getVoiceHue } from "@/utils/voice";
 import type { Message } from "@/types";
 import type { AiParticipant } from "@/config/aiParticipants";
 
@@ -104,6 +104,23 @@ export const getRoomHues = (
     { length: count },
     (_, index) => voices[index % voices.length],
   );
+};
+
+/**
+ * A private chat glows in its members' voices from the start, before any of
+ * them has said a word. Empty when there are no known members, so the caller
+ * can fall back to whoever spoke last.
+ */
+export const getPrivateRoomHues = (
+  members: AiParticipant[],
+  hueFor: (voiceKey: string) => number = getVoiceHue,
+  count = ROOM_VOICE_COUNT,
+): number[] => {
+  const hues = members
+    .slice(0, count)
+    .map((ai) => hueFor(getModelVoiceKey(ai)));
+  if (hues.length === 0) return [];
+  return Array.from({ length: count }, (_, index) => hues[index % hues.length]);
 };
 
 /** Exposes room hues as --room-h1..n for the aura and composer CSS. */

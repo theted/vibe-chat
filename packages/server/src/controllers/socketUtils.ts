@@ -1,6 +1,7 @@
 import type { ChatOrchestrator, RoomAIStatus } from "@ai-chat/core";
 import {
-  getPrivateRoomAiId,
+  getPrivateRoomAiIds,
+  getPrivateRoomOwner,
   type RoomAIStatusPayload,
 } from "@ai-chat/ai-configs";
 
@@ -14,8 +15,6 @@ import type { RateLimitResult } from "@/types.js";
 type ValidationResult =
   | { valid: true; value: string; message?: never }
   | { valid: false; message: string; value?: never };
-
-export { getPrivateRoomAiId };
 
 /** The part of a room's AI budget clients show (see RoomAIStatusPayload). */
 export const toAIStatusPayload = ({
@@ -146,53 +145,93 @@ export const getRateLimitError = ({
 };
 
 export type RoomAIScope = {
-  /** The room id asked for a 1-1 chat, whether or not one could be set up. */
+  /** The room id asked for a private chat, whether or not one could be set up. */
   requestedPrivate: boolean;
-  /** The AI now scoped to the room, or null if the room is unscoped. */
-  privateAiId: string | null;
+  /** The AIs now scoped to the room; empty if the room is unscoped. */
+  privateAiIds: string[];
+  /** AIs the room id names that this server never loaded (or has dropped). */
+  unavailableAiIds: string[];
+};
+
+/** Match a room id's AI token to a loaded AI, by id or by normalised alias. */
+const resolveRoomAiId = (
+  chatOrchestrator: ChatOrchestrator,
+  token: string,
+): string | null => {
+  if (chatOrchestrator.aiServices.has(token)) return token;
+  return (
+    chatOrchestrator.findAIByNormalizedAlias(normalizeRoomAiToken(token))?.id ??
+    null
+  );
 };
 
 /**
- * Point a room at the AI(s) allowed to speak in it. A private room resolves to
- * exactly one AI and becomes direct-only, so that model answers the user once
- * per message and never chats in the background.
+ * Point a room at the AI(s) allowed to speak in it. A private room naming one
+ * AI becomes direct-only, so that model answers the user once per message and
+ * never chats in the background. A private room naming several becomes a
+ * private group: it runs like the main room, with only its members.
  *
- * The result lets the caller tell the client what actually happened: a room id
- * naming a model this server never loaded degrades to an ordinary room, and the
- * UI must not promise a private chat it is not getting.
+ * The result lets the caller tell the client what actually happened: AIs this
+ * server never loaded are left out, a group down to one model runs as a 1-1
+ * chat, and a room with none left degrades to an ordinary room - the UI must
+ * not promise a private chat it is not getting.
  */
 export const applyRoomAIScope = (
   chatOrchestrator: ChatOrchestrator,
   roomId: string,
 ): RoomAIScope => {
-  const privateAiId = getPrivateRoomAiId(roomId);
+  const requestedAiIds = getPrivateRoomAiIds(roomId);
 
-  if (!privateAiId) {
+  if (requestedAiIds.length === 0) {
     chatOrchestrator.clearRoomAllowedAIs(roomId);
-    return { requestedPrivate: false, privateAiId: null };
+    return { requestedPrivate: false, privateAiIds: [], unavailableAiIds: [] };
   }
 
-  const directMatch = chatOrchestrator.aiServices.has(privateAiId)
-    ? privateAiId
-    : null;
-  const normalizedMatch = directMatch
-    ? null
-    : chatOrchestrator.findAIByNormalizedAlias(
-        normalizeRoomAiToken(privateAiId),
-      );
-  const resolvedAiId = directMatch || normalizedMatch?.id || null;
+  const resolved = requestedAiIds.map((token) => ({
+    token,
+    aiId: resolveRoomAiId(chatOrchestrator, token),
+  }));
+  const privateAiIds = [
+    ...new Set(resolved.flatMap(({ aiId }) => (aiId ? [aiId] : []))),
+  ];
+  const unavailableAiIds = resolved
+    .filter(({ aiId }) => !aiId)
+    .map(({ token }) => token);
 
-  if (resolvedAiId) {
-    chatOrchestrator.setRoomAllowedAIs(roomId, [resolvedAiId]);
+  if (unavailableAiIds.length > 0) {
+    console.warn(
+      `Private room "${roomId}" names unknown AIs (${unavailableAiIds.join(", ")}) - leaving them out`,
+    );
+  }
+
+  if (privateAiIds.length === 0) {
+    // Nobody in the room id can answer: fall back to an ordinary room rather
+    // than a private chat that stays silent.
+    chatOrchestrator.clearRoomAllowedAIs(roomId);
+    return { requestedPrivate: true, privateAiIds, unavailableAiIds };
+  }
+
+  chatOrchestrator.setRoomAllowedAIs(roomId, privateAiIds);
+  if (privateAiIds.length === 1) {
     chatOrchestrator.setRoomDirectOnly(roomId, true);
-    return { requestedPrivate: true, privateAiId: resolvedAiId };
+  } else {
+    chatOrchestrator.setRoomPrivateGroup(roomId, true);
   }
-
-  // Unknown AI in the room id: fall back to an ordinary room rather than a
-  // private chat nobody can answer.
-  console.warn(
-    `Private room "${roomId}" names an unknown AI ("${privateAiId}") - treating it as a normal room`,
-  );
-  chatOrchestrator.clearRoomAllowedAIs(roomId);
-  return { requestedPrivate: true, privateAiId: null };
+  return { requestedPrivate: true, privateAiIds, unavailableAiIds };
 };
+
+/**
+ * Whether joining toRoomId may bring fromRoomId's transcript along: only
+ * between two different private rooms of the user who is joining. Usernames
+ * aren't authenticated, so this keeps one user's chat from landing in
+ * another's by mistake rather than guarding against a determined caller.
+ */
+export const canCarryHistory = (
+  fromRoomId: string | undefined,
+  toRoomId: string,
+  username: string,
+): fromRoomId is string =>
+  Boolean(fromRoomId) &&
+  fromRoomId !== toRoomId &&
+  getPrivateRoomOwner(fromRoomId ?? "") === username &&
+  getPrivateRoomOwner(toRoomId) === username;

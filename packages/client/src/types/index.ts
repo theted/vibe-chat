@@ -68,11 +68,11 @@ export interface RoomInfo {
   topic: string;
   roomId?: string;
   /**
-   * The AI the server actually scoped this room to, or null/undefined for an
-   * ordinary room. Server truth: a private room id naming a model this server
-   * never loaded comes back as null.
+   * The AIs the server actually scoped this room to, empty or undefined for
+   * an ordinary room. Server truth: models a private room id names but this
+   * server never loaded are left out.
    */
-  privateAiId?: string | null;
+  privateAiIds?: string[];
   participants?: Participant[];
   aiParticipants?: AiParticipant[];
 }
@@ -162,12 +162,18 @@ export interface ChatViewProps {
   onSendMessage: (content: string) => void;
   onTypingStart: () => void;
   onTypingStop: () => void;
-  onPrivateConversationStart?: (ai: AiParticipant) => void;
-  /** Leaves the current 1-1 chat and rejoins the main room. */
+  /**
+   * Picking a model in the sidebar: starts a 1-1 chat from the main room, and
+   * adds or removes the model inside a private chat.
+   */
+  onModelSelect?: (ai: AiParticipant) => void;
+  /** Leaves the current private chat and rejoins the main room. */
   onPrivateConversationEnd?: () => void;
   isPrivateChat?: boolean;
-  /** The AI on the other side of a 1-1 chat, when it is a known participant. */
-  privateChatAi?: AiParticipant | null;
+  /** The models in the private chat that are known participants. */
+  privateChatAis?: AiParticipant[];
+  /** Who is in the private chat, for the sidebar; null in the main room. */
+  privateRoster?: PrivateRoster | null;
   error: string | null;
   messagesEndRef: RefObject<HTMLDivElement | null>;
   messagesContainerRef: RefObject<HTMLDivElement | null>;
@@ -219,6 +225,14 @@ export interface FavoriteSnippet {
 }
 
 // Component prop types - ParticipantsList
+/** A private chat's cast, as the sidebar needs it. */
+export interface PrivateRoster {
+  /** Participant ids of the models in the chat */
+  memberIds: string[];
+  /** The chat holds as many models as it can; no more can be added */
+  isFull: boolean;
+}
+
 export interface ParticipantsListProps {
   participants?: Participant[];
   aiParticipants?: AiParticipant[];
@@ -228,8 +242,8 @@ export interface ParticipantsListProps {
   typingAIs?: TypingAI[];
   isVisible?: boolean;
   onAISelect?: (ai: AiParticipant) => void;
-  /** Id of the AI the user is privately chatting with, highlighted in the list. */
-  activePrivateAiId?: string | null;
+  /** The private chat's cast, highlighted in the list; null in the main room. */
+  privateRoster?: PrivateRoster | null;
   /** "drawer" fills its container instead of hiding below lg */
   variant?: "sidebar" | "drawer";
   /** Shows a close button in the header when given */
@@ -304,6 +318,7 @@ export type IconName =
   | "logout"
   | "chevron-right"
   | "x-mark"
+  | "plus"
   | "send"
   | "sparkle"
   | "moon"

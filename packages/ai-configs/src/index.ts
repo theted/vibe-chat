@@ -42,13 +42,16 @@ export {
 // Alias utilities
 export { normalizeAliasKey } from "./aliasUtils.js";
 
-// Room id conventions (default room, private 1-1 rooms)
+// Room id conventions (default room, private 1-1 and group rooms)
 export {
   DEFAULT_ROOM_ID,
+  MAX_PRIVATE_ROOM_AIS,
+  PRIVATE_ROOM_AI_SEPARATOR,
   PRIVATE_ROOM_PREFIX,
   isPrivateRoomId,
   buildPrivateRoomId,
-  getPrivateRoomAiId,
+  getPrivateRoomAiIds,
+  getPrivateRoomOwner,
   normalizeRoomId,
 } from "./rooms.js";
 

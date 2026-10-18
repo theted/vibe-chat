@@ -107,6 +107,13 @@ export const RESPONDER_CONFIG = {
   BACKGROUND_MAX_COUNT: 2,
 } as const;
 
+// A private group's cast is a handful of models, so a share of the room would
+// round down to a single responder - answer like a lively main room instead
+export const PRIVATE_GROUP_RESPONDERS = {
+  MIN: 1,
+  MAX: 3,
+} as const;
+
 // Delay calculation
 export const DELAY_CALC = {
   CATCH_UP_MULTIPLIER: 1500, // Randomness multiplier for catch-up delay
@@ -233,6 +240,8 @@ export const STRATEGY_INSTRUCTIONS = {
     `You are replying to ${speakerLabel}, who said: "${excerpt}".`,
   PRIVATE_CHAT:
     "This is a private one-to-one conversation with the user. No other AI is present, so do not @mention or address any other assistant - talk to the user directly.",
+  PRIVATE_GROUP:
+    "This is a private conversation between the user and the AIs listed as being in this chat - nobody else can see it. Only address or @mention AIs who are in this chat.",
   REOPEN:
     "The room has been quiet for a while. Casually reopen the conversation - pick up a loose thread from earlier, share a new thought on the topic, or nudge someone with a question. Keep it light and natural, like breaking a lull.",
   WIND_DOWN:

@@ -44,4 +44,6 @@ export interface InteractionStrategyDecision {
   windingDown: boolean;
   /** 1-1 room: nobody else is here to address, so never mention another AI. */
   isPrivateChat?: boolean;
+  /** Private group: only the room's members are here to address. */
+  isPrivateGroup?: boolean;
 }
