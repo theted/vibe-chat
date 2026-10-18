@@ -7,7 +7,9 @@
  *   AIStreakTracker); queued and generating replies count against it.
  * - A message that @mentions AIs in the room is answered by exactly those
  *   AIs - nobody else steps in, even if a mentioned AI is busy.
- * - Otherwise a few AIs are picked at random, weighted by chattiness.
+ * - Otherwise a few AIs are picked at random, weighted by chattiness. A
+ *   private group picks from its members only, and up to
+ *   PRIVATE_GROUP_RESPONDERS of them rather than a share of the room.
  * - An AI never gets a second queued reply in the same room; a new mention
  *   retargets the reply it already has queued instead (unless that reply
  *   answers a person who @mentioned it).
@@ -18,7 +20,12 @@
 import type { AIRegistry } from "./AIRegistry.js";
 import type { ContextMessage } from "@/types/orchestrator.js";
 import type { QueuedResponse } from "./ResponseQueue.js";
-import { FADE_OUT, REOPENING, RESPONDER_CONFIG } from "./constants.js";
+import {
+  FADE_OUT,
+  PRIVATE_GROUP_RESPONDERS,
+  REOPENING,
+  RESPONDER_CONFIG,
+} from "./constants.js";
 import {
   calculateResponseDelay,
   sampleConversationalDelay,
@@ -40,6 +47,8 @@ type ResponseSchedulerDeps = {
   filterAIsForRoom: (roomId: string, aiIds: string[]) => string[];
   /** Private 1-1 room: one reply per user message, no background chatter. */
   isDirectOnly: (roomId: string) => boolean;
+  /** Private group: a handful of members, all owing the user an answer. */
+  isPrivateGroup: (roomId: string) => boolean;
   /** Room is waiting for @Chat's answer: AIs don't start rounds of their own. */
   isOnHold: (roomId: string) => boolean;
   /** AI messages the room can still take, minus replies already in flight. */
@@ -127,16 +136,22 @@ export class ResponseScheduler {
       if (Math.random() > responseProbability) return;
     }
 
-    // Whoever wrote the message doesn't answer it
-    const eligibleAIs = this.getIdleAIs(roomId, roomAIs).filter(
-      (aiId) => aiId !== trigger?.aiId,
-    );
+    // Whoever wrote the message doesn't answer it. A private group's members
+    // stay eligible while busy in another room, like a 1-1 partner: with so
+    // few of them, skipping the busy ones can leave the user unanswered.
+    const isPrivateGroup = this.deps.isPrivateGroup(roomId);
+    const candidates = isPrivateGroup
+      ? roomAIs.filter((aiId) => !this.deps.findPending(roomId, aiId))
+      : this.getIdleAIs(roomId, roomAIs);
+    const eligibleAIs = candidates.filter((aiId) => aiId !== trigger?.aiId);
     if (eligibleAIs.length === 0) return;
 
-    const { min, max } = this.getResponderRange(
-      eligibleAIs.length,
-      isUserResponse,
-    );
+    const { min, max } = isPrivateGroup
+      ? {
+          min: PRIVATE_GROUP_RESPONDERS.MIN,
+          max: Math.min(PRIVATE_GROUP_RESPONDERS.MAX, eligibleAIs.length),
+        }
+      : this.getResponderRange(eligibleAIs.length, isUserResponse);
     const responders = selectRespondingAIs(
       this.deps.registry.services,
       eligibleAIs,

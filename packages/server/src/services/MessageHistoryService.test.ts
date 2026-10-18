@@ -377,3 +377,63 @@ describe("MessageHistoryService", () => {
     });
   });
 });
+
+describe("MessageHistoryService.copyRoomHistory", () => {
+  const FROM = "private:ada:AI_ONE";
+  const TO = "private:ada:AI_ONE+AI_TWO";
+
+  const makeService = () => {
+    const mockRedis = createMockRedisClient();
+    const service = new MessageHistoryService({
+      redisClient: mockRedis as unknown as Parameters<
+        typeof MessageHistoryService.prototype.storeMessage
+      >[1],
+      recentMessageLimit: 5,
+      messageTtlSeconds: 3600,
+    });
+    return { service, mockRedis };
+  };
+
+  const message = (id: string, content: string): ChatMessage => ({
+    id,
+    sender: "ada",
+    displayName: "ada",
+    alias: "ada",
+    content,
+    senderType: "user",
+    timestamp: Number(id.replace(/\D/g, "")),
+  });
+
+  it("seeds an empty room with the other room's messages, in order", async () => {
+    const { service, mockRedis } = makeService();
+    await service.storeMessage(FROM, message("m1", "first"));
+    await service.storeMessage(FROM, message("m2", "second"));
+
+    expect(await service.copyRoomHistory(FROM, TO)).toBe(2);
+
+    const copied = await service.getRecentMessages(TO);
+    expect(copied.map((entry) => entry.content)).toEqual(["first", "second"]);
+    expect(copied.every((entry) => entry.roomId === TO)).toBe(true);
+    expect(mockRedis._getExpirations().get(service.getRoomMessageKey(TO))).toBe(
+      3600,
+    );
+    // The source room keeps its history
+    expect(await service.getRecentMessages(FROM)).toHaveLength(2);
+  });
+
+  it("leaves a room that already has history alone", async () => {
+    const { service } = makeService();
+    await service.storeMessage(FROM, message("m1", "from the 1-1"));
+    await service.storeMessage(TO, message("m2", "the group's own"));
+
+    expect(await service.copyRoomHistory(FROM, TO)).toBe(0);
+    expect(
+      (await service.getRecentMessages(TO)).map((entry) => entry.content),
+    ).toEqual(["the group's own"]);
+  });
+
+  it("is a no-op without Redis", async () => {
+    const service = new MessageHistoryService({ redisClient: null });
+    expect(await service.copyRoomHistory(FROM, TO)).toBe(0);
+  });
+});

@@ -278,7 +278,9 @@ export const buildTurnInstruction = (
     : "";
   const privateChatInstruction = strategy.isPrivateChat
     ? STRATEGY_INSTRUCTIONS.PRIVATE_CHAT
-    : "";
+    : strategy.isPrivateGroup
+      ? STRATEGY_INSTRUCTIONS.PRIVATE_GROUP
+      : "";
   const selfName = aiService.displayName || aiService.name || "";
 
   const body = [

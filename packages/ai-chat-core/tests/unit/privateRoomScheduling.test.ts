@@ -1,18 +1,22 @@
 /**
- * Private 1-1 rooms: exactly one reply per user message, no background
- * chatter, and no context bleed between rooms.
+ * Private rooms: a 1-1 chat gets exactly one reply per user message and no
+ * background chatter; a private group answers like the main room from its
+ * members only. No context bleeds between rooms.
  */
 
 import { describe, it, expect } from "bun:test";
 import { stripAIMentions } from "@/utils/orchestrator/mentionUtils.js";
 import { ContextManager } from "@/orchestrator/ContextManager.js";
 import { RoomScope } from "@/orchestrator/RoomScope.js";
+import { PRIVATE_GROUP_RESPONDERS } from "@/orchestrator/constants.js";
 import {
   makeTestScheduler,
   roomMessage,
 } from "../helpers/schedulerTestUtils.js";
 
 const PRIVATE_ROOM = "private:ada:AI_ONE";
+const GROUP_ROOM = "private:ada:AI_ONE+AI_TWO";
+const GROUP_MEMBERS = ["AI_ONE", "AI_TWO"];
 
 const makeScheduler = (
   roomScope: RoomScope,
@@ -147,6 +151,110 @@ describe("private room scheduling", () => {
   });
 });
 
+describe("private group scheduling", () => {
+  const makeGroupScheduler = (members = GROUP_MEMBERS) =>
+    makeTestScheduler({
+      allowedByRoom: { [GROUP_ROOM]: members },
+      privateGroupRooms: [GROUP_ROOM],
+    });
+
+  it("answers a user message from its members only", () => {
+    const { scheduler, batches, drain } = makeGroupScheduler();
+
+    for (let round = 0; round < 20; round += 1) {
+      scheduler.schedule(GROUP_ROOM, true);
+      expect(batches).toHaveLength(1);
+      const responders = batches[0].map((reply) => reply.aiId);
+      expect(responders.length).toBeGreaterThanOrEqual(1);
+      expect(responders.every((aiId) => GROUP_MEMBERS.includes(aiId))).toBe(
+        true,
+      );
+      drain();
+    }
+  });
+
+  it("lets more than one member answer, up to the group cap", () => {
+    const { scheduler, batches, drain } = makeGroupScheduler([
+      "AI_ONE",
+      "AI_TWO",
+      "AI_THREE",
+    ]);
+    const sizes = new Set<number>();
+
+    for (let round = 0; round < 50; round += 1) {
+      scheduler.schedule(GROUP_ROOM, true);
+      sizes.add(batches[0].length);
+      drain();
+    }
+
+    expect(Math.max(...sizes)).toBeLessThanOrEqual(
+      PRIVATE_GROUP_RESPONDERS.MAX,
+    );
+    expect(Math.max(...sizes)).toBeGreaterThan(1);
+  });
+
+  it("still answers when every member is mid-reply in another room", () => {
+    const { scheduler, services, batches } = makeGroupScheduler();
+    GROUP_MEMBERS.forEach((aiId) => {
+      services.get(aiId)!.isGenerating = true;
+    });
+
+    scheduler.schedule(GROUP_ROOM, true);
+
+    expect(batches).toHaveLength(1);
+    expect(batches[0].length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("answers a user's @mention with just that member", () => {
+    const { scheduler, batches } = makeGroupScheduler();
+
+    scheduler.schedule(GROUP_ROOM, true, {
+      trigger: roomMessage({
+        senderType: "user",
+        roomId: GROUP_ROOM,
+        mentionsNormalized: ["aitwo"],
+      }),
+    });
+
+    expect(batches).toHaveLength(1);
+    expect(batches[0].map((reply) => reply.aiId)).toEqual(["AI_TWO"]);
+  });
+
+  it("lets members answer each other's @mentions, but not outsiders", () => {
+    const { scheduler, batches } = makeGroupScheduler();
+    const fromAiOne = (mention: string) =>
+      roomMessage({
+        senderType: "ai",
+        aiId: "AI_ONE",
+        roomId: GROUP_ROOM,
+        mentionsNormalized: [mention],
+      });
+
+    scheduler.scheduleMentionReplies(GROUP_ROOM, fromAiOne("aithree"));
+    expect(batches).toHaveLength(0);
+
+    scheduler.scheduleMentionReplies(GROUP_ROOM, fromAiOne("aitwo"));
+    expect(batches).toHaveLength(1);
+    expect(batches[0].map((reply) => reply.aiId)).toEqual(["AI_TWO"]);
+  });
+
+  it("runs in one private mode at a time", () => {
+    const roomScope = new RoomScope();
+    roomScope.setPrivateGroup(GROUP_ROOM, true);
+    expect(roomScope.isPrivateGroup(GROUP_ROOM)).toBe(true);
+
+    // A group down to one available model behaves as a 1-1 chat
+    roomScope.setDirectOnly(GROUP_ROOM, true);
+    expect(roomScope.isPrivateGroup(GROUP_ROOM)).toBe(false);
+    expect(roomScope.isDirectOnly(GROUP_ROOM)).toBe(true);
+
+    roomScope.setPrivateGroup(GROUP_ROOM, true);
+    roomScope.clear(GROUP_ROOM);
+    expect(roomScope.isPrivateGroup(GROUP_ROOM)).toBe(false);
+    expect(roomScope.isDirectOnly(GROUP_ROOM)).toBe(false);
+  });
+});
+
 describe("room-scoped context", () => {
   const addMessage = (
     manager: ContextManager,
@@ -222,6 +330,55 @@ describe("room-scoped context", () => {
     expect(manager.getConversationDigest("default")).toContain(
       "public evicted",
     );
+  });
+});
+
+describe("copying a room's context", () => {
+  const addMessage = (
+    manager: ContextManager,
+    roomId: string,
+    content: string,
+  ) =>
+    manager.addMessage({
+      sender: "ada",
+      senderType: "user",
+      content,
+      roomId,
+      timestamp: Date.now(),
+    });
+
+  it("seeds an empty room with the other room's messages and digest", () => {
+    const manager = new ContextManager(2);
+    addMessage(manager, PRIVATE_ROOM, "evicted earlier");
+    addMessage(manager, PRIVATE_ROOM, "first");
+    addMessage(manager, PRIVATE_ROOM, "second");
+
+    expect(manager.copyRoom(PRIVATE_ROOM, GROUP_ROOM)).toBe(2);
+
+    const groupContext = manager.getContextForAI(50, GROUP_ROOM);
+    expect(groupContext.map((message) => message.content)).toEqual([
+      "first",
+      "second",
+    ]);
+    expect(groupContext.every((message) => message.roomId === GROUP_ROOM)).toBe(
+      true,
+    );
+    expect(manager.getConversationDigest(GROUP_ROOM)).toContain(
+      "evicted earlier",
+    );
+    // The source room keeps its own conversation
+    expect(manager.getContextForAI(50, PRIVATE_ROOM)).toHaveLength(2);
+  });
+
+  it("leaves a room that already has a conversation alone", () => {
+    const manager = new ContextManager();
+    addMessage(manager, PRIVATE_ROOM, "from the 1-1");
+    addMessage(manager, GROUP_ROOM, "the group's own");
+
+    expect(manager.copyRoom(PRIVATE_ROOM, GROUP_ROOM)).toBe(0);
+    expect(
+      manager.getContextForAI(50, GROUP_ROOM).map((message) => message.content),
+    ).toEqual(["the group's own"]);
   });
 });
 

@@ -1,5 +1,5 @@
 /**
- * Integration Tests: private 1-1 rooms
+ * Integration Tests: private 1-1 rooms and private groups
  *
  * Drives the real orchestrator (mocked AI services, fake clock) to check the
  * two promises a private chat makes: exactly one reply per user message from
@@ -23,6 +23,7 @@ import {
 import type { ChatOrchestrator } from "@ai-chat/core";
 
 const PRIVATE_ROOM = "private:TestUser:PRIVATE_AI";
+const GROUP_ROOM = "private:TestUser:GROUP_A+GROUP_B";
 const PUBLIC_TOPIC = "public plans for the weekend";
 const PRIVATE_SECRET = "my secret";
 
@@ -32,8 +33,9 @@ let orchestrator: ChatOrchestrator;
 let events: CollectedEvents;
 let privateAiId: string;
 
-const privateReplies = () =>
-  events.aiResponses.filter((event) => event.roomId === PRIVATE_ROOM);
+const repliesIn = (roomId: string) =>
+  events.aiResponses.filter((event) => event.roomId === roomId);
+const privateReplies = () => repliesIn(PRIVATE_ROOM);
 
 beforeEach(async () => {
   clock = installFakeClock();
@@ -129,5 +131,57 @@ describe("private room conversations", () => {
     expect(
       publicContext.some((message) => message.content.includes(PRIVATE_SECRET)),
     ).toBe(false);
+  });
+});
+
+describe("private group conversations", () => {
+  let memberIds: string[];
+
+  beforeEach(() => {
+    // Scope the room the way the server does for a private group
+    memberIds = orchestrator.activeAIs.slice(1, 3);
+    orchestrator.setRoomAllowedAIs(GROUP_ROOM, memberIds);
+    orchestrator.setRoomPrivateGroup(GROUP_ROOM, true);
+  });
+
+  it("answers only from its members", async () => {
+    for (const message of ["first question", "second question"]) {
+      const before = repliesIn(GROUP_ROOM).length;
+      simulateUserMessage(orchestrator, GROUP_ROOM, message);
+      await tickUntil(clock, () => repliesIn(GROUP_ROOM).length > before);
+    }
+    await clock.tickAsync(5_000);
+
+    expect(
+      repliesIn(GROUP_ROOM).every((event) => memberIds.includes(event.aiId)),
+    ).toBe(true);
+  });
+
+  it("keeps its conversation out of the main room and the 1-1 chat", async () => {
+    simulateUserMessage(orchestrator, GROUP_ROOM, PRIVATE_SECRET);
+    await tickUntil(clock, () => repliesIn(GROUP_ROOM).length > 0);
+    await clock.tickAsync(2_000);
+
+    for (const roomId of ["default", PRIVATE_ROOM]) {
+      const context = orchestrator.contextManager.getContextForAI(50, roomId);
+      expect(
+        context.some((message) => message.content.includes(PRIVATE_SECRET)),
+      ).toBe(false);
+    }
+  });
+
+  it("starts with the 1-1 chat's conversation when a model joins it", async () => {
+    simulateUserMessage(orchestrator, PRIVATE_ROOM, "said before the group");
+    await tickUntil(clock, () => privateReplies().length > 0);
+
+    orchestrator.copyRoomContext(PRIVATE_ROOM, GROUP_ROOM);
+
+    const groupContext = orchestrator.contextManager.getContextForAI(
+      50,
+      GROUP_ROOM,
+    );
+    expect(groupContext[0]?.content).toBe("said before the group");
+    // Copying never triggers replies of its own
+    expect(repliesIn(GROUP_ROOM)).toHaveLength(0);
   });
 });

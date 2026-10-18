@@ -26,7 +26,8 @@ const ParticipantsDrawer = ({
 }: ParticipantsDrawerProps) => {
   if (!isVisible) return null;
 
-  // Picking a model starts a private chat, which the user wants to see
+  // Picking a model opens a private chat or changes its cast, which the user
+  // wants to see
   const handleAISelect = onAISelect
     ? (ai: AiParticipant) => {
         onAISelect(ai);

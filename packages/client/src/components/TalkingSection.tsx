@@ -5,19 +5,21 @@
  */
 
 import { MAX_LISTED_SPEAKERS } from "@/config/voices";
+import { getModelSelection } from "@/utils/privateChat";
 import { getModelVoiceKey } from "@/utils/voice";
 import ModelRow from "./ModelRow";
 import SectionHeader from "./SectionHeader";
 import type { NormalizedAiParticipant } from "@/utils/participants";
 import type { RoomSpeaker } from "@/utils/roomVoices";
 import type { AiParticipant } from "@/config/aiParticipants";
+import type { PrivateRoster } from "@/types";
 
 interface TalkingSectionProps {
   recentSpeakers: RoomSpeaker[];
   aiList: NormalizedAiParticipant[];
   isAITyping: (ai: NormalizedAiParticipant) => boolean;
   onAISelect?: (ai: AiParticipant) => void;
-  activePrivateAiId?: string | null;
+  privateRoster?: PrivateRoster | null;
 }
 
 const toSpeaker = (ai: NormalizedAiParticipant): RoomSpeaker => ({
@@ -32,7 +34,7 @@ const TalkingSection = ({
   aiList,
   isAITyping,
   onAISelect,
-  activePrivateAiId = null,
+  privateRoster = null,
 }: TalkingSectionProps) => {
   const rosterByKey = new Map(aiList.map((ai) => [getModelVoiceKey(ai), ai]));
   const heardKeys = new Set(recentSpeakers.map(({ voiceKey }) => voiceKey));
@@ -59,20 +61,30 @@ const TalkingSection = ({
         </p>
       ) : (
         <ul className="px-2" data-testid="talking-models">
-          {speakers.map(({ voiceKey, ai, name, emoji }) => (
-            <ModelRow
-              key={voiceKey}
-              name={name}
-              emoji={emoji}
-              voiceKey={voiceKey}
-              isTyping={isTyping(voiceKey)}
-              isPrivatePartner={
-                activePrivateAiId != null && ai?.id === activePrivateAiId
-              }
-              showVoiceName
-              onSelect={onAISelect && ai ? () => onAISelect(ai) : undefined}
-            />
-          ))}
+          {speakers.map(({ voiceKey, ai, name, emoji }) => {
+            const { isMember, canSelect, title } = getModelSelection(
+              ai?.id,
+              name,
+              privateRoster,
+            );
+            return (
+              <ModelRow
+                key={voiceKey}
+                name={name}
+                emoji={emoji}
+                voiceKey={voiceKey}
+                isTyping={isTyping(voiceKey)}
+                isPrivatePartner={isMember}
+                showVoiceName
+                title={title}
+                onSelect={
+                  onAISelect && ai && canSelect
+                    ? () => onAISelect(ai)
+                    : undefined
+                }
+              />
+            );
+          })}
         </ul>
       )}
     </section>

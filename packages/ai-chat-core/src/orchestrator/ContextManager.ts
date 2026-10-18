@@ -120,6 +120,28 @@ export class ContextManager implements IContextManager {
     return (this.digestsByRoom.get(normalizeRoomId(roomId)) ?? []).join("\n");
   }
 
+  /**
+   * Copy one room's messages and digest into another, retagged with the new
+   * room, unless the target already has messages. Returns how many were
+   * copied. The source already fits the per-room window, so nothing is
+   * evicted.
+   */
+  copyRoom(fromRoomId: string, toRoomId: string): number {
+    const from = normalizeRoomId(fromRoomId);
+    const to = normalizeRoomId(toRoomId);
+    if (from === to || this.messagesForRoom(to).length > 0) return 0;
+
+    const copies = this.messagesForRoom(from).map((message) => ({
+      ...message,
+      roomId: to,
+    }));
+    this.messages.push(...copies);
+
+    const digest = this.digestsByRoom.get(from);
+    if (digest?.length) this.digestsByRoom.set(to, [...digest]);
+    return copies.length;
+  }
+
   /** Messages belonging to one room, oldest first. */
   private messagesForRoom(roomId: string): ContextMessage[] {
     const room = normalizeRoomId(roomId);

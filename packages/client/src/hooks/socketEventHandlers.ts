@@ -165,7 +165,7 @@ export const createRoomJoinedHandler =
     state.setError(null);
     state.setIsAuthLoading(false);
     state.setHasSavedUsername(true);
-    // The preview transcript belongs to the main room, so a private 1-1 room
+    // The preview transcript belongs to the main room, so a private room
     // starts empty and fills from its own history (RECENT_MESSAGES) instead.
     const inheritsPreview =
       !isPrivateRoomId(typedData.roomId) &&

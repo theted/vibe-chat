@@ -33,6 +33,11 @@ import { SOCKET_EVENTS } from "@ai-chat/ai-configs";
 type StateSetter<T> = React.Dispatch<React.SetStateAction<T>>;
 type ShowToast = (message: string, type?: string) => void;
 
+export interface JoinRoomOptions {
+  /** Private room being left for this one; its transcript seeds an empty room */
+  carryHistoryFrom?: string;
+}
+
 interface UseSocketEventsOptions {
   on: (event: string, handler: (...args: unknown[]) => void) => void;
   off: (event: string, handler: (...args: unknown[]) => void) => void;
@@ -226,9 +231,17 @@ export const useSocketEvents = (opts: UseSocketEventsOptions) => {
   );
 
   const joinRoom = useCallback(
-    (username: string, roomId = "default") => {
+    (
+      username: string,
+      roomId = "default",
+      { carryHistoryFrom }: JoinRoomOptions = {},
+    ) => {
       setIsAuthLoading(true);
-      emit(SOCKET_EVENTS.JOIN_ROOM, { username, roomId });
+      emit(SOCKET_EVENTS.JOIN_ROOM, {
+        username,
+        roomId,
+        ...(carryHistoryFrom ? { carryHistoryFrom } : {}),
+      });
     },
     [emit, setIsAuthLoading],
   );

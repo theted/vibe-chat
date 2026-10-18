@@ -223,6 +223,16 @@ export const ICON_PATHS: Record<IconName, IconDefinition> = {
       paths: ["M7 7l10 10", "M17 7L7 17"],
     },
   },
+  plus: {
+    classic: {
+      strokeWidth: 2,
+      paths: ["M12 5v14", "M5 12h14"],
+    },
+    modern: {
+      strokeWidth: 1.4,
+      paths: ["M12 6v12", "M6 12h12"],
+    },
+  },
   send: {
     classic: {
       strokeWidth: 2,

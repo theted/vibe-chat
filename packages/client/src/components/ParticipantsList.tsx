@@ -27,7 +27,7 @@ const ParticipantsList = ({
   typingAIs = [],
   isVisible = true,
   onAISelect,
-  activePrivateAiId = null,
+  privateRoster = null,
   variant = "sidebar",
   onClose,
 }: ParticipantsListProps) => {
@@ -69,13 +69,16 @@ const ParticipantsList = ({
           aiList={aiList}
           isAITyping={isAITyping}
           onAISelect={onAISelect}
-          activePrivateAiId={activePrivateAiId}
+          privateRoster={privateRoster}
         />
         <AIParticipantsSection
           aiList={aiList}
           isAITyping={isAITyping}
           onAISelect={onAISelect}
-          activePrivateAiId={activePrivateAiId}
+          privateRoster={privateRoster}
+          // In a private chat the list is where models get added, so a
+          // freshly opened drawer shows it unfolded
+          defaultExpanded={privateRoster != null}
         />
       </div>
     </aside>

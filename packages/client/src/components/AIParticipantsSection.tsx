@@ -6,6 +6,7 @@
 
 import { useId, useState } from "react";
 import { normalizeAliasKey } from "@/utils/ai";
+import { getModelPickHint, getModelSelection } from "@/utils/privateChat";
 import {
   groupAiParticipantsByProvider,
   type NormalizedAiParticipant,
@@ -14,12 +15,14 @@ import { getModelVoiceKey } from "@/utils/voice";
 import Icon from "./Icon";
 import ModelRow from "./ModelRow";
 import type { AiParticipant } from "@/config/aiParticipants";
+import type { PrivateRoster } from "@/types";
 
 interface AIParticipantsSectionProps {
   aiList: NormalizedAiParticipant[];
   isAITyping: (ai: NormalizedAiParticipant) => boolean;
   onAISelect?: (ai: AiParticipant) => void;
-  activePrivateAiId?: string | null;
+  /** The private chat's cast; null in the main room */
+  privateRoster?: PrivateRoster | null;
   /** Start unfolded, e.g. when there's no talking list to lean on */
   defaultExpanded?: boolean;
 }
@@ -37,7 +40,7 @@ const AIParticipantsSection = ({
   aiList,
   isAITyping,
   onAISelect,
-  activePrivateAiId = null,
+  privateRoster = null,
   defaultExpanded = false,
 }: AIParticipantsSectionProps) => {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
@@ -88,7 +91,7 @@ const AIParticipantsSection = ({
             />
             {onAISelect && (
               <p className="pt-2 text-xs text-faint">
-                Pick one to talk privately.
+                {getModelPickHint(privateRoster)}
               </p>
             )}
           </div>
@@ -122,6 +125,11 @@ const AIParticipantsSection = ({
                 <ul>
                   {models.map((ai) => {
                     const name = getModelName(ai);
+                    const { isMember, canSelect, title } = getModelSelection(
+                      ai.id,
+                      name,
+                      privateRoster,
+                    );
                     return (
                       <ModelRow
                         key={`ai-${provider}-${ai.id || ai.alias || name}`}
@@ -129,11 +137,13 @@ const AIParticipantsSection = ({
                         emoji={ai.emoji}
                         voiceKey={getModelVoiceKey(ai)}
                         isTyping={isAITyping(ai)}
-                        isPrivatePartner={
-                          activePrivateAiId != null &&
-                          ai.id === activePrivateAiId
+                        isPrivatePartner={isMember}
+                        title={title}
+                        onSelect={
+                          onAISelect && canSelect
+                            ? () => onAISelect(ai)
+                            : undefined
                         }
-                        onSelect={onAISelect ? () => onAISelect(ai) : undefined}
                         testId={`ai-name-${ai.id || ai.alias || name}`}
                       />
                     );
