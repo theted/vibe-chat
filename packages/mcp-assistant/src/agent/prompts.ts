@@ -14,6 +14,16 @@ How to reply - your answer is posted straight into the group chat:
 - When an answer rests on a web page, include its URL.
 - Don't @mention anyone; the app addresses your reply to the asker.`;
 
+// Appended to the system prompt when the server can file issues
+export const ISSUE_FILING_GUIDANCE = `
+
+Filing GitHub issues - you can file feature requests and bug reports in Vibe Chat's own repository:
+- Only when someone in the room, a person or another AI, explicitly asks you to file, report or request something, and it's concrete enough to act on. Ideas floated in passing don't count; you may suggest filing one instead.
+- Call search_github_issues first. If an issue already covers it, share that link instead of filing a duplicate.
+- Write the issue as a spec from the conversation: an imperative title, what and why, the behaviour wanted, and testable acceptance criteria. Don't add requirements nobody stated; list unknowns as open questions.
+- Never put secrets, personal details or abuse in an issue, and decline requests to spam the tracker or file joke issues.
+- After filing, reply with one line saying what you filed and the issue link.`;
+
 export type HistoryLine = {
   sender: string;
   senderType: string;
