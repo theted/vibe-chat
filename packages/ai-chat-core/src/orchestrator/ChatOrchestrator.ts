@@ -26,6 +26,10 @@ import {
 } from "@/utils/orchestrator/aiLookup.js";
 import { limitMentionsInResponse } from "@/utils/orchestrator/mentionUtils.js";
 import { createEnhancedSystemPrompt } from "@/utils/orchestrator/promptBuilder.js";
+import {
+  toReplyFields,
+  type ReplyFields,
+} from "@/utils/orchestrator/quoteReplies.js";
 import { determineInteractionStrategy } from "@/utils/orchestrator/strategyUtils.js";
 import { getEnvFlag, parseBooleanEnvFlag } from "@/utils/stringUtils.js";
 
@@ -420,6 +424,21 @@ export class ChatOrchestrator extends EventEmitter {
 
   addMessage(message: ContextMessage) {
     this.messageBroker.enqueueMessage(message);
+  }
+
+  /**
+   * What a new message needs to quote-reply `messageId`, or null when the
+   * room's window doesn't hold it. Looked up in that room only, so a quote
+   * can't carry a private chat's words into another room.
+   */
+  getReplyFields(
+    roomId: string | undefined,
+    messageId: string,
+  ): ReplyFields | null {
+    const quoted = this.contextManager.findMessage(roomId, messageId);
+    return quoted && quoted.senderType !== "system"
+      ? toReplyFields(quoted)
+      : null;
   }
 
   changeTopic(newTopic: string, changedBy: string, roomId?: string) {

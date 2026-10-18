@@ -212,7 +212,7 @@ export class ChatAssistantHandler {
       priority: 800,
       isInternalResponder: true,
       suppressAIResponses: true,
-      mentionsTriggerSender:
+      replyToSender:
         origin.type === "user" ? origin.username : origin.sender || null,
       timestamp: Date.now(),
       id: `chat-${Date.now()}-${Math.random().toString(16).slice(2)}`,

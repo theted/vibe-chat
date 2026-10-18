@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { describe, it, expect, vi } from "vitest";
+import { fireEvent, render, screen } from "@testing-library/react";
 import ChatMessage from "./ChatMessage";
 import type { Message } from "@/types";
 
@@ -50,8 +50,8 @@ describe("ChatMessage", () => {
       sender: "Claude Opus 4.8",
       content: "Great fit for conversational pacing.",
       timestamp: Date.now(),
-      mentionsTriggerMessageId: "trigger-1",
-      mentionsTriggerSender: "Skylar",
+      replyToMessageId: "trigger-1",
+      replyToSender: "Skylar",
     };
 
     render(<ChatMessage message={message} quotedMessage={quotedMessage} />);
@@ -62,20 +62,111 @@ describe("ChatMessage", () => {
     ).toBeInTheDocument();
   });
 
-  it("falls back to sender-only quote when the quoted message is gone", () => {
+  it("falls back to the reply's snapshot when the quoted message is gone", () => {
     const message: Message = {
       id: "reply-2",
       senderType: "ai",
       sender: "Claude Opus 4.8",
       content: "Following up on that earlier point.",
       timestamp: Date.now(),
-      mentionsTriggerMessageId: "scrolled-out",
-      mentionsTriggerSender: "Skylar",
+      replyToMessageId: "scrolled-out",
+      replyToSender: "Skylar",
+      replyToExcerpt: "Log-normal delays feel human.",
+    };
+
+    render(<ChatMessage message={message} onJumpToMessage={vi.fn()} />);
+
+    expect(screen.getByText("↩ Skylar")).toBeInTheDocument();
+    expect(
+      screen.getByText("Log-normal delays feel human."),
+    ).toBeInTheDocument();
+    // Nothing loaded to jump to
+    expect(screen.getByRole("button", { name: /Skylar/ })).toBeDisabled();
+  });
+
+  it("jumps to the quoted message when its quote is clicked", () => {
+    const onJumpToMessage = vi.fn();
+    const quotedMessage: Message = {
+      id: "trigger-1",
+      senderType: "user",
+      sender: "Skylar",
+      content: "Tabs or spaces?",
+      timestamp: Date.now(),
+    };
+    const message: Message = {
+      id: "reply-3",
+      senderType: "user",
+      sender: "Ada",
+      content: "Spaces.",
+      timestamp: Date.now(),
+      replyToMessageId: "trigger-1",
+      replyToSender: "Skylar",
+    };
+
+    render(
+      <ChatMessage
+        message={message}
+        quotedMessage={quotedMessage}
+        onJumpToMessage={onJumpToMessage}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: /Skylar/ }));
+
+    expect(onJumpToMessage).toHaveBeenCalledWith("trigger-1");
+  });
+
+  it("expands a long quote to its full text", () => {
+    const longText = `${"A long thought about pacing. ".repeat(8)}The end.`;
+    const message: Message = {
+      id: "reply-4",
+      senderType: "user",
+      sender: "Ada",
+      content: "Agreed.",
+      timestamp: Date.now(),
+      replyToMessageId: "trigger-1",
+      replyToSender: "Skylar",
+      replyToExcerpt: longText,
+    };
+
+    render(<ChatMessage message={message} />);
+    expect(screen.queryByText(/The end\./)).toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: "Expand quote" }));
+
+    expect(screen.getByText(/The end\./)).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Collapse quote" }),
+    ).toHaveAttribute("aria-expanded", "true");
+  });
+
+  it("starts a quote-reply from its reply button", () => {
+    const onReply = vi.fn();
+    const message: Message = {
+      id: "plain-2",
+      senderType: "user",
+      sender: "Skylar",
+      content: "Quote me.",
+      timestamp: Date.now(),
+    };
+
+    render(<ChatMessage message={message} onReply={onReply} />);
+    fireEvent.click(screen.getByRole("button", { name: "Reply to Skylar" }));
+
+    expect(onReply).toHaveBeenCalledWith(message);
+  });
+
+  it("has no reply button when replying isn't possible", () => {
+    const message: Message = {
+      id: "plain-3",
+      senderType: "user",
+      sender: "Skylar",
+      content: "Read only.",
+      timestamp: Date.now(),
     };
 
     render(<ChatMessage message={message} />);
 
-    expect(screen.getByText("↩ Skylar")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Reply to/ })).toBeNull();
   });
 
   it("renders no quote for ordinary messages", () => {

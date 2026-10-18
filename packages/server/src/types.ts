@@ -152,6 +152,8 @@ export type JoinRoomPayload = {
 
 export type UserMessagePayload = {
   content?: string;
+  /** The message this one quote-replies to. */
+  replyToMessageId?: string;
 };
 
 export type TopicChangePayload = {

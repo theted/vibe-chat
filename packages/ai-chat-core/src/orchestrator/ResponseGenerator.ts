@@ -25,6 +25,11 @@ import {
   stripAIMentions,
 } from "@/utils/orchestrator/mentionUtils.js";
 import { createEnhancedSystemPrompt } from "@/utils/orchestrator/promptBuilder.js";
+import {
+  extractReplyRef,
+  resolveReplyRef,
+  toReplyFields,
+} from "@/utils/orchestrator/quoteReplies.js";
 import { calculateTypingHold } from "@/utils/orchestrator/responseScheduling.js";
 import { truncateResponse } from "@/utils/orchestrator/responseUtils.js";
 import {
@@ -182,8 +187,11 @@ export class ResponseGenerator {
       const responseTimeMs = Date.now() - responseStartTime;
       aiService.lastMessageTime = Date.now();
 
-      const processedResponse = this.cleanResponse(
+      const { text: responseText, ref: replyRef } = extractReplyRef(
         truncateResponse(response),
+      );
+      const processedResponse = this.cleanResponse(
+        responseText,
         aiService,
         isPrivateChat,
       );
@@ -220,6 +228,12 @@ export class ResponseGenerator {
         `✨ ${aiService.name} ${interactionStrategy.type}: ${processedResponse.substring(0, 100)}${processedResponse.length > 100 ? "..." : ""}`,
       );
 
+      // A [reply #n] the model wrote wins; otherwise an answer to an
+      // @mention quotes the message that asked for it
+      const quoted =
+        resolveReplyRef(context, replyRef) ??
+        (options.isMentioned ? options.triggerMessage : null);
+
       const aiMessage: ContextMessage = {
         sender: aiService.displayName || aiService.name,
         displayName: aiService.displayName || aiService.name,
@@ -233,14 +247,7 @@ export class ResponseGenerator {
         modelKey: aiService.config?.modelKey,
         modelId: aiService.service?.getModel?.() || aiService.config?.modelKey,
         providerKey: aiService.config?.providerKey,
-        mentionsTriggerMessageId:
-          options.isMentioned && options.triggerMessage
-            ? options.triggerMessage.id
-            : null,
-        mentionsTriggerSender:
-          options.isMentioned && options.triggerMessage
-            ? options.triggerMessage.sender
-            : null,
+        ...(quoted ? toReplyFields(quoted) : {}),
         responseType: interactionStrategy.type,
         interactionStrategy: interactionStrategy.type,
         priority: isUserResponse ? 500 : 0,

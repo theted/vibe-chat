@@ -13,6 +13,7 @@ import {
 } from "react";
 import AISelectionDialog from "./AISelectionDialog";
 import Icon from "./Icon";
+import ReplyingToBar from "./ReplyingToBar";
 import { useAutoResizeTextarea } from "@/hooks/useAutoResizeTextarea";
 import { useMentionDetection } from "@/hooks/useMentionDetection";
 import { useTypingSignal } from "@/hooks/useTypingSignal";
@@ -28,6 +29,9 @@ const MessageInput = ({
   disabled = false,
   onTypingStart,
   onTypingStop,
+  replyingTo = null,
+  onCancelReply,
+  aiParticipants,
 }: MessageInputProps) => {
   const [message, setMessage] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -65,6 +69,14 @@ const MessageInput = ({
     }
   };
 
+  // Escape backs out of a reply, unless it is closing the @mention picker
+  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Escape" && replyingTo && !showAIDialog) {
+      e.preventDefault();
+      onCancelReply?.();
+    }
+  };
+
   const handleChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
     setMessage(value);
@@ -80,13 +92,21 @@ const MessageInput = ({
     closeDialog();
   };
 
-  // Focus on mount
+  // Focus on mount, and when a reply starts so you can type it right away
+  const replyingToId = replyingTo?.id;
   useEffect(() => {
     textareaRef.current?.focus();
-  }, []);
+  }, [replyingToId]);
 
   return (
     <>
+      {replyingTo && (
+        <ReplyingToBar
+          message={replyingTo}
+          aiParticipants={aiParticipants}
+          onCancel={onCancelReply}
+        />
+      )}
       <form
         onSubmit={handleSubmit}
         className={`composer flex items-end gap-2 rounded-xl p-1.5 pl-4 ${
@@ -100,6 +120,7 @@ const MessageInput = ({
             value={message}
             onChange={handleChange}
             onKeyPress={handleKeyPress}
+            onKeyDown={handleKeyDown}
             placeholder="Message the room (@ to mention AI)"
             aria-label="Message"
             disabled={disabled}

@@ -2,20 +2,20 @@ import { useMemo } from "react";
 import { DEFAULT_AI_PARTICIPANTS } from "@/config/aiParticipants";
 import { VoiceContext } from "@/context/VoiceContext";
 import { useModal } from "@/hooks/useModal";
+import { useQuoteReply } from "@/hooks/useQuoteReply";
 import { useRoomVoices } from "@/hooks/useRoomVoices";
 import { useStickToBottom } from "@/hooks/useStickToBottom";
-import { isContinuation } from "@/utils/messageGrouping";
 import { toPanelAiParticipants } from "@/utils/participants";
 import { getRoomHues, roomHueStyle } from "@/utils/roomVoices";
 import { getModelVoiceKey } from "@/utils/voice";
 import AIStatusNotice from "./AIStatusNotice";
 import ChatHeader from "./ChatHeader";
-import ChatMessage from "./ChatMessage";
 import CircuitBackdrop from "./CircuitBackdrop";
 import GuestNotice from "./GuestNotice";
 import Icon from "./Icon";
 import LoginModal from "./LoginModal";
 import MessageInput from "./MessageInput";
+import MessageList from "./MessageList";
 import ParticipantsDrawer from "./ParticipantsDrawer";
 import ParticipantsList from "./ParticipantsList";
 import PrivateChatBanner from "./PrivateChatBanner";
@@ -71,12 +71,17 @@ const ChatView = ({
     [aiParticipantList],
   );
 
-  // Lookup for reply-quote rendering - resolves a reply's trigger id to the
-  // quoted message while it is still in the loaded history
+  // Lookup for reply quotes - resolves a reply's quoted id to the message
+  // while it is still in the loaded history
   const messagesById = useMemo(
     () => new Map(messages.map((message) => [message.id, message])),
     [messages],
   );
+  const { replyingTo, startReply, cancelReply, sendMessage } = useQuoteReply(
+    messagesById,
+    onSendMessage,
+  );
+  const canSend = connectionStatus.connected && isAuthenticated;
 
   const { recentSpeakers, hueFor } = useRoomVoices(messages, aiParticipantList);
   useStickToBottom(messagesContainerRef, messagesEndRef, !showScrollButton);
@@ -148,30 +153,13 @@ const ChatView = ({
             ref={messagesContainerRef}
           >
             <div className={`${COLUMN_CLASSES} pb-6 pt-4`}>
-              {messages.length === 0 && (
-                <div className="px-6 pt-[18vh] text-center">
-                  <p className="wordmark text-3xl sm:text-4xl">
-                    Nothing said yet.
-                  </p>
-                  <p className="mt-2 text-[15px] text-muted">
-                    Say hello, or type @ to bring a model in.
-                  </p>
-                </div>
-              )}
-              {messages.map((message, index) => (
-                <ChatMessage
-                  key={message.id}
-                  message={message}
-                  aiParticipants={aiParticipantList}
-                  participants={participants}
-                  isContinuation={isContinuation(messages[index - 1], message)}
-                  quotedMessage={
-                    message.mentionsTriggerMessageId
-                      ? messagesById.get(message.mentionsTriggerMessageId)
-                      : undefined
-                  }
-                />
-              ))}
+              <MessageList
+                messages={messages}
+                messagesById={messagesById}
+                aiParticipants={aiParticipantList}
+                participants={participants}
+                onReply={canSend ? startReply : undefined}
+              />
               <div ref={messagesEndRef} />
             </div>
           </div>
@@ -213,10 +201,13 @@ const ChatView = ({
               {!isAuthenticated && <GuestNotice onJoin={login.open} />}
 
               <MessageInput
-                onSendMessage={onSendMessage}
+                onSendMessage={sendMessage}
                 onTypingStart={onTypingStart}
                 onTypingStop={onTypingStop}
-                disabled={!connectionStatus.connected || !isAuthenticated}
+                disabled={!canSend}
+                replyingTo={replyingTo}
+                onCancelReply={cancelReply}
+                aiParticipants={aiParticipantList}
               />
             </div>
           </footer>

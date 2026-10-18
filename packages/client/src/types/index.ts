@@ -159,7 +159,7 @@ export interface ChatViewProps {
   onLogout: () => void;
   onJoin: (event: FormEvent<HTMLFormElement>) => void;
   onUsernameChange: (username: string) => void;
-  onSendMessage: (content: string) => void;
+  onSendMessage: (content: string, replyToMessageId?: string) => void;
   onTypingStart: () => void;
   onTypingStop: () => void;
   onPrivateConversationStart?: (ai: AiParticipant) => void;
@@ -193,6 +193,10 @@ export interface MessageInputProps {
   disabled?: boolean;
   onTypingStart?: () => void;
   onTypingStop?: () => void;
+  /** The message being quote-replied to, shown above the composer */
+  replyingTo?: Message | null;
+  onCancelReply?: () => void;
+  aiParticipants?: AiParticipant[];
 }
 
 // Component prop types - ChatMessage
@@ -204,6 +208,12 @@ export interface ChatMessageProps {
   quotedMessage?: Message;
   /** Same sender as the row above: render without name and avatar */
   isContinuation?: boolean;
+  /** Starts a quote-reply to this message; no reply button without it */
+  onReply?: (message: Message) => void;
+  /** Scrolls to a loaded message, for clicking a reply's quote */
+  onJumpToMessage?: (messageId: string) => void;
+  /** Flashed after a jump landed on it */
+  isHighlighted?: boolean;
 }
 
 // A message saved to favorites (useFavorites), stored in localStorage
@@ -303,6 +313,8 @@ export type IconName =
   | "login"
   | "logout"
   | "chevron-right"
+  | "chevron-down"
+  | "reply"
   | "x-mark"
   | "send"
   | "sparkle"

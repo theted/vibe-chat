@@ -226,7 +226,7 @@ const App = () => {
     setIsAuthLoading(false);
   };
 
-  const handleSendMessage = (content: string) => {
+  const handleSendMessage = (content: string, replyToMessageId?: string) => {
     if (content.startsWith("/")) {
       const [command] = content.slice(1).trim().split(/\s+/, 1);
       if (command?.toLowerCase() === "clear") {
@@ -235,7 +235,7 @@ const App = () => {
         return;
       }
     }
-    sendMessage(content);
+    sendMessage(content, replyToMessageId);
   };
 
   return (

@@ -39,6 +39,16 @@ export const handleUserMessage = async (
       return;
     }
 
+    // The server snapshots the quoted message itself, from the sender's room
+    // only; an id it can't find there posts as a plain message
+    const replyFields =
+      typeof data.replyToMessageId === "string"
+        ? context.chatOrchestrator.getReplyFields(
+            user.roomId,
+            data.replyToMessageId,
+          )
+        : null;
+
     const message: ChatMessage = {
       sender: user.username,
       content: contentValidation.value,
@@ -46,6 +56,7 @@ export const handleUserMessage = async (
       roomId: user.roomId,
       priority: 1000,
       suppressAIResponses: false,
+      ...replyFields,
     };
 
     const isChatAssistantQuery = context.chatAssistant.shouldHandle(

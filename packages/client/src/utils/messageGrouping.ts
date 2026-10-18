@@ -18,6 +18,6 @@ export const isContinuation = (
     previous.senderType === current.senderType &&
     previous.sender === current.sender &&
     // A reply quote needs its header to say who is answering
-    !current.mentionsTriggerMessageId &&
+    !current.replyToMessageId &&
     current.timestamp - previous.timestamp < GROUP_WINDOW_MS,
   );

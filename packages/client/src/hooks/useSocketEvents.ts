@@ -219,8 +219,8 @@ export const useSocketEvents = (opts: UseSocketEventsOptions) => {
   // --- Outbound helpers ---
 
   const sendMessage = useCallback(
-    (content: string) => {
-      emit(SOCKET_EVENTS.USER_MESSAGE, { content });
+    (content: string, replyToMessageId?: string) => {
+      emit(SOCKET_EVENTS.USER_MESSAGE, { content, replyToMessageId });
     },
     [emit],
   );
