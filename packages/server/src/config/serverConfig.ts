@@ -31,6 +31,8 @@ export const TOPIC_MAX_LENGTH = 100;
 // alone pulls ~20k tokens), and the AIs are prompted to ask @Chat, so their
 // questions are throttled per room. Human questions are not.
 export const CHAT_ASSISTANT_AI_COOLDOWN_MS = 2 * 60 * 1000; // 2 minutes
+// Messages handed to @Chat for quoting in a GitHub issue it files
+export const CHAT_ASSISTANT_ISSUE_CONTEXT_MESSAGES = 12;
 // One answer per room at a time; a person asking meanwhile hears why it's
 // ignored (AI askers are skipped silently, like the cooldown)
 export const CHAT_ASSISTANT_BUSY_NOTICE =

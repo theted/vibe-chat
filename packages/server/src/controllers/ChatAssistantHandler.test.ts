@@ -149,3 +149,62 @@ describe("ChatAssistantHandler AI message limit", () => {
     expect(posted).toHaveLength(0);
   });
 });
+
+describe("ChatAssistantHandler issue context", () => {
+  const ask = async (roomId: string, origin: Record<string, unknown>) => {
+    const calls: { issueContext?: Record<string, unknown> }[] = [];
+    const service = {
+      chatHistoryLimit: 2,
+      getMetadata: () => ({ aiId: "chat-assistant", displayName: "Chat" }),
+      shouldHandle: () => true,
+      createResponseFromContent: async (_content: string, options: never) => {
+        calls.push(options);
+        return null;
+      },
+    } as unknown as ChatAssistantService;
+    const orchestrator = {
+      canAIsSpeak: () => true,
+      setRoomOnHold: () => undefined,
+    } as unknown as ChatOrchestrator;
+    const roomMessages = Array.from({ length: 20 }, (_, index) => ({
+      sender: "ada",
+      senderType: "user",
+      content: `message ${index}`,
+    })) as ChatMessage[];
+
+    const handler = new ChatAssistantHandler({
+      chatAssistantService: service,
+      chatOrchestrator: orchestrator,
+      io: {} as Server,
+      getRecentMessages: async () => roomMessages,
+    });
+    await handler.trigger({ roomId, content: "@Chat file it", origin });
+    return calls[0].issueContext;
+  };
+
+  it("hands @Chat the main room's latest messages and who asked", async () => {
+    const context = await ask("default", { type: "user", username: "ada" });
+
+    expect(context).toMatchObject({
+      roomId: "default",
+      canFileIssues: true,
+      requesterType: "human",
+    });
+    expect(
+      (context?.transcript as ChatMessage[]).map((m) => m.content),
+    ).toEqual(Array.from({ length: 12 }, (_, index) => `message ${index + 8}`));
+  });
+
+  it("keeps private chats out of public issues", async () => {
+    const context = await ask("private:ada:claude", {
+      type: "ai",
+      aiId: "claude",
+      sender: "Claude",
+    });
+
+    expect(context).toMatchObject({
+      canFileIssues: false,
+      requesterType: "ai",
+    });
+  });
+});

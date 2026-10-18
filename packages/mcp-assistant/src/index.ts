@@ -16,6 +16,17 @@ import {
 } from "./constants.js";
 import type { ErrorWithCode } from "./chroma.js";
 import { createEmbedder } from "./embeddings.js";
+import {
+  DEFAULT_ISSUES_REPO,
+  ISSUES_REPO_ENV,
+  ISSUES_TOKEN_ENV,
+} from "./github/constants.js";
+import {
+  type CreatedIssue,
+  GitHubIssuesClient,
+} from "./github/githubIssues.js";
+import { IssueLimiter } from "./github/issueLimiter.js";
+import type { IssueToolContext } from "./tools/issueTools.js";
 
 const CHAT_HISTORY_LIMIT = 5;
 // Per API request, not per question: one question can take several rounds
@@ -27,6 +38,9 @@ export type ChatAssistantEngineOptions = {
   collectionName?: string;
   model?: string;
   anthropicApiKey?: string;
+  /** Fine-grained token with Issues read/write on `issuesRepo`; no token, no issue tools */
+  githubIssuesToken?: string;
+  issuesRepo?: string;
 };
 
 type ChatHistoryMessage = {
@@ -38,10 +52,21 @@ type ChatHistoryMessage = {
   content?: string;
 };
 
+/** Where a question came from, for the issue tools. Supplied by the server. */
+export type IssueRequestContext = {
+  roomId: string;
+  /** False in private rooms: their conversation mustn't end up in a public issue */
+  canFileIssues: boolean;
+  requesterType: "human" | "ai";
+  /** The room's latest messages, quoted in any issue filed */
+  transcript: ChatHistoryMessage[];
+};
+
 type AnswerQuestionOptions = {
   chatHistory?: ChatHistoryMessage[];
   /** Display name of whoever mentioned @Chat */
   askedBy?: string;
+  issueContext?: IssueRequestContext;
 };
 
 type AnswerContext = {
@@ -57,22 +82,38 @@ type AnswerResult = {
   answer: string;
   contexts: AnswerContext[];
   toolCalls: string[];
+  issuesFiled: CreatedIssue[];
 };
 
+const toHistoryLines = (chatHistory: ChatHistoryMessage[]): HistoryLine[] =>
+  chatHistory.flatMap((message) => {
+    const content = message?.content?.trim();
+    if (!content) return [];
+    const sender =
+      message.displayName ||
+      message.sender ||
+      message.alias ||
+      message.normalizedAlias ||
+      "participant";
+    return [{ sender, senderType: message.senderType || "user", content }];
+  });
+
 const normalizeHistory = (chatHistory: ChatHistoryMessage[]): HistoryLine[] =>
-  chatHistory
-    .flatMap((message) => {
-      const content = message?.content?.trim();
-      if (!content) return [];
-      const sender =
-        message.displayName ||
-        message.sender ||
-        message.alias ||
-        message.normalizedAlias ||
-        "participant";
-      return [{ sender, senderType: message.senderType || "user", content }];
-    })
-    .slice(-CHAT_HISTORY_LIMIT);
+  toHistoryLines(chatHistory).slice(-CHAT_HISTORY_LIMIT);
+
+/**
+ * The room must get the link to anything filed, even if the model's answer
+ * forgot it or came back empty.
+ */
+export const ensureIssueLinks = (
+  answer: string,
+  issues: CreatedIssue[],
+): string => {
+  const missing = issues.filter(({ url }) => !answer.includes(url));
+  if (missing.length === 0) return answer;
+  const links = missing.map(({ number, url }) => `Filed #${number}: ${url}`);
+  return [answer, ...links].filter(Boolean).join("\n");
+};
 
 /**
  * Keeps only the files the answer actually names, one entry per file, so the
@@ -115,6 +156,7 @@ export class ChatAssistantEngine {
   model: string;
   codebase: CodebaseSearch;
   client: Anthropic;
+  issues: Pick<IssueToolContext, "client" | "limiter"> | null;
 
   constructor(options: ChatAssistantEngineOptions = {}) {
     const {
@@ -124,6 +166,8 @@ export class ChatAssistantEngine {
         DEFAULT_COLLECTION_NAME,
       model = process.env[AGENT_MODEL_ENV] || DEFAULT_AGENT_MODEL,
       anthropicApiKey = process.env.ANTHROPIC_API_KEY,
+      githubIssuesToken = process.env[ISSUES_TOKEN_ENV],
+      issuesRepo = process.env[ISSUES_REPO_ENV] || DEFAULT_ISSUES_REPO,
     } = options;
 
     if (!anthropicApiKey) {
@@ -143,6 +187,35 @@ export class ChatAssistantEngine {
       apiKey: anthropicApiKey,
       timeout: ANTHROPIC_REQUEST_TIMEOUT_MS,
     });
+    this.issues = githubIssuesToken
+      ? {
+          client: new GitHubIssuesClient(githubIssuesToken, issuesRepo),
+          limiter: new IssueLimiter(),
+        }
+      : null;
+  }
+
+  /** Repo @Chat can file issues in, or null when no token is configured. */
+  get issuesRepo(): string | null {
+    return this.issues?.client.repo ?? null;
+  }
+
+  private buildIssueTools(
+    askedBy: string | undefined,
+    issueContext: IssueRequestContext | undefined,
+  ): IssueToolContext | undefined {
+    if (!this.issues) return undefined;
+    const origin =
+      issueContext?.canFileIssues && askedBy
+        ? {
+            requestedBy: askedBy,
+            requesterType: issueContext.requesterType,
+            roomId: issueContext.roomId,
+            transcript: toHistoryLines(issueContext.transcript),
+            model: this.model,
+          }
+        : null;
+    return { ...this.issues, origin, filed: [] };
   }
 
   /** True if the index exists; throws E_VECTOR_STORE_UNAVAILABLE when Chroma is down. */
@@ -161,9 +234,9 @@ export class ChatAssistantEngine {
 
   async answerQuestion(
     question: string,
-    { chatHistory = [], askedBy }: AnswerQuestionOptions = {},
+    { chatHistory = [], askedBy, issueContext }: AnswerQuestionOptions = {},
   ): Promise<AnswerResult> {
-    const { answer, snippets, toolCalls } = await runChatAgent(
+    const { answer, snippets, toolCalls, issuesFiled } = await runChatAgent(
       {
         question: question.trim(),
         askedBy,
@@ -172,13 +245,17 @@ export class ChatAssistantEngine {
       {
         client: this.client,
         model: this.model,
-        tools: { codebase: this.codebase },
+        tools: {
+          codebase: this.codebase,
+          issues: this.buildIssueTools(askedBy, issueContext),
+        },
       },
     );
     return {
-      answer,
+      answer: ensureIssueLinks(answer, issuesFiled),
       contexts: selectCitedSources(answer, snippets),
       toolCalls,
+      issuesFiled,
     };
   }
 }

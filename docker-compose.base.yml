@@ -83,6 +83,9 @@ services:
       # gemini | cohere) and the Claude model that runs the agent
       - CHAT_ASSISTANT_EMBEDDINGS=${CHAT_ASSISTANT_EMBEDDINGS:-}
       - CHAT_ASSISTANT_MODEL=${CHAT_ASSISTANT_MODEL:-}
+      # @Chat files GitHub issues only when this token is set
+      - GITHUB_ISSUES_TOKEN=${GITHUB_ISSUES_TOKEN:-}
+      - GITHUB_ISSUES_REPO=${GITHUB_ISSUES_REPO:-}
     restart: unless-stopped
     networks:
       - ai-chat-network

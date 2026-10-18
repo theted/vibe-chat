@@ -98,6 +98,8 @@ export class ChatAssistantService {
       collectionName: this.collectionName,
       model: this.server.model,
       autoIndex: this.autoIndex,
+      // null: no GITHUB_ISSUES_TOKEN, so @Chat can't file issues
+      issuesRepo: this.server.issuesRepo,
     });
 
     await this.refreshIndex();

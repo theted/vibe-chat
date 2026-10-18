@@ -7,12 +7,14 @@
 import type Anthropic from "@anthropic-ai/sdk";
 
 import type { CodeSnippet } from "../codeSearch.js";
-import { AGENT_TOOLS } from "../tools/definitions.js";
+import type { CreatedIssue } from "../github/githubIssues.js";
+import { AGENT_TOOLS, AGENT_TOOLS_WITH_ISSUES } from "../tools/definitions.js";
 import { executeTool, type ToolContext } from "../tools/executeTool.js";
 import {
   buildQuestionMessage,
   CHAT_AGENT_SYSTEM_PROMPT,
   type HistoryLine,
+  ISSUE_FILING_GUIDANCE,
 } from "./prompts.js";
 
 export const DEFAULT_AGENT_MODEL = "claude-opus-5-5";
@@ -50,6 +52,7 @@ export type ChatAgentResult = {
   /** Every code chunk search_codebase returned during the run */
   snippets: CodeSnippet[];
   toolCalls: string[];
+  issuesFiled: CreatedIssue[];
 };
 
 const extractText = (message: BetaMessage): string =>
@@ -85,14 +88,21 @@ export const runChatAgent = async (
   ];
   const snippets: CodeSnippet[] = [];
   const toolCalls: string[] = [];
+  const issuesFiled = tools.issues?.filed ?? [];
+  // Two fixed variants, so each keeps its own stable prompt-cache prefix
+  const canUseIssues = Boolean(tools.issues);
+  const system = canUseIssues
+    ? CHAT_AGENT_SYSTEM_PROMPT + ISSUE_FILING_GUIDANCE
+    : CHAT_AGENT_SYSTEM_PROMPT;
+  const agentTools = canUseIssues ? AGENT_TOOLS_WITH_ISSUES : AGENT_TOOLS;
 
   for (let round = 0; round <= AGENT_MAX_TOOL_ROUNDS; round += 1) {
     const isLastRound = round === AGENT_MAX_TOOL_ROUNDS;
     const response = await client.beta.messages.create({
       model,
       max_tokens: AGENT_MAX_TOKENS,
-      system: CHAT_AGENT_SYSTEM_PROMPT,
-      tools: AGENT_TOOLS,
+      system,
+      tools: agentTools,
       // "none" keeps the tool list (and so the cache prefix) intact while
       // forbidding further calls
       tool_choice: isLastRound ? { type: "none" } : { type: "auto" },
@@ -111,7 +121,7 @@ export const runChatAgent = async (
     messages.push({ role: "assistant", content: response.content });
 
     if (response.stop_reason === "refusal") {
-      return { answer: REFUSAL_ANSWER, snippets, toolCalls };
+      return { answer: REFUSAL_ANSWER, snippets, toolCalls, issuesFiled };
     }
 
     // A long-running server tool (web_search) paused; resending resumes it
@@ -121,7 +131,12 @@ export const runChatAgent = async (
       (block): block is BetaToolUseBlock => block.type === "tool_use",
     );
     if (response.stop_reason !== "tool_use" || toolUses.length === 0) {
-      return { answer: extractText(response), snippets, toolCalls };
+      return {
+        answer: extractText(response),
+        snippets,
+        toolCalls,
+        issuesFiled,
+      };
     }
 
     // Parallel calls run concurrently, and all their results go back in ONE
@@ -143,5 +158,5 @@ export const runChatAgent = async (
   }
 
   // Only reachable if the forced last round itself paused
-  return { answer: "", snippets, toolCalls };
+  return { answer: "", snippets, toolCalls, issuesFiled };
 };

@@ -4,9 +4,11 @@
 
 import type { Server } from "socket.io";
 import type { ChatOrchestrator } from "@ai-chat/core";
+import { isPrivateRoomId } from "@ai-chat/ai-configs";
 import {
   CHAT_ASSISTANT_AI_COOLDOWN_MS,
   CHAT_ASSISTANT_BUSY_NOTICE,
+  CHAT_ASSISTANT_ISSUE_CONTEXT_MESSAGES,
 } from "@/config/serverConfig.js";
 import { describeError } from "@/utils/socketErrors.js";
 import type { ChatAssistantService } from "@/services/ChatAssistantService.js";
@@ -119,15 +121,29 @@ export class ChatAssistantHandler {
     this.chatOrchestrator.setRoomOnHold(roomId, true);
     try {
       const recentMessages = await this.getRecentMessages(roomId);
+      const roomMessages = Array.isArray(recentMessages) ? recentMessages : [];
       const historyLimit = this.chatAssistantService.chatHistoryLimit ?? 5;
-      const chatHistory = Array.isArray(recentMessages)
-        ? recentMessages.slice(-historyLimit)
-        : [];
+      const chatHistory = roomMessages.slice(-historyLimit);
 
       const askedBy = origin.type === "user" ? origin.username : origin.sender;
       const result = await this.chatAssistantService.createResponseFromContent(
         content,
-        { emitter: this.io, roomId, chatHistory, askedBy },
+        {
+          emitter: this.io,
+          roomId,
+          chatHistory,
+          askedBy,
+          issueContext: {
+            roomId,
+            // A private chat is between one person and one model; quoting it
+            // in a public issue would publish it
+            canFileIssues: !isPrivateRoomId(roomId),
+            requesterType: origin.type === "user" ? "human" : "ai",
+            transcript: roomMessages.slice(
+              -CHAT_ASSISTANT_ISSUE_CONTEXT_MESSAGES,
+            ),
+          },
+        },
       );
       if (!result?.answer) return;
 

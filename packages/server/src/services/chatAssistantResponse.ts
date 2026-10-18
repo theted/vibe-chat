@@ -58,9 +58,12 @@ export const createChatAssistantResponse = async (
     const result = await service.server.answerQuestion(question, {
       chatHistory: service.prepareChatHistory(options.chatHistory),
       askedBy: options.askedBy,
+      issueContext: options.issueContext,
     });
+    const filed = result.issuesFiled?.map(({ number }) => `#${number}`) ?? [];
     console.info(
-      `[ChatAssistant] Answered with tools [${result.toolCalls?.join(", ") ?? ""}]`,
+      `[ChatAssistant] Answered with tools [${result.toolCalls?.join(", ") ?? ""}]` +
+        (filed.length ? `, filed ${filed.join(", ")}` : ""),
     );
 
     const contexts = result.contexts ?? [];

@@ -5,12 +5,26 @@ import {
   MissingIndexError,
 } from "../codeSearch.js";
 import { SEARCH_DEFAULT_RESULTS } from "../constants.js";
+import { GitHubIssuesError } from "../github/githubIssues.js";
 import { browse, BrowseError, formatBrowseResult } from "./browse.js";
-import { BROWSE_TOOL_NAME, SEARCH_CODEBASE_TOOL_NAME } from "./definitions.js";
+import {
+  BROWSE_TOOL_NAME,
+  CREATE_ISSUE_TOOL_NAME,
+  SEARCH_CODEBASE_TOOL_NAME,
+  SEARCH_ISSUES_TOOL_NAME,
+} from "./definitions.js";
+import {
+  type IssueToolContext,
+  type IssueToolResult,
+  runCreateIssue,
+  runSearchIssues,
+} from "./issueTools.js";
 import { UnsafeUrlError } from "./urlSafety.js";
 
 export type ToolContext = {
   codebase: CodebaseSearch;
+  /** Present only when the server can file issues in its repo */
+  issues?: IssueToolContext;
 };
 
 export type ToolOutcome = {
@@ -58,6 +72,16 @@ const runBrowse = async (input: unknown): Promise<ToolOutcome> => {
   return { content: formatBrowseResult(result), isError: false, snippets: [] };
 };
 
+const runIssueTool = async (
+  run: (input: unknown, context: IssueToolContext) => Promise<IssueToolResult>,
+  input: unknown,
+  { issues }: ToolContext,
+): Promise<ToolOutcome> => {
+  if (!issues) return failure("GitHub issues aren't set up on this server.");
+  const { content, isError } = await run(input, issues);
+  return { content, isError, snippets: [] };
+};
+
 /**
  * Runs one client-side tool call. Expected failures come back as
  * `isError: true` results the model can read and recover from (try another
@@ -74,6 +98,10 @@ export const executeTool = async (
         return await runSearchCodebase(input, context);
       case BROWSE_TOOL_NAME:
         return await runBrowse(input);
+      case SEARCH_ISSUES_TOOL_NAME:
+        return await runIssueTool(runSearchIssues, input, context);
+      case CREATE_ISSUE_TOOL_NAME:
+        return await runIssueTool(runCreateIssue, input, context);
       default:
         return failure(`Unknown tool "${name}".`);
     }
@@ -81,7 +109,8 @@ export const executeTool = async (
     if (
       error instanceof BrowseError ||
       error instanceof UnsafeUrlError ||
-      error instanceof MissingIndexError
+      error instanceof MissingIndexError ||
+      error instanceof GitHubIssuesError
     ) {
       return failure(error.message);
     }
