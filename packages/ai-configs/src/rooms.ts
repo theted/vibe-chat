@@ -17,11 +17,11 @@ export const PRIVATE_ROOM_PREFIX = "private:";
 export const PRIVATE_ROOM_AI_SEPARATOR = "+";
 
 /**
- * Most AIs a private room holds. The room shares one AI-message budget per
- * human message, so a bigger cast would leave the models no room to reply to
- * each other.
+ * Most AIs a private room holds. Cost doesn't grow with the cast: a group
+ * answers each human message with 1-3 members under the room's AI-message
+ * cap. The limit keeps room ids (every member's id) and the roster readable.
  */
-export const MAX_PRIVATE_ROOM_AIS = 5;
+export const MAX_PRIVATE_ROOM_AIS = 25;
 
 export const isPrivateRoomId = (roomId?: string | null): boolean =>
   typeof roomId === "string" && roomId.startsWith(PRIVATE_ROOM_PREFIX);
