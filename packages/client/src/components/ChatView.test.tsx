@@ -203,6 +203,27 @@ describe("ChatView Component", () => {
       expect(banner.textContent).toContain("Only you and these models");
     });
 
+    it("names the first few models of a big group and counts the rest", () => {
+      const groupAis = Array.from({ length: 6 }, (_, index) => ({
+        ...privateAi,
+        id: `ai-${index}`,
+        name: `AI ${index}`,
+      }));
+      renderWithRouter(
+        <ChatView
+          {...defaultProps}
+          isPrivateChat
+          privateChatAis={groupAis}
+          onPrivateConversationEnd={vi.fn()}
+        />,
+      );
+
+      const banner = screen.getByTestId("private-chat-banner");
+      expect(banner.textContent).toContain(
+        "Private chat with AI 0, AI 1, AI 2 and 3 more",
+      );
+    });
+
     it("opens the models list from the banner to add more", () => {
       renderWithRouter(
         <ChatView

@@ -17,6 +17,9 @@ interface PrivateChatBannerProps {
   onAddModels?: () => void;
 }
 
+/** A big group names this many models, then says how many more there are */
+const MAX_NAMED_MODELS = 3;
+
 const BUTTON_CLASSES =
   "flex shrink-0 items-center gap-1 rounded-md px-2 py-1 text-sm font-medium text-muted transition-colors hover:bg-raised hover:text-fg";
 
@@ -35,6 +38,11 @@ const PrivateChatBanner = ({
   const voice = useVoiceStyle(firstAi ? getModelVoiceKey(firstAi) : null);
   const hueFor = useHueFor();
   const isGroup = ais.length > 1;
+  // "and 1 more" reads worse than the name it hides
+  const namedAis =
+    ais.length > MAX_NAMED_MODELS + 1 ? ais.slice(0, MAX_NAMED_MODELS) : ais;
+  const unnamedCount = ais.length - namedAis.length;
+  const listLength = namedAis.length + (unnamedCount > 0 ? 1 : 0);
 
   return (
     <div
@@ -46,12 +54,17 @@ const PrivateChatBanner = ({
         <span aria-hidden="true">
           {isGroup ? "🔒" : firstAi?.emoji || "🔒"}
         </span>
-        <p className="truncate">
+        <p
+          className="truncate"
+          title={
+            unnamedCount > 0 ? ais.map((ai) => ai.name).join(", ") : undefined
+          }
+        >
           <span className="font-semibold text-fg">Private chat</span>
           {ais.length > 0 && " with "}
-          {ais.map((ai, index) => (
+          {namedAis.map((ai, index) => (
             <Fragment key={ai.id}>
-              {separatorBefore(index, ais.length)}
+              {separatorBefore(index, listLength)}
               <span
                 className="font-semibold text-voice"
                 style={voiceStyle(hueFor(getModelVoiceKey(ai)))}
@@ -60,6 +73,8 @@ const PrivateChatBanner = ({
               </span>
             </Fragment>
           ))}
+          {unnamedCount > 0 &&
+            `${separatorBefore(listLength - 1, listLength)}${unnamedCount} more`}
           <span className="hidden text-muted sm:inline">
             {isGroup
               ? ". Only you and these models."
