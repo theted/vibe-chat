@@ -209,6 +209,18 @@ export const buildTurnInstruction = (
     typeof replyTarget?.content === "string"
       ? excerptForQuote(replyTarget.content)
       : "";
+  const selfName = aiService.displayName || aiService.name || "";
+
+  // The snapshot of what a quote-reply answers, which may have left the
+  // window: without it the model can't tell what the person was replying to
+  const quoteLine = replyTarget?.replyToExcerpt
+    ? STRATEGY_INSTRUCTIONS.QUOTED_MESSAGE(
+        replyTarget.replyToSender === selfName
+          ? null
+          : (replyTarget.replyToSender ?? null),
+        excerptForQuote(replyTarget.replyToExcerpt),
+      )
+    : "";
 
   let replyLine = "";
   let instructionPrompt = "";
@@ -281,12 +293,12 @@ export const buildTurnInstruction = (
     : strategy.isPrivateGroup
       ? STRATEGY_INSTRUCTIONS.PRIVATE_GROUP
       : "";
-  const selfName = aiService.displayName || aiService.name || "";
 
   const body = [
     selfName ? `Your turn, ${selfName}.` : "",
     replyLine,
     instructionPrompt,
+    quoteLine,
     privateChatInstruction,
     mentionInstruction,
     energyInstruction,

@@ -2,7 +2,9 @@
  * Turns a room's history into the message list one AI is prompted with.
  *
  * Every message from someone else becomes a user turn that starts with its
- * speaker's name; the AI's own earlier messages are its assistant turns.
+ * number and speaker's name ("[#12 Claude]"); the AI's own earlier messages
+ * are its assistant turns. The number is what a model writes to quote that
+ * message (see quoteReplies).
  * Providers only see role + content, so without the labels every other AI's
  * message reads as something the model said itself, and it loses track of
  * who it is answering.
@@ -17,6 +19,8 @@ import { TRANSCRIPT } from "@/orchestrator/constants.js";
 import type { Message } from "@/types/index.js";
 import type { ContextMessage } from "@/types/orchestrator.js";
 import type { OrchestratorAIService } from "./aiLookup.js";
+import { transcriptRef } from "./quoteReplies.js";
+import { excerptForQuote } from "./responseUtils.js";
 
 type TranscriptRole = "user" | "assistant";
 
@@ -41,6 +45,35 @@ const isOwnMessage = (
   );
 };
 
+/**
+ * What a quote-reply answers, for its label. A quoted message that left the
+ * window survives only as the snapshot the reply carries.
+ */
+const describeQuoted = (
+  message: ContextMessage,
+  context: ContextMessage[],
+  self: OrchestratorAIService,
+): string => {
+  if (!message.replyToMessageId) return "";
+  const quotedIndex = context.findIndex(
+    (candidate) => candidate.id === message.replyToMessageId,
+  );
+  const quoted = context[quotedIndex];
+  const { REPLYING_TO, OWN_MESSAGE } = TRANSCRIPT;
+
+  if (quoted && isOwnMessage(quoted, self)) {
+    // Its own turns carry no number, so point at it by what it said
+    return `${REPLYING_TO} ${OWN_MESSAGE}: "${excerptForQuote(quoted.content ?? "")}"`;
+  }
+  if (quoted && !quoted.isInternal) {
+    return `${REPLYING_TO} #${transcriptRef(quotedIndex)} ${speakerLabel(quoted)}`;
+  }
+  const sender = message.replyToSender || "an earlier message";
+  return message.replyToExcerpt
+    ? `${REPLYING_TO} ${sender}: "${excerptForQuote(message.replyToExcerpt)}"`
+    : `${REPLYING_TO} ${sender}`;
+};
+
 export const buildTranscript = (
   self: OrchestratorAIService,
   context: ContextMessage[],
@@ -56,15 +89,17 @@ export const buildTranscript = (
     turns.push({ role, content });
   };
 
-  for (const message of context) {
+  context.forEach((message, index) => {
     const content = message.content?.trim();
-    if (message.isInternal || !content) continue;
+    if (message.isInternal || !content) return;
     if (isOwnMessage(message, self)) {
       append("assistant", content);
-    } else {
-      append("user", `[${speakerLabel(message)}] ${content}`);
+      return;
     }
-  }
+    const quoted = describeQuoted(message, context, self);
+    const label = `#${transcriptRef(index)} ${speakerLabel(message)}`;
+    append("user", `[${quoted ? `${label}, ${quoted}` : label}] ${content}`);
+  });
 
   if (turns[0]?.role === "assistant") {
     turns.unshift({ role: "user", content: TRANSCRIPT.CONTINUATION_NOTE });
@@ -78,8 +113,8 @@ const escapeRegExp = (value: string) =>
   value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 /**
- * Drop a "[Name]" or "Name:" label a model put in front of its own reply
- * after imitating the transcript format.
+ * Drop a "[Name]", "[#12 Name, replying to …]" or "Name:" label a model put
+ * in front of its own reply after imitating the transcript format.
  */
 export const stripOwnSpeakerLabel = (
   response: string,
@@ -93,7 +128,7 @@ export const stripOwnSpeakerLabel = (
 
   const name = `@?(?:${names.join("|")})`;
   const label = new RegExp(
-    `^\\s*(?:\\[${name}(?:\\s*\\([^)]*\\))?\\]\\s*:?|${name}\\s*:)\\s*`,
+    `^\\s*(?:\\[(?:#\\d+\\s+)?${name}(?:\\s*\\([^)]*\\))?(?:,[^\\]]*)?\\]\\s*:?|${name}\\s*:)\\s*`,
     "i",
   );
   const stripped = response.replace(label, "");

@@ -213,6 +213,26 @@ export const ICON_PATHS: Record<IconName, IconDefinition> = {
       paths: ["M10 6.5l5.5 5.5L10 17.5"],
     },
   },
+  "chevron-down": {
+    classic: {
+      strokeWidth: 2,
+      paths: ["M19 9l-7 7-7-7"],
+    },
+    modern: {
+      strokeWidth: 1.4,
+      paths: ["M6.5 10l5.5 5.5 5.5-5.5"],
+    },
+  },
+  reply: {
+    classic: {
+      strokeWidth: 2,
+      paths: ["M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3"],
+    },
+    modern: {
+      strokeWidth: 1.4,
+      paths: ["M9.5 6.5L5 11l4.5 4.5", "M5 11h9a5 5 0 015 5v1.5"],
+    },
+  },
   "x-mark": {
     classic: {
       strokeWidth: 2,

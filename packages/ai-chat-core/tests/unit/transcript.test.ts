@@ -86,10 +86,10 @@ describe("buildTranscript", () => {
     ]);
     expect(transcript[1].content).toBe("I said this earlier.");
     expect(transcript[2].content).toContain(
-      "[Ada (human)] What do you all think?",
+      "[#2 Ada (human)] What do you all think?",
     );
-    expect(transcript[2].content).toContain("[GPT] Tabs, obviously.");
-    expect(transcript[2].content).toContain("[Gemini] Spaces.");
+    expect(transcript[2].content).toContain("[#3 GPT] Tabs, obviously.");
+    expect(transcript[2].content).toContain("[#4 Gemini] Spaces.");
   });
 
   it("starts on a user turn and ends on the turn note", () => {

@@ -28,8 +28,19 @@ vi.mock("react-router-dom", () => ({
 }));
 
 vi.mock("./ChatMessage", () => ({
-  default: ({ message }: { message: { text: string } }) => (
-    <div data-testid="chat-message">{message.text}</div>
+  default: ({
+    message,
+    onReply,
+  }: {
+    message: { id: string; text: string };
+    onReply?: (message: { id: string }) => void;
+  }) => (
+    <div data-testid="chat-message">
+      {message.text}
+      {onReply && (
+        <button onClick={() => onReply(message)}>reply-{message.id}</button>
+      )}
+    </div>
   ),
 }));
 
@@ -37,11 +48,17 @@ vi.mock("./MessageInput", () => ({
   default: ({
     onSendMessage,
     disabled,
+    replyingTo,
+    onCancelReply,
   }: {
     onSendMessage: (msg: string) => void;
     disabled: boolean;
+    replyingTo?: { id: string } | null;
+    onCancelReply?: () => void;
   }) => (
     <div data-testid="message-input">
+      {replyingTo && <span>replying-to-{replyingTo.id}</span>}
+      <button onClick={onCancelReply}>Cancel reply</button>
       <button onClick={() => onSendMessage("test")} disabled={disabled}>
         Send
       </button>
@@ -341,6 +358,32 @@ describe("ChatView Component", () => {
       const sendButton = screen.getByText("Send");
       fireEvent.click(sendButton);
       expect(defaultProps.onSendMessage).toHaveBeenCalledWith("test");
+    });
+
+    it("sends a quote-reply with the quoted message's id, then clears it", () => {
+      renderWithRouter(<ChatView {...defaultProps} />);
+
+      fireEvent.click(screen.getByText("reply-2"));
+      expect(screen.getByText("replying-to-2")).toBeInTheDocument();
+
+      fireEvent.click(screen.getByText("Send"));
+      expect(defaultProps.onSendMessage).toHaveBeenCalledWith("test", "2");
+      expect(screen.queryByText("replying-to-2")).toBeNull();
+    });
+
+    it("cancels a quote-reply", () => {
+      renderWithRouter(<ChatView {...defaultProps} />);
+
+      fireEvent.click(screen.getByText("reply-1"));
+      fireEvent.click(screen.getByText("Cancel reply"));
+      fireEvent.click(screen.getByText("Send"));
+
+      expect(defaultProps.onSendMessage).toHaveBeenCalledWith("test");
+    });
+
+    it("offers no reply buttons to guests", () => {
+      renderWithRouter(<ChatView {...defaultProps} isAuthenticated={false} />);
+      expect(screen.queryByText("reply-1")).toBeNull();
     });
 
     it("should disable input when not connected", () => {

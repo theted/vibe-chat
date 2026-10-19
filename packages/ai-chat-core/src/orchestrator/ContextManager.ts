@@ -42,6 +42,7 @@ export class ContextManager implements IContextManager {
 
     const { mentions, normalized } = parseMentions(message.content);
 
+    const room = normalizeRoomId(message.roomId);
     const displayName = message.displayName || message.sender;
     const alias = message.alias || displayName;
     const normalizedAlias =
@@ -50,7 +51,7 @@ export class ContextManager implements IContextManager {
     const contextMessage: ContextMessage = {
       // Room is the isolation boundary: a private chat must not see the main
       // room's messages, so every stored message carries one (absent = default).
-      roomId: normalizeRoomId(message.roomId),
+      roomId: room,
       role: message.senderType === "user" ? "user" : "assistant",
       content: message.content,
       timestamp: message.timestamp,
@@ -63,13 +64,15 @@ export class ContextManager implements IContextManager {
       providerKey: message.providerKey,
       modelKey: message.modelKey,
       mentions,
-      mentionsNormalized: normalized,
+      mentionsNormalized: this.withQuotedAuthor(normalized, message, room),
+      replyToMessageId: message.replyToMessageId,
+      replyToSender: message.replyToSender,
+      replyToExcerpt: message.replyToExcerpt,
       id: message.id,
     };
 
     // The sliding window is per room: a busy main room must not evict a
     // private 1-1 chat's history out from under it.
-    const room = contextMessage.roomId as string;
     const roomMessageCount = this.messages.reduce(
       (count, stored) =>
         count + (normalizeRoomId(stored.roomId) === room ? 1 : 0),
@@ -87,6 +90,38 @@ export class ContextManager implements IContextManager {
 
     this.messages.push(contextMessage);
     return contextMessage;
+  }
+
+  /**
+   * A person quote-replying to a model asks that model to answer, as an
+   * @mention would. Only people: an AI's answer quotes the message that
+   * asked for it, so counting that as a mention would bounce two models
+   * back and forth.
+   */
+  private withQuotedAuthor(
+    mentions: string[],
+    message: ContextMessage,
+    roomId: string,
+  ): string[] {
+    if (message.senderType !== "user" || !message.replyToMessageId) {
+      return mentions;
+    }
+    const quoted = this.findMessage(roomId, message.replyToMessageId);
+    const alias =
+      quoted?.senderType === "ai" ? quoted.normalizedAlias : undefined;
+    return alias && !mentions.includes(alias) ? [...mentions, alias] : mentions;
+  }
+
+  /** A message still in the room's window, by id. */
+  findMessage(
+    roomId: string | undefined,
+    messageId: string,
+  ): ContextMessage | undefined {
+    const room = normalizeRoomId(roomId);
+    return this.messages.find(
+      (message) =>
+        message.id === messageId && normalizeRoomId(message.roomId) === room,
+    );
   }
 
   /** Fold an evicted message into the rolling digest, dropping the oldest

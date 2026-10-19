@@ -25,10 +25,14 @@ export interface ChatMessageBase {
   modelId?: string;
   providerKey?: string;
   emoji?: string;
-  // Reply metadata - set when an AI responds to a message that @mentioned it,
-  // so clients can render a quote of the message being replied to
-  mentionsTriggerMessageId?: string | null;
-  mentionsTriggerSender?: string | null;
+  // Quote-reply: the earlier message this one answers, which clients show
+  // as a quote above it. Set when a person or AI quote-replies, and on an
+  // AI's answer to a message that @mentioned it. Sender and excerpt are a
+  // snapshot taken when the reply was posted, so the quote still reads once
+  // the original has left the loaded history.
+  replyToMessageId?: string | null;
+  replyToSender?: string | null;
+  replyToExcerpt?: string | null;
 }
 
 /**

@@ -464,6 +464,10 @@
   .hover-voice:hover {
     background-color: oklch(var(--voice-l) var(--voice-c) var(--voice-h) / 5%);
   }
+  /* Where a reply's quote jumped to; the row's own colour transition fades it */
+  .message-flash {
+    background-color: color-mix(in oklab, var(--accent) 14%, transparent);
+  }
   .border-voice-soft {
     border-color: oklch(var(--voice-l) var(--voice-c) var(--voice-h) / 55%);
   }

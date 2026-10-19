@@ -26,6 +26,42 @@ describe("MessageInput", () => {
     vi.clearAllMocks();
   });
 
+  describe("quote-replies", () => {
+    const replyingTo = {
+      id: "m1",
+      senderType: "user" as const,
+      sender: "Skylar",
+      content: "Tabs or spaces?",
+      timestamp: Date.now(),
+    };
+
+    it("shows who is being replied to", () => {
+      render(<MessageInput {...defaultProps} replyingTo={replyingTo} />);
+
+      expect(screen.getByText("Replying to")).toBeInTheDocument();
+      expect(screen.getByText("Skylar")).toBeInTheDocument();
+      expect(screen.getByText("Tabs or spaces?")).toBeInTheDocument();
+    });
+
+    it("cancels with Escape or the close button", () => {
+      const onCancelReply = vi.fn();
+      render(
+        <MessageInput
+          {...defaultProps}
+          replyingTo={replyingTo}
+          onCancelReply={onCancelReply}
+        />,
+      );
+
+      fireEvent.keyDown(screen.getByPlaceholderText(/@ to mention AI/i), {
+        key: "Escape",
+      });
+      fireEvent.click(screen.getByRole("button", { name: "Cancel reply" }));
+
+      expect(onCancelReply).toHaveBeenCalledTimes(2);
+    });
+  });
+
   it("shows AI selection dialog while typing an @mention", () => {
     render(<MessageInput {...defaultProps} />);
     const textarea = screen.getByPlaceholderText(/@ to mention AI/i);

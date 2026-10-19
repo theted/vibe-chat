@@ -30,6 +30,11 @@ export const CONTEXT_LIMITS = {
   QUOTE_EXCERPT_LENGTH: 140, // Max chars when quoting a message back in instructions
 } as const;
 
+// Quote-replies (utils/orchestrator/quoteReplies.ts)
+export const QUOTE_REPLY = {
+  EXCERPT_LENGTH: 280, // Chars of the quoted message a reply keeps as its snapshot
+} as const;
+
 // Rolling digest of messages evicted from the context window, so AIs can
 // still reference things said before the sliding window cut-off
 export const CONVERSATION_DIGEST = {
@@ -174,6 +179,9 @@ export const TRANSCRIPT = {
   // Opens the transcript when it would otherwise start with the model's own
   // turn - several providers require the first message to be a user turn
   CONTINUATION_NOTE: "[System] (earlier messages omitted)",
+  // A quote-reply's label names what it answers: "#14 Ada (human), replying to #12 Claude"
+  REPLYING_TO: "replying to",
+  OWN_MESSAGE: "your message",
   TURN_HEADER: "---\nNote from the chat app (only you see this):",
   NO_LABEL_REMINDER:
     "Write only your chat message itself - no [Name] label, and don't speak for anyone else.",
@@ -197,6 +205,7 @@ Key guidelines:
   - Build on their point: "@handle, building on what you said..."
 • An @mention summons that AI to answer you next, so write the exact @handle from the participant list below, and only mention someone you actually want a reply from
 • Keep @mentions to at most two unique AIs per response, mention each one only once, and sometimes skip @mentions entirely to keep the conversation flowing
+• To answer a specific earlier message rather than the latest one, start your message with [reply #12], using that message's number; the chat shows it as a quote above your reply. Only do this when it wouldn't otherwise be clear which message you mean
 • When you need implementation details or source code facts, mention @Chat with a clear question and wait for its answer before replying
 • Feel free to challenge, expand on, or redirect the conversation
 • Offer your own perspective
@@ -207,7 +216,7 @@ Key guidelines:
 
   // Explains the labelled transcript format (see TRANSCRIPT)
   TRANSCRIPT_FORMAT:
-    "How to read the chat: each message from someone else starts with the speaker's name in square brackets, e.g. [Claude] or [Ada (human)]. Your own earlier messages are your previous turns. Pay attention to who said what, and answer the person you are replying to - not whoever spoke last.",
+    "How to read the chat: each message from someone else starts with its number and speaker's name in square brackets, e.g. [#12 Claude] or [#13 Ada (human)]. A quote-reply also says which message it answers, e.g. [#14 Ada (human), replying to #12 Claude]. Your own earlier messages are your previous turns. Pay attention to who said what, and answer the person you are replying to - not whoever spoke last.",
 
   // Header for the rolling digest of messages evicted from the context window
   DIGEST_HEADER:
@@ -227,6 +236,10 @@ export const STRATEGY_INSTRUCTIONS = {
     excerpt
       ? `You were directly mentioned by the user, who said: "${excerpt}". Respond directly to that message and focus on answering or acknowledging their mention.`
       : "You were directly mentioned by the user. Respond directly to their message and focus on answering or acknowledging their mention.",
+  QUOTED_MESSAGE: (quotedSender: string | null, excerpt: string) =>
+    quotedSender
+      ? `That message quote-replies to ${quotedSender}, who said: "${excerpt}".`
+      : `That message quote-replies to your earlier message: "${excerpt}".`,
   AGREE_EXPAND: (senderName: string) =>
     `Build on ${senderName}'s point and add your own insights. Show agreement but expand with new information or examples.`,
   CHALLENGE: (senderName: string) =>
