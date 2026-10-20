@@ -1,0 +1,368 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >-
+  vibe-chat production monitoring: a Synthetics canary on the public API, SNS
+  alerts, a log group for the compose stack's container logs, and memory,
+  disk and status alarms for the EC2 instance. Setup steps are in
+  deploy/monitoring/README.md.
+
+Parameters:
+  ApiBaseUrl:
+    Type: String
+    Description: Public origin of the API the canary calls, e.g. https://api.example.com (no trailing slash).
+    AllowedPattern: "^https://[^/]+$"
+  AlertEmail:
+    Type: String
+    Description: Receives alarm notifications. SNS sends a confirmation email first.
+    AllowedPattern: "^[^@\\s]+@[^@\\s]+$"
+  InstanceId:
+    Type: AWS::EC2::Instance::Id
+    Description: The EC2 instance that runs the compose stack.
+  ExistingInstanceRoleName:
+    Type: String
+    Default: ""
+    Description: >-
+      If the instance already has an IAM role, its name: the monitoring policy
+      attaches to it. Leave empty to create a role and instance profile.
+  CanaryIntervalMinutes:
+    Type: String
+    Default: "10"
+    AllowedValues: ["5", "10", "15", "30"]
+    Description: Minutes between canary runs. Each run costs about $0.0012, so 10 minutes is about $5 a month.
+  MemoryThresholdPercent:
+    Type: Number
+    Default: 90
+    MinValue: 1
+    MaxValue: 100
+  DiskThresholdPercent:
+    Type: Number
+    Default: 85
+    MinValue: 1
+    MaxValue: 100
+  RootFsType:
+    Type: String
+    Default: ext4
+    Description: Filesystem type of /, a dimension of the agent's disk metric (`df -T /`).
+  LogGroupName:
+    Type: String
+    Default: /vibe-chat/prod
+    Description: Must match awslogs-group in docker-compose.cloudwatch.yml.
+  LogRetentionDays:
+    Type: Number
+    Default: 30
+    AllowedValues: [7, 14, 30, 60, 90]
+
+Mappings:
+  # Alarm periods match the canary interval, so each period holds one run
+  CanaryInterval:
+    "5":
+      Seconds: 300
+    "10":
+      Seconds: 600
+    "15":
+      Seconds: 900
+    "30":
+      Seconds: 1800
+
+Conditions:
+  CreateInstanceRole: !Equals [!Ref ExistingInstanceRoleName, ""]
+
+Resources:
+  AlertTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: vibe-chat-alerts
+      Subscription:
+        - Protocol: email
+          Endpoint: !Ref AlertEmail
+
+  # ---------------------------------------------------------------- canary
+
+  CanaryArtifactsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      LifecycleConfiguration:
+        Rules:
+          - Id: expire-canary-artifacts
+            Status: Enabled
+            ExpirationInDays: 14
+
+  CanaryRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: canary
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:GetObject
+                Resource: !Sub "${CanaryArtifactsBucket.Arn}/*"
+              - Effect: Allow
+                Action: s3:GetBucketLocation
+                Resource: !GetAtt CanaryArtifactsBucket.Arn
+              - Effect: Allow
+                Action: s3:ListAllMyBuckets
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/cwsyn-*"
+              - Effect: Allow
+                Action: cloudwatch:PutMetricData
+                Resource: "*"
+                Condition:
+                  StringEquals:
+                    cloudwatch:namespace: CloudWatchSynthetics
+
+  ApiCanary:
+    Type: AWS::Synthetics::Canary
+    Properties:
+      Name: vibe-chat-api
+      RuntimeVersion: syn-nodejs-puppeteer-18.0
+      ExecutionRoleArn: !GetAtt CanaryRole.Arn
+      ArtifactS3Location: !Sub "s3://${CanaryArtifactsBucket}/canary"
+      Schedule:
+        Expression: !Sub "rate(${CanaryIntervalMinutes} minutes)"
+      RunConfig:
+        TimeoutInSeconds: 60
+        EnvironmentVariables:
+          API_BASE_URL: !Ref ApiBaseUrl
+      StartCanaryAfterCreation: true
+      ProvisionedResourceCleanup: AUTOMATIC
+      SuccessRetentionPeriod: 7
+      FailureRetentionPeriod: 31
+      Code:
+        Handler: index.handler
+        # Plain fetch, no browser. A run fails (and counts against the alarm)
+        # unless /api/stats has the shape the server sends and
+        # /health/detailed reports every dependency up.
+        Script: |
+          const BASE_URL = process.env.API_BASE_URL;
+          const REQUEST_TIMEOUT_MS = 10000;
+          const BODY_EXCERPT_LENGTH = 300;
+
+          const isObject = (value) =>
+            typeof value === "object" && value !== null && !Array.isArray(value);
+
+          const getJson = async (path) => {
+            const response = await fetch(`${BASE_URL}${path}`, {
+              signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+            });
+            const text = await response.text();
+            try {
+              return { status: response.status, body: JSON.parse(text) };
+            } catch {
+              throw new Error(
+                `${path}: HTTP ${response.status}, body is not JSON: ${text.slice(0, BODY_EXCERPT_LENGTH)}`,
+              );
+            }
+          };
+
+          const checkStats = async () => {
+            const { status, body } = await getJson("/api/stats");
+            if (status !== 200) throw new Error(`/api/stats: HTTP ${status}`);
+            const isExpectedShape =
+              typeof body.connectedUsers === "number" &&
+              isObject(body.rooms) &&
+              isObject(body.orchestrator) &&
+              typeof body.orchestrator.aiServices === "number";
+            if (!isExpectedShape) {
+              throw new Error(
+                `/api/stats: unexpected shape: ${JSON.stringify(body).slice(0, BODY_EXCERPT_LENGTH)}`,
+              );
+            }
+            // Every model failing its health check leaves nobody to answer
+            if (body.orchestrator.aiServices === 0) {
+              throw new Error("/api/stats: no AI services loaded");
+            }
+          };
+
+          const checkHealth = async () => {
+            const { status, body } = await getJson("/health/detailed");
+            if (status === 200 && body.status === "ok") return;
+            const down = Object.entries(body.checks ?? {})
+              .filter(([, check]) => check.status === "down")
+              .map(([name, check]) => `${name} (${check.error ?? "down"})`);
+            throw new Error(
+              `/health/detailed: HTTP ${status}, down: ${down.join(", ") || "unknown"}`,
+            );
+          };
+
+          exports.handler = async () => {
+            if (!BASE_URL) throw new Error("API_BASE_URL is not set");
+            const results = await Promise.allSettled([checkStats(), checkHealth()]);
+            const failures = results
+              .filter((result) => result.status === "rejected")
+              .map((result) => result.reason?.message ?? String(result.reason));
+            if (failures.length > 0) throw new Error(failures.join("; "));
+          };
+
+  CanaryAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: vibe-chat-api-canary
+      AlarmDescription: The API canary failed two runs in a row (/api/stats or /health/detailed).
+      Namespace: CloudWatchSynthetics
+      MetricName: SuccessPercent
+      Dimensions:
+        - Name: CanaryName
+          Value: !Ref ApiCanary
+      Statistic: Minimum
+      Period: !FindInMap [CanaryInterval, !Ref CanaryIntervalMinutes, Seconds]
+      EvaluationPeriods: 2
+      DatapointsToAlarm: 2
+      Threshold: 100
+      ComparisonOperator: LessThanThreshold
+      # A run that lands late leaves one period empty; only a canary that
+      # stopped running leaves all of them empty, and that notifies too
+      TreatMissingData: missing
+      AlarmActions: [!Ref AlertTopic]
+      OKActions: [!Ref AlertTopic]
+      InsufficientDataActions: [!Ref AlertTopic]
+
+  # ------------------------------------------------------------- instance
+
+  ContainerLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Ref LogGroupName
+      RetentionInDays: !Ref LogRetentionDays
+
+  # What the box needs: the CloudWatch agent's metrics and Docker's awslogs
+  # driver. Every container on the box can reach these credentials through
+  # instance metadata, so they stay this narrow.
+  InstanceMonitoringPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Description: vibe-chat EC2 monitoring (CloudWatch agent metrics, container logs)
+      Roles:
+        - !If [
+            CreateInstanceRole,
+            !Ref InstanceRole,
+            !Ref ExistingInstanceRoleName,
+          ]
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action: cloudwatch:PutMetricData
+            Resource: "*"
+            Condition:
+              StringEquals:
+                cloudwatch:namespace: CWAgent
+          - Effect: Allow
+            Action:
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+            Resource: !GetAtt ContainerLogGroup.Arn
+
+  InstanceRole:
+    Type: AWS::IAM::Role
+    Condition: CreateInstanceRole
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+
+  InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Condition: CreateInstanceRole
+    Properties:
+      Roles: [!Ref InstanceRole]
+
+  MemoryAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: vibe-chat-memory
+      AlarmDescription: Memory use on the EC2 box (every app on it, not only vibe-chat) stayed high for 15 minutes.
+      Namespace: CWAgent
+      MetricName: mem_used_percent
+      Dimensions:
+        - Name: InstanceId
+          Value: !Ref InstanceId
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 3
+      Threshold: !Ref MemoryThresholdPercent
+      ComparisonOperator: GreaterThanThreshold
+      # No data means the agent stopped reporting, which notifies too
+      TreatMissingData: missing
+      AlarmActions: [!Ref AlertTopic]
+      OKActions: [!Ref AlertTopic]
+      InsufficientDataActions: [!Ref AlertTopic]
+
+  DiskAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: vibe-chat-disk
+      AlarmDescription: The EC2 box's root volume is filling up. A full disk fails the next docker compose build.
+      Namespace: CWAgent
+      MetricName: disk_used_percent
+      Dimensions:
+        - Name: InstanceId
+          Value: !Ref InstanceId
+        - Name: path
+          Value: /
+        - Name: fstype
+          Value: !Ref RootFsType
+      Statistic: Maximum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: !Ref DiskThresholdPercent
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: missing
+      AlarmActions: [!Ref AlertTopic]
+      OKActions: [!Ref AlertTopic]
+      InsufficientDataActions: [!Ref AlertTopic]
+
+  # Built-in EC2 metric: the instance or its host failed AWS's own checks
+  StatusCheckAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: vibe-chat-instance-status
+      AlarmDescription: The EC2 box failed its system or instance status checks.
+      Namespace: AWS/EC2
+      MetricName: StatusCheckFailed
+      Dimensions:
+        - Name: InstanceId
+          Value: !Ref InstanceId
+      Statistic: Maximum
+      Period: 60
+      EvaluationPeriods: 2
+      Threshold: 0
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: breaching
+      AlarmActions: [!Ref AlertTopic]
+      OKActions: [!Ref AlertTopic]
+
+Outputs:
+  AlertTopicArn:
+    Value: !Ref AlertTopic
+  CanaryName:
+    Value: !Ref ApiCanary
+  ContainerLogGroupName:
+    Value: !Ref ContainerLogGroup
+  InstanceProfileName:
+    Condition: CreateInstanceRole
+    Description: Associate with the instance (see README); not needed with ExistingInstanceRoleName.
+    Value: !Ref InstanceProfile
