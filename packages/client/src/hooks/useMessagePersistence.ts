@@ -7,11 +7,7 @@ import {
   LOCAL_STORAGE_MESSAGES_LIMIT,
   STORAGE_KEYS,
 } from "@/constants/storage";
-import {
-  getStorageJson,
-  removeStorageItem,
-  setStorageJson,
-} from "@/utils/storage";
+import { getStorageJson, setStorageJson } from "@/utils/storage";
 import type { Message } from "@/types";
 
 type StateSetter<T> = React.Dispatch<React.SetStateAction<T>>;
@@ -37,11 +33,4 @@ export const useMessagePersistence = (
       messages.slice(-LOCAL_STORAGE_MESSAGES_LIMIT),
     );
   }, [messages, isJoined]);
-
-  const clearMessages = () => {
-    setMessages([]);
-    removeStorageItem(STORAGE_KEYS.MESSAGES);
-  };
-
-  return { clearMessages };
 };

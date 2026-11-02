@@ -53,7 +53,7 @@ describe("MessageInput", () => {
         />,
       );
 
-      fireEvent.keyDown(screen.getByPlaceholderText(/@ to mention AI/i), {
+      fireEvent.keyDown(screen.getByPlaceholderText(/@ to mention/i), {
         key: "Escape",
       });
       fireEvent.click(screen.getByRole("button", { name: "Cancel reply" }));
@@ -64,7 +64,7 @@ describe("MessageInput", () => {
 
   it("shows AI selection dialog while typing an @mention", () => {
     render(<MessageInput {...defaultProps} />);
-    const textarea = screen.getByPlaceholderText(/@ to mention AI/i);
+    const textarea = screen.getByPlaceholderText(/@ to mention/i);
 
     fireEvent.change(textarea, { target: { value: "@Gr", selectionStart: 3 } });
 
@@ -75,7 +75,7 @@ describe("MessageInput", () => {
 
   it("opens the AI selection dialog even if selectionStart is unavailable", () => {
     render(<MessageInput {...defaultProps} />);
-    const textarea = screen.getByPlaceholderText(/@ to mention AI/i);
+    const textarea = screen.getByPlaceholderText(/@ to mention/i);
 
     fireEvent.change(textarea, { target: { value: "@gr" } });
 
@@ -86,7 +86,7 @@ describe("MessageInput", () => {
 
   it("opens the AI selection dialog when selectionEnd is available", () => {
     render(<MessageInput {...defaultProps} />);
-    const textarea = screen.getByPlaceholderText(/@ to mention AI/i);
+    const textarea = screen.getByPlaceholderText(/@ to mention/i);
 
     fireEvent.change(textarea, {
       target: { value: "@gra", selectionStart: null, selectionEnd: 4 },
@@ -95,5 +95,36 @@ describe("MessageInput", () => {
     expect(screen.getByTestId("ai-selection-dialog")).toHaveTextContent(
       "search:gra",
     );
+  });
+
+  describe("slash commands", () => {
+    it("lists the commands matching what's typed after /", () => {
+      render(<MessageInput {...defaultProps} />);
+      const textarea = screen.getByPlaceholderText(/@ to mention/i);
+
+      fireEvent.change(textarea, { target: { value: "/" } });
+      const commands = screen.getByRole("list", { name: "Commands" });
+      expect(commands).toHaveTextContent("/clear");
+      expect(commands).toHaveTextContent("/debug");
+
+      fireEvent.change(textarea, { target: { value: "/de" } });
+      expect(commands).not.toHaveTextContent("/clear");
+
+      fireEvent.change(textarea, { target: { value: "/debug now" } });
+      expect(screen.queryByRole("list", { name: "Commands" })).toBeNull();
+    });
+
+    it("completes a command with Tab or a click", () => {
+      render(<MessageInput {...defaultProps} />);
+      const textarea = screen.getByPlaceholderText(/@ to mention/i);
+
+      fireEvent.change(textarea, { target: { value: "/cl" } });
+      fireEvent.keyDown(textarea, { key: "Tab" });
+      expect(textarea).toHaveValue("/clear");
+
+      fireEvent.change(textarea, { target: { value: "/" } });
+      fireEvent.click(screen.getByRole("button", { name: /\/debug/ }));
+      expect(textarea).toHaveValue("/debug");
+    });
   });
 });

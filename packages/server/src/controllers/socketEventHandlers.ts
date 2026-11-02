@@ -5,6 +5,10 @@ export {
   handleGetAIStatus,
 } from "./socketAdminHandlers.js";
 export {
+  handleClearRoom,
+  handleGetLastPrompt,
+} from "./socketCommandHandlers.js";
+export {
   handleUserMessage,
   handleUserTyping,
 } from "./socketMessageHandlers.js";

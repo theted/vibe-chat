@@ -126,6 +126,7 @@ export class ChatAssistantHandler {
       const chatHistory = roomMessages.slice(-historyLimit);
 
       const askedBy = origin.type === "user" ? origin.username : origin.sender;
+      const startedAt = Date.now();
       const result = await this.chatAssistantService.createResponseFromContent(
         content,
         {
@@ -146,6 +147,13 @@ export class ChatAssistantHandler {
         },
       );
       if (!result?.answer) return;
+      // A /clear while the agent worked wiped the question it answers
+      if (this.chatOrchestrator.wasRoomClearedSince(roomId, startedAt)) {
+        console.info(
+          `[ChatAssistant] Dropping answer in ${roomId}: the room was cleared meanwhile.`,
+        );
+        return;
+      }
 
       if (result.error) {
         console.warn(

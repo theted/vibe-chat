@@ -177,6 +177,22 @@ export class MessageHistoryService {
     }
   }
 
+  /** Delete a room's stored history (/clear). */
+  async clearRoom(roomId = "default"): Promise<void> {
+    if (!this.redisClient) return;
+
+    try {
+      await this.redisClient.del(this.getRoomMessageKey(roomId));
+    } catch (error) {
+      const messageText =
+        error instanceof Error ? error.message : String(error);
+      console.warn(
+        `Failed to clear message history for ${roomId}:`,
+        messageText,
+      );
+    }
+  }
+
   /**
    * Check if Redis is available
    */

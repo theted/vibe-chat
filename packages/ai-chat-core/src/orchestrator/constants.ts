@@ -35,6 +35,12 @@ export const QUOTE_REPLY = {
   EXCERPT_LENGTH: 280, // Chars of the quoted message a reply keeps as its snapshot
 } as const;
 
+// The prompt behind each AI's latest reply per room, for /debug
+// (orchestrator/PromptLog.ts). A record holds a whole context window.
+export const PROMPT_LOG = {
+  MAX_RECORDS: 100,
+} as const;
+
 // Rolling digest of messages evicted from the context window, so AIs can
 // still reference things said before the sliding window cut-off
 export const CONVERSATION_DIGEST = {

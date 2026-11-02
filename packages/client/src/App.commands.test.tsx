@@ -46,6 +46,9 @@ vi.mock("./components/ChatView", () => ({
   }) => (
     <div data-testid="chat-view">
       <span data-testid="message-count">{messages.length}</span>
+      <span data-testid="last-message">
+        {messages[messages.length - 1]?.content}
+      </span>
       <span data-testid="ai-count">{aiParticipants?.length ?? "pending"}</span>
       <button
         type="button"
@@ -53,6 +56,20 @@ vi.mock("./components/ChatView", () => ({
         onClick={() => onSendMessage("/clear")}
       >
         Clear
+      </button>
+      <button
+        type="button"
+        data-testid="command-debug"
+        onClick={() => onSendMessage("/debug")}
+      >
+        Debug
+      </button>
+      <button
+        type="button"
+        data-testid="command-unknown"
+        onClick={() => onSendMessage("/shrug")}
+      >
+        Shrug
       </button>
       <button
         type="button"
@@ -118,7 +135,7 @@ describe("App command handling", () => {
     });
   };
 
-  it("handles the /clear command locally", async () => {
+  it("has the server clear the room, and empties it when told", async () => {
     const storedMessages: Message[] = [
       {
         id: "1",
@@ -140,16 +157,70 @@ describe("App command handling", () => {
 
     fireEvent.click(screen.getByTestId("command-clear"));
 
+    expect(emitMock).toHaveBeenCalledWith("clear-room");
     expect(emitMock).not.toHaveBeenCalledWith(
       "user-message",
       expect.anything(),
     );
+    // Nothing goes until the server says the room was cleared
+    expect(screen.getByTestId("message-count")).toHaveTextContent("1");
 
-    await waitFor(() => {
-      expect(screen.getByTestId("message-count")).toHaveTextContent("0");
+    await triggerEvent("room-cleared", {
+      roomId: "default",
+      by: "Ada",
+      timestamp: Date.now(),
     });
 
-    expect(localStorage.getItem("ai-chat-messages")).toBeNull();
+    await waitFor(() => {
+      expect(screen.getByTestId("last-message")).toHaveTextContent(
+        "Ada cleared the chat",
+      );
+    });
+    expect(screen.getByTestId("message-count")).toHaveTextContent("1");
+    expect(localStorage.getItem("ai-chat-messages")).not.toContain(
+      "Stored message",
+    );
+  });
+
+  it("shows the server's answer to /debug in the prompt viewer", async () => {
+    render(<App />);
+    await joinRoomWithMessages();
+
+    fireEvent.click(screen.getByTestId("command-debug"));
+    expect(emitMock).toHaveBeenCalledWith("get-last-prompt");
+
+    await triggerEvent("last-prompt", {
+      roomId: "default",
+      prompt: {
+        roomId: "default",
+        aiId: "claude",
+        aiName: "Claude",
+        modelId: "claude-test",
+        reply: "Hi there.",
+        messages: [
+          { role: "system", content: "Be brief." },
+          { role: "user", content: "[#1 Ada (human)] hello" },
+        ],
+        createdAt: Date.now(),
+      },
+    });
+
+    const viewer = await screen.findByRole("dialog", {
+      name: "Prompt behind Claude's reply",
+    });
+    expect(viewer).toHaveTextContent("Be brief.");
+    expect(viewer).toHaveTextContent("[#1 Ada (human)] hello");
+    expect(viewer).toHaveTextContent("Hi there.");
+  });
+
+  it("doesn't post an unknown command as a message", async () => {
+    render(<App />);
+    await joinRoomWithMessages();
+    emitMock.mockClear();
+
+    fireEvent.click(screen.getByTestId("command-unknown"));
+
+    expect(emitMock).not.toHaveBeenCalled();
   });
 
   it("sends non-command messages through the socket", async () => {

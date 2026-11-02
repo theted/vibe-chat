@@ -19,8 +19,10 @@ import {
 import {
   handleAdminSleepAIs as handleAdminSleepAIsEvent,
   handleAdminWakeAIs as handleAdminWakeAIsEvent,
+  handleClearRoom as handleClearRoomEvent,
   handleDisconnect as handleDisconnectEvent,
   handleGetAIStatus as handleGetAIStatusEvent,
+  handleGetLastPrompt as handleGetLastPromptEvent,
   handleGetRoomInfo as handleGetRoomInfoEvent,
   handleJoinRoom as handleJoinRoomEvent,
   handleTopicChange as handleTopicChangeEvent,
@@ -29,7 +31,10 @@ import {
   type SocketHandlerContext,
 } from "./socketEventHandlers.js";
 import { transformAIServicesToParticipants } from "@/utils/aiServiceUtils.js";
-import { USER_MESSAGE_LIMITS } from "@/config/serverConfig.js";
+import {
+  CLEAR_ROOM_COOLDOWN_MS,
+  USER_MESSAGE_LIMITS,
+} from "@/config/serverConfig.js";
 import { SOCKET_EVENTS } from "@ai-chat/ai-configs";
 import type {
   ActiveAIParticipant,
@@ -50,6 +55,7 @@ export class SocketController {
   private connectedUsers: Map<string, ConnectedUser>;
   private chatAssistant: ChatAssistantHandler;
   private rateLimiter: RateLimiter;
+  private clearRoomLimiter: RateLimiter;
 
   constructor(
     io: Server,
@@ -69,6 +75,12 @@ export class SocketController {
       redisClient,
       limits: USER_MESSAGE_LIMITS,
       keyPrefix: "rate-limiter:ip:",
+    });
+    this.clearRoomLimiter = new RateLimiter({
+      redisClient,
+      windowMs: CLEAR_ROOM_COOLDOWN_MS,
+      maxMessages: 1,
+      keyPrefix: "rate-limiter:clear-room:",
     });
 
     this.chatAssistant = new ChatAssistantHandler({
@@ -131,6 +143,8 @@ export class SocketController {
         getAIStatus: () => this.handleGetAIStatus(socket),
         adminWakeAIs: (data) => this.handleAdminWakeAIs(socket, data),
         adminSleepAIs: (data) => this.handleAdminSleepAIs(socket, data),
+        clearRoom: () => this.handleClearRoom(socket),
+        getLastPrompt: () => this.handleGetLastPrompt(socket),
         disconnect: () => this.handleDisconnect(socket),
       },
     });
@@ -169,6 +183,14 @@ export class SocketController {
 
   handleAdminSleepAIs(socket: Socket, _data: unknown): void {
     handleAdminSleepAIsEvent(this.getHandlerContext(), socket);
+  }
+
+  async handleClearRoom(socket: Socket): Promise<void> {
+    await handleClearRoomEvent(this.getHandlerContext(), socket);
+  }
+
+  handleGetLastPrompt(socket: Socket): void {
+    handleGetLastPromptEvent(this.getHandlerContext(), socket);
   }
 
   handleDisconnect(socket: Socket): void {
@@ -226,6 +248,7 @@ export class SocketController {
       connectedUsers: this.connectedUsers,
       chatAssistant: this.chatAssistant,
       rateLimiter: this.rateLimiter,
+      clearRoomLimiter: this.clearRoomLimiter,
       previewRoomId: this.previewRoomId,
       getActiveAIParticipants: () => this.getActiveAIParticipants(),
       sendRecentMessages: (socket, roomId) =>

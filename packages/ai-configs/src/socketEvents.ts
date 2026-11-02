@@ -22,6 +22,9 @@ export const SOCKET_EVENTS = {
   ADMIN_SLEEP_AIS: "admin-sleep-ais",
   USER_TYPING_START: "user-typing-start",
   USER_TYPING_STOP: "user-typing-stop",
+  // Slash commands: /clear and /debug
+  CLEAR_ROOM: "clear-room",
+  GET_LAST_PROMPT: "get-last-prompt",
 
   // Server → Client
   CONNECTION_ESTABLISHED: "connection-established",
@@ -41,6 +44,8 @@ export const SOCKET_EVENTS = {
   METRICS_UPDATE: "metrics-update",
   METRICS_HISTORY: "metrics-history",
   ADMIN_ACTION: "admin-action",
+  ROOM_CLEARED: "room-cleared",
+  LAST_PROMPT: "last-prompt",
   ERROR: "error",
 } as const;
 

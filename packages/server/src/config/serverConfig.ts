@@ -22,6 +22,10 @@ export const USER_MESSAGE_LIMITS = [
   { windowMs: 24 * HOUR_MS, maxMessages: 50 },
 ] as const;
 
+// /clear wipes a room for everyone and nobody has to log in, so one clear
+// per room per window keeps a visitor from blanking the room on a loop
+export const CLEAR_ROOM_COOLDOWN_MS = 30 * 1000;
+
 // Validation limits
 export const USERNAME_MAX_LENGTH = 50;
 export const MESSAGE_MAX_LENGTH = 1000;

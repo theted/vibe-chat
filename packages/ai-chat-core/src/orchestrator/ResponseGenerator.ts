@@ -8,6 +8,7 @@
 
 import type { AIRegistry } from "./AIRegistry.js";
 import type { ContextManager } from "./ContextManager.js";
+import type { PromptRecord } from "./PromptLog.js";
 import type { GenerateResponseOptions } from "./ResponseQueue.js";
 import type { Message } from "@/types/index.js";
 import type { ContextMessage } from "@/types/orchestrator.js";
@@ -47,6 +48,8 @@ type ResponseGeneratorDeps = {
   contextManager: ContextManager;
   emit: (event: string, payload: unknown) => void;
   enqueueMessage: (message: ContextMessage) => void;
+  /** Keeps the prompt behind a posted reply, for /debug. */
+  recordPrompt: (record: PromptRecord) => void;
   /** Frees the queue slot this response was dispatched into. */
   onResponseComplete: (roomId: string) => void;
   /** Whether the room still has AI-message budget left. */
@@ -297,6 +300,24 @@ export class ResponseGenerator {
       const typingHoldMs = calculateTypingHold(processedResponse.length);
       await new Promise((resolve) => setTimeout(resolve, typingHoldMs));
 
+      // Checked last, after the typing hold: a /clear any time since this
+      // reply started wiped the conversation it answers
+      if (contextManager.wasClearedSince(roomId, responseStartTime)) {
+        console.info(
+          `🧹 Dropping ${aiService.name}'s reply in ${roomId}: the room was cleared while it was being written`,
+        );
+        return;
+      }
+
+      this.deps.recordPrompt({
+        roomId,
+        aiId,
+        aiName: aiMessage.aiName ?? aiId,
+        modelId: aiMessage.modelId,
+        reply: processedResponse,
+        messages,
+        createdAt: Date.now(),
+      });
       this.deps.enqueueMessage(aiMessage);
       emit("ai-response", { ...aiMeta, responseTimeMs });
     } catch (error) {
