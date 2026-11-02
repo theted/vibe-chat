@@ -17,6 +17,8 @@ export type SocketHandlerContext = {
   connectedUsers: Map<string, ConnectedUser>;
   chatAssistant: ChatAssistantHandler;
   rateLimiter: RateLimiter;
+  /** One /clear per room per CLEAR_ROOM_COOLDOWN_MS */
+  clearRoomLimiter: RateLimiter;
   previewRoomId: string;
   getActiveAIParticipants: () => ActiveAIParticipant[];
   sendRecentMessages: (socket: Socket, roomId?: string) => Promise<void>;

@@ -105,6 +105,23 @@ AI logs a warning and degrades to an ordinary room.
 The client hides the feature behind `VITE_PRIVATE_CONVERSATIONS_ENABLED`
 (default on).
 
+## Slash commands
+
+Typed in the composer, run on the server for the sender's room, and never
+posted as messages. The list lives in `packages/client/src/config/slashCommands.ts`
+(the composer shows it on `/`); `useSlashCommands` sends them and handles
+the replies, `socketCommandHandlers.ts` runs them.
+
+- `/clear` (`CLEAR_ROOM`): any joined user. `ChatOrchestrator.clearRoom`
+  forgets the room's context window, digest, queued replies and recorded
+  prompts; replies still being written when it happens are dropped
+  (`wasRoomClearedSince`). The room's Redis history is deleted, everyone in
+  it (plus preview guests, for the main room) gets `ROOM_CLEARED` and sees
+  "<name> cleared the chat". One clear per room per `CLEAR_ROOM_COOLDOWN_MS`.
+- `/debug` (`GET_LAST_PROMPT`): the prompt behind the newest AI message in
+  the room that has one on record (`PromptLog`, in memory, so a restart
+  forgets it; @Chat's answers have none), sent only to the asker.
+
 ## Git & review workflow
 
 - Keep commits scoped and descriptive. Explain the intent and mention affected modules.

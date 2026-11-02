@@ -108,6 +108,7 @@ describe("ResponseGenerator dash cleanup", () => {
       contextManager,
       emit: () => undefined,
       enqueueMessage: (message) => posted.push(message),
+      recordPrompt: () => undefined,
       onResponseComplete: () => undefined,
       canSpeak: () => true,
       claimTurn: () => true,

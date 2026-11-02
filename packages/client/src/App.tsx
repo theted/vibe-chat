@@ -12,6 +12,7 @@ import {
 import { DEFAULT_ROOM_ID } from "@ai-chat/ai-configs";
 import { useSocket } from "./hooks/useSocket";
 import { usePrivateConversation } from "./hooks/usePrivateConversation";
+import { useSlashCommands } from "./hooks/useSlashCommands";
 import { useSocketEvents } from "./hooks/useSocketEvents";
 import type { AIStatusByRoom } from "./hooks/socketEventHandlers";
 import { useTheme } from "./hooks/useTheme";
@@ -23,6 +24,7 @@ import { useChatAutoScroll } from "./hooks/useChatAutoScroll";
 import ToastContainer from "./components/ToastContainer";
 import ChatView from "./components/ChatView";
 import LoadingOverlay from "./components/LoadingOverlay";
+import PromptViewerModal from "./components/PromptViewerModal";
 import { ThemeContext } from "./context/ThemeContext";
 import { AUTH_LOADING_TIMEOUT_MS, SERVER_URL } from "./constants/chat";
 import {
@@ -98,11 +100,7 @@ const App = () => {
     messagesEndRef,
   );
 
-  const { clearMessages } = useMessagePersistence(
-    messages,
-    setMessages,
-    isJoined,
-  );
+  useMessagePersistence(messages, setMessages, isJoined);
 
   // Socket events - consume returned helpers to avoid duplicate implementations
   const { sendMessage, joinRoom, startTyping, stopTyping } = useSocketEvents({
@@ -129,6 +127,16 @@ const App = () => {
     previewParticipantsRef,
     previewAiParticipantsRef,
     usernameRef,
+    showToast,
+  });
+
+  const { runCommand, lastPrompt, promptViewer } = useSlashCommands({
+    on,
+    off,
+    emit,
+    setMessages,
+    setPreviewMessages,
+    isJoinedRef,
     showToast,
   });
 
@@ -228,14 +236,7 @@ const App = () => {
   };
 
   const handleSendMessage = (content: string, replyToMessageId?: string) => {
-    if (content.startsWith("/")) {
-      const [command] = content.slice(1).trim().split(/\s+/, 1);
-      if (command?.toLowerCase() === "clear") {
-        clearMessages();
-        showToast("Chat history cleared", "info");
-        return;
-      }
-    }
+    if (runCommand(content)) return;
     sendMessage(content, replyToMessageId);
   };
 
@@ -276,6 +277,12 @@ const App = () => {
           aiParticipants={isJoined ? aiParticipants : previewAiParticipants}
         />
       )}
+      <PromptViewerModal
+        prompt={lastPrompt}
+        isOpen={promptViewer.isOpen}
+        isVisible={promptViewer.isVisible}
+        onClose={promptViewer.close}
+      />
       <ToastContainer toasts={toasts} />
     </ThemeContext.Provider>
   );

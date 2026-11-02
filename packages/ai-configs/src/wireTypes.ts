@@ -51,3 +51,39 @@ export interface RoomAIStatusPayload {
   /** AI messages since a person last spoke. */
   messageCount: number;
 }
+
+/** ROOM_CLEARED: someone ran /clear; clients empty the room and say who. */
+export interface RoomClearedPayload {
+  roomId: string;
+  /** Username of whoever cleared it */
+  by: string;
+  timestamp: number;
+}
+
+/** One message of a prompt, as passed to the model's service. */
+export interface WirePromptMessage {
+  role: "system" | "user" | "assistant";
+  content: string;
+}
+
+/** The prompt behind one AI reply (/debug). */
+export interface WirePromptRecord {
+  roomId: string;
+  aiId: string;
+  aiName: string;
+  modelId?: string;
+  /** The reply as posted, after cleanup */
+  reply: string;
+  messages: WirePromptMessage[];
+  createdAt: number;
+}
+
+/**
+ * LAST_PROMPT: the answer to GET_LAST_PROMPT, sent only to whoever asked.
+ * `prompt` is null when no AI reply in the room has one on record (they
+ * live in server memory, and @Chat's answers have none).
+ */
+export interface LastPromptPayload {
+  roomId: string;
+  prompt: WirePromptRecord | null;
+}

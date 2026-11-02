@@ -62,7 +62,11 @@ export type { SocketEventName } from "./socketEvents.js";
 // Socket wire-protocol types
 export type {
   ChatMessageBase,
+  LastPromptPayload,
   RoomAIStatusPayload,
+  RoomClearedPayload,
+  WirePromptMessage,
+  WirePromptRecord,
   WireSenderType,
 } from "./wireTypes.js";
 

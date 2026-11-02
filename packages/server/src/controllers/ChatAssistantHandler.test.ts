@@ -31,8 +31,11 @@ const makeHandler = (answer = "It works like this.") => {
   const posted: ChatMessage[] = [];
   const heldRooms = new Set<string>();
   const budget = { remaining: 10 };
+  const clears = { roomClearedAt: 0 };
   const orchestrator = {
     aiServices: new Map(),
+    wasRoomClearedSince: (_roomId: string, since: number) =>
+      clears.roomClearedAt >= since,
     getMentionTokenForAI: () => null,
     handleMessage: async (message: ChatMessage) => {
       posted.push(message);
@@ -55,7 +58,7 @@ const makeHandler = (answer = "It works like this.") => {
     io: {} as Server,
     getRecentMessages: async () => [],
   });
-  return { handler, posted, release, heldRooms, budget };
+  return { handler, posted, release, heldRooms, budget, clears };
 };
 
 describe("ChatAssistantHandler busy room", () => {
@@ -149,6 +152,21 @@ describe("ChatAssistantHandler AI message limit", () => {
       content: "@Chat what about scheduling?",
       origin: { type: "ai", sender: "Claude", aiId: "claude" },
     });
+
+    expect(posted).toHaveLength(0);
+  });
+
+  it("drops a finished answer if the room was cleared meanwhile", async () => {
+    const { handler, posted, release, clears } = makeHandler();
+    const answering = handler.trigger({
+      roomId: ROOM_ID,
+      content: "@Chat how do mentions work?",
+      origin: { type: "user", username: "alice" },
+    });
+
+    clears.roomClearedAt = Date.now();
+    release();
+    await answering;
 
     expect(posted).toHaveLength(0);
   });

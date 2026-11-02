@@ -9,6 +9,7 @@ import { AIStreakTracker, type RoomAIStatus } from "./AIStreakTracker.js";
 import type { AIInitConfig, ModelInitResult } from "./AIRegistry.js";
 import { ContextManager } from "./ContextManager.js";
 import { MessageBroker } from "./MessageBroker.js";
+import { PromptLog, type PromptRecord } from "./PromptLog.js";
 import { ResponseQueue } from "./ResponseQueue.js";
 import type { GenerateResponseOptions } from "./ResponseQueue.js";
 import { RoomScope } from "./RoomScope.js";
@@ -68,6 +69,7 @@ export class ChatOrchestrator extends EventEmitter {
   private generator: ResponseGenerator;
   private backgroundLoop: BackgroundConversationLoop;
   private streak: AIStreakTracker;
+  private promptLog = new PromptLog();
   /** Rooms waiting for an outside responder (@Chat) to post its answer. */
   private heldRooms = new Set<string>();
 
@@ -108,6 +110,7 @@ export class ChatOrchestrator extends EventEmitter {
       contextManager: this.contextManager,
       emit: (event, payload) => this.emit(event, payload),
       enqueueMessage: (message) => this.messageBroker.enqueueMessage(message),
+      recordPrompt: (record) => this.promptLog.record(record),
       onResponseComplete: (roomId) =>
         this.responseQueue.onResponseComplete(roomId),
       canSpeak: (roomId) => this.streak.canSpeak(roomId),
@@ -448,6 +451,48 @@ export class ChatOrchestrator extends EventEmitter {
     return Array.from(new Set([DEFAULT_ROOM_ID, ...this.streak.knownRoomIds]));
   }
 
+  // --- Room reset and debugging ---
+
+  /**
+   * Start a room over: forget its conversation (window and digest) and the
+   * prompts on record, and drop replies still queued for it. Replies already
+   * being written are dropped when they finish (see ResponseGenerator).
+   */
+  clearRoom(roomId?: string): void {
+    const room = normalizeRoomId(roomId);
+    this.contextManager.clearRoom(room);
+    this.responseQueue.removeWhere((response) => response.roomId === room);
+    this.promptLog.clearRoom(room);
+    if (room === DEFAULT_ROOM_ID) {
+      // An empty room has no lull to break, so background chatter and
+      // silence-breakers wait until someone posts
+      this.lastAIMessageTime = 0;
+    }
+  }
+
+  /** Whether the room was cleared at or after `since` (ms epoch). */
+  wasRoomClearedSince(roomId: string | undefined, since: number): boolean {
+    return this.contextManager.wasClearedSince(roomId, since);
+  }
+
+  /**
+   * The prompt behind the newest AI message in the room that has one on
+   * record. @Chat's answers and replies from before a restart have none, so
+   * those are skipped. Null when no AI message in the window has one.
+   */
+  getLatestPrompt(roomId?: string): PromptRecord | null {
+    const room = normalizeRoomId(roomId);
+    const { maxMessages } = this.contextManager.getConfig();
+    return (
+      this.contextManager
+        .getContext(maxMessages, room)
+        .filter((message) => message.senderType === "ai" && message.aiId)
+        .reverse()
+        .map((message) => this.promptLog.get(room, message.aiId as string))
+        .find((record) => record !== undefined) ?? null
+    );
+  }
+
   // --- Public API ---
 
   addMessage(message: ContextMessage) {
@@ -515,6 +560,7 @@ export class ChatOrchestrator extends EventEmitter {
     this.removeAllListeners();
     this.registry.clear();
     this.contextManager.clear();
+    this.promptLog.clear();
     this.messageBroker.clearQueue();
     this.responseQueue.clear();
     this.streak.clear();

@@ -21,6 +21,8 @@ export class ContextManager implements IContextManager {
    * the main room's history into its prompts, or vice versa.
    */
   private digestsByRoom: Map<string, string[]> = new Map();
+  /** When each room was last cleared - see wasClearedSince. */
+  private clearedAtByRoom: Map<string, number> = new Map();
 
   constructor(maxMessages = 100) {
     this.config = {
@@ -216,6 +218,26 @@ export class ContextManager implements IContextManager {
   clear(): void {
     this.messages = [];
     this.digestsByRoom.clear();
+    this.clearedAtByRoom.clear();
+  }
+
+  /** Forget one room's messages and digest; other rooms keep theirs. */
+  clearRoom(roomId?: string): void {
+    const room = normalizeRoomId(roomId);
+    this.messages = this.messages.filter(
+      (message) => normalizeRoomId(message.roomId) !== room,
+    );
+    this.digestsByRoom.delete(room);
+    this.clearedAtByRoom.set(room, Date.now());
+  }
+
+  /**
+   * Whether the room was cleared at or after `since` (ms epoch). A reply
+   * that started generating before a clear answers a conversation that no
+   * longer exists.
+   */
+  wasClearedSince(roomId: string | undefined, since: number): boolean {
+    return (this.clearedAtByRoom.get(normalizeRoomId(roomId)) ?? 0) >= since;
   }
 
   /**

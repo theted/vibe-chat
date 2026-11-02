@@ -19,6 +19,8 @@ type SocketConnectionEventHandlers = {
   getAIStatus: () => void;
   adminWakeAIs: (data: unknown) => void;
   adminSleepAIs: (data: unknown) => void;
+  clearRoom: () => void;
+  getLastPrompt: () => void;
   disconnect: () => void;
 };
 
@@ -44,6 +46,8 @@ export const registerSocketConnectionEvents = ({
   socket.on(SOCKET_EVENTS.GET_AI_STATUS, handlers.getAIStatus);
   socket.on(SOCKET_EVENTS.ADMIN_WAKE_AIS, handlers.adminWakeAIs);
   socket.on(SOCKET_EVENTS.ADMIN_SLEEP_AIS, handlers.adminSleepAIs);
+  socket.on(SOCKET_EVENTS.CLEAR_ROOM, handlers.clearRoom);
+  socket.on(SOCKET_EVENTS.GET_LAST_PROMPT, handlers.getLastPrompt);
   socket.on("disconnect", handlers.disconnect);
 
   registerDashboardEvents({

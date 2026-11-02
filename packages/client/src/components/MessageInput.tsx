@@ -14,9 +14,12 @@ import {
 import AISelectionDialog from "./AISelectionDialog";
 import Icon from "./Icon";
 import ReplyingToBar from "./ReplyingToBar";
+import SlashCommandHints from "./SlashCommandHints";
 import { useAutoResizeTextarea } from "@/hooks/useAutoResizeTextarea";
 import { useMentionDetection } from "@/hooks/useMentionDetection";
 import { useTypingSignal } from "@/hooks/useTypingSignal";
+import { matchSlashCommands } from "@/utils/slashCommands";
+import type { SlashCommandName } from "@/config/slashCommands";
 import type { MessageInputProps } from "@/types";
 
 const MAX_MESSAGE_LENGTH = 5_000;
@@ -51,6 +54,8 @@ const MessageInput = ({
 
   useAutoResizeTextarea(textareaRef, message);
 
+  const commandHints = matchSlashCommands(message);
+
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (message.trim() && !disabled) {
@@ -69,8 +74,19 @@ const MessageInput = ({
     }
   };
 
-  // Escape backs out of a reply, unless it is closing the @mention picker
+  const completeCommand = (name: SlashCommandName) => {
+    setMessage(`/${name}`);
+    textareaRef.current?.focus();
+  };
+
+  // Tab completes a half-typed command; Escape backs out of a reply, unless
+  // it is closing the @mention picker
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Tab" && !e.shiftKey && commandHints.length > 0) {
+      e.preventDefault();
+      completeCommand(commandHints[0].name);
+      return;
+    }
     if (e.key === "Escape" && replyingTo && !showAIDialog) {
       e.preventDefault();
       onCancelReply?.();
@@ -107,6 +123,9 @@ const MessageInput = ({
           onCancel={onCancelReply}
         />
       )}
+      {commandHints.length > 0 && (
+        <SlashCommandHints commands={commandHints} onPick={completeCommand} />
+      )}
       <form
         onSubmit={handleSubmit}
         className={`composer flex items-end gap-2 rounded-xl p-1.5 pl-4 ${
@@ -121,7 +140,7 @@ const MessageInput = ({
             onChange={handleChange}
             onKeyPress={handleKeyPress}
             onKeyDown={handleKeyDown}
-            placeholder="Message the room (@ to mention AI)"
+            placeholder="Message the room (@ to mention, / for commands)"
             aria-label="Message"
             disabled={disabled}
             maxLength={MAX_MESSAGE_LENGTH}
