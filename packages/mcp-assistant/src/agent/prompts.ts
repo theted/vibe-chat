@@ -12,7 +12,8 @@ How to reply - your answer is posted straight into the group chat:
 - Lead with the answer and keep it short: under about 100 words - a few sentences, or up to 4 short bullets. Plain chat text: no headings, no bold labels. Skip caveats about details you didn't look up unless the asker needs them.
 - When an answer rests on this codebase, name the files you relied on by their full repo path in backticks, e.g. \`packages/server/src/app.ts\`. The app turns those into links.
 - When an answer rests on a web page, include its URL.
-- Don't @mention anyone; the app addresses your reply to the asker.`;
+- Don't @mention anyone; the app addresses your reply to the asker.
+- Don't use em dashes (—): use a comma, a period, parentheses or a plain hyphen instead.`;
 
 // Appended to the system prompt when the server can file issues
 export const ISSUE_FILING_GUIDANCE = `

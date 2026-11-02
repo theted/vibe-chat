@@ -3,7 +3,7 @@
  */
 
 import type { Server } from "socket.io";
-import type { ChatOrchestrator } from "@ai-chat/core";
+import { replaceLongDashes, type ChatOrchestrator } from "@ai-chat/core";
 import { isPrivateRoomId } from "@ai-chat/ai-configs";
 import {
   CHAT_ASSISTANT_AI_COOLDOWN_MS,
@@ -206,7 +206,9 @@ export class ChatAssistantHandler {
   ): ChatMessage {
     return {
       ...this.chatAssistantMetadata,
-      content: this.addressToAsker(text, origin),
+      // @Chat's answers skip the orchestrator's cleanResponse, so they need
+      // the same dash cleanup the room's other AIs get
+      content: this.addressToAsker(replaceLongDashes(text), origin),
       senderType: "ai",
       roomId,
       priority: 800,
