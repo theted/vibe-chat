@@ -16,9 +16,8 @@ interface ModelRowProps {
   emoji?: string;
   voiceKey: string;
   isTyping: boolean;
+  /** Named in its colour; every other row shows its colour as a dot */
   isPrivatePartner: boolean;
-  /** Talking rows name the model in its colour; the full list only shows a dot */
-  showVoiceName?: boolean;
   /** Says what picking the row does */
   title?: string;
   onSelect?: () => void;
@@ -31,13 +30,11 @@ const ModelRow = ({
   voiceKey,
   isTyping,
   isPrivatePartner,
-  showVoiceName = false,
   title,
   onSelect,
   testId,
 }: ModelRowProps) => {
   const hue = useHueFor()(voiceKey);
-  const isVoiced = showVoiceName || isPrivatePartner;
 
   const content: ReactNode = (
     <>
@@ -46,8 +43,8 @@ const ModelRow = ({
       </span>
       <span
         className={`min-w-0 flex-1 truncate ${
-          isVoiced ? "font-medium text-voice" : "text-fg"
-        } ${isPrivatePartner ? "font-semibold" : ""}`}
+          isPrivatePartner ? "font-semibold text-voice" : "text-fg"
+        }`}
         data-testid={testId}
       >
         {name}
@@ -55,7 +52,7 @@ const ModelRow = ({
       {isTyping ? (
         <Spinner hue={hue} label={`${name} is typing`} />
       ) : (
-        !isVoiced && (
+        !isPrivatePartner && (
           <span
             className="h-1.5 w-1.5 shrink-0 rounded-full bg-voice"
             aria-hidden="true"

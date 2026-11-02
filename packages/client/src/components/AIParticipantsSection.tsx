@@ -1,7 +1,7 @@
 /**
- * AIParticipantsSection Component - every model in the room, folded away by
- * default since the talking list covers who matters right now. Opening it
- * shows a search box and the models grouped by provider.
+ * AIParticipantsSection Component - every model in the room, unfolded from
+ * the start: a search box and the models grouped by provider. It can be
+ * folded away to keep the sidebar short.
  */
 
 import { useId, useState } from "react";
@@ -23,8 +23,6 @@ interface AIParticipantsSectionProps {
   onAISelect?: (ai: AiParticipant) => void;
   /** The private chat's cast; null in the main room */
   privateRoster?: PrivateRoster | null;
-  /** Start unfolded, e.g. when there's no talking list to lean on */
-  defaultExpanded?: boolean;
 }
 
 const getModelName = (ai: NormalizedAiParticipant): string =>
@@ -41,9 +39,8 @@ const AIParticipantsSection = ({
   isAITyping,
   onAISelect,
   privateRoster = null,
-  defaultExpanded = false,
 }: AIParticipantsSectionProps) => {
-  const [isExpanded, setIsExpanded] = useState(defaultExpanded);
+  const [isExpanded, setIsExpanded] = useState(true);
   const [query, setQuery] = useState("");
   const listId = useId();
 

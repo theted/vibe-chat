@@ -1,14 +1,14 @@
 /**
  * Room voices - who has been talking lately and the colours they talk in.
- * The same recent speakers fill the sidebar's talking list, get hues spread
- * apart so neighbours in the transcript never look alike, and tint the aura
- * behind the transcript and the composer's focus edge.
+ * Recent speakers get hues spread apart so neighbours in the transcript
+ * never look alike, and tint the aura behind the transcript and the
+ * composer's focus edge.
  */
 
 import type { CSSProperties } from "react";
 import {
   AMBIENT_ROOM_HUES,
-  MAX_LISTED_SPEAKERS,
+  MAX_VOICED_SPEAKERS,
   ROOM_SPEAKER_LOOKBACK,
   ROOM_VOICE_COUNT,
   ROOM_VOICE_LOOKBACK,
@@ -43,7 +43,7 @@ export const getRoomSpeakers = (
   messages: Message[],
   aiParticipants: AiParticipant[],
   lookback = ROOM_SPEAKER_LOOKBACK,
-  voiced = MAX_LISTED_SPEAKERS,
+  voiced = MAX_VOICED_SPEAKERS,
 ): { byRecency: RoomSpeaker[]; firstSpokeOrder: string[] } => {
   const speakers = new Map<string, RoomSpeaker>();
   const firstSpokeOrder: string[] = [];

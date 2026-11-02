@@ -89,7 +89,7 @@ const ChatView = ({
   );
   const canSend = connectionStatus.connected && isAuthenticated;
 
-  const { recentSpeakers, hueFor } = useRoomVoices(messages, aiParticipantList);
+  const { hueFor } = useRoomVoices(messages, aiParticipantList);
   useStickToBottom(messagesContainerRef, messagesEndRef, !showScrollButton);
 
   // The aura and composer edge take on the colours of whoever spoke last; a
@@ -222,7 +222,6 @@ const ChatView = ({
           onClose={participantsDrawer.close}
           participants={participants}
           aiParticipants={aiParticipantList}
-          recentSpeakers={recentSpeakers}
           typingUsers={typingUsers}
           typingAIs={typingAIs}
           onAISelect={onModelSelect}
@@ -232,7 +231,6 @@ const ChatView = ({
         <ParticipantsList
           participants={participants}
           aiParticipants={aiParticipantList}
-          recentSpeakers={recentSpeakers}
           typingUsers={typingUsers}
           typingAIs={typingAIs}
           isVisible={true}

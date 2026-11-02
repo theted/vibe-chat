@@ -1,6 +1,6 @@
 /**
- * useRoomVoices - the models heard lately (for the sidebar) and the hue each
- * one talks in (for VoiceContext), from the loaded transcript.
+ * useRoomVoices - the hue each model heard lately talks in (for
+ * VoiceContext), from the loaded transcript.
  */
 
 import { useMemo } from "react";
@@ -17,7 +17,7 @@ export const useRoomVoices = (
   messages: Message[],
   aiParticipants: AiParticipant[],
 ) => {
-  const { byRecency, firstSpokeOrder } = useMemo(
+  const { firstSpokeOrder } = useMemo(
     () => getRoomSpeakers(messages, aiParticipants),
     [messages, aiParticipants],
   );
@@ -32,5 +32,5 @@ export const useRoomVoices = (
     return (voiceKey) => hues.get(voiceKey) ?? getVoiceHue(voiceKey);
   }, [voicesKey]);
 
-  return { recentSpeakers: byRecency, hueFor };
+  return { hueFor };
 };
