@@ -13,7 +13,7 @@ const ROOM_ID = "room-1";
  * The service's first answer stays pending until release() is called, so
  * the room is busy while a second question arrives.
  */
-const makeHandler = () => {
+const makeHandler = (answer = "It works like this.") => {
   let release: () => void = () => undefined;
   const answerPending = new Promise<void>((resolve) => {
     release = resolve;
@@ -24,7 +24,7 @@ const makeHandler = () => {
     shouldHandle: () => true,
     createResponseFromContent: async () => {
       await answerPending;
-      return { answer: "It works like this.", question: "how?" };
+      return { answer, question: "how?" };
     },
   } as unknown as ChatAssistantService;
 
@@ -100,6 +100,25 @@ describe("ChatAssistantHandler busy room", () => {
     release();
     await first;
     expect(posted).toHaveLength(1);
+  });
+});
+
+describe("ChatAssistantHandler answer text", () => {
+  it("swaps em dashes in @Chat's answer for hyphens", async () => {
+    const { handler, posted, release } = makeHandler(
+      "Two places—the prompt and `cleanResponse()`.",
+    );
+    release();
+
+    await handler.trigger({
+      roomId: ROOM_ID,
+      content: "@Chat can we skip em dashes?",
+      origin: { type: "user", username: "ted" },
+    });
+
+    expect(posted.map((message) => message.content)).toEqual([
+      "@ted Two places - the prompt and `cleanResponse()`.",
+    ]);
   });
 });
 

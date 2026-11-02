@@ -18,6 +18,7 @@ import {
   getMentionTokenForAI,
   type OrchestratorAIService,
 } from "@/utils/orchestrator/aiLookup.js";
+import { replaceLongDashes } from "@/utils/orchestrator/dashes.js";
 import { logAIContext } from "@/utils/orchestrator/logging.js";
 import {
   limitMentionsInResponse,
@@ -316,10 +317,10 @@ export class ResponseGenerator {
 
   /**
    * Tidy a raw model reply: drop a "[Name]" label copied from the transcript,
-   * mention each target at most once (MENTION_LIMITS caps how many), and
-   * demote mentions that would misfire - the AI's own handle anywhere, and
-   * any AI that isn't there to answer: every other AI in a 1-1 room, anyone
-   * outside a private group.
+   * swap em dashes for " - ", mention each target at most once
+   * (MENTION_LIMITS caps how many), and demote mentions that would misfire -
+   * the AI's own handle anywhere, and any AI that isn't there to answer:
+   * every other AI in a 1-1 room, anyone outside a private group.
    */
   private cleanResponse(
     response: string,
@@ -328,7 +329,8 @@ export class ResponseGenerator {
   ): string {
     const aiServices = this.deps.registry.services;
     const withoutLabel = stripOwnSpeakerLabel(response, aiService).trim();
-    const withoutMisfires = stripAIMentions(withoutLabel, (token) => {
+    const withoutDashes = replaceLongDashes(withoutLabel);
+    const withoutMisfires = stripAIMentions(withoutDashes, (token) => {
       // A token that resolves to no AI is a person's handle and keeps its @
       const target = findAIByNormalizedAlias(aiServices, token);
       if (!target) return false;

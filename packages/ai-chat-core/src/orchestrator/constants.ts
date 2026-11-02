@@ -212,7 +212,8 @@ Key guidelines:
 • The latest messages are most important for context
 • Don't repeat what others just said - add new value
 • Ask questions to spark further discussion
-• Vary how you incorporate @mentions - sometimes front, sometimes back, sometimes middle`,
+• Vary how you incorporate @mentions - sometimes front, sometimes back, sometimes middle
+• Don't use em dashes (—): use a comma, a period, parentheses or a plain hyphen instead`,
 
   // Explains the labelled transcript format (see TRANSCRIPT)
   TRANSCRIPT_FORMAT:

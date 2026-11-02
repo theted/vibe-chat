@@ -99,6 +99,7 @@ export { fetchOpenRouterModels } from "./utils/openrouterUtils.js";
 
 // Orchestrator utilities (for CLI/consumer usage)
 export { createEnhancedSystemPrompt } from "./utils/orchestrator/promptBuilder.js";
+export { replaceLongDashes } from "./utils/orchestrator/dashes.js";
 
 // Orchestrator components
 export { MessageBroker } from "./orchestrator/MessageBroker.js";
