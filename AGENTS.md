@@ -25,6 +25,7 @@ This is a monorepo with multiple packages under `/packages/`:
 - `/docker-compose*.yml` – Docker Compose files for development, production, and debugging.
 - `/tests/e2e/` – End-to-end tests that span multiple packages.
 - `/deploy/` – Deployment-related scripts and configurations.
+- `/deploy/monitoring/` – CloudFormation for production monitoring (Synthetics canary on `/api/stats` and `/health/detailed`, SNS alerts, EC2 memory/disk/status alarms, container log group) plus the CloudWatch agent setup. Steps in its README.
 - `/.github/workflows/` – CI/CD pipelines for testing and deployment.
 
 If you add new folders, extend this list so future contributors (and agents) stay oriented.

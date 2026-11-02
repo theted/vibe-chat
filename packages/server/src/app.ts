@@ -13,10 +13,13 @@ import { SocketController } from "./controllers/SocketController.js";
 import { MetricsService } from "./services/MetricsService.js";
 import { createRedisClient, type RedisClient } from "./services/RedisClient.js";
 import { ChatAssistantService } from "./services/ChatAssistantService.js";
+import { checkChroma, checkRedis } from "./services/dependencyHealth.js";
 import {
   getMetricsService,
+  getRedisClient,
   getSocketController,
   setMetricsService,
+  setRedisClient,
   setSocketController,
 } from "./utils/globalState.js";
 import {
@@ -53,7 +56,17 @@ app.use(express.json());
 
 registerStaticAssets(app);
 
-app.use(createHealthRouter());
+app.use(
+  createHealthRouter({
+    checks: {
+      redis: () =>
+        checkRedis(getRedisClient(), {
+          configured: Boolean(process.env.REDIS_URL),
+        }),
+      chroma: () => checkChroma(process.env.CHROMA_URL),
+    },
+  }),
+);
 app.use(createStatsRouter({ getSocketController }));
 app.use(createMetricsRouter({ getMetricsService }));
 app.use(createRoomsRouter({ getSocketController }));
@@ -69,6 +82,7 @@ const startServer = async (): Promise<void> => {
       await initializeAISystem();
     chatOrchestrator = orchestrator;
     redisClient = await createRedisClient();
+    setRedisClient(redisClient);
 
     // Create metrics service
     metricsService = new MetricsService(io, { redisClient });
@@ -144,6 +158,9 @@ const startServer = async (): Promise<void> => {
       console.log(`📱 Client URL: ${clientUrl}`);
       console.log(`🔗 Socket.IO endpoint: http://localhost:${port}`);
       console.log(`📊 Health check: http://localhost:${port}/health`);
+      console.log(
+        `🩺 Dependency health: http://localhost:${port}/health/detailed`,
+      );
       console.log(`📈 Stats API: http://localhost:${port}/api/stats`);
     });
 
