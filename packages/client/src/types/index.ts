@@ -136,7 +136,6 @@ export interface DashboardMetrics {
 
 // Import for AiParticipant type
 import type { AiParticipant } from "@/config/aiParticipants";
-import type { RoomSpeaker } from "@/utils/roomVoices";
 
 // Component prop types - ChatView
 export interface ChatViewProps {
@@ -246,8 +245,6 @@ export interface PrivateRoster {
 export interface ParticipantsListProps {
   participants?: Participant[];
   aiParticipants?: AiParticipant[];
-  /** Models heard lately, newest first (see useRoomVoices) */
-  recentSpeakers?: RoomSpeaker[];
   typingUsers?: TypingUser[];
   typingAIs?: TypingAI[];
   isVisible?: boolean;

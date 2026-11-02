@@ -1,6 +1,6 @@
 /**
- * ParticipantsList Component - Side panel: the people here, the models
- * talking lately, and every other model folded away below them
+ * ParticipantsList Component - Side panel: the people here and every model.
+ * Any model may be picked to answer, so none is shown above the rest.
  */
 
 import { useParticipantTyping } from "@/hooks/useParticipantTyping";
@@ -9,7 +9,6 @@ import { toPanelAiParticipants } from "@/utils/participants";
 import UserParticipantsSection from "./UserParticipantsSection";
 import AIParticipantsSection from "./AIParticipantsSection";
 import Icon from "./Icon";
-import TalkingSection from "./TalkingSection";
 import type { ParticipantsListProps } from "@/types";
 
 // The sidebar only exists on wide screens; narrower ones open the drawer
@@ -22,7 +21,6 @@ const VARIANT_CLASSES = {
 const ParticipantsList = ({
   participants = [],
   aiParticipants = [],
-  recentSpeakers = [],
   typingUsers = [],
   typingAIs = [],
   isVisible = true,
@@ -64,21 +62,11 @@ const ParticipantsList = ({
           participants={participants}
           isUserTyping={isUserTyping}
         />
-        <TalkingSection
-          recentSpeakers={recentSpeakers}
-          aiList={aiList}
-          isAITyping={isAITyping}
-          onAISelect={onAISelect}
-          privateRoster={privateRoster}
-        />
         <AIParticipantsSection
           aiList={aiList}
           isAITyping={isAITyping}
           onAISelect={onAISelect}
           privateRoster={privateRoster}
-          // In a private chat the list is where models get added, so a
-          // freshly opened drawer shows it unfolded
-          defaultExpanded={privateRoster != null}
         />
       </div>
     </aside>

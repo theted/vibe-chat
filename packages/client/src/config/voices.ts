@@ -25,10 +25,9 @@ export const VOICE_HUES: readonly number[] = Array.from(
 // palette steps (39-40° after rounding); fits 6-8 clearly distinct voices.
 export const MIN_VOICE_GAP = 38;
 
-// "Recent" for both the sidebar's talking list and the colour spreading:
-// roughly what fits on screen
+// "Recent" for the colour spreading: roughly what fits on screen
 export const ROOM_SPEAKER_LOOKBACK = 30;
-export const MAX_LISTED_SPEAKERS = 8;
+export const MAX_VOICED_SPEAKERS = 8;
 
 // Lab-level views (dashboard tables) colour by provider; the labs people see
 // most get fixed, well-separated hues, everyone else is hashed onto VOICE_HUES
