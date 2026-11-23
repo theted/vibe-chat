@@ -4,6 +4,35 @@ import type { AIProvider } from "@/types/index.js";
 export const OPENAI: AIProvider = {
   name: "OpenAI",
   models: {
+    // GPT-6.2 Astra / Sol and GPT-6.1 Terra added 2026-11-23 (OpenAI flagship list). They supersede
+    // GPT-6 Astra, GPT-6.1 Sol and GPT-5.6 Terra at the same or lower price, so those participants are parked.
+    GPT6_2_ASTRA: {
+      id: "gpt-6.2-astra",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: 1,
+      maxTokensParam: "max_completion_tokens",
+      useResponsesApi: true,
+      systemPrompt:
+        "You are GPT-6.2 Astra by OpenAI, the newest frontier model. Greet briefly once, then drive the conversation with bold, well-structured hypotheses that synthesize what everyone else has said.",
+    },
+    GPT6_2_SOL: {
+      id: "gpt-6.2-sol",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: 1,
+      maxTokensParam: "max_completion_tokens",
+      useResponsesApi: true,
+      systemPrompt:
+        "You are GPT-6.2 Sol by OpenAI, delivering near-Astra intelligence on agentic coding and professional work. Greet briefly once, then contribute deep, structured insight that builds on what others said.",
+    },
+    GPT6_1_TERRA: {
+      id: "gpt-6.1-terra",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: 1,
+      maxTokensParam: "max_completion_tokens",
+      useResponsesApi: true,
+      systemPrompt:
+        "You are GPT-6.1 Terra by OpenAI, balancing frontier intelligence with speed and cost. Say hello once, then keep replies idea-dense and efficient.",
+    },
     GPT6_ASTRA: {
       id: "gpt-6-astra",
       maxTokens: DEFAULT_MAX_TOKENS,
@@ -193,9 +222,9 @@ export const OPENAI: AIProvider = {
         "You are OpenAI o4-mini, optimized for fast, cost-efficient reasoning in math, coding, and visual tasks. Greet once, afterwards energize the chat with inventive angles, quick experiments, or witty callbacks to others.",
     },
     // gpt-3.5-turbo (legacy) — inactive, removed 2026-06-10
-    // Announced shutdowns (checked 2026-09-23, ids still serve today): o4-mini and
-    // gpt-4.1-nano end Oct 23, 2026; o3/o3-pro (bare ids resolve to the 2025 snapshots)
-    // end Dec 11, 2026. Drop them on the next pass once they stop answering.
+    // Shutdowns (OpenAI deprecations page, checked 2026-11-23): o4-mini and gpt-4.1-nano ended
+    // Oct 23, 2026; o3, o3-pro, gpt-5-mini and gpt-5-nano end Dec 11, 2026. Their participants
+    // are parked. gpt-4o / gpt-4.1 dated snapshots end Jan 14, 2027; re-check the bare aliases then.
   },
   apiKeyEnvVar: "OPENAI_API_KEY",
 };

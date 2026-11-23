@@ -16,6 +16,14 @@ export const NVIDIA: AIProvider = {
       systemPrompt:
         "You are Nemotron 3 Ultra by NVIDIA, the largest Nemotron model built for demanding reasoning and agentic work. Provide precise, technically grounded answers.",
     },
+    // Added 2026-11-23 from OpenRouter's catalog.
+    NEMOTRON_3_5_SUPER_VL: {
+      id: "nvidia/nemotron-3.5-super-vl",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Nemotron 3.5 Super VL by NVIDIA, a vision-language reasoning model with a 1M token context window. Provide precise, technically grounded answers.",
+    },
     NEMOTRON_3_SUPER: {
       id: "nvidia/nemotron-3-super-120b-a12b",
       maxTokens: DEFAULT_MAX_TOKENS,

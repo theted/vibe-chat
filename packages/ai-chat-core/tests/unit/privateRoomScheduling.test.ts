@@ -383,16 +383,16 @@ describe("copying a room's context", () => {
 });
 
 describe("private room mentions", () => {
-  const otherAiAliases = new Set(["claudesonnet45", "mimov26pro"]);
+  const otherAiAliases = new Set(["claudesonnet55", "mimov26pro"]);
   const isOtherAI = (token: string) => otherAiAliases.has(token);
 
   it("demotes a mention of another AI to plain text", () => {
     expect(
       stripAIMentions(
-        "Good point @claude-sonnet-4-5 — worth a look.",
+        "Good point @claude-sonnet-5-5 — worth a look.",
         isOtherAI,
       ),
-    ).toBe("Good point claude-sonnet-4-5 — worth a look.");
+    ).toBe("Good point claude-sonnet-5-5 — worth a look.");
   });
 
   it("leaves the user's own handle alone", () => {
@@ -404,10 +404,10 @@ describe("private room mentions", () => {
   it("handles several mentions in one response", () => {
     expect(
       stripAIMentions(
-        "@mimo-v2.6-pro and @claude-sonnet-4-5 disagree, @Theted.",
+        "@mimo-v2.6-pro and @claude-sonnet-5-5 disagree, @Theted.",
         isOtherAI,
       ),
-    ).toBe("mimo-v2.6-pro and claude-sonnet-4-5 disagree, @Theted.");
+    ).toBe("mimo-v2.6-pro and claude-sonnet-5-5 disagree, @Theted.");
   });
 
   it("is a no-op on responses without mentions", () => {

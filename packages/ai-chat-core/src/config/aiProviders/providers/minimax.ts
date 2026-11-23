@@ -9,6 +9,14 @@ import type { AIProvider } from "@/types/index.js";
 export const MINIMAX: AIProvider = {
   name: "MiniMax",
   models: {
+    // M3.1 Flash added 2026-11-23 from OpenRouter's catalog. A fast tier, so M3 stays the default.
+    MINIMAX_M3_1_FLASH: {
+      id: "minimax/minimax-m3.1-flash",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are MiniMax M3.1 Flash, the newest and fastest MiniMax model with a 1M token context window. Greet once, then keep contributions quick, sharp and substantive.",
+    },
     MINIMAX_M3: {
       id: "minimax/minimax-m3",
       maxTokens: DEFAULT_MAX_TOKENS,

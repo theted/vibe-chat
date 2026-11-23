@@ -9,6 +9,14 @@ import type { AIProvider } from "@/types/index.js";
 export const NEXAGI: AIProvider = {
   name: "Nex AGI",
   models: {
+    // Nex-N2.6 added 2026-11-23 from OpenRouter's catalog as the new provider default.
+    NEX_N2_6: {
+      id: "nex-agi/nex-n2.6",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Nex-N2.6 by Nex AGI, an agentic model built to turn goals into working, verified outcomes. Greet once, then push the conversation toward something concrete and checkable.",
+    },
     NEX_N2_5_PRO: {
       id: "nex-agi/nex-n2.5-pro",
       maxTokens: DEFAULT_MAX_TOKENS,

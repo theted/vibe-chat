@@ -77,12 +77,13 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     status: "active",
     emoji: "🎷",
   },
+  // Parked 2026-11-23: Anthropic retires claude-sonnet-4-5-20250929 on 2026-11-30
   {
     id: "ANTHROPIC_CLAUDE_SONNET_4_5",
     name: "Claude 4.5 Sonnet",
     alias: "claude-sonnet-4-5",
     provider: "Anthropic",
-    status: "active",
+    status: "inactive",
     emoji: "🎹",
   },
   {
@@ -128,20 +129,22 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     status: "active",
     emoji: "🪐",
   },
+  // Parked 2026-11-23: OpenAI shuts gpt-5-mini down 2026-12-11
   {
     id: "OPENAI_GPT5_MINI",
     name: "GPT-5 Mini",
     alias: "gpt-5-mini",
     provider: "OpenAI",
-    status: "active",
+    status: "inactive",
     emoji: "💫",
   },
+  // Parked 2026-11-23: OpenAI shuts gpt-5-nano down 2026-12-11
   {
     id: "OPENAI_GPT5_NANO",
     name: "GPT-5 Nano",
     alias: "gpt-5-nano",
     provider: "OpenAI",
-    status: "active",
+    status: "inactive",
     emoji: "✳️",
   },
   {
@@ -176,20 +179,22 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     status: "active",
     emoji: "🛰️",
   },
+  // Parked 2026-11-23: OpenAI shut gpt-4.1-nano down 2026-10-23
   {
     id: "OPENAI_GPT4_1_NANO",
     name: "GPT-4.1 nano",
     alias: "gpt-4.1-nano",
     provider: "OpenAI",
-    status: "active",
+    status: "inactive",
     emoji: "🌌",
   },
+  // Parked 2026-11-23: OpenAI shuts o3 down 2026-12-11
   {
     id: "OPENAI_O3",
     name: "OpenAI o3",
     alias: "o3",
     provider: "OpenAI",
-    status: "active",
+    status: "inactive",
     emoji: "🔭",
   },
   // Parked 2026-10-13: this OpenAI account has no o3-pro access (not in /v1/models)
@@ -201,12 +206,13 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     status: "inactive",
     emoji: "🔮",
   },
+  // Parked 2026-11-23: OpenAI shut o4-mini down 2026-10-23
   {
     id: "OPENAI_O4_MINI",
     name: "OpenAI o4-mini",
     alias: "o4-mini",
     provider: "OpenAI",
-    status: "active",
+    status: "inactive",
     emoji: "🌠",
   },
 
@@ -702,12 +708,13 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     status: "active",
     emoji: "🦙",
   },
+  // Parked 2026-11-23: delisted from OpenRouter
   {
     id: "LLAMA_LLAMA_3_3_70B_INSTRUCT_FREE",
     name: "Llama 3.3 70B Instruct (Free)",
     alias: "llama-3.3-70b-free",
     provider: "Meta",
-    status: "active",
+    status: "inactive",
     emoji: "🦙",
   },
   {
@@ -766,20 +773,22 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
   // Xiaomi Models
 
   // MiniMax Models - Charts/sizing (Mini + Max)
+  // Parked 2026-11-23: delisted from OpenRouter
   {
     id: "MINIMAX_MINIMAX_M2_1",
     name: "MiniMax M2.1",
     alias: "minimax-m2.1",
     provider: "MiniMax",
-    status: "active",
+    status: "inactive",
     emoji: "📊",
   },
+  // Parked 2026-11-23: delisted from OpenRouter
   {
     id: "MINIMAX_MINIMAX_M2",
     name: "MiniMax M2",
     alias: "minimax-m2",
     provider: "MiniMax",
-    status: "active",
+    status: "inactive",
     emoji: "📈",
   },
   // Parked 2026-10-15: replies only in reasoning, with empty content
@@ -803,20 +812,22 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     status: "active",
     emoji: "🫘",
   },
+  // Parked 2026-11-23: delisted from OpenRouter
   {
     id: "BYTEDANCE_SEED_1_6_FLASH",
     name: "Seed 1.6 Flash",
     alias: "seed-1.6-flash",
     provider: "ByteDance",
-    status: "active",
+    status: "inactive",
     emoji: "🌱",
   },
+  // Parked 2026-11-23: delisted from OpenRouter
   {
     id: "BYTEDANCE_SEED_1_6",
     name: "Seed 1.6",
     alias: "seed-1.6",
     provider: "ByteDance",
-    status: "active",
+    status: "inactive",
     emoji: "🌾",
   },
 
@@ -917,12 +928,13 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
   },
 
   // Microsoft AI Models - Magic/wizards
+  // Parked 2026-11-23: delisted from OpenRouter
   {
     id: "MICROSOFT_WIZARDLM_2_8X22B",
     name: "WizardLM-2 8x22B",
     alias: "wizardlm-2-8x22b",
     provider: "Microsoft AI",
-    status: "active",
+    status: "inactive",
     emoji: "🧙‍♂️",
   },
 
@@ -978,6 +990,14 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     emoji: "🛟",
   },
   {
+    id: "KIMI_KIMI_K3_1_PRO",
+    name: "Kimi K3.1 Pro",
+    alias: "kimi-k3.1-pro",
+    provider: "Moonshot AI",
+    status: "active",
+    emoji: "🌒",
+  },
+  {
     id: "KIMI_KIMI_K3",
     name: "Kimi K3",
     alias: "kimi-k3",
@@ -992,6 +1012,14 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     provider: "Z.ai",
     status: "active",
     emoji: "🔗",
+  },
+  {
+    id: "QWEN_QWEN4_MAX",
+    name: "Qwen4 Max",
+    alias: "qwen4-max",
+    provider: "Qwen",
+    status: "active",
+    emoji: "🐼",
   },
   {
     id: "QWEN_QWEN3_8_MAX",
@@ -1026,6 +1054,14 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     emoji: "🎏",
   },
   {
+    id: "NVIDIA_NEMOTRON_3_5_SUPER_VL",
+    name: "Nemotron 3.5 Super VL",
+    alias: "nemotron-3.5-super-vl",
+    provider: "NVIDIA",
+    status: "active",
+    emoji: "🥒",
+  },
+  {
     id: "NVIDIA_NEMOTRON_3_ULTRA",
     name: "Nemotron 3 Ultra",
     alias: "nemotron-3-ultra",
@@ -1040,6 +1076,14 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     provider: "NVIDIA",
     status: "active",
     emoji: "🥝",
+  },
+  {
+    id: "MINIMAX_MINIMAX_M3_1_FLASH",
+    name: "MiniMax M3.1 Flash",
+    alias: "minimax-m3.1-flash",
+    provider: "MiniMax",
+    status: "active",
+    emoji: "📍",
   },
   {
     id: "MINIMAX_MINIMAX_M3",
@@ -1098,12 +1142,13 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     status: "active",
     emoji: "📜",
   },
+  // Parked 2026-11-23: delisted from OpenRouter
   {
     id: "NOUS_HERMES_3_405B",
     name: "Hermes 3 405B",
     alias: "hermes-3-405b",
     provider: "Nous Research",
-    status: "active",
+    status: "inactive",
     emoji: "🏺",
   },
   {
@@ -1123,13 +1168,22 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     status: "inactive",
     emoji: "🧸",
   },
+  // Parked 2026-11-23: delisted from OpenRouter
   {
     id: "ARCEE_TRINITY_LARGE_THINKING",
     name: "Trinity Large Thinking",
     alias: "trinity-large-thinking",
     provider: "Arcee AI",
-    status: "active",
+    status: "inactive",
     emoji: "🥇",
+  },
+  {
+    id: "STEPFUN_STEP_5_PREVIEW",
+    name: "Step 5 Preview",
+    alias: "step-5-preview",
+    provider: "StepFun",
+    status: "active",
+    emoji: "🪜",
   },
   {
     id: "STEPFUN_STEP_3_7_FLASH",
@@ -1139,12 +1193,13 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     status: "active",
     emoji: "🥾",
   },
+  // Parked 2026-11-23: delisted from OpenRouter
   {
     id: "STEPFUN_STEP_3_5_FLASH",
     name: "Step 3.5 Flash",
     alias: "step-3.5-flash",
     provider: "StepFun",
-    status: "active",
+    status: "inactive",
     emoji: "🧗",
   },
   {
@@ -1164,11 +1219,36 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     emoji: "🥁",
   },
   {
+    id: "OPENAI_GPT6_2_ASTRA",
+    name: "GPT-6.2 Astra",
+    alias: "gpt-6.2-astra",
+    provider: "OpenAI",
+    status: "active",
+    emoji: "🌄",
+  },
+  {
+    id: "OPENAI_GPT6_2_SOL",
+    name: "GPT-6.2 Sol",
+    alias: "gpt-6.2-sol",
+    provider: "OpenAI",
+    status: "active",
+    emoji: "🌥️",
+  },
+  {
+    id: "OPENAI_GPT6_1_TERRA",
+    name: "GPT-6.1 Terra",
+    alias: "gpt-6.1-terra",
+    provider: "OpenAI",
+    status: "active",
+    emoji: "🏞️",
+  },
+  // Parked 2026-11-23: superseded by GPT-6.2 Astra at a lower price
+  {
     id: "OPENAI_GPT6_ASTRA",
     name: "GPT-6 Astra",
     alias: "gpt-6-astra",
     provider: "OpenAI",
-    status: "active",
+    status: "inactive",
     emoji: "🌞",
   },
   // GPT-6 Sol and GPT-6 Luna (below) serve the same tiers at half the price, so the 5.6
@@ -1182,12 +1262,13 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     status: "inactive",
     emoji: "🌎",
   },
+  // Parked 2026-11-23: superseded by GPT-6.1 Terra
   {
     id: "OPENAI_GPT5_6_TERRA",
     name: "GPT-5.6 Terra",
     alias: "gpt-5.6-terra",
     provider: "OpenAI",
-    status: "active",
+    status: "inactive",
     emoji: "🌗",
   },
   {
@@ -1263,11 +1344,20 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     emoji: "🪓",
   },
   {
+    id: "ANTHROPIC_CLAUDE_FABLE_5_2",
+    name: "Claude Fable 5.2",
+    alias: "claude-fable-5-2",
+    provider: "Anthropic",
+    status: "active",
+    emoji: "🎺",
+  },
+  // Parked 2026-11-23: superseded by Fable 5.2 at a lower price
+  {
     id: "ANTHROPIC_CLAUDE_FABLE_5_1",
     name: "Claude Fable 5.1",
     alias: "claude-fable-5-1",
     provider: "Anthropic",
-    status: "active",
+    status: "inactive",
     emoji: "🎻",
     // Slowest and priciest model in the room: replies less often so it doesn't dominate cost
     traits: { tempo: 1.35, chattiness: 0.8 },
@@ -1305,6 +1395,14 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     emoji: "🌳",
   },
   {
+    id: "META_MUSE_EMBER",
+    name: "Muse Ember",
+    alias: "muse-ember",
+    provider: "Meta",
+    status: "active",
+    emoji: "🔥",
+  },
+  {
     id: "META_MUSE_SPARK_1_3",
     name: "Muse Spark 1.3",
     alias: "muse-spark-1.3",
@@ -1312,12 +1410,13 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     status: "active",
     emoji: "🐐",
   },
+  // Parked 2026-11-23: delisted from OpenRouter
   {
     id: "INCEPTION_MERCURY_2_5",
     name: "Mercury 2.5",
     alias: "mercury-2.5",
     provider: "Inception",
-    status: "active",
+    status: "inactive",
     emoji: "🌡️",
   },
   // Parked 2026-10-14: Sakana blocks requests from our region (OpenRouter 403)
@@ -1421,6 +1520,14 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     emoji: "⚖️",
   },
   {
+    id: "NEXAGI_NEX_N2_6",
+    name: "Nex-N2.6",
+    alias: "nex-n2.6",
+    provider: "Nex AGI",
+    status: "active",
+    emoji: "🎰",
+  },
+  {
     id: "NEXAGI_NEX_N2_5_PRO",
     name: "Nex-N2.5-Pro",
     alias: "nex-n2.5-pro",
@@ -1468,12 +1575,13 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     status: "active",
     emoji: "🪈",
   },
+  // Parked 2026-11-23: superseded by GPT-6.2 Sol at the same price
   {
     id: "OPENAI_GPT6_1_SOL",
     name: "GPT-6.1 Sol",
     alias: "gpt-6.1-sol",
     provider: "OpenAI",
-    status: "active",
+    status: "inactive",
     emoji: "🚀",
   },
   {
@@ -1542,6 +1650,30 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     emoji: "🧿",
   },
   {
+    id: "GEMINI_GEMINI_4_NEON",
+    name: "Gemini 4 Neon",
+    alias: "gemini-4-neon",
+    provider: "Google",
+    status: "active",
+    emoji: "🟣",
+  },
+  {
+    id: "GEMINI_GEMINI_4_CARBON",
+    name: "Gemini 4 Carbon",
+    alias: "gemini-4-carbon",
+    provider: "Google",
+    status: "active",
+    emoji: "⚫",
+  },
+  {
+    id: "GEMINI_GEMINI_4_HYDROGEN",
+    name: "Gemini 4 Hydrogen",
+    alias: "gemini-4-hydrogen",
+    provider: "Google",
+    status: "active",
+    emoji: "🫧",
+  },
+  {
     id: "GEMINI_GEMINI_4_ARGON",
     name: "Gemini 4 Argon",
     alias: "gemini-4-argon",
@@ -1566,12 +1698,44 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     emoji: "💧",
   },
   {
+    id: "THINKING_MACHINES_INKLING_2_SMALL",
+    name: "Inkling 2 Small",
+    alias: "inkling-2-small",
+    provider: "Thinking Machines",
+    status: "active",
+    emoji: "📝",
+  },
+  {
+    id: "THINKING_MACHINES_INKLING_2_MINI",
+    name: "Inkling 2 Mini",
+    alias: "inkling-2-mini",
+    provider: "Thinking Machines",
+    status: "active",
+    emoji: "✏️",
+  },
+  {
     id: "THINKING_MACHINES_INKLING",
     name: "Inkling",
     alias: "inkling",
     provider: "Thinking Machines",
     status: "active",
     emoji: "💭",
+  },
+  {
+    id: "TENCENT_HY4",
+    name: "Hy4",
+    alias: "hy4",
+    provider: "Tencent",
+    status: "active",
+    emoji: "🐳",
+  },
+  {
+    id: "TENCENT_HY4_FLASH",
+    name: "Hy4 Flash",
+    alias: "hy4-flash",
+    provider: "Tencent",
+    status: "active",
+    emoji: "🐠",
   },
   {
     id: "TENCENT_HY3",
@@ -1581,12 +1745,13 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     status: "active",
     emoji: "🐧",
   },
+  // Parked 2026-11-23: delisted from OpenRouter
   {
     id: "MEITUAN_LONGCAT_2_0",
     name: "LongCat 2.0",
     alias: "longcat-2.0",
     provider: "Meituan",
-    status: "active",
+    status: "inactive",
     emoji: "🦘",
   },
   {
@@ -1613,12 +1778,13 @@ export const DEFAULT_AI_PARTICIPANTS: AiParticipant[] = [
     status: "active",
     emoji: "🖋️",
   },
+  // Parked 2026-11-23: delisted from OpenRouter
   {
     id: "POOLSIDE_LAGUNA_S_2_1",
     name: "Laguna S 2.1",
     alias: "laguna-s-2.1",
     provider: "Poolside",
-    status: "active",
+    status: "inactive",
     emoji: "🏝️",
   },
 ];

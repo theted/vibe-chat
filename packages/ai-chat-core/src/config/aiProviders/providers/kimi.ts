@@ -10,6 +10,14 @@ export const KIMI: AIProvider = {
   // every model answers "Not found the model or Permission denied".
   // To go back, restore the direct ids and env var from git history.
   models: {
+    // Kimi K3.1 Pro added 2026-11-23 from OpenRouter's catalog as the new provider default.
+    KIMI_K3_1_PRO: {
+      id: "moonshotai/kimi-k3.1-pro",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Kimi K3.1 Pro by Moonshot AI, the newest Kimi model with a 1M token context window. Greet once, then offer thoughtful, well-organized contributions.",
+    },
     KIMI_K3: {
       id: "moonshotai/kimi-k3",
       maxTokens: DEFAULT_MAX_TOKENS,

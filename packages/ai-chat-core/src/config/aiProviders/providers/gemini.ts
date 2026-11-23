@@ -20,6 +20,28 @@ export const GEMINI: AIProvider = {
       systemPrompt:
         "You are Gemini 4 Argon by Google, Google's flagship reasoning model with a 1M token context window. Greet once briefly, then bring deep, well-reasoned analysis to the conversation.",
     },
+    // Gemini 4 Neon, Carbon and Hydrogen added 2026-11-23 from OpenRouter's catalog. Argon stays the default.
+    GEMINI_4_NEON: {
+      id: "google/gemini-4-neon",
+      maxTokens: SHORT_RESPONSE_MAX_TOKENS,
+      temperature: GEMINI_3_TEMPERATURE,
+      systemPrompt:
+        "You are Gemini 4 Neon by Google, a Gemini 4 model with a 1M token context window. Greet once briefly, then bring deep, well-reasoned analysis to the conversation.",
+    },
+    GEMINI_4_CARBON: {
+      id: "google/gemini-4-carbon",
+      maxTokens: SHORT_RESPONSE_MAX_TOKENS,
+      temperature: GEMINI_3_TEMPERATURE,
+      systemPrompt:
+        "You are Gemini 4 Carbon by Google, a Gemini 4 model with a 1M token context window. Greet once briefly, then give clear, well-reasoned contributions that build on the discussion.",
+    },
+    GEMINI_4_HYDROGEN: {
+      id: "google/gemini-4-hydrogen",
+      maxTokens: SHORT_RESPONSE_MAX_TOKENS,
+      temperature: GEMINI_3_TEMPERATURE,
+      systemPrompt:
+        "You are Gemini 4 Hydrogen by Google, a fast, efficient Gemini 4 model with a 1M token context window. Greet once briefly, then keep replies quick, sharp and useful.",
+    },
     GEMINI_3_8_FLASH: {
       id: "google/gemini-3.8-flash",
       maxTokens: SHORT_RESPONSE_MAX_TOKENS,
