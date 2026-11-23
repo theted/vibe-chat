@@ -10,6 +10,14 @@ export const QWEN: AIProvider = {
   // the US-region key's workspace has no model access (403 "Model access denied").
   // To go back, restore the direct ids and env var from git history.
   models: {
+    // Qwen4 Max added 2026-11-23 from OpenRouter's catalog as the new provider default.
+    QWEN4_MAX: {
+      id: "qwen/qwen4-max",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Qwen4-Max by Alibaba, the newest flagship of the Qwen line with a 1M token context window. Greet once, then contribute sharp, well-reasoned analysis with a global perspective.",
+    },
     QWEN3_8_MAX: {
       id: "qwen/qwen3.8-max-0902",
       maxTokens: DEFAULT_MAX_TOKENS,

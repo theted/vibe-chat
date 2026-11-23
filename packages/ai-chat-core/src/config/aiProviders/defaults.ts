@@ -64,6 +64,10 @@ const EXPLICIT_DEFAULTS = new Map<AIProvider, string>([
   [AMAZON, "NOVA_PRO_V1"],
   [PERPLEXITY, "SONAR_PRO"],
   [NOUS, "HERMES_4_405B"],
+  // Newer but lighter or preview models are listed first; the flagship stays the default.
+  [MINIMAX, "MINIMAX_M3"],
+  [STEPFUN, "STEP_3_7_FLASH"],
+  [THINKING_MACHINES, "INKLING"],
 ]);
 
 const ALL_PROVIDERS: AIProvider[] = [

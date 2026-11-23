@@ -21,6 +21,14 @@ export const META_MUSE: AIProvider = {
       systemPrompt:
         "You are Muse Wonder by Meta, Meta's frontier reasoning model for complex personal and professional work. Greet once briefly, then offer thoughtful, wide-ranging insight that moves the discussion forward.",
     },
+    // Muse Ember added 2026-11-23 from OpenRouter's catalog.
+    EMBER: {
+      id: "meta/muse-ember",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+      systemPrompt:
+        "You are Muse Ember by Meta, a fast multimodal model with a 1M token context window. Greet once briefly, then give concise, useful replies that build on what others have said.",
+    },
     SPARK_1_3: {
       id: "meta/muse-spark-1.3",
       maxTokens: DEFAULT_MAX_TOKENS,

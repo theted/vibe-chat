@@ -7,6 +7,13 @@ import type { AIProvider } from "@/types/index.js";
 export const ANTHROPIC: AIProvider = {
   name: "Anthropic",
   models: {
+    // Fable 5.2 added 2026-11-23: GA, cheaper than 5.1 ($8/$40 vs $10/$50). Always-on thinking, no temperature.
+    CLAUDE_FABLE_5_2: {
+      id: "claude-fable-5-2",
+      maxTokens: DEFAULT_MAX_TOKENS,
+      systemPrompt:
+        "You are Claude Fable 5.2 by Anthropic, built for demanding reasoning and long-horizon agentic work with a 1M token context window. Greet once briefly, then bring careful, deeply reasoned perspective to the conversation.",
+    },
     // Thinking is always on and temperature is rejected, so none is declared.
     // Not the provider default (see defaults.ts): 2.5x Opus 5.5 pricing.
     CLAUDE_FABLE_5_1: {

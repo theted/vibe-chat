@@ -20,19 +20,24 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   "claude-sonnet-5": "claude-sonnet-5",
   "claude-haiku-5-5": "claude-haiku-5-5",
   "claude-haiku-5.5": "claude-haiku-5-5",
-  "gpt-6-astra": "gpt-6-astra",
-  "gpt-6": "gpt-6-astra",
-  astra: "gpt-6-astra",
+  "gpt-6.2-astra": "gpt-6.2-astra",
+  "gpt-6.2": "gpt-6.2-astra",
+  "gpt-6.2-sol": "gpt-6.2-sol",
+  "gpt-6.1-terra": "gpt-6.1-terra",
+  "gpt-6-astra": "gpt-6.2-astra",
+  "gpt-6": "gpt-6.2-astra",
+  astra: "gpt-6.2-astra",
   // Parked Sol/Luna models resolve to the newer models that replaced them
-  "gpt-6.1": "gpt-6.1-sol",
-  "gpt-6.1-sol": "gpt-6.1-sol",
-  "gpt-6-sol": "gpt-6.1-sol",
+  "gpt-6.1": "gpt-6.2-sol",
+  "gpt-6.1-sol": "gpt-6.2-sol",
+  "gpt-6-sol": "gpt-6.2-sol",
   "gpt-6-luna": "gpt-6-luna",
-  "gpt-5.6": "gpt-5.6-terra",
-  "gpt-5.6-sol": "gpt-6.1-sol",
+  "gpt-5.6": "gpt-6.1-terra",
+  "gpt-5.6-terra": "gpt-6.1-terra",
+  "gpt-5.6-sol": "gpt-6.2-sol",
   "gpt-5.6-luna": "gpt-6-luna",
-  sol: "gpt-6.1-sol",
-  terra: "gpt-5.6-terra",
+  sol: "gpt-6.2-sol",
+  terra: "gpt-6.1-terra",
   luna: "gpt-6-luna",
   "gemini-3.8": "gemini-3.8-flash",
   "gemini-3.7": "gemini-3.7-flash",
@@ -42,7 +47,11 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   "grok-4.5": "grok-4.5",
   "glm-5.3": "glm-5.3",
   "glm-5.2": "glm-5.2",
+  "kimi-k3.1": "kimi-k3.1-pro",
+  "kimi-k3.1-pro": "kimi-k3.1-pro",
   "kimi-k3": "kimi-k3",
+  qwen4: "qwen4-max",
+  "qwen4-max": "qwen4-max",
   "qwen3.8": "qwen3.8-max",
   "qwen3.8-omni": "qwen3.8-omni-flash",
   "qwen3.8-omni-flash": "qwen3.8-omni-flash",
@@ -63,18 +72,20 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   haiku: "claude-haiku-5-5",
   sonnet: "claude-sonnet-5-5",
   opus: "claude-opus-5-5",
-  fable: "claude-fable-5-1",
-  "claude-fable": "claude-fable-5-1",
-  "claude-fable-5-1": "claude-fable-5-1",
-  "claude-fable-5.1": "claude-fable-5-1",
+  fable: "claude-fable-5-2",
+  "claude-fable": "claude-fable-5-2",
+  "claude-fable-5-2": "claude-fable-5-2",
+  "claude-fable-5.2": "claude-fable-5-2",
+  "claude-fable-5-1": "claude-fable-5-2",
+  "claude-fable-5.1": "claude-fable-5-2",
   "claude-opus-4-8": "claude-opus-4-8",
   "claude-opus-4-7": "claude-opus-4-7",
   "claude-opus-4-6": "claude-opus-4-6",
   "claude-haiku-4-5": "claude-haiku-4-5",
-  "claude-sonnet-4-5": "claude-sonnet-4-5",
+  "claude-sonnet-4-5": "claude-sonnet-5-5",
 
   // OpenAI/GPT
-  gpt: "gpt-6-astra",
+  gpt: "gpt-6.2-astra",
   "gpt-5.5": "gpt-5.5",
   "gpt-5.5-pro": "gpt-5.5-pro",
   gpt4: "gpt-4o",
@@ -83,18 +94,19 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   "gpt-4o-mini": "gpt-4o-mini",
   "gpt-4.1": "gpt-4.1",
   "gpt-4.1-mini": "gpt-4.1-mini",
-  "gpt-4.1-nano": "gpt-4.1-nano",
-  openai: "gpt-6-astra",
-  chatgpt: "gpt-6-astra",
-  "chatgpt-5-mini": "gpt-5-mini",
-  "chatgpt-5.1-mini": "gpt-5-mini",
+  "gpt-4.1-nano": "gpt-6-luna",
+  openai: "gpt-6.2-astra",
+  chatgpt: "gpt-6.2-astra",
+  "chatgpt-5-mini": "gpt-6.1-terra",
+  "chatgpt-5.1-mini": "gpt-6.1-terra",
   "gpt-5.2": "gpt-5.2",
   "gpt-5.2-pro": "gpt-5.2-pro",
-  "gpt-5-mini": "gpt-5-mini",
-  "gpt-5-nano": "gpt-5-nano",
-  "gpt-5.1-mini": "gpt-5-mini",
-  o3: "o3",
-  "o4-mini": "o4-mini",
+  // Shut-down OpenAI models resolve to the replacements OpenAI names
+  "gpt-5-mini": "gpt-6.1-terra",
+  "gpt-5-nano": "gpt-6-luna",
+  "gpt-5.1-mini": "gpt-6.1-terra",
+  o3: "gpt-6.2-sol",
+  "o4-mini": "gpt-6.1-terra",
 
   // xAI/Grok
   grok: "grok-4.7",
@@ -108,6 +120,12 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   gemini: "gemini-4-argon",
   "gemini-4": "gemini-4-argon",
   argon: "gemini-4-argon",
+  neon: "gemini-4-neon",
+  "gemini-4-neon": "gemini-4-neon",
+  carbon: "gemini-4-carbon",
+  "gemini-4-carbon": "gemini-4-carbon",
+  hydrogen: "gemini-4-hydrogen",
+  "gemini-4-hydrogen": "gemini-4-hydrogen",
   "gemini-3.5": "gemini-3.5-flash",
   "gemini-3.5-flash": "gemini-3.5-flash",
   gemini3: "gemini-3.1-pro",
@@ -159,7 +177,7 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   "deepseek-r1": "deepseek-v4.1-flash",
 
   // Moonshot/Kimi
-  kimi: "kimi-k3",
+  kimi: "kimi-k3.1-pro",
   "kimi-k2.7": "kimi-k2.7-code",
   "kimi-code": "kimi-k2.7-code",
   "kimi-k2.6": "kimi-k2.6",
@@ -169,7 +187,7 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   "kimi-latest": "kimi-latest",
   "kimi-thinking": "kimi-thinking-preview",
   "kimi-thinking-preview": "kimi-thinking-preview",
-  moonshot: "kimi-k3",
+  moonshot: "kimi-k3.1-pro",
 
   // Z.ai
   "z.ai": "z.ai",
@@ -200,8 +218,8 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   "sonar-deep-research": "sonar-deep-research",
 
   // Qwen/Alibaba
-  qwen: "qwen3.8-max",
-  alibaba: "qwen3.8-max",
+  qwen: "qwen4-max",
+  alibaba: "qwen4-max",
   // Qwen3.6 Max preview and Qwen3 Max are parked, so the bare family names
   // resolve to the newest active model in each
   "qwen3.6": "qwen3.6-flash",
@@ -219,8 +237,10 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   muse: "muse-wonder",
   wonder: "muse-wonder",
   "muse-spark": "muse-spark-1.3",
+  ember: "muse-ember",
+  "muse-ember": "muse-ember",
   "llama-3.3-70b": "llama-3.3-70b",
-  "llama-3.3-70b-free": "llama-3.3-70b-free",
+  "llama-3.3-70b-free": "llama-3.3-70b",
   "llama-4-maverick": "llama-4-maverick",
   "llama-4-scout": "llama-4-scout",
 
@@ -234,6 +254,7 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   nvidia: "nemotron-3-ultra",
   nemotron: "nemotron-3-ultra",
   "nemotron-3.5": "nemotron-3.5-lightning",
+  "nemotron-3.5-super-vl": "nemotron-3.5-super-vl",
   "nemotron-3-nano-30b-a3b": "nemotron-3-nano-30b-a3b",
   "nemotron-3-nano-30b-a3b-free": "nemotron-3-nano-30b-a3b-free",
 
@@ -244,8 +265,9 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
 
   // MiniMax (OpenRouter)
   minimax: "minimax-m3",
-  "minimax-m2.1": "minimax-m2.1",
-  "minimax-m2": "minimax-m2",
+  "minimax-m3.1": "minimax-m3.1-flash",
+  "minimax-m2.1": "minimax-m2.7",
+  "minimax-m2": "minimax-m2.7",
   "minimax-m1": "minimax-m1",
 
   // Baidu (OpenRouter)
@@ -255,8 +277,8 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   seed: "seed-2.1-turbo",
   "seed-2.1": "seed-2.1-turbo",
   "seed-2.0-mini": "seed-2.0-mini",
-  "seed-1.6-flash": "seed-1.6-flash",
-  "seed-1.6": "seed-1.6",
+  "seed-1.6-flash": "seed-2.1-turbo",
+  "seed-1.6": "seed-2.1-turbo",
 
   // Hugging Face (OpenRouter)
 
@@ -264,6 +286,7 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
 
   // StepFun (OpenRouter)
   stepfun: "step-3.7-flash",
+  "step-5": "step-5-preview",
 
   // Inflection AI (OpenRouter)
 
@@ -278,7 +301,7 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   // Phind (OpenRouter)
 
   // Microsoft AI (OpenRouter)
-  microsoft: "wizardlm-2-8x22b",
+  microsoft: "phi-4",
   wizardlm: "wizardlm-2-8x22b",
   "wizardlm-2-8x22b": "wizardlm-2-8x22b",
   "wizardlm-2-7b": "wizardlm-2-7b",
@@ -299,8 +322,9 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   pareto: "pareto",
 
   // Nex AGI (OpenRouter)
-  nex: "nex-n2.5-pro",
-  "nex-agi": "nex-n2.5-pro",
+  nex: "nex-n2.6",
+  "nex-agi": "nex-n2.6",
+  "nex-n2.6": "nex-n2.6",
   "nex-n2.5": "nex-n2.5-pro",
 
   // InclusionAI (OpenRouter)
@@ -320,9 +344,10 @@ export const AI_MENTION_MAPPINGS: Record<string, string> = {
   lfm: "lfm-2.5-24b",
   "lfm-2.5": "lfm-2.5-24b",
   "thinking-machines": "inkling",
+  "inkling-2": "inkling-2-small",
   thinkingmachines: "inkling",
-  tencent: "hy3",
-  hunyuan: "hy3",
+  tencent: "hy4",
+  hunyuan: "hy4",
   meituan: "longcat-2.0",
   longcat: "longcat-2.0",
   upstage: "solar-pro-4",
