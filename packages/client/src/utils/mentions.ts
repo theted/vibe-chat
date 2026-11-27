@@ -7,12 +7,19 @@
  */
 import { toMentionHandle } from "@ai-chat/ai-configs";
 import { DEFAULT_AI_PARTICIPANTS } from "@/config/aiParticipants";
+import {
+  CHAT_ASSISTANT_MENTION,
+  CHAT_ASSISTANT_MENTION_ID,
+} from "@/config/chatAssistantMention";
 import { AI_MENTION_MAPPINGS } from "@/constants/chat";
 import { normalizeAliasKey } from "@/utils/ai";
 import { getModelVoiceKey } from "@/utils/voice";
 import type { AiParticipant } from "@/config/aiParticipants";
 
-const BOUNDARY_REGEX = /[\s.,!?;:'")\]}]/;
+// A mention ends where its handle can't go on: handles are made of letters,
+// digits, "_" and "-", so anything else (punctuation, markdown "**", an em
+// dash, an emoji) closes it. "@Theted**" from a bolded mention still chips.
+const HANDLE_CONTINUATION_REGEX = /[\p{L}\p{N}_-]/u;
 // An @ glued to these is part of an email or URL path (medium.com/@someone),
 // and wrapping it as a mention would break the link around it
 const URL_OR_EMAIL_CHAR_REGEX = /[\w./%+=-]/;
@@ -39,6 +46,8 @@ const baseMentionCandidates = (() => {
   );
   return Array.from(
     new Set([
+      // @Chat isn't a participant, but people and models mention it
+      CHAT_ASSISTANT_MENTION.alias,
       ...Object.keys(AI_MENTION_MAPPINGS),
       ...Object.values(AI_MENTION_MAPPINGS),
       ...baseParticipants,
@@ -66,10 +75,8 @@ const buildMentionCandidates = (
     .sort((a, b) => b.length - a.length);
 };
 
-const hasBoundary = (value: string | undefined): boolean => {
-  if (!value) return true;
-  return BOUNDARY_REGEX.test(value);
-};
+const hasBoundary = (value: string | undefined): boolean =>
+  !value || !HANDLE_CONTINUATION_REGEX.test(value);
 
 export const findMentionMatches = (
   text: string,
@@ -112,8 +119,8 @@ export const findMentionMatches = (
 };
 
 /**
- * Voice key of the model an @mention names (shorthand aliases included), so
- * the chip can wear that model's colour. Null for people and unknowns.
+ * Voice key of the model an @mention names (shorthand aliases included), or
+ * of @Chat, so the chip can wear its colour. Null for people and unknowns.
  */
 export const resolveMentionVoiceKey = (
   mention: string,
@@ -121,6 +128,11 @@ export const resolveMentionVoiceKey = (
 ): string | null => {
   const bare = mention.replace(/^@/, "").trim().toLowerCase();
   if (!bare) return null;
+  // Same key @Chat's own messages get (getVoiceKey falls back to the aiId),
+  // so the chip matches the colour of its answers
+  if (bare === CHAT_ASSISTANT_MENTION.alias.toLowerCase()) {
+    return normalizeAliasKey(CHAT_ASSISTANT_MENTION_ID);
+  }
 
   const canonical = Object.entries(AI_MENTION_MAPPINGS).find(
     ([alias]) => alias.toLowerCase() === bare,

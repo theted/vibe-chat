@@ -210,7 +210,8 @@ export interface MessageInputProps {
 export interface ChatMessageProps {
   message: Message;
   aiParticipants?: AiParticipant[];
-  participants?: Participant[];
+  /** People whose @mentions chip (see getMentionableUsernames) */
+  participantMentions?: string[];
   /** The message this one replies to, when still in the loaded history */
   quotedMessage?: Message;
   /** Same sender as the row above: render without name and avatar */

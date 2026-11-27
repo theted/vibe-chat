@@ -52,6 +52,44 @@ describe("mentions utilities", () => {
     );
   });
 
+  it.each(["@Chat", "@chat"])("matches the %s assistant", (mention) => {
+    expect(findMentionMatches(`${mention} what changed?`)[0]?.text).toBe(
+      mention,
+    );
+  });
+
+  it("does not take @Chat out of a longer word", () => {
+    expect(findMentionMatches("@chatty or @chat_bot")).toHaveLength(0);
+  });
+
+  it.each([
+    ["bolded", "**@Theted** hi"],
+    ["followed by an em dash", "@Theted—ok"],
+    ["followed by an ellipsis", "@Theted…"],
+    ["followed by an emoji", "hi @Theted👋"],
+    ["followed by a slash", "@Theted/Skylar"],
+  ])("ends a mention %s", (_label, text) => {
+    expect(findMentionMatches(text, [], ["Theted"])[0]?.text).toBe("@Theted");
+  });
+
+  it("keeps a username running through underscores and hyphens", () => {
+    expect(findMentionMatches("@Theted_2 @Theted-x", [], ["Theted"])).toEqual(
+      [],
+    );
+    expect(
+      findMentionMatches(
+        "@ted_smith and @ted-smith",
+        [],
+        ["Ted_Smith", "ted-smith"],
+      ).map(({ text }) => text),
+    ).toEqual(["@ted_smith", "@ted-smith"]);
+  });
+
+  it("gives @Chat the voice its own answers speak in", () => {
+    expect(resolveMentionVoiceKey("@Chat")).toBe("internalchatassistant");
+    expect(resolveMentionVoiceKey("@chat")).toBe("internalchatassistant");
+  });
+
   it("leaves people and unknown names without a voice", () => {
     expect(resolveMentionVoiceKey("@Skylar")).toBeNull();
     expect(resolveMentionVoiceKey("@")).toBeNull();

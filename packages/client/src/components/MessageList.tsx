@@ -3,7 +3,9 @@
  * loaded history and lets a quote jump to the message it answers.
  */
 
+import { useMemo } from "react";
 import { useJumpToMessage } from "@/hooks/useJumpToMessage";
+import { getMentionableUsernames } from "@/utils/mentionablePeople";
 import { isContinuation } from "@/utils/messageGrouping";
 import ChatMessage from "./ChatMessage";
 import type { AiParticipant } from "@/config/aiParticipants";
@@ -26,6 +28,10 @@ const MessageList = ({
   onReply,
 }: MessageListProps) => {
   const { highlightedId, jumpToMessage } = useJumpToMessage();
+  const participantMentions = useMemo(
+    () => getMentionableUsernames(participants, messages),
+    [participants, messages],
+  );
 
   if (messages.length === 0) {
     return (
@@ -43,7 +49,7 @@ const MessageList = ({
       key={message.id}
       message={message}
       aiParticipants={aiParticipants}
-      participants={participants}
+      participantMentions={participantMentions}
       isContinuation={isContinuation(messages[index - 1], message)}
       quotedMessage={
         message.replyToMessageId

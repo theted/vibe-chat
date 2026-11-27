@@ -3,8 +3,10 @@
  * of the room's recent conversation and who is in it.
  */
 
+import { useMemo } from "react";
 import type { FormEvent } from "react";
 import { DEFAULT_AI_PARTICIPANTS } from "@/config/aiParticipants";
+import { getMentionableUsernames } from "@/utils/mentionablePeople";
 import ChatMessage from "./ChatMessage";
 import Icon from "./Icon";
 import ParticipantsList from "./ParticipantsList";
@@ -31,6 +33,10 @@ const LoginView = ({
     previewAiParticipants.length > 0
       ? previewAiParticipants
       : DEFAULT_AI_PARTICIPANTS;
+  const participantMentions = useMemo(
+    () => getMentionableUsernames(previewParticipants, previewMessages),
+    [previewParticipants, previewMessages],
+  );
 
   return (
     <div className="flex min-h-dvh bg-canvas text-fg">
@@ -111,6 +117,7 @@ const LoginView = ({
                     key={message.id || `${message.timestamp}-${message.sender}`}
                     message={message}
                     aiParticipants={aiParticipants}
+                    participantMentions={participantMentions}
                   />
                 ))}
               </div>
