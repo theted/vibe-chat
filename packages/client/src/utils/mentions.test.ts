@@ -10,6 +10,15 @@ describe("mentions utilities", () => {
     expect(matches[0]?.text).toBe("@Claude Haiku 4.5");
   });
 
+  it("matches a model's hyphenated handle as well as its dotted alias", () => {
+    expect(findMentionMatches("@gpt-6-2-astra hi")[0]?.text).toBe(
+      "@gpt-6-2-astra",
+    );
+    expect(findMentionMatches("@gpt-6.2-astra hi")[0]?.text).toBe(
+      "@gpt-6.2-astra",
+    );
+  });
+
   it("matches @mentions from extra candidates", () => {
     const text = "Hello @Skylar welcome back.";
     const matches = findMentionMatches(text, [], ["Skylar"]);

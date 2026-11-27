@@ -79,6 +79,7 @@ A model that is retired or pulled by the provider (e.g. `claude-fable-5`, suspen
 - **Participant ID format**: `PROVIDER_MODEL_KEY` (e.g., `ANTHROPIC_CLAUDE_OPUS_4_8`).
 - **Model key format**: `UPPER_SNAKE_CASE` in provider files.
 - **Aliases**: lowercase with hyphens (e.g., `claude-opus-4-8`).
+- **Mention matching**: routing ignores case, dots, underscores and hyphens, so `@gpt-6.2-astra` reaches handle `gpt-6-2-astra`. Near misses (`@gpt-6-2-astr`) get a "did you mean" hint in the composer and are corrected in AI replies, only when exactly one handle is close (`packages/ai-configs/src/mentionHandles.ts`).
 - **Emojis**: unique per model within a provider; reuse across providers is fine.
 - **Dropped models**: leave a short dated comment (e.g., `// gpt-5.1 superseded — removed 2026-06-10`) in the provider file instead of silent deletion.
 

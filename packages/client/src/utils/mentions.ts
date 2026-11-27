@@ -5,6 +5,7 @@
  * against a candidate list for highlighting, which a single-token regex
  * cannot express.
  */
+import { toMentionHandle } from "@ai-chat/ai-configs";
 import { DEFAULT_AI_PARTICIPANTS } from "@/config/aiParticipants";
 import { AI_MENTION_MAPPINGS } from "@/constants/chat";
 import { normalizeAliasKey } from "@/utils/ai";
@@ -23,12 +24,19 @@ export interface MentionMatch {
   mention: string;
 }
 
+// The hyphenated handle (`gpt-6-2-astra`) is what models see and write, so
+// it must chip as well as the dotted alias (`gpt-6.2-astra`)
+const getParticipantCandidates = ({ name, alias, id }: AiParticipant) => [
+  name,
+  alias,
+  toMentionHandle(alias),
+  id,
+];
+
 const baseMentionCandidates = (() => {
-  const baseParticipants = DEFAULT_AI_PARTICIPANTS.flatMap((participant) => [
-    participant.name,
-    participant.alias,
-    participant.id,
-  ]);
+  const baseParticipants = DEFAULT_AI_PARTICIPANTS.flatMap(
+    getParticipantCandidates,
+  );
   return Array.from(
     new Set([
       ...Object.keys(AI_MENTION_MAPPINGS),
@@ -44,11 +52,7 @@ const buildMentionCandidates = (
   aiParticipants: AiParticipant[] = [],
   extraCandidates: Array<string | null | undefined> = [],
 ): string[] => {
-  const participantValues = aiParticipants.flatMap((participant) => [
-    participant.name,
-    participant.alias,
-    participant.id,
-  ]);
+  const participantValues = aiParticipants.flatMap(getParticipantCandidates);
 
   const extraValues = extraCandidates
     .map((value) => value?.trim())

@@ -8,6 +8,7 @@ import {
   normalizeAliasKey,
   parseBooleanFlag,
   resolveMentionTarget,
+  toMentionHandle,
 } from "@ai-chat/ai-configs";
 
 /**
@@ -20,19 +21,7 @@ export const normalizeAlias = normalizeAliasKey;
  * Convert a value to a mention-friendly alias format
  * Preserves hyphens but removes other special characters
  */
-export const toMentionAlias = (
-  value?: string | null,
-  fallback = "",
-): string => {
-  const base = value && value.trim() ? value : fallback;
-  if (!base) return "";
-  return base
-    .toString()
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9-]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-};
+export const toMentionAlias = toMentionHandle;
 
 /**
  * Parse boolean from environment variable string

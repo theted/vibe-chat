@@ -7,18 +7,26 @@ import {
   useState,
   useRef,
   useEffect,
+  useMemo,
   type ChangeEvent,
   type FormEvent,
   type KeyboardEvent,
 } from "react";
 import AISelectionDialog from "./AISelectionDialog";
 import Icon from "./Icon";
+import MentionSuggestionHint from "./MentionSuggestionHint";
 import ReplyingToBar from "./ReplyingToBar";
 import SlashCommandHints from "./SlashCommandHints";
 import { useAutoResizeTextarea } from "@/hooks/useAutoResizeTextarea";
 import { useMentionDetection } from "@/hooks/useMentionDetection";
 import { useTypingSignal } from "@/hooks/useTypingSignal";
+import {
+  applyMentionSuggestion,
+  getDraftMentionSuggestions,
+  getMentionHandles,
+} from "@/utils/mentionSuggestions";
 import { matchSlashCommands } from "@/utils/slashCommands";
+import type { MentionSuggestion } from "@ai-chat/ai-configs";
 import type { SlashCommandName } from "@/config/slashCommands";
 import type { MessageInputProps } from "@/types";
 
@@ -35,6 +43,7 @@ const MessageInput = ({
   replyingTo = null,
   onCancelReply,
   aiParticipants,
+  usernames,
 }: MessageInputProps) => {
   const [message, setMessage] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -55,6 +64,19 @@ const MessageInput = ({
   useAutoResizeTextarea(textareaRef, message);
 
   const commandHints = matchSlashCommands(message);
+  const mentionHandles = useMemo(
+    () => getMentionHandles(aiParticipants, usernames),
+    [aiParticipants, usernames],
+  );
+  const mentionSuggestions = useMemo(
+    () => getDraftMentionSuggestions(message, mentionHandles),
+    [message, mentionHandles],
+  );
+
+  const applySuggestion = (suggestion: MentionSuggestion) => {
+    setMessage((draft) => applyMentionSuggestion(draft, suggestion));
+    textareaRef.current?.focus();
+  };
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -125,6 +147,12 @@ const MessageInput = ({
       )}
       {commandHints.length > 0 && (
         <SlashCommandHints commands={commandHints} onPick={completeCommand} />
+      )}
+      {mentionSuggestions.length > 0 && (
+        <MentionSuggestionHint
+          suggestions={mentionSuggestions}
+          onApply={applySuggestion}
+        />
       )}
       <form
         onSubmit={handleSubmit}
