@@ -3,7 +3,11 @@
  */
 
 import { EventEmitter } from "events";
-import { DEFAULT_ROOM_ID, normalizeRoomId } from "@ai-chat/ai-configs";
+import {
+  DEFAULT_ROOM_ID,
+  isPrivateRoomId,
+  normalizeRoomId,
+} from "@ai-chat/ai-configs";
 import { AIRegistry } from "./AIRegistry.js";
 import { AIStreakTracker, type RoomAIStatus } from "./AIStreakTracker.js";
 import type { AIInitConfig, ModelInitResult } from "./AIRegistry.js";
@@ -27,7 +31,10 @@ import {
   OrchestratorAIService,
 } from "@/utils/orchestrator/aiLookup.js";
 import { limitMentionsInResponse } from "@/utils/orchestrator/mentionUtils.js";
-import { createEnhancedSystemPrompt } from "@/utils/orchestrator/promptBuilder.js";
+import {
+  createEnhancedSystemPrompt,
+  type ChatAssistantPromptInfo,
+} from "@/utils/orchestrator/promptBuilder.js";
 import {
   toReplyFields,
   type ReplyFields,
@@ -82,6 +89,8 @@ export class ChatOrchestrator extends EventEmitter {
   /** Rooms waiting for an outside responder (@Chat) to post its answer. */
   private heldRooms = new Set<string>();
   private unanswered: UnansweredWatch;
+  /** Set by the server once @Chat is running; null means no @Chat. */
+  private chatAssistant: { canFileIssues: boolean } | null = null;
 
   constructor(options: ChatOrchestratorOptions = {}) {
     super();
@@ -132,6 +141,7 @@ export class ChatOrchestrator extends EventEmitter {
         this.filterAIsForRoom(roomId, this.activeAIs)
           .map((aiId) => this.aiServices.get(aiId))
           .filter((ai): ai is OrchestratorAIService => Boolean(ai)),
+      getChatAssistantInfo: (roomId) => this.getChatAssistantInfo(roomId),
       isVerbose: () => this.verboseContextLogging,
     });
 
@@ -426,6 +436,7 @@ export class ChatOrchestrator extends EventEmitter {
       context,
       isUserResponse,
       this.aiServices,
+      { chatAssistant: this.getChatAssistantInfo(DEFAULT_ROOM_ID) },
     );
   }
 
@@ -473,6 +484,28 @@ export class ChatOrchestrator extends EventEmitter {
     } else {
       this.heldRooms.delete(room);
     }
+  }
+
+  /**
+   * Tell the room AIs' prompts whether @Chat can answer. The orchestrator
+   * doesn't run @Chat itself, so the server sets this once its assistant
+   * starts (or clears it if that fails); until then prompts leave @Chat out.
+   */
+  setChatAssistant(info: { canFileIssues: boolean } | null): void {
+    this.chatAssistant = info;
+  }
+
+  /**
+   * @Chat answers in private rooms too, but never files issues there: an
+   * issue would publish the private chat.
+   */
+  getChatAssistantInfo(roomId?: string): ChatAssistantPromptInfo {
+    if (!this.chatAssistant) return { available: false };
+    return {
+      available: true,
+      canFileIssues:
+        this.chatAssistant.canFileIssues && !isPrivateRoomId(roomId),
+    };
   }
 
   getRoomAIStatus(roomId?: string): RoomAIStatus {

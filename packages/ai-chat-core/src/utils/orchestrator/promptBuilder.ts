@@ -8,6 +8,16 @@ import {
 } from "./aiLookup.js";
 import { buildRosterSection, findPostedAIIds } from "./roster.js";
 
+/**
+ * Whether @Chat can answer in this room. Unset means unavailable, so a caller
+ * that runs no @Chat (the CLI, tests) never advertises one.
+ */
+export type ChatAssistantPromptInfo = {
+  available: boolean;
+  /** False in private rooms, where @Chat won't quote the chat in an issue. */
+  canFileIssues?: boolean;
+};
+
 type SystemPromptOptions = {
   /** One-liners of messages that scrolled out of the context window. */
   conversationDigest?: string;
@@ -21,6 +31,8 @@ type SystemPromptOptions = {
    * `aiServices`; a room scoped to a subset passes just those.
    */
   roomAIs?: OrchestratorAIService[];
+  /** Adds the @Chat section when @Chat can answer in this room. */
+  chatAssistant?: ChatAssistantPromptInfo;
 };
 
 export const createEnhancedSystemPrompt = (
@@ -32,11 +44,12 @@ export const createEnhancedSystemPrompt = (
     conversationDigest = "",
     digestSpeakers = [],
     roomAIs,
+    chatAssistant,
   }: SystemPromptOptions = {},
 ) => {
   const selfName = getAIDisplayName(aiService) || aiService.name;
   const selfHandle = getMentionTokenForAI(aiService);
-  let prompt = `You are ${selfName}${selfHandle ? ` (@${selfHandle})` : ""}, an AI participating in a dynamic group chat. `;
+  let prompt = `${SYSTEM_PROMPT.ROLE(selfName, selfHandle)} `;
 
   if (isUserResponse) {
     prompt += `${SYSTEM_PROMPT.INTRO_USER_RESPONSE} `;
@@ -45,6 +58,12 @@ export const createEnhancedSystemPrompt = (
   }
 
   prompt += SYSTEM_PROMPT.GUIDELINES;
+
+  // Only where @Chat can actually answer, so models don't ask into the void
+  if (chatAssistant?.available) {
+    prompt += `
+${SYSTEM_PROMPT.CHAT_ASSISTANT(chatAssistant.canFileIssues ?? false)}`;
+  }
 
   prompt += `
 

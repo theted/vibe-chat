@@ -77,14 +77,20 @@ const startServer = async (): Promise<void> => {
 
     let chatAssistantService: ChatAssistantService | null = null;
     try {
-      chatAssistantService = new ChatAssistantService();
-      chatAssistantService
+      const assistant = new ChatAssistantService();
+      chatAssistantService = assistant;
+      assistant
         .initialise()
         .then(() => {
           console.log("💬 Chat assistant enabled for @Chat mentions.");
+          // Room AIs' prompts mention @Chat only once it can answer
+          orchestrator.setChatAssistant({
+            canFileIssues: assistant.canFileIssues,
+          });
           return true;
         })
         .catch((error) => {
+          orchestrator.setChatAssistant(null);
           console.warn(
             `⚠️  Chat assistant disabled: ${
               error.message || "initialisation failed"

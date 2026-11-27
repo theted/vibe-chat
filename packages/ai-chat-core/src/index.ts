@@ -98,7 +98,10 @@ export {
 export { fetchOpenRouterModels } from "./utils/openrouterUtils.js";
 
 // Orchestrator utilities (for CLI/consumer usage)
-export { createEnhancedSystemPrompt } from "./utils/orchestrator/promptBuilder.js";
+export {
+  createEnhancedSystemPrompt,
+  type ChatAssistantPromptInfo,
+} from "./utils/orchestrator/promptBuilder.js";
 export { replaceLongDashes } from "./utils/orchestrator/dashes.js";
 
 // Orchestrator components

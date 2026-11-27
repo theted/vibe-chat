@@ -329,6 +329,8 @@ export class CLIOrchestratorAdapter {
         context,
         true, // isUserResponse
         this.orchestrator.aiServices,
+        // The CLI runs no @Chat, so the prompt must not offer one
+        { chatAssistant: { available: false } },
       );
     } else {
       // Fallback system prompt
