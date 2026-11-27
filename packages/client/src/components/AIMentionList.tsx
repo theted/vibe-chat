@@ -94,7 +94,7 @@ const AIMentionList = ({
                   @{ai.name}
                 </span>
                 <span className="block truncate text-xs text-faint">
-                  {ai.displayName}, {ai.provider}
+                  {ai.description ?? `${ai.displayName}, ${ai.provider}`}
                 </span>
               </span>
               <button

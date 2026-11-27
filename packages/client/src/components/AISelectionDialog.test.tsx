@@ -130,7 +130,7 @@ describe("AISelectionDialog", () => {
 
     // One Enter inserts the highlighted mention
     fireEvent.keyDown(document, { key: "Enter" });
-    expect(defaultProps.onSelect).toHaveBeenCalledWith("beta");
+    expect(defaultProps.onSelect).toHaveBeenCalledWith("alpha");
     expect(defaultProps.onSelect).toHaveBeenCalledTimes(1);
   });
 

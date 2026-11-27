@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { normalizeAliasKey } from "@/utils/ai";
-import { computeScore, fuzzyMatch, type MentionOption } from "./aiSearch";
+import {
+  computeScore,
+  fuzzyMatch,
+  rankMentionOptions,
+  toMentionOption,
+  type MentionOption,
+} from "./aiSearch";
 
 /**
  * Options carry pre-normalized search fields, so the fixture derives them the
@@ -83,5 +89,50 @@ describe("computeScore", () => {
     // and so are "@glm-5.3" and "@glm 5.3"
     expect(score("glm-5.3", zai)).toBe(0);
     expect(score("glm 5.3", zai)).toBe(0);
+  });
+});
+
+describe("toMentionOption", () => {
+  it("inserts the alias, shows the name, and keeps description/pin", () => {
+    const chat = toMentionOption({
+      id: "chat_id",
+      name: "Chat assistant",
+      alias: "Chat",
+      description: "Ask about the code",
+      isPinned: true,
+    });
+    expect(chat.name).toBe("Chat");
+    expect(chat.displayName).toBe("Chat assistant");
+    expect(chat.description).toBe("Ask about the code");
+    expect(chat.isPinned).toBe(true);
+    expect(chat.search.alias).toBe("chat");
+  });
+
+  it("leaves description and pin off ordinary models", () => {
+    const model = toMentionOption({ id: "X", name: "gpt-4" });
+    expect(model).not.toHaveProperty("description");
+    expect(model).not.toHaveProperty("isPinned");
+    expect(model.name).toBe("gpt-4");
+  });
+});
+
+describe("rankMentionOptions", () => {
+  const pinned = toMentionOption({ id: "P", alias: "zeta", isPinned: true });
+  const alpha = toMentionOption({ id: "A", alias: "alpha" });
+  const zebra = toMentionOption({ id: "Z", alias: "zebra" });
+  const ids = (term: string) =>
+    rankMentionOptions([alpha, zebra, pinned], normalizeAliasKey(term)).map(
+      ({ id }) => id,
+    );
+
+  it("puts a pinned option first when scores tie", () => {
+    expect(ids("")).toEqual(["P", "A", "Z"]);
+    expect(ids("ze")).toEqual(["P", "Z"]);
+  });
+
+  it("never lifts a pinned option over a better match", () => {
+    expect(ids("zeb")).toEqual(["Z"]);
+    // "a" is an alias prefix of alpha but only a substring of zeta
+    expect(ids("a")[0]).toBe("A");
   });
 });

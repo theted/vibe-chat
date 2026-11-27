@@ -9,6 +9,21 @@
  * branches and the keyword branches disagree about the same query.
  */
 
+import { normalizeAliasKey } from "@/utils/ai";
+
+/** Raw shape a mention target is built from (a participant or extra entry). */
+export interface MentionSource {
+  id: string;
+  name?: string;
+  alias?: string;
+  provider?: string;
+  emoji?: string;
+  /** Shown in place of "name, provider" for targets that aren't models. */
+  description?: string;
+  /** Pinned targets win ties, so with an empty term they head the list. */
+  isPinned?: boolean;
+}
+
 export interface MentionOption {
   id: string;
   name: string;
@@ -22,8 +37,39 @@ export interface MentionOption {
     provider: string;
   };
   keywords: string[];
+  description?: string;
+  isPinned?: boolean;
   score?: number;
 }
+
+/** Builds a dialog option, pre-normalizing everything search compares. */
+export const toMentionOption = (source: MentionSource): MentionOption => {
+  const { id, name, provider, description, isPinned } = source;
+  const alias = source.alias || name || id;
+  const displayName = name || alias;
+
+  return {
+    id,
+    name: alias,
+    displayName,
+    provider: provider || "AI",
+    emoji: source.emoji || "🤖",
+    search: {
+      alias: normalizeAliasKey(alias),
+      displayName: normalizeAliasKey(displayName),
+      provider: normalizeAliasKey(provider),
+    },
+    keywords: Array.from(
+      new Set(
+        [alias, name, provider, id, displayName]
+          .map((value) => normalizeAliasKey(value))
+          .filter(Boolean),
+      ),
+    ),
+    ...(description ? { description } : {}),
+    ...(isPinned ? { isPinned } : {}),
+  };
+};
 
 /** Subsequence match: every char of term appears in order in candidate. */
 export const fuzzyMatch = (term: string, candidate: string): boolean => {
@@ -49,3 +95,23 @@ export const computeScore = (term: string, option: MentionOption): number => {
   if (option.keywords.some((k) => fuzzyMatch(term, k))) return 3;
   return Number.POSITIVE_INFINITY;
 };
+
+/**
+ * Matching options, best first. A pinned option only wins ties: it heads the
+ * unfiltered list and any prefix it matches, but never outranks a better match
+ * (a fuzzy hit on @Chat stays below an exact model prefix).
+ * `term` must already be normalized with normalizeAliasKey.
+ */
+export const rankMentionOptions = (
+  options: MentionOption[],
+  term: string,
+): MentionOption[] =>
+  options
+    .map((option) => ({ ...option, score: computeScore(term, option) }))
+    .filter((option) => option.score < Number.POSITIVE_INFINITY)
+    .sort(
+      (a, b) =>
+        a.score - b.score ||
+        Number(Boolean(b.isPinned)) - Number(Boolean(a.isPinned)) ||
+        a.displayName.localeCompare(b.displayName),
+    );
