@@ -68,6 +68,10 @@ const fromPerson = (content: string, mentionsNormalized: string[] = []) => ({
   mentionsNormalized,
 });
 
+// Friday 2026-11-27 20:15 UTC
+const NOW = Date.UTC(2026, 10, 27, 20, 15);
+const MINUTE_MS = 60_000;
+
 describe("buildTranscript", () => {
   const context: ContextMessage[] = [
     fromAI(claude, "I said this earlier."),
@@ -97,14 +101,17 @@ describe("buildTranscript", () => {
 
     expect(transcript[0].role).toBe("user");
     expect(transcript.at(-1)?.role).toBe("user");
-    expect(transcript.at(-1)?.content.endsWith("NOTE")).toBe(true);
+    expect(transcript.at(-1)?.content).toMatch(/NOTE\nCurrent time: .+\.$/);
   });
 
   it("adds a user turn for the note when the model spoke last", () => {
-    const transcript = buildTranscript(gemini, context, "NOTE");
+    const transcript = buildTranscript(gemini, context, "NOTE", NOW);
 
     expect(transcript.at(-2)?.role).toBe("assistant");
-    expect(transcript.at(-1)).toEqual({ role: "user", content: "NOTE" });
+    expect(transcript.at(-1)).toEqual({
+      role: "user",
+      content: "NOTE\nCurrent time: Friday 2026-11-27 20:15 UTC.",
+    });
   });
 
   it("never shows another AI's message as the model's own", () => {
@@ -115,12 +122,66 @@ describe("buildTranscript", () => {
   });
 });
 
+describe("buildTranscript timestamps", () => {
+  const at = (message: ContextMessage, timestamp: number): ContextMessage => ({
+    ...message,
+    timestamp,
+  });
+
+  it("labels each message with its send time, and the date when the day changes", () => {
+    const context = [
+      at(fromPerson("Late night thought."), Date.UTC(2026, 10, 26, 23, 50)),
+      at(fromAI(gpt, "Still up?"), Date.UTC(2026, 10, 26, 23, 58)),
+      at(fromAI(gemini, "Morning."), Date.UTC(2026, 10, 27, 8, 4)),
+      at(fromPerson("Back again."), NOW - 2 * MINUTE_MS),
+    ];
+    const [turn] = buildTranscript(claude, context, "NOTE", NOW);
+
+    expect(turn.content).toContain(
+      "[#1 Ada (human), 2026-11-26 23:50] Late night thought.",
+    );
+    expect(turn.content).toContain("[#2 GPT, 23:58] Still up?");
+    expect(turn.content).toContain("[#3 Gemini, 2026-11-27 08:04] Morning.");
+    expect(turn.content).toContain("[#4 Ada (human), 20:13] Back again.");
+    expect(turn.content).toContain(
+      "Current time: Friday 2026-11-27 20:15 UTC.",
+    );
+  });
+
+  it("keeps the time ahead of a quote-reply's target", () => {
+    const quoted = at(fromAI(gpt, "Tabs, obviously."), NOW - 5 * MINUTE_MS);
+    const reply = {
+      ...at(fromPerson("No way."), NOW - MINUTE_MS),
+      replyToMessageId: quoted.id,
+    };
+    const [turn] = buildTranscript(claude, [quoted, reply], "NOTE", NOW);
+
+    expect(turn.content).toContain(
+      "[#2 Ada (human), 20:14, replying to #1 GPT] No way.",
+    );
+  });
+
+  it("leaves the model's own turns and untimed messages without a time", () => {
+    const context = [
+      at(fromAI(claude, "Mine."), NOW - MINUTE_MS),
+      fromPerson("No timestamp here."),
+    ];
+    const transcript = buildTranscript(claude, context, "NOTE", NOW);
+
+    expect(transcript[1]).toEqual({ role: "assistant", content: "Mine." });
+    expect(transcript[2].content).toContain(
+      "[#2 Ada (human)] No timestamp here.",
+    );
+  });
+});
+
 describe("stripOwnSpeakerLabel", () => {
   it.each([
     ["[Claude] Good point.", "Good point."],
     ["[Claude]: Good point.", "Good point."],
     ["Claude: Good point.", "Good point."],
     ["@claude: Good point.", "Good point."],
+    ["[#7 Claude, 20:03] Good point.", "Good point."],
   ])("drops the copied label from %p", (input, expected) => {
     expect(stripOwnSpeakerLabel(input, claude)).toBe(expected);
   });

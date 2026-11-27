@@ -191,6 +191,14 @@ export const TRANSCRIPT = {
   TURN_HEADER: "---\nNote from the chat app (only you see this):",
   NO_LABEL_REMINDER:
     "Write only your chat message itself - no [Name] label, and don't speak for anyone else.",
+  // Appended to the turn note so the model can tell how long ago things were said
+  CURRENT_TIME: (now: string) => `Current time: ${now}.`,
+} as const;
+
+// Send times in the transcript (issue #295). One fixed zone so every model
+// and every room reads the same clock; the label names it explicitly.
+export const TRANSCRIPT_TIME = {
+  ZONE: "UTC",
 } as const;
 
 // System prompt templates - easily configurable conversation guidelines
@@ -223,11 +231,11 @@ Key guidelines:
 
   // Explains the labelled transcript format (see TRANSCRIPT)
   TRANSCRIPT_FORMAT:
-    "How to read the chat: each message from someone else starts with its number and speaker's name in square brackets, e.g. [#12 Claude] or [#13 Ada (human)]. A quote-reply also says which message it answers, e.g. [#14 Ada (human), replying to #12 Claude]. Your own earlier messages are your previous turns. Pay attention to who said what, and answer the person you are replying to - not whoever spoke last.",
+    "How to read the chat: each message from someone else starts with its number, speaker's name and send time (UTC) in square brackets, e.g. [#12 Claude, 2026-11-27 20:03] or [#13 Ada (human), 20:05]; the date is shown when the day changes. A quote-reply also says which message it answers, e.g. [#14 Ada (human), 20:06, replying to #12 Claude]. The current time is given in the note at the end, so you can tell what was said just now and what was said a long while ago. Your own earlier messages are your previous turns. Pay attention to who said what, and answer the person you are replying to - not whoever spoke last.",
 
   // Header for the rolling digest of messages evicted from the context window
   DIGEST_HEADER:
-    "Earlier in this conversation (older messages, one line each - you can reference these but don't quote them verbatim):",
+    "Earlier in this conversation (older messages, one line each with its send time in UTC - you can reference these but don't quote them verbatim):",
 
   // Closing message
   CLOSING: "Respond naturally and keep the conversation flowing!",

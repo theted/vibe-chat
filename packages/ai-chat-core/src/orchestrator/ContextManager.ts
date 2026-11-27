@@ -10,6 +10,7 @@ import {
 import { normalizeRoomId } from "@ai-chat/ai-configs";
 import { CONVERSATION_DIGEST } from "./constants.js";
 import { excerptForQuote } from "@/utils/orchestrator/responseUtils.js";
+import { formatDateTime } from "@/utils/orchestrator/timestamps.js";
 import { normalizeAlias, parseMentions } from "@/utils/stringUtils.js";
 
 export class ContextManager implements IContextManager {
@@ -138,7 +139,9 @@ export class ContextManager implements IContextManager {
 
     const room = normalizeRoomId(message.roomId);
     const digest = this.digestsByRoom.get(room) ?? [];
-    digest.push(`${speaker}: ${excerpt}`);
+    // The send time is what tells a model this line is old news
+    const sentAt = formatDateTime(message.timestamp);
+    digest.push(`${sentAt ? `[${sentAt}] ` : ""}${speaker}: ${excerpt}`);
     if (digest.length > CONVERSATION_DIGEST.MAX_ENTRIES) {
       digest.shift();
     }
