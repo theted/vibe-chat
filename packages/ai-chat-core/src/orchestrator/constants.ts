@@ -175,6 +175,16 @@ export const REOPENING = {
   MAX_DELAY_MS: 15000, // ...the room is already quiet
 } as const;
 
+// Dead-air recovery (issue #311): when a person's message gets no AI reply at
+// all (the mentioned model failed or timed out, a handle matched nobody, or
+// nobody picked it up), @Chat hands it to one AI. It only fires once nothing
+// is queued, generating or held for the room, so busy rooms never see it.
+export const UNANSWERED = {
+  QUIET_MS: 60_000, // How long a person's message may go unanswered
+  RECHECK_MS: 10_000, // Look again this often while replies are still pending
+  ROOM_COOLDOWN_MS: 5 * 60_000, // At most one hand-off per room per window
+} as const;
+
 // How the room's history is shown to a model. Every message from someone
 // else is a user turn labelled with its speaker; the model's own earlier
 // messages are its assistant turns. Without labels a model sees every other

@@ -13,7 +13,10 @@ const ROOM_ID = "room-1";
  * The service's first answer stays pending until release() is called, so
  * the room is busy while a second question arrives.
  */
-const makeHandler = (answer = "It works like this.") => {
+const makeHandler = (
+  answer = "It works like this.",
+  { isChatEnabled = true } = {},
+) => {
   let release: () => void = () => undefined;
   const answerPending = new Promise<void>((resolve) => {
     release = resolve;
@@ -36,7 +39,14 @@ const makeHandler = (answer = "It works like this.") => {
     aiServices: new Map(),
     wasRoomClearedSince: (_roomId: string, since: number) =>
       clears.roomClearedAt >= since,
-    getMentionTokenForAI: () => null,
+    getMentionTokenForAI: (ai: { alias?: string } | null) => ai?.alias ?? null,
+    getAIDisplayName: (ai: { displayName?: string } | null) =>
+      ai?.displayName ?? "",
+    getReplyFields: (_roomId: string, messageId: string) => ({
+      replyToMessageId: messageId,
+      replyToSender: "Ada",
+      replyToExcerpt: "anyone?",
+    }),
     handleMessage: async (message: ChatMessage) => {
       posted.push(message);
     },
@@ -53,12 +63,12 @@ const makeHandler = (answer = "It works like this.") => {
   } as unknown as ChatOrchestrator;
 
   const handler = new ChatAssistantHandler({
-    chatAssistantService: service,
+    chatAssistantService: isChatEnabled ? service : null,
     chatOrchestrator: orchestrator,
     io: {} as Server,
     getRecentMessages: async () => [],
   });
-  return { handler, posted, release, heldRooms, budget, clears };
+  return { handler, posted, release, heldRooms, budget, clears, orchestrator };
 };
 
 describe("ChatAssistantHandler busy room", () => {
@@ -243,5 +253,80 @@ describe("ChatAssistantHandler issue context", () => {
       canFileIssues: false,
       requesterType: "ai",
     });
+  });
+});
+
+describe("ChatAssistantHandler unanswered hand-off", () => {
+  const unanswered = {
+    roomId: ROOM_ID,
+    message: {
+      id: "ask-1",
+      displayName: "Ada",
+      senderType: "user" as const,
+      content: "anyone?",
+    },
+    reason: "no-takers" as const,
+    silentAIIds: [],
+    handoffAIId: "gemini",
+  };
+
+  const withGemini = (setup: ReturnType<typeof makeHandler>) => {
+    setup.orchestrator.aiServices.set("gemini", {
+      id: "gemini",
+      alias: "gemini",
+      displayName: "Gemini",
+    } as never);
+    return setup;
+  };
+
+  it("posts one @Chat line that quotes the message and summons the AI taking over", async () => {
+    const { handler, posted } = withGemini(makeHandler());
+
+    await handler.handOffUnanswered(unanswered);
+
+    expect(posted).toHaveLength(1);
+    expect(posted[0]).toMatchObject({
+      senderType: "ai",
+      displayName: "Chat",
+      replyToMessageId: "ask-1",
+      content:
+        "Nobody has picked up Ada's message yet. @gemini, could you take it?",
+    });
+  });
+
+  it("stays quiet when @Chat is off on this server", async () => {
+    const { handler, posted } = withGemini(
+      makeHandler(undefined, { isChatEnabled: false }),
+    );
+
+    await handler.handOffUnanswered(unanswered);
+
+    expect(posted).toHaveLength(0);
+  });
+
+  it("stays quiet while @Chat is already answering in the room", async () => {
+    const { handler, posted, release } = withGemini(makeHandler());
+    const answering = handler.trigger({
+      roomId: ROOM_ID,
+      content: "@Chat how?",
+      origin: { type: "user", username: "alice" },
+    });
+
+    await handler.handOffUnanswered(unanswered);
+    release();
+    await answering;
+
+    expect(posted.map((message) => message.content)).not.toContain(
+      "Nobody has picked up Ada's message yet. @gemini, could you take it?",
+    );
+  });
+
+  it("respects the room's AI message limit", async () => {
+    const { handler, posted, budget } = withGemini(makeHandler());
+    budget.remaining = 0;
+
+    await handler.handOffUnanswered(unanswered);
+
+    expect(posted).toHaveLength(0);
   });
 });

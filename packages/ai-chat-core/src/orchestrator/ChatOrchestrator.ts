@@ -16,6 +16,7 @@ import { RoomScope } from "./RoomScope.js";
 import { ResponseScheduler } from "./ResponseScheduler.js";
 import { ResponseGenerator } from "./ResponseGenerator.js";
 import { BackgroundConversationLoop } from "./BackgroundConversationLoop.js";
+import { UnansweredWatch } from "./UnansweredWatch.js";
 import { DEFAULTS } from "./constants.js";
 import type { ContextMessage } from "@/types/orchestrator.js";
 import {
@@ -32,6 +33,7 @@ import {
   type ReplyFields,
 } from "@/utils/orchestrator/quoteReplies.js";
 import { determineInteractionStrategy } from "@/utils/orchestrator/strategyUtils.js";
+import { describeUnanswered } from "@/utils/orchestrator/unanswered.js";
 import { getEnvFlag, parseBooleanEnvFlag } from "@/utils/stringUtils.js";
 
 type ChatOrchestratorOptions = {
@@ -45,6 +47,13 @@ type ChatOrchestratorOptions = {
   minDelayBetweenAI?: number;
   maxDelayBetweenAI?: number;
   verboseContextLogging?: boolean;
+  /**
+   * How long a person's message may go unanswered before "message-unanswered"
+   * fires (see UnansweredWatch). 0 turns it off; defaults to UNANSWERED.QUIET_MS.
+   */
+  unansweredQuietMs?: number;
+  /** How often to look again while replies are pending (UNANSWERED.RECHECK_MS). */
+  unansweredRecheckMs?: number;
 };
 
 /**
@@ -72,6 +81,7 @@ export class ChatOrchestrator extends EventEmitter {
   private promptLog = new PromptLog();
   /** Rooms waiting for an outside responder (@Chat) to post its answer. */
   private heldRooms = new Set<string>();
+  private unanswered: UnansweredWatch;
 
   constructor(options: ChatOrchestratorOptions = {}) {
     super();
@@ -158,6 +168,14 @@ export class ChatOrchestrator extends EventEmitter {
         minDelayBetweenAI: this.minDelayBetweenAI,
         maxDelayBetweenAI: this.maxDelayBetweenAI,
       }),
+    });
+
+    this.unanswered = new UnansweredWatch({
+      quietMs: options.unansweredQuietMs,
+      recheckMs: options.unansweredRecheckMs,
+      isBusy: (roomId) => this.isRoomBusy(roomId),
+      canSpeak: (roomId) => this.streak.canSpeak(roomId),
+      onUnanswered: (roomId, message) => this.reportUnanswered(roomId, message),
     });
 
     // Background chatter only ever happens in the shared default room
@@ -253,6 +271,7 @@ export class ChatOrchestrator extends EventEmitter {
   ) {
     const roomId = normalizeRoomId(message.roomId);
     this.streak.recordHumanMessage(roomId);
+    this.unanswered.watch(roomId, message);
     if (!this.backgroundLoop.isRunning) {
       this.startBackgroundConversation();
     }
@@ -275,10 +294,41 @@ export class ChatOrchestrator extends EventEmitter {
   /** An AI posted: whoever it @mentioned answers it. */
   private handleAIMessage(message: ContextMessage) {
     const roomId = normalizeRoomId(message.roomId);
+    this.unanswered.markAnswered(roomId);
     if (roomId === DEFAULT_ROOM_ID) {
       this.lastAIMessageTime = Date.now();
     }
     this.scheduler.scheduleMentionReplies(roomId, message);
+  }
+
+  /**
+   * Whether a reply may still be on its way: queued, generating, "typing"
+   * (an AI keeps isGenerating through the typing hold, after its queue slot
+   * is freed), waiting in the broker, or held for @Chat. A room AI busy in
+   * another room counts too; that only delays the check.
+   */
+  private isRoomBusy(roomId: string): boolean {
+    if (this.heldRooms.has(roomId)) return true;
+    if (this.responseQueue.countForRoom(roomId) > 0) return true;
+    if (this.messageBroker.getQueueStatus().queueLength > 0) return true;
+    return this.filterAIsForRoom(roomId, this.activeAIs).some(
+      (aiId) => this.aiServices.get(aiId)?.isGenerating,
+    );
+  }
+
+  /**
+   * Nobody answered a person's message: tell the server who to hand it to.
+   * Emits "message-unanswered" with an UnansweredMessage.
+   */
+  private reportUnanswered(roomId: string, message: ContextMessage) {
+    const roomAIs = this.filterAIsForRoom(roomId, this.activeAIs)
+      .map((aiId) => this.aiServices.get(aiId))
+      .filter((ai): ai is OrchestratorAIService => Boolean(ai?.isActive));
+    const unanswered = describeUnanswered(roomId, message, roomAIs);
+    console.info(
+      `[Orchestrator] Message ${message.id ?? "(no id)"} in ${roomId} went unanswered (${unanswered.reason}); handing it to ${unanswered.handoffAIId ?? "nobody"}.`,
+    );
+    this.emit("message-unanswered", unanswered);
   }
 
   /** Schedule a round of replies to the room's latest message. */
@@ -461,6 +511,7 @@ export class ChatOrchestrator extends EventEmitter {
   clearRoom(roomId?: string): void {
     const room = normalizeRoomId(roomId);
     this.contextManager.clearRoom(room);
+    this.unanswered.clearRoom(room);
     this.responseQueue.removeWhere((response) => response.roomId === room);
     this.promptLog.clearRoom(room);
     if (room === DEFAULT_ROOM_ID) {
@@ -565,5 +616,6 @@ export class ChatOrchestrator extends EventEmitter {
     this.responseQueue.clear();
     this.streak.clear();
     this.heldRooms.clear();
+    this.unanswered.clear();
   }
 }
