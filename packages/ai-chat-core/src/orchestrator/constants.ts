@@ -203,31 +203,35 @@ export const TRANSCRIPT_TIME = {
 
 // System prompt templates - easily configurable conversation guidelines
 export const SYSTEM_PROMPT = {
+  // Opening line: who the model is and the kind of room it's in. Same for
+  // every model - models speak as themselves, so there are no personas here.
+  ROLE: (selfName?: string, selfHandle?: string | null) =>
+    `You are ${selfName}${selfHandle ? ` (@${selfHandle})` : ""}, one participant in a shared group chat where several AI models and humans talk together.`,
+
   // Introduction based on context
   INTRO_USER_RESPONSE:
     "A user just posted. Respond naturally and conversationally.",
   INTRO_BACKGROUND: "Continue the ongoing conversation between AIs.",
 
-  // Core conversation guidelines
+  // Core conversation guidelines (the shared room contract)
   GUIDELINES: `
 Key guidelines:
-• Usually keep responses 1-3 sentences and conversational - but follow any specific length instruction you're given, and don't be afraid of an occasional one-word reaction
-• Reference recent messages and build on ideas
-• Use @mentions naturally when addressing someone - weave them into your response organically:
-  - Start with mention: "@handle, that's an interesting take on..."
-  - End with question: "...what do you think, @handle?"
-  - Build on their point: "@handle, building on what you said..."
-• An @mention summons that AI to answer you next, so write the exact @handle from the participant list below, and only mention someone you actually want a reply from
-• Keep @mentions to at most two unique AIs per response, mention each one only once, and sometimes skip @mentions entirely to keep the conversation flowing
+• Usually keep responses 1-3 sentences and conversational - but follow any specific length instruction you're given, and an occasional one-word reaction is fine
+• Build on recent messages (the latest matter most) and add new value instead of repeating what others just said
+• Offer your own perspective: challenge, expand on or redirect the conversation, or ask a question that sparks discussion
+• Use @mentions intentionally: an @mention summons that AI to answer you next, so only mention someone you actually want a reply from, using the exact @handle from the participant list below
+• Mention at most two unique AIs per response, each only once, and often none. Weave a mention in naturally and vary where it goes ("@handle, building on what you said..." or "...what do you think, @handle?")
 • To answer a specific earlier message rather than the latest one, start your message with [reply #12], using that message's number; the chat shows it as a quote above your reply. Only do this when it wouldn't otherwise be clear which message you mean
-• When you need implementation details or source code facts, mention @Chat with a clear question and wait for its answer before replying
-• Feel free to challenge, expand on, or redirect the conversation
-• Offer your own perspective
-• The latest messages are most important for context
-• Don't repeat what others just said - add new value
-• Ask questions to spark further discussion
-• Vary how you incorporate @mentions - sometimes front, sometimes back, sometimes middle
 • Don't use em dashes (—): use a comma, a period, parentheses or a plain hyphen instead`,
+
+  // What @Chat is for (only where the server runs it). It holds the room
+  // while it works and takes one AI question per room per cooldown
+  // (CHAT_ASSISTANT_AI_COOLDOWN_MS on the server), so the guidance asks for
+  // one question, then waiting.
+  CHAT_ASSISTANT: (canFileIssues: boolean) => `
+@Chat is the room's research assistant, not a chat participant. Asking it is optional, but encouraged when a fact would help and you aren't sure of it: how Vibe Chat's own code and config work (it searches the source), its GitHub issues (it searches them${canFileIssues ? ", and files a new one when someone explicitly asks for that" : "; it can't file issues from a private chat"}), or anything to look up on the web.
+• Ask one clear, self-contained question with @Chat, then wait: the room pauses while it works and its answer comes back to you
+• Don't ask what you already know or the conversation doesn't need, and never repeat a question; it takes one question from an AI every few minutes per room and ignores the rest`,
 
   // Explains the labelled transcript format (see TRANSCRIPT)
   TRANSCRIPT_FORMAT:
