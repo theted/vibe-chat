@@ -6,6 +6,7 @@ import {
   EMBEDDING_PROVIDERS,
   type EmbeddingProviderName,
 } from "./config/embeddingProviders.js";
+import { toEmbeddingProviderError } from "./embeddingErrors.js";
 
 export type Embedder = {
   /** "<provider>/<model>" - stored with the index so a provider switch forces a rebuild */
@@ -48,14 +49,18 @@ export const createEmbedder = (
   return {
     id: `${providerName}/${provider.model}`,
     embed: async (texts) => {
-      const response = await client.embeddings.create({
-        model: provider.model,
-        input: texts,
-        // Must be explicit: unset, the SDK asks for base64 and decodes it
-        // itself. Mistral ignores that and sends floats, which the SDK then
-        // "decodes" into short all-zero vectors without any error.
-        encoding_format: "float",
-      });
+      const response = await client.embeddings
+        .create({
+          model: provider.model,
+          input: texts,
+          // Must be explicit: unset, the SDK asks for base64 and decodes it
+          // itself. Mistral ignores that and sends floats, which the SDK then
+          // "decodes" into short all-zero vectors without any error.
+          encoding_format: "float",
+        })
+        .catch((error: unknown) => {
+          throw toEmbeddingProviderError(providerName, error);
+        });
       // Providers may reorder; `index` maps each vector back to its input
       const vectors = [...response.data]
         .sort((a, b) => a.index - b.index)
