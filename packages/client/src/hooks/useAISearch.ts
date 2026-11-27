@@ -1,46 +1,36 @@
 /**
  * useAISearch — builds the mention candidate list from the AI participants
- * that can actually answer, and ranks it against the current search term.
+ * that can actually answer (plus the @Chat assistant), and ranks it against
+ * the current search term.
  */
 
 import { useMemo } from "react";
 import { normalizeAliasKey } from "@/utils/ai";
-import { computeScore, type MentionOption } from "@/utils/aiSearch";
+import {
+  rankMentionOptions,
+  toMentionOption,
+  type MentionOption,
+} from "@/utils/aiSearch";
 import { getActiveParticipants } from "@/config/aiParticipants";
+import { CHAT_ASSISTANT_MENTION } from "@/config/chatAssistantMention";
 import { EXTRA_AI_PARTICIPANTS } from "@/config/extraAiParticipants";
 
 export const useAISearch = (searchTerm = "") => {
-  const mentionOptions = useMemo<MentionOption[]>(() => {
-    // Parked models never load on the server, so offering one to mention is a
-    // message nobody answers. EXTRA_AI_PARTICIPANTS are generic aliases that
-    // resolve to an active model, so they carry no status of their own.
-    const combined = [...getActiveParticipants(), ...EXTRA_AI_PARTICIPANTS];
-
-    return combined.map((ai) => {
-      const alias = ai.alias || ai.name;
-      const displayName = ai.name || alias || ai.id;
-
-      return {
-        id: ai.id,
-        name: alias,
-        displayName,
-        provider: ai.provider || "AI",
-        emoji: ai.emoji || "🤖",
-        search: {
-          alias: normalizeAliasKey(alias),
-          displayName: normalizeAliasKey(displayName),
-          provider: normalizeAliasKey(ai.provider),
-        },
-        keywords: Array.from(
-          new Set(
-            [alias, ai.name, ai.provider, ai.id, displayName]
-              .map((value) => normalizeAliasKey(value))
-              .filter(Boolean),
-          ),
-        ),
-      };
-    });
-  }, []);
+  const mentionOptions = useMemo<MentionOption[]>(
+    () =>
+      // Parked models never load on the server, so offering one to mention is
+      // a message nobody answers. EXTRA_AI_PARTICIPANTS are generic aliases
+      // that resolve to an active model, so they carry no status of their own.
+      // @Chat is always offered: the client has no cheap way to learn whether
+      // the server initialised it, and when it didn't the mention just falls
+      // through to the other AIs instead of going unanswered.
+      [
+        CHAT_ASSISTANT_MENTION,
+        ...getActiveParticipants(),
+        ...EXTRA_AI_PARTICIPANTS,
+      ].map(toMentionOption),
+    [],
+  );
 
   /** What the user typed — for display, and for "is this still a mention?". */
   const normalizedTerm = searchTerm?.trim().toLowerCase() || "";
@@ -48,18 +38,7 @@ export const useAISearch = (searchTerm = "") => {
   const searchKey = normalizeAliasKey(normalizedTerm);
 
   const filteredAIs = useMemo(
-    () =>
-      mentionOptions
-        .map((option) => ({
-          ...option,
-          score: computeScore(searchKey, option),
-        }))
-        .filter((option) => option.score < Number.POSITIVE_INFINITY)
-        .sort((a, b) =>
-          a.score !== b.score
-            ? a.score - b.score
-            : a.displayName.localeCompare(b.displayName),
-        ),
+    () => rankMentionOptions(mentionOptions, searchKey),
     [mentionOptions, searchKey],
   );
 

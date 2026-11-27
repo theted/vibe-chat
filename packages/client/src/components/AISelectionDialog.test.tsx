@@ -132,7 +132,7 @@ describe("AISelectionDialog", () => {
     fireEvent.keyDown(document, { key: "Enter" });
     expect(defaultProps.onSelect).not.toHaveBeenCalled();
     fireEvent.keyDown(document, { key: "Enter" });
-    expect(defaultProps.onSelect).toHaveBeenCalledWith("beta");
+    expect(defaultProps.onSelect).toHaveBeenCalledWith("alpha");
     expect(defaultProps.onSelect).toHaveBeenCalledTimes(1);
   });
 

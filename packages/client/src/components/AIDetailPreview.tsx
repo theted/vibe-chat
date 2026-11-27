@@ -53,6 +53,10 @@ const AIDetailPreview = ({ item, onBack, onConfirm }: AIDetailPreviewProps) => {
         </div>
       </div>
 
+      {item.description && (
+        <p className="mt-3 text-sm text-muted">{item.description}</p>
+      )}
+
       <button
         type="button"
         onClick={onConfirm}
