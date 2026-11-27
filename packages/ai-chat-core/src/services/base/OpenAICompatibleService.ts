@@ -12,6 +12,7 @@ import {
   DEFAULT_TEMPERATURE,
   DEFAULT_MAX_TOKENS,
 } from "@/config/aiProviders/constants.js";
+import { resolveServiceTimeout, runWithTimeout } from "@/utils/timeout.js";
 import {
   buildResponsesPayload,
   asResponsesClient,
@@ -179,7 +180,11 @@ export abstract class OpenAICompatibleService extends BaseAIService {
       reasoningEffort,
     });
 
-    const response = await asResponsesClient(client).responses.create(payload);
+    // Same bound as chat completions: without it a hung Responses call never
+    // settles and holds its response-queue slot for good
+    const response = await this.withRequestTimeout((signal) =>
+      asResponsesClient(client).responses.create(payload, { signal }),
+    );
     const content = extractTextFromResponses(response, this.name);
 
     return {
@@ -187,6 +192,19 @@ export abstract class OpenAICompatibleService extends BaseAIService {
       model: response?.model || this.getModel(),
       rawResponse: response,
     };
+  }
+
+  /**
+   * Bound one API request by the service's timeout. The signal is handed to
+   * the SDK so a timed-out request is aborted, not just abandoned.
+   */
+  protected withRequestTimeout<T>(
+    request: (signal: AbortSignal) => Promise<T>,
+  ): Promise<T> {
+    return runWithTimeout(request, {
+      timeoutMs: resolveServiceTimeout(this.config),
+      serviceName: this.name,
+    });
   }
 
   /**
@@ -203,26 +221,10 @@ export abstract class OpenAICompatibleService extends BaseAIService {
     }
 
     try {
-      const timeoutMs = this.config.timeout || 150_000;
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-
-      const response = await Promise.race([
-        this.client.chat.completions.create(params),
-        new Promise<never>((_, reject) => {
-          controller.signal.addEventListener("abort", () => {
-            reject(
-              new ServiceTimeoutError(
-                `Request timed out after ${timeoutMs}ms`,
-                this.name,
-                timeoutMs,
-              ),
-            );
-          });
-        }),
-      ]);
-
-      clearTimeout(timeoutId);
+      const client = this.client;
+      const response = await this.withRequestTimeout((signal) =>
+        client.chat.completions.create(params, { signal }),
+      );
       return response as OpenAICompletionResponse;
     } catch (error) {
       if (error instanceof ServiceTimeoutError) {
@@ -339,8 +341,9 @@ export abstract class OpenAICompatibleService extends BaseAIService {
         const url = this.getHealthCheckURL("/responses");
         this.logHealthCheckDetails("request", { url, payload });
         const client = ensureResponsesClient(this.client, this.name);
-        const response =
-          await asResponsesClient(client).responses.create(payload);
+        const response = await this.withRequestTimeout((signal) =>
+          asResponsesClient(client).responses.create(payload, { signal }),
+        );
         this.logHealthCheckDetails("response", { url, response });
 
         const content = extractTextFromResponses(response, this.name);

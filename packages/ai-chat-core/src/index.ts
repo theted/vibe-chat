@@ -105,6 +105,7 @@ export { replaceLongDashes } from "./utils/orchestrator/dashes.js";
 export { MessageBroker } from "./orchestrator/MessageBroker.js";
 export { ChatOrchestrator } from "./orchestrator/ChatOrchestrator.js";
 export { runWithConcurrencyLimit } from "./utils/concurrency.js";
+export { resolveServiceTimeout, runWithTimeout } from "./utils/timeout.js";
 export type { ModelInitResult } from "./orchestrator/AIRegistry.js";
 export type { RoomAIStatus } from "./orchestrator/AIStreakTracker.js";
 export type { PromptRecord } from "./orchestrator/PromptLog.js";

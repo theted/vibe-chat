@@ -30,6 +30,11 @@ export const PROVIDER_BASE_URLS = {
   ZAI: "https://api.z.ai/api/paas/v4",
 } as const;
 
+// Upper bound on one model call when the service config sets no `timeout`.
+// Generous because reasoning models can think for minutes, but finite so a
+// hung call cannot hold a response-queue slot forever.
+export const DEFAULT_SERVICE_TIMEOUT_MS = 150_000;
+
 export interface ConversationConfig {
   maxTurns: number;
   timeoutMs: number;
