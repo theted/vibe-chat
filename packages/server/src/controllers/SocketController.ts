@@ -1,5 +1,5 @@
 import type { Server, Socket } from "socket.io";
-import type { ChatOrchestrator } from "@ai-chat/core";
+import type { ChatOrchestrator, UnansweredMessage } from "@ai-chat/core";
 
 import { RoomManager } from "@/managers/RoomManager.js";
 import { RateLimiter } from "@/services/RateLimiter.js";
@@ -88,6 +88,10 @@ export class SocketController {
       chatOrchestrator,
       io,
       getRecentMessages: (roomId) => this.getRecentMessages(roomId),
+    });
+
+    chatOrchestrator.on("message-unanswered", (event: UnansweredMessage) => {
+      void this.chatAssistant.handOffUnanswered(event);
     });
 
     setupOrchestratorEventBridge({

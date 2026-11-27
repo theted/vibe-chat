@@ -107,6 +107,10 @@ export { replaceLongDashes } from "./utils/orchestrator/dashes.js";
 // Orchestrator components
 export { MessageBroker } from "./orchestrator/MessageBroker.js";
 export { ChatOrchestrator } from "./orchestrator/ChatOrchestrator.js";
+export type {
+  UnansweredMessage,
+  UnansweredReason,
+} from "./utils/orchestrator/unanswered.js";
 export { runWithConcurrencyLimit } from "./utils/concurrency.js";
 export { resolveServiceTimeout, runWithTimeout } from "./utils/timeout.js";
 export type { ModelInitResult } from "./orchestrator/AIRegistry.js";

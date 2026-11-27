@@ -106,6 +106,18 @@ AI logs a warning and degrades to an ordinary room.
 The client hides the feature behind `VITE_PRIVATE_CONVERSATIONS_ENABLED`
 (default on).
 
+## Unanswered messages
+
+If a person's message gets no AI reply within `UNANSWERED.QUIET_MS` (60 s),
+and nothing is queued, generating, typing or held for @Chat in the room,
+`UnansweredWatch` makes `ChatOrchestrator` emit `message-unanswered`. Typical
+causes: the mentioned model failed or timed out, a handle matched nobody, or
+nobody picked the message up. The server's `ChatAssistantHandler.handOffUnanswered`
+then has @Chat post one templated line (no model call) that quotes the message
+and @mentions the AI taking over. That mention is what schedules the AI's
+reply. Asleep rooms are left alone, and each room gets at most one hand-off
+per `ROOM_COOLDOWN_MS`.
+
 ## Slash commands
 
 Typed in the composer, run on the server for the sender's room, and never

@@ -3,7 +3,11 @@
  */
 
 import type { Server } from "socket.io";
-import { replaceLongDashes, type ChatOrchestrator } from "@ai-chat/core";
+import {
+  replaceLongDashes,
+  type ChatOrchestrator,
+  type UnansweredMessage,
+} from "@ai-chat/core";
 import { isPrivateRoomId } from "@ai-chat/ai-configs";
 import {
   CHAT_ASSISTANT_AI_COOLDOWN_MS,
@@ -11,6 +15,7 @@ import {
   CHAT_ASSISTANT_ISSUE_CONTEXT_MESSAGES,
 } from "@/config/serverConfig.js";
 import { describeError } from "@/utils/socketErrors.js";
+import { buildHandoffText } from "./unansweredHandoff.js";
 import type { ChatAssistantService } from "@/services/ChatAssistantService.js";
 import type {
   ChatAssistantMetadata,
@@ -189,6 +194,48 @@ export class ChatAssistantHandler {
     } finally {
       this.busyRooms.delete(roomId);
       this.chatOrchestrator.setRoomOnHold(roomId, false);
+    }
+  }
+
+  /**
+   * Nobody answered a person's message (issue #311): @Chat posts one short
+   * line, quoting it, that @mentions the AI taking over, and that mention is
+   * what schedules the AI's reply. Skipped when @Chat is off or already busy
+   * in the room, since then it isn't dead air.
+   */
+  async handOffUnanswered(event: UnansweredMessage): Promise<void> {
+    const { roomId, message, silentAIIds, handoffAIId } = event;
+    if (!this.chatAssistantService || !this.chatAssistantMetadata) return;
+    if (this.busyRooms.has(roomId)) return;
+
+    try {
+      const { aiServices } = this.chatOrchestrator;
+      const text = buildHandoffText(event, {
+        asker: message.displayName || message.sender,
+        silentNames: silentAIIds.map((aiId) =>
+          this.chatOrchestrator.getAIDisplayName(aiServices.get(aiId) ?? null),
+        ),
+        handoffHandle: handoffAIId
+          ? this.chatOrchestrator.getMentionTokenForAI(
+              aiServices.get(handoffAIId) ?? null,
+            )
+          : null,
+      });
+      const replyFields = message.id
+        ? this.chatOrchestrator.getReplyFields(roomId, message.id)
+        : null;
+      console.info(
+        `[ChatAssistant] Handing off unanswered message in ${roomId} (${event.reason}).`,
+      );
+      await this.post(
+        roomId,
+        this.buildMessage(roomId, text, {}, { ...replyFields }),
+      );
+    } catch (error) {
+      console.error(
+        `[ChatAssistant] Failed to hand off unanswered message in ${roomId}:`,
+        describeError(error),
+      );
     }
   }
 
