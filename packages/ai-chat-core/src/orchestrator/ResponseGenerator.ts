@@ -196,6 +196,7 @@ export class ResponseGenerator {
         aiServices,
         {
           conversationDigest: contextManager.getConversationDigest(roomId),
+          digestSpeakers: contextManager.getDigestSpeakers(roomId),
           roomAIs,
         },
       );
