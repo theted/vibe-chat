@@ -26,7 +26,12 @@ export type ResponsesResult = {
 };
 
 export type ResponsesClient = {
-  responses: { create: (payload: unknown) => Promise<ResponsesResult> };
+  responses: {
+    create: (
+      payload: unknown,
+      options?: { signal?: AbortSignal },
+    ) => Promise<ResponsesResult>;
+  };
 };
 
 export const asResponsesClient = (client: OpenAIClient): ResponsesClient =>

@@ -42,6 +42,7 @@ import {
   buildTranscript,
   stripOwnSpeakerLabel,
 } from "@/utils/orchestrator/transcript.js";
+import { resolveServiceTimeout, runWithTimeout } from "@/utils/timeout.js";
 
 type ResponseGeneratorDeps = {
   registry: AIRegistry;
@@ -211,7 +212,19 @@ export class ResponseGenerator {
 
       logAIContext(aiService, messages, this.deps.isVerbose());
 
-      const response = await aiService.service.generateResponse(messages);
+      // Bounded here rather than per provider so every path (SDKs without a
+      // timeout, the Responses API, custom clients) is covered: a call that
+      // never settles would otherwise skip the finally below and hold this
+      // room's queue slot forever. A reply arriving after the timeout is
+      // discarded with the abandoned promise, so it is never posted.
+      const { service } = aiService;
+      const response = await runWithTimeout(
+        () => service.generateResponse(messages),
+        {
+          timeoutMs: resolveServiceTimeout(service.config),
+          serviceName: aiService.name ?? aiId,
+        },
+      );
       const responseTimeMs = Date.now() - responseStartTime;
       aiService.lastMessageTime = Date.now();
 

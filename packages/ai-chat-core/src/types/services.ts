@@ -61,6 +61,7 @@ export interface OpenAIClient {
     completions: {
       create(
         params: OpenAICompletionRequest,
+        options?: { signal?: AbortSignal },
       ): Promise<OpenAICompletionResponse>;
     };
   };
