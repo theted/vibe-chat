@@ -131,6 +131,11 @@ export class ChatAssistantService {
     }
   }
 
+  /** False until initialised, or when no GITHUB_ISSUES_TOKEN is set. */
+  get canFileIssues(): boolean {
+    return Boolean(this.server?.issuesRepo);
+  }
+
   getMetadata(): ChatAssistantMetadata {
     return {
       sender: this.displayName,

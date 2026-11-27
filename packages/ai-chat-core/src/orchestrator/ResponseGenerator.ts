@@ -27,7 +27,10 @@ import {
   responseIncludesMention,
   stripAIMentions,
 } from "@/utils/orchestrator/mentionUtils.js";
-import { createEnhancedSystemPrompt } from "@/utils/orchestrator/promptBuilder.js";
+import {
+  createEnhancedSystemPrompt,
+  type ChatAssistantPromptInfo,
+} from "@/utils/orchestrator/promptBuilder.js";
 import {
   extractReplyRef,
   resolveReplyRef,
@@ -66,6 +69,8 @@ type ResponseGeneratorDeps = {
   isPrivateGroup: (roomId: string) => boolean;
   /** The AIs allowed to speak in the room, for the system prompt. */
   getRoomAIs: (roomId: string) => OrchestratorAIService[];
+  /** Whether @Chat can answer in the room, for the system prompt. */
+  getChatAssistantInfo: (roomId: string) => ChatAssistantPromptInfo;
   isVerbose: () => boolean;
 };
 
@@ -200,6 +205,7 @@ export class ResponseGenerator {
           conversationDigest: contextManager.getConversationDigest(roomId),
           digestSpeakers: contextManager.getDigestSpeakers(roomId),
           roomAIs,
+          chatAssistant: this.deps.getChatAssistantInfo(roomId),
         },
       );
       const messages: Message[] = [

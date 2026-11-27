@@ -116,6 +116,7 @@ describe("ResponseGenerator dash cleanup", () => {
       isDirectOnly: () => true,
       isPrivateGroup: () => false,
       getRoomAIs: () => [ai],
+      getChatAssistantInfo: () => ({ available: false }),
       isVerbose: () => false,
     });
 
