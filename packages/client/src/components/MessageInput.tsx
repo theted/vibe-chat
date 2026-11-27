@@ -13,11 +13,13 @@ import {
   type KeyboardEvent,
 } from "react";
 import AISelectionDialog from "./AISelectionDialog";
+import ChatAssistantTip from "./ChatAssistantTip";
 import Icon from "./Icon";
 import MentionSuggestionHint from "./MentionSuggestionHint";
 import ReplyingToBar from "./ReplyingToBar";
 import SlashCommandHints from "./SlashCommandHints";
 import { useAutoResizeTextarea } from "@/hooks/useAutoResizeTextarea";
+import { useChatAssistantTip } from "@/hooks/useChatAssistantTip";
 import { useMentionDetection } from "@/hooks/useMentionDetection";
 import { useTypingSignal } from "@/hooks/useTypingSignal";
 import {
@@ -61,6 +63,8 @@ const MessageInput = ({
     insertMention,
   } = useMentionDetection(textareaRef);
 
+  const chatTip = useChatAssistantTip();
+
   useAutoResizeTextarea(textareaRef, message);
 
   const commandHints = matchSlashCommands(message);
@@ -101,12 +105,17 @@ const MessageInput = ({
     textareaRef.current?.focus();
   };
 
-  // Tab completes a half-typed command; Escape backs out of a reply, unless
-  // it is closing the @mention picker
+  // Tab completes a half-typed command; Escape dismisses the @Chat tip, then
+  // backs out of a reply. The open @mention picker swallows Escape itself.
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Tab" && !e.shiftKey && commandHints.length > 0) {
       e.preventDefault();
       completeCommand(commandHints[0].name);
+      return;
+    }
+    if (e.key === "Escape" && chatTip.isVisible && !showAIDialog) {
+      e.preventDefault();
+      chatTip.dismiss();
       return;
     }
     if (e.key === "Escape" && replyingTo && !showAIDialog) {
@@ -115,17 +124,26 @@ const MessageInput = ({
     }
   };
 
+  // The close button unmounts with the tip, so hand focus back to the
+  // textarea rather than dropping it on <body>
+  const dismissChatTip = () => {
+    chatTip.dismiss();
+    textareaRef.current?.focus();
+  };
+
   const handleChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
     setMessage(value);
     signalActivity(value);
     detectMention(value, e.target);
+    chatTip.dismissIfMentioned(value);
   };
 
   const handleAISelect = (aiName: string) => {
     const newMessage = insertMention(message, aiName);
     if (newMessage !== null) {
       setMessage(newMessage);
+      chatTip.dismissIfMentioned(newMessage);
     }
     closeDialog();
   };
@@ -154,6 +172,7 @@ const MessageInput = ({
           onApply={applySuggestion}
         />
       )}
+      {chatTip.isVisible && <ChatAssistantTip onDismiss={dismissChatTip} />}
       <form
         onSubmit={handleSubmit}
         className={`composer flex items-end gap-2 rounded-xl p-1.5 pl-4 ${
@@ -168,6 +187,7 @@ const MessageInput = ({
             onChange={handleChange}
             onKeyPress={handleKeyPress}
             onKeyDown={handleKeyDown}
+            onFocus={chatTip.handleInputFocus}
             placeholder="Message the room (@ to mention, / for commands)"
             aria-label="Message"
             disabled={disabled}

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
+import { STORAGE_KEYS } from "@/constants/storage";
 import MessageInput from "./MessageInput";
 
 vi.mock("./AISelectionDialog", () => ({
@@ -24,6 +25,9 @@ describe("MessageInput", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    // The first-use @Chat tip claims the first Escape; it has its own tests
+    // in MessageInput.chatTip.test.tsx
+    localStorage.setItem(STORAGE_KEYS.CHAT_TIP_SEEN, "1");
   });
 
   describe("quote-replies", () => {
