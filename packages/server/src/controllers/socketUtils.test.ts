@@ -7,6 +7,7 @@ import {
   describeWait,
   describeWindow,
   getRateLimitError,
+  isRateLimitExempt,
 } from "./socketUtils.js";
 
 type ScopeCall = {
@@ -229,5 +230,19 @@ describe("canCarryHistory", () => {
     expect(canCarryHistory("private:ada:A", "private:bob:A+B", "bob")).toBe(
       false,
     );
+  });
+});
+
+describe("isRateLimitExempt", () => {
+  it("exempts Theted by default, ignoring case and spaces", () => {
+    expect(isRateLimitExempt("Theted")).toBe(true);
+    expect(isRateLimitExempt(" THETED ")).toBe(true);
+  });
+
+  it("limits everyone else", () => {
+    expect(isRateLimitExempt("Ada")).toBe(false);
+    expect(isRateLimitExempt("Theted2")).toBe(false);
+    expect(isRateLimitExempt(undefined)).toBe(false);
+    expect(isRateLimitExempt("Theted", new Set())).toBe(false);
   });
 });

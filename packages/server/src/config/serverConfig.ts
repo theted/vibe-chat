@@ -22,6 +22,17 @@ export const USER_MESSAGE_LIMITS = [
   { windowMs: 24 * HOUR_MS, maxMessages: 50 },
 ] as const;
 
+// TEMP: usernames (case-insensitive) that skip USER_MESSAGE_LIMITS. Names
+// aren't authenticated, so anyone who joins as one of these skips the limit
+// too - acceptable until there's real auth. Override with a comma-separated
+// RATE_LIMIT_EXEMPT_USERNAMES (empty string = nobody exempt).
+export const RATE_LIMIT_EXEMPT_USERNAMES: ReadonlySet<string> = new Set(
+  (process.env.RATE_LIMIT_EXEMPT_USERNAMES ?? "theted")
+    .split(",")
+    .map((name) => name.trim().toLowerCase())
+    .filter(Boolean),
+);
+
 // /clear wipes a room for everyone and nobody has to log in, so one clear
 // per room per window keeps a visitor from blanking the room on a loop
 export const CLEAR_ROOM_COOLDOWN_MS = 30 * 1000;
