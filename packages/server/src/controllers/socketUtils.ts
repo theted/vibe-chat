@@ -7,6 +7,7 @@ import {
 
 import {
   MESSAGE_MAX_LENGTH,
+  RATE_LIMIT_EXEMPT_USERNAMES,
   TOPIC_MAX_LENGTH,
   USERNAME_MAX_LENGTH,
 } from "@/config/serverConfig.js";
@@ -118,6 +119,12 @@ export const describeWait = (waitMs: number): string => {
     return pluralize(Math.ceil(waitMs / MINUTE_MS), "minute");
   return pluralize(Math.max(Math.ceil(waitMs / 1000), 1), "second");
 };
+
+/** Whether a username skips the human message rate limit (see serverConfig). */
+export const isRateLimitExempt = (
+  username: string | undefined,
+  exempt: ReadonlySet<string> = RATE_LIMIT_EXEMPT_USERNAMES,
+): boolean => Boolean(username && exempt.has(username.trim().toLowerCase()));
 
 export const getRateLimitError = ({
   retryAfterMs,

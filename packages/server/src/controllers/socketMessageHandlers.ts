@@ -2,10 +2,23 @@ import type { Socket } from "socket.io";
 import { SOCKET_EVENTS } from "@ai-chat/ai-configs";
 
 import { getClientIp } from "@/utils/httpUtils.js";
-import type { ChatMessage, UserMessagePayload } from "@/types.js";
+import type {
+  ChatMessage,
+  RateLimitResult,
+  UserMessagePayload,
+} from "@/types.js";
 import { logSocketError, replySocketError } from "@/utils/socketErrors.js";
 import type { SocketHandlerContext } from "./socketHandlerContext.js";
-import { getRateLimitError, validateMessageContent } from "./socketUtils.js";
+import {
+  getRateLimitError,
+  isRateLimitExempt,
+  validateMessageContent,
+} from "./socketUtils.js";
+
+const EXEMPT_RESULT: RateLimitResult = {
+  allowed: true,
+  remaining: Number.POSITIVE_INFINITY,
+};
 
 export const handleUserMessage = async (
   context: SocketHandlerContext,
@@ -28,7 +41,9 @@ export const handleUserMessage = async (
     }
 
     const ipAddress = getClientIp(socket);
-    const rateLimitResult = await context.rateLimiter.check(ipAddress);
+    const rateLimitResult = isRateLimitExempt(user.username)
+      ? EXEMPT_RESULT
+      : await context.rateLimiter.check(ipAddress);
 
     if (!rateLimitResult.allowed) {
       socket.emit(SOCKET_EVENTS.ERROR, getRateLimitError(rateLimitResult));
