@@ -90,10 +90,16 @@ describe("MessageInput @mention picking", () => {
     const user = userEvent.setup();
     const textarea = setup();
 
-    // "a" matches both fixtures; ArrowDown moves past the top hit to Beta
+    // "a" matches several options (@Chat too); ArrowDown moves past the top
+    // hit, so find Beta's position instead of assuming it
     await user.type(textarea, "hi @a");
-    expect(screen.getAllByRole("option")[0]).toHaveTextContent("@alpha");
-    await user.keyboard("{ArrowDown}{Enter}");
+    const options = screen.getAllByRole("option");
+    expect(options[0]).toHaveTextContent("@alpha");
+    const betaIndex = options.findIndex((option) =>
+      option.textContent?.includes("@beta"),
+    );
+    expect(betaIndex).toBeGreaterThan(0);
+    await user.keyboard(`${"{ArrowDown}".repeat(betaIndex)}{Enter}`);
 
     expect(textarea.value).toBe("hi @beta ");
     expect(screen.queryByRole("listbox")).toBeNull();

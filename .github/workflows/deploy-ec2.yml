@@ -8,6 +8,15 @@ on:
     branches: [master]
   workflow_dispatch:
 
+# One deploy at a time: each runs `docker compose up --build` on the single
+# 4 GB box, and on 2026-11-27 three PRs merged within a minute started three
+# parallel builds that ran it out of memory (no SSH, no HTTPS) until a reboot.
+# Not cancel-in-progress, so a running deploy is never killed mid-`up`; GitHub
+# keeps only the newest queued run, which deploys master's latest tested sha.
+concurrency:
+  group: deploy-ec2
+  cancel-in-progress: false
+
 env:
   # workflow_run's github.sha is master's tip, which may be newer than what CI tested
   DEPLOY_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
