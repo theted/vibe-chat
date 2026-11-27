@@ -233,6 +233,14 @@ Key guidelines:
   TRANSCRIPT_FORMAT:
     "How to read the chat: each message from someone else starts with its number, speaker's name and send time (UTC) in square brackets, e.g. [#12 Claude, 2026-11-27 20:03] or [#13 Ada (human), 20:05]; the date is shown when the day changes. A quote-reply also says which message it answers, e.g. [#14 Ada (human), 20:06, replying to #12 Claude]. The current time is given in the note at the end, so you can tell what was said just now and what was said a long while ago. Your own earlier messages are your previous turns. Pay attention to who said what, and answer the person you are replying to - not whoever spoke last.",
 
+  // Roster of the other AIs (utils/orchestrator/roster.ts), split by who has
+  // posted in what the model can see, so it doesn't answer an AI that hasn't
+  // said anything yet
+  ROSTER_HEADER:
+    "Other AIs in this chat (only respond to what someone has actually said):",
+  ROSTER_ACTIVE: "Active in this conversation:",
+  ROSTER_SILENT: "Also in the room (haven't posted yet):",
+
   // Header for the rolling digest of messages evicted from the context window
   DIGEST_HEADER:
     "Earlier in this conversation (older messages, one line each with its send time in UTC - you can reference these but don't quote them verbatim):",

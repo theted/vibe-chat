@@ -9,9 +9,18 @@ import {
 } from "@/types/orchestrator.js";
 import { normalizeRoomId } from "@ai-chat/ai-configs";
 import { CONVERSATION_DIGEST } from "./constants.js";
+import type { MessageSender } from "@/utils/orchestrator/aiLookup.js";
 import { excerptForQuote } from "@/utils/orchestrator/responseUtils.js";
 import { formatDateTime } from "@/utils/orchestrator/timestamps.js";
 import { normalizeAlias, parseMentions } from "@/utils/stringUtils.js";
+
+/**
+ * Who wrote a digest line, so the roster can tell which AIs have spoken even
+ * after their messages left the window.
+ */
+export type DigestSpeaker = MessageSender;
+
+type DigestEntry = { line: string; speaker: DigestSpeaker };
 
 export class ContextManager implements IContextManager {
   private messages: ContextMessage[] = [];
@@ -21,7 +30,7 @@ export class ContextManager implements IContextManager {
    * getConversationDigest. Keyed by room so a private 1-1 chat never folds
    * the main room's history into its prompts, or vice versa.
    */
-  private digestsByRoom: Map<string, string[]> = new Map();
+  private digestsByRoom: Map<string, DigestEntry[]> = new Map();
   /** When each room was last cleared - see wasClearedSince. */
   private clearedAtByRoom: Map<string, number> = new Map();
 
@@ -141,7 +150,19 @@ export class ContextManager implements IContextManager {
     const digest = this.digestsByRoom.get(room) ?? [];
     // The send time is what tells a model this line is old news
     const sentAt = formatDateTime(message.timestamp);
-    digest.push(`${sentAt ? `[${sentAt}] ` : ""}${speaker}: ${excerpt}`);
+    digest.push({
+      line: `${sentAt ? `[${sentAt}] ` : ""}${speaker}: ${excerpt}`,
+      speaker: {
+        aiId: message.aiId,
+        alias: message.alias,
+        displayName: message.displayName,
+        modelKey: message.modelKey,
+        normalizedAlias: message.normalizedAlias,
+        providerKey: message.providerKey,
+        sender: message.sender,
+        senderType: message.senderType,
+      },
+    });
     if (digest.length > CONVERSATION_DIGEST.MAX_ENTRIES) {
       digest.shift();
     }
@@ -154,10 +175,24 @@ export class ContextManager implements IContextManager {
    * Scoped to a room when one is given.
    */
   getConversationDigest(roomId?: string): string {
+    return this.digestEntries(roomId)
+      .map(({ line }) => line)
+      .join("\n");
+  }
+
+  /**
+   * Speakers of the lines still in the digest, oldest first (one per line).
+   * Scoped to a room when one is given, like getConversationDigest.
+   */
+  getDigestSpeakers(roomId?: string): DigestSpeaker[] {
+    return this.digestEntries(roomId).map(({ speaker }) => speaker);
+  }
+
+  private digestEntries(roomId?: string): DigestEntry[] {
     if (roomId === undefined) {
-      return Array.from(this.digestsByRoom.values()).flat().join("\n");
+      return Array.from(this.digestsByRoom.values()).flat();
     }
-    return (this.digestsByRoom.get(normalizeRoomId(roomId)) ?? []).join("\n");
+    return this.digestsByRoom.get(normalizeRoomId(roomId)) ?? [];
   }
 
   /**

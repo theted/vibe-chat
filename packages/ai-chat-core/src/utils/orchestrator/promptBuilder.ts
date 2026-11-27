@@ -1,14 +1,21 @@
 import { SYSTEM_PROMPT } from "@/orchestrator/constants.js";
+import type { DigestSpeaker } from "@/orchestrator/ContextManager.js";
 import type { ContextMessage } from "@/types/orchestrator.js";
 import {
   getAIDisplayName,
   getMentionTokenForAI,
   type OrchestratorAIService,
 } from "./aiLookup.js";
+import { buildRosterSection, findPostedAIIds } from "./roster.js";
 
 type SystemPromptOptions = {
   /** One-liners of messages that scrolled out of the context window. */
   conversationDigest?: string;
+  /**
+   * Who wrote each digest line, so AIs whose messages scrolled out of the
+   * window still count as having posted.
+   */
+  digestSpeakers?: DigestSpeaker[];
   /**
    * The AIs that can speak in this room. Defaults to every AI in
    * `aiServices`; a room scoped to a subset passes just those.
@@ -16,19 +23,16 @@ type SystemPromptOptions = {
   roomAIs?: OrchestratorAIService[];
 };
 
-/** "Claude (@claude)" - the handle is what the model must write to mention. */
-const describeParticipant = (ai: OrchestratorAIService) => {
-  const name = getAIDisplayName(ai);
-  const handle = getMentionTokenForAI(ai);
-  return handle && handle !== name ? `${name} (@${handle})` : name;
-};
-
 export const createEnhancedSystemPrompt = (
   aiService: OrchestratorAIService,
-  _context: ContextMessage[],
+  context: ContextMessage[],
   isUserResponse: boolean,
   aiServices: Map<string, OrchestratorAIService>,
-  { conversationDigest = "", roomAIs }: SystemPromptOptions = {},
+  {
+    conversationDigest = "",
+    digestSpeakers = [],
+    roomAIs,
+  }: SystemPromptOptions = {},
 ) => {
   const selfName = getAIDisplayName(aiService) || aiService.name;
   const selfHandle = getMentionTokenForAI(aiService);
@@ -46,15 +50,20 @@ export const createEnhancedSystemPrompt = (
 
 ${SYSTEM_PROMPT.TRANSCRIPT_FORMAT}`;
 
-  const otherAIs = (roomAIs ?? Array.from(aiServices.values()))
-    .filter((ai) => ai !== aiService && ai.id !== aiService.id)
-    .map(describeParticipant)
-    .filter(Boolean);
-
-  if (otherAIs.length > 0) {
+  const otherAIs = (roomAIs ?? Array.from(aiServices.values())).filter(
+    (ai) => ai !== aiService && ai.id !== aiService.id,
+  );
+  // "Active" means posted somewhere the model can see (window or digest),
+  // so it never hears of a message it can't find in the transcript
+  const postedAIIds = findPostedAIIds(aiServices, [
+    ...digestSpeakers,
+    ...context,
+  ]);
+  const roster = buildRosterSection(otherAIs, postedAIIds);
+  if (roster) {
     prompt += `
 
-Other AIs in this chat: ${otherAIs.join(", ")}`;
+${roster}`;
   }
 
   // Older messages evicted from the sliding window survive as one-line

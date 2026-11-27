@@ -28,6 +28,23 @@ export type OrchestratorAIService = {
   service?: IAIService;
 };
 
+/**
+ * The fields of a message that identify its sender - all
+ * findAIFromContextMessage needs, so lighter records (digest speakers) can
+ * be matched too.
+ */
+export type MessageSender = Pick<
+  ContextMessage,
+  | "aiId"
+  | "alias"
+  | "displayName"
+  | "modelKey"
+  | "normalizedAlias"
+  | "providerKey"
+  | "sender"
+  | "senderType"
+>;
+
 export const findAIByNormalizedAlias = (
   aiServices: Map<string, OrchestratorAIService>,
   normalizedAlias?: string | null,
@@ -45,7 +62,7 @@ export const findAIByNormalizedAlias = (
 
 export const findAIFromContextMessage = (
   aiServices: Map<string, OrchestratorAIService>,
-  message: ContextMessage | null | undefined,
+  message: MessageSender | null | undefined,
 ) => {
   if (!message) return null;
 
