@@ -1,7 +1,8 @@
 /**
  * AISelectionDialog Component - Modal for selecting AI to mention
- * Two-step flow: list → detail → confirm insert.
- * Enter/click on a result opens the detail view; Enter/button from detail inserts.
+ * Enter, Tab or a click on a result inserts the mention in one step. The model
+ * detail card stays reachable (ArrowRight or the row's info button) without
+ * slowing down that main path; Enter on the card inserts too.
  * Capture-phase keyboard listener prevents Enter from propagating to the form.
  * Search/ranking lives in useAISearch; the detail card is AIDetailPreview.
  */
@@ -20,6 +21,8 @@ const DIALOG_Y_OFFSET = 10;
 /** Matches the dialog's `w-80` class; used to keep it inside the viewport. */
 const DIALOG_WIDTH = 320;
 const VIEWPORT_MARGIN = 8;
+/** Keys that insert the highlighted mention straight from the list. */
+const SELECT_KEYS = new Set(["Enter", "Tab"]);
 
 const AISelectionDialog = ({
   isOpen,
@@ -64,12 +67,18 @@ const AISelectionDialog = ({
     setView("detail");
   };
 
+  const closeDetail = () => {
+    setView("list");
+    setSelectedItem(null);
+  };
+
+  const selectItem = (item: MentionOption) => {
+    onSelect(item.name);
+    closeDetail();
+  };
+
   const confirmSelect = () => {
-    if (selectedItem) {
-      onSelect(selectedItem.name);
-      setView("list");
-      setSelectedItem(null);
-    }
+    if (selectedItem) selectItem(selectedItem);
   };
 
   // Keyboard handler — capture phase so Enter never leaks to the form.
@@ -88,8 +97,7 @@ const AISelectionDialog = ({
     if (e.key === "Escape") {
       stop();
       if (view === "detail") {
-        setView("list");
-        setSelectedItem(null);
+        closeDetail();
       } else {
         onClose();
       }
@@ -97,9 +105,12 @@ const AISelectionDialog = ({
     }
 
     if (view === "detail") {
-      if (e.key === "Enter") {
+      if (e.key === "Enter" || e.key === "Tab") {
         stop();
         confirmSelect();
+      } else if (e.key === "ArrowLeft") {
+        stop();
+        closeDetail();
       }
       return;
     }
@@ -112,7 +123,15 @@ const AISelectionDialog = ({
     } else if (e.key === "ArrowUp") {
       stop();
       setActiveIndex((p) => (p - 1 + filteredAIs.length) % filteredAIs.length);
-    } else if (e.key === "Enter") {
+    } else if (SELECT_KEYS.has(e.key)) {
+      // Shift+Tab keeps its usual focus-backwards meaning
+      if (e.key === "Tab" && e.shiftKey) return;
+      // preventDefault on keydown also cancels the keypress the composer
+      // listens to for Enter-to-send, so this Enter only inserts the mention
+      stop();
+      const item = filteredAIs[activeIndex] ?? filteredAIs[0];
+      if (item) selectItem(item);
+    } else if (e.key === "ArrowRight") {
       stop();
       const item = filteredAIs[activeIndex] ?? filteredAIs[0];
       if (item) openDetail(item);
@@ -209,6 +228,7 @@ const AISelectionDialog = ({
                 searchTerm={searchTerm}
                 activeIndex={activeIndex}
                 onActiveIndexChange={setActiveIndex}
+                onSelect={selectItem}
                 onOpenDetail={openDetail}
               />
             ) : (
@@ -216,10 +236,7 @@ const AISelectionDialog = ({
                 <AIDetailPreview
                   key="detail"
                   item={selectedItem}
-                  onBack={() => {
-                    setView("list");
-                    setSelectedItem(null);
-                  }}
+                  onBack={closeDetail}
                   onConfirm={confirmSelect}
                 />
               )
