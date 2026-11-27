@@ -1,9 +1,11 @@
 /**
  * AIMentionList Component - Search results list for the AI mention dialog
  * (header with result count, ranked results, keyboard hint footer).
+ * A row click inserts the mention; the row's info button opens the detail card.
  */
 
 import { motion } from "framer-motion";
+import Icon from "./Icon";
 import { SLIDE_VARIANTS } from "@/config/dialogAnimations";
 import { useHueFor } from "@/context/VoiceContext";
 import { getModelVoiceKey, voiceStyle } from "@/utils/voice";
@@ -11,6 +13,8 @@ import type { MentionOption } from "@/utils/aiSearch";
 
 const KBD_CLASSES =
   "rounded border border-line bg-surface px-1 font-sans text-[10px] leading-4 text-muted";
+const INFO_BUTTON_CLASSES =
+  "flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-faint transition-colors hover:bg-raised hover:text-fg";
 
 interface AIMentionListProps {
   filteredAIs: MentionOption[];
@@ -18,6 +22,7 @@ interface AIMentionListProps {
   searchTerm: string;
   activeIndex: number;
   onActiveIndexChange: (index: number) => void;
+  onSelect: (item: MentionOption) => void;
   onOpenDetail: (item: MentionOption) => void;
 }
 
@@ -27,6 +32,7 @@ const AIMentionList = ({
   searchTerm,
   activeIndex,
   onActiveIndexChange,
+  onSelect,
   onOpenDetail,
 }: AIMentionListProps) => {
   const hueFor = useHueFor();
@@ -64,15 +70,17 @@ const AIMentionList = ({
         {filteredAIs.map((ai, index) => {
           const isActive = index === activeIndex;
           return (
-            <button
+            // A div, not a button: the row holds the info button, and
+            // buttons can't nest. Keyboard picks go through the dialog's
+            // document listener, since focus stays in the composer.
+            <div
               key={ai.id}
-              type="button"
-              onClick={() => onOpenDetail(ai)}
+              onClick={() => onSelect(ai)}
               onMouseEnter={() => onActiveIndexChange(index)}
               role="option"
               aria-selected={isActive}
               style={voiceStyle(hueFor(getModelVoiceKey(ai)))}
-              className={`flex w-full items-center gap-3 rounded-lg px-2.5 py-1.5 text-left transition-colors ${
+              className={`flex w-full cursor-pointer items-center gap-3 rounded-lg px-2.5 py-1.5 text-left transition-colors ${
                 isActive ? "bg-surface" : ""
               }`}
             >
@@ -89,7 +97,19 @@ const AIMentionList = ({
                   {ai.displayName}, {ai.provider}
                 </span>
               </span>
-            </button>
+              <button
+                type="button"
+                aria-label={`About @${ai.name}`}
+                title="Model info"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onOpenDetail(ai);
+                }}
+                className={INFO_BUTTON_CLASSES}
+              >
+                <Icon name="info" className="h-3.5 w-3.5" />
+              </button>
+            </div>
           );
         })}
       </div>
@@ -100,7 +120,10 @@ const AIMentionList = ({
           <kbd className={KBD_CLASSES}>↓</kbd> move
         </span>
         <span className="flex items-center gap-1">
-          <kbd className={KBD_CLASSES}>Enter</kbd> preview
+          <kbd className={KBD_CLASSES}>Enter</kbd> mention
+        </span>
+        <span className="flex items-center gap-1">
+          <kbd className={KBD_CLASSES}>→</kbd> info
         </span>
         <span className="flex items-center gap-1">
           <kbd className={KBD_CLASSES}>Esc</kbd> close

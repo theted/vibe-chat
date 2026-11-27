@@ -128,12 +128,68 @@ describe("AISelectionDialog", () => {
       "true",
     );
 
-    // Two-step flow: first Enter opens the detail view, second Enter inserts
-    fireEvent.keyDown(document, { key: "Enter" });
-    expect(defaultProps.onSelect).not.toHaveBeenCalled();
+    // One Enter inserts the highlighted mention
     fireEvent.keyDown(document, { key: "Enter" });
     expect(defaultProps.onSelect).toHaveBeenCalledWith("beta");
     expect(defaultProps.onSelect).toHaveBeenCalledTimes(1);
+  });
+
+  it("stops Enter from reaching the composer and cancels its default", () => {
+    render(<AISelectionDialog {...defaultProps} />);
+    const bubbleListener = vi.fn();
+    document.body.addEventListener("keydown", bubbleListener);
+
+    const event = new KeyboardEvent("keydown", {
+      key: "Enter",
+      bubbles: true,
+      cancelable: true,
+    });
+    document.body.dispatchEvent(event);
+    document.body.removeEventListener("keydown", bubbleListener);
+
+    // Cancelling keydown is what suppresses the keypress that sends a message
+    expect(event.defaultPrevented).toBe(true);
+    expect(bubbleListener).not.toHaveBeenCalled();
+    expect(defaultProps.onSelect).toHaveBeenCalledWith("alpha");
+  });
+
+  it("inserts the highlighted mention on Tab", () => {
+    render(<AISelectionDialog {...defaultProps} searchTerm="gam" />);
+
+    fireEvent.keyDown(document, { key: "Tab" });
+
+    expect(defaultProps.onSelect).toHaveBeenCalledWith("gamma");
+  });
+
+  it("inserts the mention in one click on a list item", () => {
+    render(<AISelectionDialog {...defaultProps} />);
+
+    fireEvent.click(screen.getByText("@beta"));
+
+    expect(defaultProps.onSelect).toHaveBeenCalledWith("beta");
+  });
+
+  it("opens the model detail card with ArrowRight and inserts from it", () => {
+    render(<AISelectionDialog {...defaultProps} />);
+
+    fireEvent.keyDown(document, { key: "ArrowRight" });
+    expect(screen.getByText("Back to results")).toBeInTheDocument();
+    expect(defaultProps.onSelect).not.toHaveBeenCalled();
+
+    fireEvent.keyDown(document, { key: "Enter" });
+    expect(defaultProps.onSelect).toHaveBeenCalledWith("alpha");
+  });
+
+  it("opens the detail card from the info button without inserting", () => {
+    render(<AISelectionDialog {...defaultProps} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "About @gamma" }));
+    expect(defaultProps.onSelect).not.toHaveBeenCalled();
+
+    // ArrowLeft goes back to the list, like Escape
+    fireEvent.keyDown(document, { key: "ArrowLeft" });
+    expect(screen.queryByText("Back to results")).toBeNull();
+    expect(screen.getByText("@gamma")).toBeInTheDocument();
   });
 
   it("never offers a parked model as a mention target", () => {
