@@ -34,5 +34,8 @@ export const EMBEDDING_PROVIDERS = {
 
 export type EmbeddingProviderName = keyof typeof EMBEDDING_PROVIDERS;
 
-export const DEFAULT_EMBEDDING_PROVIDER: EmbeddingProviderName = "mistral";
+// Was mistral (codestral-embed) until 2026-11-27: the Mistral account has no
+// API budget, so every call failed with 402 and @Chat lost code search
+// (issue #296). Changing this rebuilds the index on next start.
+export const DEFAULT_EMBEDDING_PROVIDER: EmbeddingProviderName = "openai";
 export const EMBEDDING_PROVIDER_ENV = "CHAT_ASSISTANT_EMBEDDINGS";

@@ -5,6 +5,7 @@ import {
   MissingIndexError,
 } from "../codeSearch.js";
 import { SEARCH_DEFAULT_RESULTS } from "../constants.js";
+import { EmbeddingProviderError } from "../embeddingErrors.js";
 import { GitHubIssuesError } from "../github/githubIssues.js";
 import { browse, BrowseError, formatBrowseResult } from "./browse.js";
 import {
@@ -106,6 +107,17 @@ export const executeTool = async (
         return failure(`Unknown tool "${name}".`);
     }
   } catch (error) {
+    if (error instanceof EmbeddingProviderError) {
+      // Search stays down until someone fixes the account, so tell the
+      // maintainers in the logs and tell the model not to keep retrying
+      console.error(`[ChatAgent] Code search is down: ${error.message}`, {
+        provider: error.provider,
+        status: error.status,
+      });
+      return failure(
+        `Code search is unavailable: ${error.message} Don't retry search_codebase; answer from what you know and say code search is down.`,
+      );
+    }
     if (
       error instanceof BrowseError ||
       error instanceof UnsafeUrlError ||
