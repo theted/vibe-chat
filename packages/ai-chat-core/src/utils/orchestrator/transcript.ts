@@ -2,8 +2,9 @@
  * Turns a room's history into the message list one AI is prompted with.
  *
  * Every message from someone else becomes a user turn that starts with its
- * number and speaker's name ("[#12 Claude]"); the AI's own earlier messages
- * are its assistant turns. The number is what a model writes to quote that
+ * number, speaker's name and send time ("[#12 Claude, 20:03]"); the AI's own
+ * earlier messages are its assistant turns. The final turn also states the
+ * current time, so a model can tell a fresh message from a stale one. The number is what a model writes to quote that
  * message (see quoteReplies).
  * Providers only see role + content, so without the labels every other AI's
  * message reads as something the model said itself, and it loses track of
@@ -21,6 +22,7 @@ import type { ContextMessage } from "@/types/orchestrator.js";
 import type { OrchestratorAIService } from "./aiLookup.js";
 import { transcriptRef } from "./quoteReplies.js";
 import { excerptForQuote } from "./responseUtils.js";
+import { createTimeLabeller, formatCurrentTime } from "./timestamps.js";
 
 type TranscriptRole = "user" | "assistant";
 
@@ -74,10 +76,14 @@ const describeQuoted = (
     : `${REPLYING_TO} ${sender}`;
 };
 
+/**
+ * @param now - the "current time" stated in the final turn (defaults to now)
+ */
 export const buildTranscript = (
   self: OrchestratorAIService,
   context: ContextMessage[],
   turnInstruction: string,
+  now: number = Date.now(),
 ): Message[] => {
   const turns: Message[] = [];
   const append = (role: TranscriptRole, content: string) => {
@@ -89,22 +95,33 @@ export const buildTranscript = (
     turns.push({ role, content });
   };
 
+  const timeLabel = createTimeLabeller();
+
   context.forEach((message, index) => {
     const content = message.content?.trim();
     if (message.isInternal || !content) return;
     if (isOwnMessage(message, self)) {
+      // Unlabelled, or the model starts writing times into its own replies
       append("assistant", content);
       return;
     }
-    const quoted = describeQuoted(message, context, self);
-    const label = `#${transcriptRef(index)} ${speakerLabel(message)}`;
-    append("user", `[${quoted ? `${label}, ${quoted}` : label}] ${content}`);
+    const label = [
+      `#${transcriptRef(index)} ${speakerLabel(message)}`,
+      timeLabel(message.timestamp),
+      describeQuoted(message, context, self),
+    ]
+      .filter(Boolean)
+      .join(", ");
+    append("user", `[${label}] ${content}`);
   });
 
   if (turns[0]?.role === "assistant") {
     turns.unshift({ role: "user", content: TRANSCRIPT.CONTINUATION_NOTE });
   }
-  append("user", turnInstruction);
+  append(
+    "user",
+    `${turnInstruction}\n${TRANSCRIPT.CURRENT_TIME(formatCurrentTime(now))}`,
+  );
 
   return turns;
 };
@@ -113,7 +130,7 @@ const escapeRegExp = (value: string) =>
   value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 /**
- * Drop a "[Name]", "[#12 Name, replying to …]" or "Name:" label a model put
+ * Drop a "[Name]", "[#12 Name, 20:03, replying to …]" or "Name:" label a model put
  * in front of its own reply after imitating the transcript format.
  */
 export const stripOwnSpeakerLabel = (

@@ -14,6 +14,8 @@ export type ChatHistoryEntry = {
   sender: string;
   senderType: string;
   content: string;
+  /** Send time (ms since epoch), so @Chat can tell recent from stale */
+  timestamp?: number;
 };
 
 export type MCPAnswer = {

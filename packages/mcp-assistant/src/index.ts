@@ -50,6 +50,7 @@ type ChatHistoryMessage = {
   normalizedAlias?: string;
   senderType?: string;
   content?: string;
+  timestamp?: number;
 };
 
 /** Where a question came from, for the issue tools. Supplied by the server. */
@@ -95,7 +96,14 @@ const toHistoryLines = (chatHistory: ChatHistoryMessage[]): HistoryLine[] =>
       message.alias ||
       message.normalizedAlias ||
       "participant";
-    return [{ sender, senderType: message.senderType || "user", content }];
+    return [
+      {
+        sender,
+        senderType: message.senderType || "user",
+        content,
+        timestamp: message.timestamp,
+      },
+    ];
   });
 
 const normalizeHistory = (chatHistory: ChatHistoryMessage[]): HistoryLine[] =>

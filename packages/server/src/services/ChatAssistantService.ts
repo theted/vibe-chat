@@ -176,6 +176,7 @@ export class ChatAssistantService {
           "participant",
         senderType: message.senderType || "user",
         content: message.content.trim(),
+        timestamp: message.timestamp,
       }));
   }
 

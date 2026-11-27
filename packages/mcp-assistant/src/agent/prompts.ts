@@ -29,15 +29,33 @@ export type HistoryLine = {
   sender: string;
   senderType: string;
   content: string;
+  /** Send time, ms since epoch */
+  timestamp?: number;
+};
+
+const pad = (value: number) => String(value).padStart(2, "0");
+
+/** "2026-11-27 20:03 UTC": same clock the room's models read (issue #295). */
+const formatUtc = (timestamp: number): string => {
+  const date = new Date(timestamp);
+  return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())} ${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())} UTC`;
+};
+
+const formatHistoryLine = ({
+  sender,
+  senderType,
+  content,
+  timestamp,
+}: HistoryLine): string => {
+  const sentAt =
+    typeof timestamp === "number" && Number.isFinite(timestamp)
+      ? `[${formatUtc(timestamp)}] `
+      : "";
+  return `${sentAt}${sender} (${senderType === "ai" ? "AI" : "human"}): ${content}`;
 };
 
 const formatHistory = (history: HistoryLine[]): string =>
-  history
-    .map(
-      ({ sender, senderType, content }) =>
-        `${sender} (${senderType === "ai" ? "AI" : "human"}): ${content}`,
-    )
-    .join("\n");
+  history.map(formatHistoryLine).join("\n");
 
 /**
  * The volatile part of the prompt - the room's recent messages and the
@@ -47,14 +65,17 @@ export const buildQuestionMessage = ({
   question,
   askedBy,
   history,
+  now = Date.now(),
 }: {
   question: string;
   askedBy?: string;
   history: HistoryLine[];
+  /** The current time stated to the model; defaults to now */
+  now?: number;
 }): string => {
   const historyBlock = history.length
     ? `<recent_chat>\n${formatHistory(history)}\n</recent_chat>\n\n`
     : "";
   const asker = askedBy ? ` from="${askedBy}"` : "";
-  return `${historyBlock}<question${asker}>\n${question}\n</question>`;
+  return `<current_time>${formatUtc(now)}</current_time>\n\n${historyBlock}<question${asker}>\n${question}\n</question>`;
 };

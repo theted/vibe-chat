@@ -32,6 +32,19 @@ describe("ContextManager conversation digest", () => {
     expect(manager.size()).toBe(3);
   });
 
+  it("prefixes each line with its send time when the message has one", () => {
+    const manager = new ContextManager(1);
+    manager.addMessage({
+      ...makeMessage(0),
+      timestamp: Date.UTC(2026, 10, 27, 9, 30),
+    });
+    manager.addMessage(makeMessage(1));
+
+    expect(manager.getConversationDigest()).toBe(
+      "[2026-11-27 09:30] User0: Message number 0 about a memorable topic",
+    );
+  });
+
   it("truncates long messages to the digest excerpt length", () => {
     const manager = new ContextManager(1);
     manager.addMessage({
