@@ -135,7 +135,8 @@ describe("AISelectionDialog", () => {
   });
 
   it("stops Enter from reaching the composer and cancels its default", () => {
-    render(<AISelectionDialog {...defaultProps} />);
+    // "al" keeps the pinned @Chat entry out of the top spot
+    render(<AISelectionDialog {...defaultProps} searchTerm="al" />);
     const bubbleListener = vi.fn();
     document.body.addEventListener("keydown", bubbleListener);
 
@@ -170,7 +171,7 @@ describe("AISelectionDialog", () => {
   });
 
   it("opens the model detail card with ArrowRight and inserts from it", () => {
-    render(<AISelectionDialog {...defaultProps} />);
+    render(<AISelectionDialog {...defaultProps} searchTerm="al" />);
 
     fireEvent.keyDown(document, { key: "ArrowRight" });
     expect(screen.getByText("Back to results")).toBeInTheDocument();
