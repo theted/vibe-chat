@@ -22,6 +22,7 @@ import {
 import { replaceLongDashes } from "@/utils/orchestrator/dashes.js";
 import { logAIContext } from "@/utils/orchestrator/logging.js";
 import {
+  correctNearMissMentions,
   limitMentionsInResponse,
   responseIncludesMention,
   stripAIMentions,
@@ -220,6 +221,7 @@ export class ResponseGenerator {
       const processedResponse = this.cleanResponse(
         responseText,
         aiService,
+        context,
         (target) =>
           !isPrivateChat && (!isPrivateGroup || memberIds.has(target.id)),
       );
@@ -338,7 +340,8 @@ export class ResponseGenerator {
 
   /**
    * Tidy a raw model reply: drop a "[Name]" label copied from the transcript,
-   * swap em dashes for " - ", mention each target at most once
+   * swap em dashes for " - ", fix near-miss handles (`@gpt-6-2-astr`), mention
+   * each target at most once
    * (MENTION_LIMITS caps how many), and demote mentions that would misfire -
    * the AI's own handle anywhere, and any AI that isn't there to answer:
    * every other AI in a 1-1 room, anyone outside a private group.
@@ -346,17 +349,36 @@ export class ResponseGenerator {
   private cleanResponse(
     response: string,
     aiService: OrchestratorAIService,
+    context: ContextMessage[],
     canAddress: (target: OrchestratorAIService) => boolean,
   ): string {
     const aiServices = this.deps.registry.services;
     const withoutLabel = stripOwnSpeakerLabel(response, aiService).trim();
     const withoutDashes = replaceLongDashes(withoutLabel);
-    const withoutMisfires = stripAIMentions(withoutDashes, (token) => {
+    const corrected = correctNearMissMentions(
+      withoutDashes,
+      this.getKnownHandles(context),
+    );
+    const withoutMisfires = stripAIMentions(corrected, (token) => {
       // A token that resolves to no AI is a person's handle and keeps its @
       const target = findAIByNormalizedAlias(aiServices, token);
       if (!target) return false;
       return target.id === aiService.id || !canAddress(target);
     });
     return limitMentionsInResponse(withoutMisfires);
+  }
+
+  /**
+   * Handles a reply may address: every loaded AI, plus the people speaking in
+   * the transcript so a person's name is never corrected into a model's.
+   */
+  private getKnownHandles(context: ContextMessage[]): string[] {
+    const aiHandles = [...this.deps.registry.services.values()].map(
+      (ai) => getMentionTokenForAI(ai) ?? "",
+    );
+    const people = context
+      .filter((message) => message.senderType === "user")
+      .map((message) => message.sender ?? "");
+    return [...new Set([...aiHandles, ...people])].filter(Boolean);
   }
 }

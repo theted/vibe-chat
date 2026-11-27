@@ -456,3 +456,12 @@ export const resolveMentionTarget = (token: string): string =>
   AI_MENTION_MAPPINGS[normalizeAlias(token)] ??
   STRICT_MENTION_LOOKUP[normalizeAliasKey(token)] ??
   token;
+
+/**
+ * Whether a mention token is in the alias vocabulary (AI_MENTION_MAPPINGS),
+ * loosely matched like resolveMentionTarget. Known aliases name a model on
+ * purpose, even a parked one, so they are never "corrected" to a near handle.
+ */
+export const isKnownMentionAlias = (token: string): boolean =>
+  normalizeAlias(token) in AI_MENTION_MAPPINGS ||
+  normalizeAliasKey(token) in STRICT_MENTION_LOOKUP;

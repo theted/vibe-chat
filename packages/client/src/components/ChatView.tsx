@@ -68,6 +68,10 @@ const ChatView = ({
   // Bundled catalogue only as a placeholder before the server answers; once it
   // has, an empty list is shown as empty rather than papered over.
   const aiParticipantList = aiParticipants ?? DEFAULT_AI_PARTICIPANTS;
+  const usernames = useMemo(
+    () => participants.map((participant) => participant.username),
+    [participants],
+  );
   const menu = useModal();
   const login = useModal();
   const participantsDrawer = useModal();
@@ -211,6 +215,7 @@ const ChatView = ({
                 replyingTo={replyingTo}
                 onCancelReply={cancelReply}
                 aiParticipants={aiParticipantList}
+                usernames={usernames}
               />
             </div>
           </footer>

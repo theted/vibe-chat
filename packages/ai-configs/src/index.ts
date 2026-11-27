@@ -37,7 +37,19 @@ export {
   resolveEmoji,
   mapMentionsToAiNames,
   resolveMentionTarget,
+  isKnownMentionAlias,
 } from "./lookups.js";
+
+// Mention handles and "did you mean" suggestions
+export {
+  MENTION_SUGGESTION_LONG_KEY_LENGTH,
+  MENTION_SUGGESTION_MIN_KEY_LENGTH,
+  findMentionSuggestions,
+  getEditDistance,
+  suggestMentionHandle,
+  toMentionHandle,
+} from "./mentionHandles.js";
+export type { MentionSuggestion } from "./mentionHandles.js";
 
 // Alias utilities
 export { normalizeAliasKey } from "./aliasUtils.js";

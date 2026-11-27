@@ -127,4 +127,44 @@ describe("MessageInput", () => {
       expect(textarea).toHaveValue("/debug");
     });
   });
+
+  describe("mention hints", () => {
+    // Explicit roster so the test survives model retirements
+    const aiParticipants = [
+      {
+        id: "OPENAI_GPT6_2_ASTRA",
+        name: "GPT-6.2 Astra",
+        alias: "gpt-6.2-astra",
+        provider: "OpenAI",
+        status: "active" as const,
+        emoji: "🌄",
+      },
+    ];
+
+    it("offers the handle a near-miss mention meant and fixes the draft", () => {
+      render(
+        <MessageInput {...defaultProps} aiParticipants={aiParticipants} />,
+      );
+      const textarea = screen.getByPlaceholderText(/@ to mention/i);
+
+      fireEvent.change(textarea, {
+        target: { value: "@gpt-6-2-astr what now?" },
+      });
+      fireEvent.click(screen.getByRole("button", { name: "@gpt-6-2-astra" }));
+
+      expect(textarea).toHaveValue("@gpt-6-2-astra what now?");
+      expect(screen.queryByRole("list", { name: "Mention hints" })).toBeNull();
+    });
+
+    it("stays quiet for a dotted handle that already routes", () => {
+      render(
+        <MessageInput {...defaultProps} aiParticipants={aiParticipants} />,
+      );
+      fireEvent.change(screen.getByPlaceholderText(/@ to mention/i), {
+        target: { value: "@gpt-6.2-astra what now?" },
+      });
+
+      expect(screen.queryByRole("list", { name: "Mention hints" })).toBeNull();
+    });
+  });
 });

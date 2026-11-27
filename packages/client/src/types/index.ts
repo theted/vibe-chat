@@ -202,6 +202,8 @@ export interface MessageInputProps {
   replyingTo?: Message | null;
   onCancelReply?: () => void;
   aiParticipants?: AiParticipant[];
+  /** People in the room, so mentioning one never draws a "did you mean" */
+  usernames?: string[];
 }
 
 // Component prop types - ChatMessage

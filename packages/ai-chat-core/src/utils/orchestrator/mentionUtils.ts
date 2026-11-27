@@ -1,10 +1,17 @@
-import { resolveMentionTarget } from "@ai-chat/ai-configs";
+import {
+  resolveMentionTarget,
+  suggestMentionHandle,
+} from "@ai-chat/ai-configs";
 import { MENTION_LIMITS } from "@/orchestrator/constants.js";
 import {
   createMentionTokenRegex,
   normalizeAlias,
   parseMentions,
 } from "@/utils/stringUtils.js";
+
+// Splits "gpt-6-2-astr," into the handle part and the punctuation after it
+const TRAILING_PUNCTUATION_SPLIT_REGEX = /^(.*?)([.,!?;:'")\]}]*)$/;
+const URL_OR_EMAIL_CHAR_REGEX = /[\w./%+=-]/;
 
 /**
  * Whether a response actually @mentions the given handle (as a mention
@@ -42,6 +49,34 @@ export const stripAIMentions = (
     if (!token) return match;
     const normalized = normalizeAlias(resolveMentionTarget(token));
     return normalized && isOtherAI(normalized) ? token : match;
+  });
+};
+
+/**
+ * Rewrite near-miss @mentions in an AI reply to the handle they meant
+ * (`@gpt-6-2-astr` -> `@gpt-6-2-astra`), so the mention routes and the next
+ * model copies the right spelling. Nobody can be asked "did you mean" on an
+ * AI's behalf, so this only fires when suggestMentionHandle finds exactly
+ * one close handle; spellings that already route loosely are left as written.
+ * `handles` should hold people's names too, so a person is never "corrected"
+ * into a model.
+ */
+export const correctNearMissMentions = (
+  response = "",
+  handles: readonly string[],
+): string => {
+  if (!response || handles.length === 0) return response;
+
+  const pattern = createMentionTokenRegex();
+  return response.replace(pattern, (match, token: string, offset: number) => {
+    // An @ glued to a word is an email or URL path, not a mention
+    if (offset > 0 && URL_OR_EMAIL_CHAR_REGEX.test(response[offset - 1])) {
+      return match;
+    }
+    const [, core = "", trailing = ""] =
+      token.match(TRAILING_PUNCTUATION_SPLIT_REGEX) ?? [];
+    const suggestion = core ? suggestMentionHandle(core, handles) : null;
+    return suggestion ? `@${suggestion}${trailing}` : match;
   });
 };
 
