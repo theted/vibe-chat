@@ -61,4 +61,56 @@ describe("GitHubIssuesClient", () => {
     expect(error).toBeInstanceOf(GitHubIssuesError);
     expect(error.message).toContain("403");
   });
+
+  test("reads an issue's state, labels and whether it's a PR", async () => {
+    const client = new GitHubIssuesClient("t", "x/y", (async () =>
+      respond(200, {
+        number: 7,
+        title: "T",
+        state: "open",
+        html_url: "https://github.com/x/y/pull/7",
+        labels: [{ name: "from-chat" }, "bug"],
+        pull_request: { url: "x" },
+      })) as never);
+
+    expect(await client.get(7)).toEqual({
+      number: 7,
+      title: "T",
+      state: "open",
+      labels: ["from-chat", "bug"],
+      isPullRequest: true,
+      url: "https://github.com/x/y/pull/7",
+    });
+  });
+
+  test("posts a comment to the issue's comments endpoint", async () => {
+    const fetchFn = mock(async () =>
+      respond(201, {
+        html_url: "https://github.com/x/y/issues/7#issuecomment-9",
+      }),
+    );
+    const client = new GitHubIssuesClient("t", "x/y", fetchFn as never);
+
+    const posted = await client.comment(7, "Hello");
+
+    const [url, init] = fetchFn.mock.calls[0] as unknown as [
+      string,
+      RequestInit,
+    ];
+    expect(url).toBe("https://api.github.com/repos/x/y/issues/7/comments");
+    expect(init.method).toBe("POST");
+    expect(JSON.parse(String(init.body))).toEqual({ body: "Hello" });
+    expect(posted).toEqual({
+      issueNumber: 7,
+      url: "https://github.com/x/y/issues/7#issuecomment-9",
+    });
+  });
+
+  test("refuses issue numbers that aren't positive integers", async () => {
+    const fetchFn = mock(async () => respond(200, {}));
+    const client = new GitHubIssuesClient("t", "x/y", fetchFn as never);
+    await expect(client.comment(1.5, "x")).rejects.toThrow("positive integer");
+    await expect(client.get(0)).rejects.toThrow("positive integer");
+    expect(fetchFn).not.toHaveBeenCalled();
+  });
 });

@@ -4,6 +4,7 @@ export const SEARCH_CODEBASE_TOOL_NAME = "search_codebase";
 export const BROWSE_TOOL_NAME = "browse";
 export const SEARCH_ISSUES_TOOL_NAME = "search_github_issues";
 export const CREATE_ISSUE_TOOL_NAME = "create_github_issue";
+export const ADD_ISSUE_COMMENT_TOOL_NAME = "add_github_issue_comment";
 
 // Each web search pulls ~20k tokens of results into context; cap per question
 const WEB_SEARCH_MAX_USES = 2;
@@ -146,6 +147,33 @@ const CREATE_ISSUE_TOOL: Anthropic.Beta.BetaTool = {
   strict: true,
 };
 
+const ADD_ISSUE_COMMENT_TOOL: Anthropic.Beta.BetaTool = {
+  name: ADD_ISSUE_COMMENT_TOOL_NAME,
+  description:
+    "Add a follow-up comment to an existing open issue that you filed from this chat (labelled from-chat) in Vibe Chat's own GitHub repository. " +
+    "Only call this when a participant explicitly asks you to add context, a correction or new details to an existing issue - use search_github_issues to find its number first. " +
+    "Prefer this over filing a duplicate when a matching from-chat issue is open. Pull requests, closed issues and issues filed by others are refused. " +
+    "Write only the new information; the app adds who asked and labels it as from @Chat. " +
+    "One comment per question at most; there is also a global hourly limit. Returns the comment's URL.",
+  input_schema: {
+    type: "object",
+    properties: {
+      issue_number: {
+        type: "integer",
+        description: "Number of the issue to comment on, e.g. 317.",
+      },
+      comment: {
+        type: "string",
+        description:
+          "The comment in Markdown: the added context or correction, drawn from the conversation. Don't paste the chat.",
+      },
+    },
+    required: ["issue_number", "comment"],
+    additionalProperties: false,
+  },
+  strict: true,
+};
+
 // Fixed order: tools render first in the prompt, so a stable list keeps the
 // prompt-cache prefix stable
 export const AGENT_TOOLS: Anthropic.Beta.BetaToolUnion[] = [
@@ -159,4 +187,5 @@ export const AGENT_TOOLS_WITH_ISSUES: Anthropic.Beta.BetaToolUnion[] = [
   ...AGENT_TOOLS,
   SEARCH_ISSUES_TOOL,
   CREATE_ISSUE_TOOL,
+  ADD_ISSUE_COMMENT_TOOL,
 ];

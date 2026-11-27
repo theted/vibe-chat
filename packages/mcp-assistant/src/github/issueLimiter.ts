@@ -1,12 +1,12 @@
 /**
- * In-memory sliding-window cap on issues filed. Process-local: a restart
- * forgets recent filings, which at worst allows one extra burst - accepted
- * over adding Redis to this package.
+ * In-memory sliding-window cap on issues filed (and, with its own limits,
+ * comments posted). Process-local: a restart forgets recent actions, which
+ * at worst allows one extra burst - accepted over adding Redis to this package.
  */
 
 import { ISSUE_CREATE_LIMITS } from "./constants.js";
 
-type IssueLimit = { windowMs: number; maxIssues: number };
+type IssueLimit = { windowMs: number; maxCount: number };
 
 /** A full window, and how long until it has room again. */
 export type IssueLimitBlock = { retryAfterMs: number; limit: IssueLimit };
@@ -19,7 +19,7 @@ export const checkIssueLimits = (
 ): IssueLimitBlock | null => {
   for (const limit of [...limits].sort((a, b) => b.windowMs - a.windowMs)) {
     const inWindow = filedAt.filter((time) => now - time < limit.windowMs);
-    if (inWindow.length >= limit.maxIssues) {
+    if (inWindow.length >= limit.maxCount) {
       const oldest = Math.min(...inWindow);
       return { retryAfterMs: oldest + limit.windowMs - now, limit };
     }

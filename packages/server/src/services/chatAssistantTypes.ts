@@ -23,6 +23,7 @@ export type MCPAnswer = {
   contexts?: VectorContext[];
   toolCalls?: string[];
   issuesFiled?: { number: number; url: string }[];
+  issueComments?: { issueNumber: number; url: string }[];
   error?: Error | null;
 };
 
