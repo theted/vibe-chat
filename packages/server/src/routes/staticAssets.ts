@@ -19,6 +19,7 @@ export const registerStaticAssets = (app: Express): void => {
     if (
       req.path.startsWith("/api") ||
       req.path === "/health" ||
+      req.path.startsWith("/health/") ||
       req.path.startsWith("/socket.io")
     ) {
       return next();

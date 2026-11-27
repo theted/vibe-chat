@@ -1,0 +1,38 @@
+# CloudWatch Logs override — layered on top of the EC2 override:
+#   docker compose -f docker-compose.base.yml -f docker-compose.ec2.yml -f docker-compose.cloudwatch.yml --env-file .env up -d
+#
+# Ships every container's output to the log group from
+# deploy/monitoring/monitoring.yml instead of rotating json-file logs that
+# only live on the box. `docker logs` still works: Docker keeps a local copy.
+#
+# Opt-in: the deploy adds this file only when .env has CLOUDWATCH_LOGS=true.
+# The awslogs driver refuses to start a container until the instance role may
+# write the log group, so turn it on after the role is in place.
+
+x-cloudwatch-logging: &cloudwatch-logging
+  driver: awslogs
+  options:
+    # Must match LogGroupName in deploy/monitoring/monitoring.yml. The region
+    # comes from instance metadata.
+    awslogs-group: /vibe-chat/prod
+    # One stream per container name, so redeploys keep writing to the same one
+    tag: "{{.Name}}"
+    # Buffer rather than block the app's stdout when CloudWatch is slow
+    mode: non-blocking
+    max-buffer-size: 4m
+
+services:
+  redis:
+    logging: *cloudwatch-logging
+
+  chroma:
+    logging: *cloudwatch-logging
+
+  ai-chat-server:
+    logging: *cloudwatch-logging
+
+  ai-chat-client:
+    logging: *cloudwatch-logging
+
+  nginx:
+    logging: *cloudwatch-logging

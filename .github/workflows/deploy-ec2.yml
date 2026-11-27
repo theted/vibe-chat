@@ -33,7 +33,12 @@ jobs:
             cd /opt/vibe-chat
             git fetch origin
             git checkout ${{ env.DEPLOY_SHA }}
-            docker compose -f docker-compose.base.yml -f docker-compose.ec2.yml --env-file .env up -d --build
+            COMPOSE_FILES="-f docker-compose.base.yml -f docker-compose.ec2.yml"
+            # Log shipping is opt-in until the instance role exists (see docker-compose.cloudwatch.yml)
+            if grep -qx 'CLOUDWATCH_LOGS=true' .env; then
+              COMPOSE_FILES="$COMPOSE_FILES -f docker-compose.cloudwatch.yml"
+            fi
+            docker compose $COMPOSE_FILES --env-file .env up -d --build
             docker image prune -f
 
   deploy-frontend:

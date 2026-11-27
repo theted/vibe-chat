@@ -56,6 +56,78 @@ describe("server routes integration", () => {
     });
   });
 
+  it("reports ok on detailed health when no dependency is down", async () => {
+    const app = createTestApp();
+    app.use(
+      createHealthRouter({
+        checks: {
+          redis: async () => ({ status: "up", latencyMs: 1 }),
+          chroma: async () => ({ status: "disabled" }),
+        },
+      }),
+    );
+
+    await withServer(app, async (baseUrl) => {
+      const response = await fetch(`${baseUrl}/health/detailed`);
+      const body = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(body.status).toBe("ok");
+      expect(body.checks).toEqual({
+        redis: { status: "up", latencyMs: 1 },
+        chroma: { status: "disabled" },
+      });
+    });
+  });
+
+  it("answers 503 on detailed health when a dependency is down", async () => {
+    const app = createTestApp();
+    app.use(
+      createHealthRouter({
+        checks: {
+          redis: async () => ({ status: "up", latencyMs: 1 }),
+          chroma: async () => ({ status: "down", error: "unreachable" }),
+        },
+      }),
+    );
+
+    await withServer(app, async (baseUrl) => {
+      const response = await fetch(`${baseUrl}/health/detailed`);
+      const body = await response.json();
+
+      expect(response.status).toBe(503);
+      expect(body.status).toBe("unhealthy");
+      expect(body.checks.chroma).toEqual({
+        status: "down",
+        error: "unreachable",
+      });
+    });
+  });
+
+  it("counts a check that throws as down", async () => {
+    const app = createTestApp();
+    app.use(
+      createHealthRouter({
+        checks: {
+          redis: async () => {
+            throw new Error("boom");
+          },
+        },
+      }),
+    );
+
+    await withServer(app, async (baseUrl) => {
+      const response = await fetch(`${baseUrl}/health/detailed`);
+      const body = await response.json();
+
+      expect(response.status).toBe(503);
+      expect(body.checks.redis).toEqual({
+        status: "down",
+        error: "check failed",
+      });
+    });
+  });
+
   it("returns stats when socket controller is ready", async () => {
     const app = createTestApp();
     const statsPayload = { activeRooms: 2, activeUsers: 4 };
