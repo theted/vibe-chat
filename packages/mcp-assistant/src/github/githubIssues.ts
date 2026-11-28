@@ -1,6 +1,6 @@
 /**
- * Minimal GitHub REST client for the one repo @Chat files issues in: search
- * and create, nothing else. The token should be a fine-grained one with
+ * Minimal GitHub REST client for the one repo @Chat files issues in: search,
+ * create, read one and comment, nothing else. The token should be a fine-grained one with
  * only "Issues: read and write" on that repo.
  */
 
@@ -20,6 +20,28 @@ export type FoundIssue = {
 
 export type CreatedIssue = { number: number; title: string; url: string };
 
+/** What the comment tool needs to know before it may post on an issue. */
+export type IssueDetails = {
+  number: number;
+  title: string;
+  state: string;
+  labels: string[];
+  /** GitHub serves PRs from the issues endpoint too */
+  isPullRequest: boolean;
+  url: string;
+};
+
+export type PostedComment = { issueNumber: number; url: string };
+
+type IssueResponse = {
+  number: number;
+  title: string;
+  state: string;
+  html_url: string;
+  labels: (string | { name?: string })[];
+  pull_request?: unknown;
+};
+
 type FetchFn = typeof fetch;
 
 export class GitHubIssuesError extends Error {
@@ -33,6 +55,15 @@ export class GitHubIssuesError extends Error {
 }
 
 const REPO_PATTERN = /^[\w.-]+\/[\w.-]+$/;
+
+// Goes into the request path, so anything but a plain number is refused
+const assertIssueNumber = (issueNumber: number): void => {
+  if (!Number.isSafeInteger(issueNumber) || issueNumber < 1) {
+    throw new Error(
+      `Issue number must be a positive integer, got ${issueNumber}`,
+    );
+  }
+};
 
 export class GitHubIssuesClient {
   constructor(
@@ -102,6 +133,34 @@ export class GitHubIssuesClient {
       title: created.title,
       url: created.html_url,
     };
+  }
+
+  /** One issue (or PR) by number; a missing one throws a 404 GitHubIssuesError. */
+  async get(issueNumber: number): Promise<IssueDetails> {
+    assertIssueNumber(issueNumber);
+    const issue = await this.request<IssueResponse>(
+      `/repos/${this.repo}/issues/${issueNumber}`,
+    );
+    return {
+      number: issue.number,
+      title: issue.title,
+      state: issue.state,
+      labels: issue.labels.flatMap((label) =>
+        typeof label === "string" ? [label] : label.name ? [label.name] : [],
+      ),
+      isPullRequest: Boolean(issue.pull_request),
+      url: issue.html_url,
+    };
+  }
+
+  async comment(issueNumber: number, body: string): Promise<PostedComment> {
+    assertIssueNumber(issueNumber);
+    if (!body.trim()) throw new Error("A comment needs a non-empty body");
+    const posted = await this.request<{ html_url: string }>(
+      `/repos/${this.repo}/issues/${issueNumber}/comments`,
+      { method: "POST", body: JSON.stringify({ body }) },
+    );
+    return { issueNumber, url: posted.html_url };
   }
 
   private async request<T>(path: string, init: RequestInit = {}): Promise<T> {

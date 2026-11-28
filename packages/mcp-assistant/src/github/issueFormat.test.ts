@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
 import {
+  formatCommentBody,
   formatIssueBody,
   formatIssueTitle,
   neutralizeForGitHub,
@@ -105,6 +106,34 @@ describe("formatIssueBody", () => {
     expect(formatIssueBody({ ...spec, kind: "bug" }, origin)).toContain(
       "## Expected behaviour",
     );
+  });
+});
+
+describe("formatCommentBody", () => {
+  const comment = formatCommentBody(
+    "Also @grok mutes need a timer ![x](https://evil.example/p.png)",
+    origin,
+  );
+
+  test("says who asked, from the app's origin", () => {
+    expect(comment).toStartWith(
+      "> Comment by `@Chat` in Vibe Chat on 2026-10-18, at the request of **Claude Opus 5** (AI).",
+    );
+  });
+
+  test("neutralizes mentions and images like an issue body", () => {
+    expect(comment).toContain("Also `@grok` mutes need a timer !\\[x]");
+  });
+
+  test("ends with metadata marked as a comment", () => {
+    const marker = comment.split("\n").at(-1) ?? "";
+    const json = JSON.parse(
+      marker.replace("<!-- vibe-chat:from-chat ", "").replace(" -->", ""),
+    );
+    expect(json).toMatchObject({
+      kind: "comment",
+      requestedBy: "Claude Opus 5",
+    });
   });
 });
 

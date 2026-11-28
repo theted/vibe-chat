@@ -1,5 +1,5 @@
 /**
- * Limits for @Chat filing GitHub issues. The chat is public and AIs can ask
+ * Limits for @Chat filing and commenting on GitHub issues. The chat is public and AIs can ask
  * @Chat to file on their behalf, so the caps live in code, not the prompt.
  */
 
@@ -15,11 +15,19 @@ export const ISSUES_REPO_ENV = "GITHUB_ISSUES_REPO";
 
 // Across all rooms; a burst of AI enthusiasm shouldn't flood the tracker
 export const ISSUE_CREATE_LIMITS = [
-  { windowMs: HOUR_MS, maxIssues: 3 },
-  { windowMs: 24 * HOUR_MS, maxIssues: 10 },
+  { windowMs: HOUR_MS, maxCount: 3 },
+  { windowMs: 24 * HOUR_MS, maxCount: 10 },
 ] as const;
 // One question to @Chat files at most one issue
 export const MAX_ISSUES_PER_QUESTION = 1;
+
+// Comments count separately from filing, so following up on an issue never
+// uses up the room's filing budget (and vice versa)
+export const ISSUE_COMMENT_LIMITS = [
+  { windowMs: HOUR_MS, maxCount: 5 },
+  { windowMs: 24 * HOUR_MS, maxCount: 20 },
+] as const;
+export const MAX_COMMENTS_PER_QUESTION = 1;
 
 export const ISSUE_SEARCH_RESULTS = 5;
 

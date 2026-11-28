@@ -61,9 +61,12 @@ export const createChatAssistantResponse = async (
       issueContext: options.issueContext,
     });
     const filed = result.issuesFiled?.map(({ number }) => `#${number}`) ?? [];
+    const commented =
+      result.issueComments?.map(({ issueNumber }) => `#${issueNumber}`) ?? [];
     console.info(
       `[ChatAssistant] Answered with tools [${result.toolCalls?.join(", ") ?? ""}]` +
-        (filed.length ? `, filed ${filed.join(", ")}` : ""),
+        (filed.length ? `, filed ${filed.join(", ")}` : "") +
+        (commented.length ? `, commented on ${commented.join(", ")}` : ""),
     );
 
     const contexts = result.contexts ?? [];

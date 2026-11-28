@@ -18,12 +18,14 @@ import type { ErrorWithCode } from "./chroma.js";
 import { createEmbedder } from "./embeddings.js";
 import {
   DEFAULT_ISSUES_REPO,
+  ISSUE_COMMENT_LIMITS,
   ISSUES_REPO_ENV,
   ISSUES_TOKEN_ENV,
 } from "./github/constants.js";
 import {
   type CreatedIssue,
   GitHubIssuesClient,
+  type PostedComment,
 } from "./github/githubIssues.js";
 import { IssueLimiter } from "./github/issueLimiter.js";
 import type { IssueToolContext } from "./tools/issueTools.js";
@@ -56,7 +58,7 @@ type ChatHistoryMessage = {
 /** Where a question came from, for the issue tools. Supplied by the server. */
 export type IssueRequestContext = {
   roomId: string;
-  /** False in private rooms: their conversation mustn't end up in a public issue */
+  /** False in private rooms: their conversation mustn't end up in a public issue or comment */
   canFileIssues: boolean;
   requesterType: "human" | "ai";
   /** The room's latest messages, quoted in any issue filed */
@@ -84,6 +86,7 @@ type AnswerResult = {
   contexts: AnswerContext[];
   toolCalls: string[];
   issuesFiled: CreatedIssue[];
+  issueComments: PostedComment[];
 };
 
 const toHistoryLines = (chatHistory: ChatHistoryMessage[]): HistoryLine[] =>
@@ -110,17 +113,26 @@ const normalizeHistory = (chatHistory: ChatHistoryMessage[]): HistoryLine[] =>
   toHistoryLines(chatHistory).slice(-CHAT_HISTORY_LIMIT);
 
 /**
- * The room must get the link to anything filed, even if the model's answer
- * forgot it or came back empty.
+ * The room must get the link to anything filed or commented, even if the
+ * model's answer forgot it or came back empty.
  */
 export const ensureIssueLinks = (
   answer: string,
   issues: CreatedIssue[],
+  comments: PostedComment[] = [],
 ): string => {
-  const missing = issues.filter(({ url }) => !answer.includes(url));
-  if (missing.length === 0) return answer;
-  const links = missing.map(({ number, url }) => `Filed #${number}: ${url}`);
-  return [answer, ...links].filter(Boolean).join("\n");
+  const links = [
+    ...issues.map(({ number, url }) => ({
+      url,
+      line: `Filed #${number}: ${url}`,
+    })),
+    ...comments.map(({ issueNumber, url }) => ({
+      url,
+      line: `Commented on #${issueNumber}: ${url}`,
+    })),
+  ].filter(({ url }) => !answer.includes(url));
+  if (links.length === 0) return answer;
+  return [answer, ...links.map(({ line }) => line)].filter(Boolean).join("\n");
 };
 
 /**
@@ -164,7 +176,10 @@ export class ChatAssistantEngine {
   model: string;
   codebase: CodebaseSearch;
   client: Anthropic;
-  issues: Pick<IssueToolContext, "client" | "limiter"> | null;
+  issues: Pick<
+    IssueToolContext,
+    "client" | "limiter" | "commentLimiter"
+  > | null;
 
   constructor(options: ChatAssistantEngineOptions = {}) {
     const {
@@ -199,6 +214,7 @@ export class ChatAssistantEngine {
       ? {
           client: new GitHubIssuesClient(githubIssuesToken, issuesRepo),
           limiter: new IssueLimiter(),
+          commentLimiter: new IssueLimiter(ISSUE_COMMENT_LIMITS),
         }
       : null;
   }
@@ -223,7 +239,7 @@ export class ChatAssistantEngine {
             model: this.model,
           }
         : null;
-    return { ...this.issues, origin, filed: [] };
+    return { ...this.issues, origin, filed: [], commented: [] };
   }
 
   /** True if the index exists; throws E_VECTOR_STORE_UNAVAILABLE when Chroma is down. */
@@ -244,26 +260,28 @@ export class ChatAssistantEngine {
     question: string,
     { chatHistory = [], askedBy, issueContext }: AnswerQuestionOptions = {},
   ): Promise<AnswerResult> {
-    const { answer, snippets, toolCalls, issuesFiled } = await runChatAgent(
-      {
-        question: question.trim(),
-        askedBy,
-        history: normalizeHistory(chatHistory),
-      },
-      {
-        client: this.client,
-        model: this.model,
-        tools: {
-          codebase: this.codebase,
-          issues: this.buildIssueTools(askedBy, issueContext),
+    const { answer, snippets, toolCalls, issuesFiled, issueComments } =
+      await runChatAgent(
+        {
+          question: question.trim(),
+          askedBy,
+          history: normalizeHistory(chatHistory),
         },
-      },
-    );
+        {
+          client: this.client,
+          model: this.model,
+          tools: {
+            codebase: this.codebase,
+            issues: this.buildIssueTools(askedBy, issueContext),
+          },
+        },
+      );
     return {
-      answer: ensureIssueLinks(answer, issuesFiled),
+      answer: ensureIssueLinks(answer, issuesFiled, issueComments),
       contexts: selectCitedSources(answer, snippets),
       toolCalls,
       issuesFiled,
+      issueComments,
     };
   }
 }

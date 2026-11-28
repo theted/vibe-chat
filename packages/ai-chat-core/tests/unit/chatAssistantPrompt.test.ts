@@ -42,6 +42,7 @@ describe("@Chat section in the system prompt", () => {
     expect(prompt).toContain("code and config");
     expect(prompt).toContain("GitHub issues");
     expect(prompt).toContain("files a new one when someone explicitly asks");
+    expect(prompt).toContain("comments on issues it filed");
     expect(prompt).toContain("web");
     expect(prompt).toContain("optional, but encouraged");
     expect(prompt).toContain("never repeat a question");
@@ -52,6 +53,7 @@ describe("@Chat section in the system prompt", () => {
 
     expect(prompt).toContain("it can't file issues from a private chat");
     expect(prompt).not.toContain("files a new one");
+    expect(prompt).not.toContain("comments on issues");
   });
 
   it("stays the same from turn to turn", () => {

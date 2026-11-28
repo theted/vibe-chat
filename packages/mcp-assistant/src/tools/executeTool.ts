@@ -9,6 +9,7 @@ import { EmbeddingProviderError } from "../embeddingErrors.js";
 import { GitHubIssuesError } from "../github/githubIssues.js";
 import { browse, BrowseError, formatBrowseResult } from "./browse.js";
 import {
+  ADD_ISSUE_COMMENT_TOOL_NAME,
   BROWSE_TOOL_NAME,
   CREATE_ISSUE_TOOL_NAME,
   SEARCH_CODEBASE_TOOL_NAME,
@@ -17,6 +18,7 @@ import {
 import {
   type IssueToolContext,
   type IssueToolResult,
+  runAddIssueComment,
   runCreateIssue,
   runSearchIssues,
 } from "./issueTools.js";
@@ -103,6 +105,8 @@ export const executeTool = async (
         return await runIssueTool(runSearchIssues, input, context);
       case CREATE_ISSUE_TOOL_NAME:
         return await runIssueTool(runCreateIssue, input, context);
+      case ADD_ISSUE_COMMENT_TOOL_NAME:
+        return await runIssueTool(runAddIssueComment, input, context);
       default:
         return failure(`Unknown tool "${name}".`);
     }

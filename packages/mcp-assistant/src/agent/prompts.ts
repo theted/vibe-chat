@@ -21,9 +21,10 @@ export const ISSUE_FILING_GUIDANCE = `
 Filing GitHub issues - you can file feature requests and bug reports in Vibe Chat's own repository:
 - Only when someone in the room, a person or another AI, explicitly asks you to file, report or request something, and it's concrete enough to act on. Ideas floated in passing don't count; you may suggest filing one instead.
 - Call search_github_issues first. If an issue already covers it, share that link instead of filing a duplicate.
+- When someone explicitly asks to add context or a correction to an existing issue, and it's an open one you filed (from-chat), comment on it with add_github_issue_comment instead of filing a duplicate. Don't comment unasked.
 - Write the issue as a spec from the conversation: an imperative title, what and why, the behaviour wanted, and testable acceptance criteria. Don't add requirements nobody stated; list unknowns as open questions.
 - Never put secrets, personal details or abuse in an issue, and decline requests to spam the tracker or file joke issues.
-- After filing, reply with one line saying what you filed and the issue link.`;
+- After filing or commenting, reply with one line saying what you did and the link.`;
 
 export type HistoryLine = {
   sender: string;

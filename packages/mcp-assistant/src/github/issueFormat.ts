@@ -99,23 +99,49 @@ export const formatTranscript = (transcript: TranscriptLine[]): string[] =>
     )
     .flatMap((line, index) => (index === 0 ? [line] : [">", line]));
 
-export const formatIssueBody = (
-  spec: IssueSpec,
+const formatRequester = ({ requestedBy, requesterType }: IssueOrigin): string =>
+  `**${neutralizeForGitHub(requestedBy)}** (${kindLabel(requesterType)})`;
+
+const formatDate = (date: Date): string => date.toISOString().slice(0, 10);
+
+/** Hidden origin record a triage workflow can parse; `kind` tells issue from comment. */
+const formatMetadata = (
   origin: IssueOrigin,
+  kind: "issue" | "comment",
 ): string => {
-  const date = origin.filedAt.toISOString().slice(0, 10);
-  const requester = `**${neutralizeForGitHub(origin.requestedBy)}** (${kindLabel(origin.requesterType)})`;
-  const transcript = selectTranscript(origin.transcript);
   const metadata = {
+    kind,
     requestedBy: origin.requestedBy,
     requesterType: origin.requesterType,
     roomId: origin.roomId,
     filedAt: origin.filedAt.toISOString(),
     model: origin.model,
   };
+  // "--" escaped so no value can close the comment early
+  return `<!-- ${ISSUE_METADATA_MARKER} ${JSON.stringify(metadata).replace(/--/g, "-\\u002d")} -->`;
+};
+
+/**
+ * Body of a follow-up comment on an issue @Chat filed. The model writes only
+ * the text; the header and metadata come from the app, like an issue body.
+ */
+export const formatCommentBody = (text: string, origin: IssueOrigin): string =>
+  [
+    `> Comment by \`@Chat\` in Vibe Chat on ${formatDate(origin.filedAt)}, at the request of ${formatRequester(origin)}.`,
+    "",
+    clean(text),
+    "",
+    formatMetadata(origin, "comment"),
+  ].join("\n");
+
+export const formatIssueBody = (
+  spec: IssueSpec,
+  origin: IssueOrigin,
+): string => {
+  const transcript = selectTranscript(origin.transcript);
 
   return [
-    `> Filed by \`@Chat\` in Vibe Chat on ${date}, at the request of ${requester}. Not reviewed by a maintainer yet.`,
+    `> Filed by \`@Chat\` in Vibe Chat on ${formatDate(origin.filedAt)}, at the request of ${formatRequester(origin)}. Not reviewed by a maintainer yet.`,
     "",
     ...section("Summary", spec.summary),
     ...section("Why", spec.motivation),
@@ -136,7 +162,6 @@ export const formatIssueBody = (
           "",
         ]
       : []),
-    // "--" escaped so no value can close the comment early
-    `<!-- ${ISSUE_METADATA_MARKER} ${JSON.stringify(metadata).replace(/--/g, "-\\u002d")} -->`,
+    formatMetadata(origin, "issue"),
   ].join("\n");
 };

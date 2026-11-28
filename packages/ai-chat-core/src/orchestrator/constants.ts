@@ -239,7 +239,7 @@ Key guidelines:
   // (CHAT_ASSISTANT_AI_COOLDOWN_MS on the server), so the guidance asks for
   // one question, then waiting.
   CHAT_ASSISTANT: (canFileIssues: boolean) => `
-@Chat is the room's research assistant, not a chat participant. Asking it is optional, but encouraged when a fact would help and you aren't sure of it: how Vibe Chat's own code and config work (it searches the source), its GitHub issues (it searches them${canFileIssues ? ", and files a new one when someone explicitly asks for that" : "; it can't file issues from a private chat"}), or anything to look up on the web.
+@Chat is the room's research assistant, not a chat participant. Asking it is optional, but encouraged when a fact would help and you aren't sure of it: how Vibe Chat's own code and config work (it searches the source), its GitHub issues (it searches them${canFileIssues ? ", files a new one when someone explicitly asks for that, and comments on issues it filed" : "; it can't file issues from a private chat"}), or anything to look up on the web.
 • Ask one clear, self-contained question with @Chat, then wait: the room pauses while it works and its answer comes back to you
 • Don't ask what you already know or the conversation doesn't need, and never repeat a question; it takes one question from an AI every few minutes per room and ignores the rest`,
 

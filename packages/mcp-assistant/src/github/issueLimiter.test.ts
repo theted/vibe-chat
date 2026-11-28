@@ -4,8 +4,8 @@ import { checkIssueLimits, IssueLimiter } from "./issueLimiter";
 
 const HOUR = 3_600_000;
 const limits = [
-  { windowMs: HOUR, maxIssues: 2 },
-  { windowMs: 24 * HOUR, maxIssues: 3 },
+  { windowMs: HOUR, maxCount: 2 },
+  { windowMs: 24 * HOUR, maxCount: 3 },
 ];
 
 describe("checkIssueLimits", () => {
