@@ -122,9 +122,7 @@ describe("ChatMessage", () => {
       timestamp: Date.now(),
     };
 
-    render(
-      <ChatMessage message={message} participants={[{ username: "Skylar" }]} />,
-    );
+    render(<ChatMessage message={message} participantMentions={["Skylar"]} />);
 
     const mention = screen.getByText("@Skylar");
     expect(mention).toHaveClass("mention-chip");

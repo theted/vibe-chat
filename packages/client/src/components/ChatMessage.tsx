@@ -20,24 +20,20 @@ import type { ChatMessageProps } from "@/types";
 // while hidden so an invisible button can't start a reply by accident
 const REPLY_BUTTON_CLASSES =
   "pointer-events-none absolute -top-3 right-4 z-10 flex h-7 w-7 items-center justify-center rounded-md border border-line bg-raised text-muted opacity-0 shadow-sm transition-opacity hover:text-fg focus-visible:pointer-events-auto focus-visible:opacity-100 group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100";
+const NO_PARTICIPANT_MENTIONS: string[] = [];
 const BODY_CLASSES =
   "markdown-content text-[15px] leading-relaxed text-fg break-words";
 
 const ChatMessage = ({
   message,
   aiParticipants = [],
-  participants = [],
+  participantMentions = NO_PARTICIPANT_MENTIONS,
   quotedMessage,
   isContinuation = false,
   onReply,
   onJumpToMessage,
   isHighlighted = false,
 }: ChatMessageProps) => {
-  const participantMentions = useMemo(
-    () => participants.map((participant) => participant.username),
-    [participants],
-  );
-
   const { senderName, senderEmoji, voiceKey } = useAIMetadata(
     message,
     aiParticipants,
